@@ -117,6 +117,26 @@ window.ICC_CONST = {
   FACTURADO_POR: { ICC: "ICC", ELITE_ENERGY: "Elite Energy", EVOLVIX_GLOBAL: "Evolvix Global" },
   ESTADO_PAGO: { pagada: "Pagada", pendiente: "Pendiente" },
 
+  CATALOGOS_TARIFA: {
+    energia: "Energia (Luz y Gas)",
+    telefonia: "Telefonia e Internet",
+    alarmas: "Alarmas y Seguridad",
+    mercado: "Mercado (competencia)",
+  },
+
+  // Datos de la empresa que aparecen en los informes PDF del Comparador.
+  // El telefono y el email se sustituyen por los del gestor que genera la
+  // auditoria cuando los tiene rellenos en su ficha.
+  EMPRESA: {
+    name: "Integral Connection Consulting",
+    phone: "",
+    email: "info@integralconnectionconsulting.es",
+    whatsapp: "",
+  },
+
+  // Logos opcionales de compañias para el PDF: { endesa: "assets/companias/endesa.png", ... }
+  LOGOS_COMPANIAS: {},
+
   COMPARADOR_SECTORES: {
     energia: "Energia (Luz y Gas)",
     telefonia: "Telefonia e Internet",

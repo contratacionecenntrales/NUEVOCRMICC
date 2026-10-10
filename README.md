@@ -183,6 +183,16 @@ propio CRM — ya no hace falta volver a tocar la base de datos a mano.
    fallidos e historial completo de la cuenta. Las cuentas nuevas creadas
    desde Agentes deben cambiar la contraseña provisional al entrar.
    Mientras no importes esta migración el CRM sigue funcionando igual.
+   Para el **Comparador y Auditor Inteligente** (menú Comparador), importa
+   también `sql/migracion_comparador_auditor.sql` (una sola vez). Cada
+   gestor audita la factura de un cliente del CRM (Energía, Telefonía,
+   Alarmas o Pack Integral, o la Auditoría de Telecomunicaciones avanzada
+   contra las operadoras de mercado), descarga el informe PDF y la
+   auditoría queda guardada en la ficha del cliente y en el histórico
+   (cada uno ve las de su cartera/equipo). El motor de cálculo y los PDF
+   están en `js/comparador_motor.js` (generado desde el proyecto
+   integral-connection-comparador) y las pantallas en `js/comparador.js`.
+   Los datos de empresa de los PDF se editan en `js/config.js` (EMPRESA).
    Si te falta la sección "Presupuestos", importa también
    `sql/migracion_presupuestos.sql` (añade el tipo de cliente
    Residencial/Empresa/Prime y la tabla de presupuestos por sector), y

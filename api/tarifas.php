@@ -60,6 +60,16 @@ const ICC_CATALOGOS = [
     'enteros' => ['num_camaras', 'num_sensores', 'num_mandos', 'permanencia_meses'],
     'listas' => ['equipamiento'],
   ],
+  // Operadoras de mercado (competencia) para la Auditoria de Telecomunicaciones.
+  'mercado' => [
+    'tabla' => 'tarifa_mercado',
+    'orden' => 'cuota_mensual',
+    'columnas' => ['operador', 'cuota_mensual', 'promocion', 'valoracion', 'caracteristicas', 'recomendada', 'activo'],
+    'booleanos' => ['recomendada', 'activo'],
+    'numericos' => ['cuota_mensual'],
+    'enteros' => [],
+    'listas' => [],
+  ],
 ];
 
 function icc_tarifa_normalizar(array $fila, array $def): array {
@@ -90,7 +100,7 @@ function icc_tarifa_serializar_lista($valor): ?string {
 
 $catalogo = $_GET['catalogo'] ?? '';
 if (!isset(ICC_CATALOGOS[$catalogo])) {
-  icc_json(['error' => 'Catalogo no valido. Usa energia, telefonia o alarmas.'], 400);
+  icc_json(['error' => 'Catalogo no valido. Usa energia, telefonia, alarmas o mercado.'], 400);
 }
 $def = ICC_CATALOGOS[$catalogo];
 $tabla = $def['tabla'];
@@ -99,7 +109,14 @@ $db = icc_db();
 if ($metodo === 'GET') {
   $soloActivas = ($_GET['soloActivas'] ?? '1') !== '0';
   $sql = "SELECT * FROM `$tabla`" . ($soloActivas ? ' WHERE activo = 1' : '') . ' ORDER BY `' . $def['orden'] . '` ASC';
-  $filas = $db->query($sql)->fetchAll();
+  try {
+    $filas = $db->query($sql)->fetchAll();
+  } catch (PDOException $e) {
+    if ($catalogo === 'mercado') {
+      icc_json(['error' => 'Falta importar sql/migracion_comparador_auditor.sql (catalogo de operadoras de mercado)'], 409);
+    }
+    throw $e;
+  }
   icc_json(['tarifas' => array_map(fn($f) => icc_tarifa_normalizar($f, $def), $filas)]);
 }
 

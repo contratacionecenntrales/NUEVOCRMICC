@@ -263,6 +263,20 @@ window.icc.data = (function () {
     return data.auditorias;
   }
 
+  async function historialAuditorias(filtros) {
+    var qs = new URLSearchParams(filtros || {}).toString();
+    return API.get("api/comparador_auditorias.php" + (qs ? "?" + qs : ""));
+  }
+
+  async function obtenerAuditoriaComparador(id) {
+    var data = await API.get("api/comparador_auditorias.php?id=" + encodeURIComponent(id));
+    return data.auditoria;
+  }
+
+  async function borrarAuditoriaComparador(id) {
+    await API.del("api/comparador_auditorias.php?id=" + encodeURIComponent(id));
+  }
+
   async function guardarAuditoriaComparador(payload) {
     var data = await API.post("api/comparador_auditorias.php", payload);
     return data.id;
@@ -401,6 +415,9 @@ window.icc.data = (function () {
     borrarTarifa: borrarTarifa,
     listarAuditoriasComparador: listarAuditoriasComparador,
     guardarAuditoriaComparador: guardarAuditoriaComparador,
+    historialAuditorias: historialAuditorias,
+    obtenerAuditoriaComparador: obtenerAuditoriaComparador,
+    borrarAuditoriaComparador: borrarAuditoriaComparador,
     listarPresupuestos: listarPresupuestos,
     obtenerPresupuesto: obtenerPresupuesto,
     crearPresupuesto: crearPresupuesto,

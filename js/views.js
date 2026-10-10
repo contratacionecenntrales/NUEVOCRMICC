@@ -954,11 +954,11 @@ window.icc.views = (function () {
       renderPresupuestosCliente(presupuestos) +
       "</section>" +
       '<section class="icc-card">' +
-      "<h2>Comparador de ahorro</h2>" +
+      "<h2>Auditorías del Comparador</h2>" +
       '<div class="icc-doc-actions">' +
-      '<button class="icc-btn icc-btn-secondary" id="btn-nueva-comparativa">+ Nueva comparativa</button>' +
+      '<button class="icc-btn icc-btn-secondary" id="btn-nueva-comparativa">+ Nueva auditoría de factura</button>' +
       "</div>" +
-      renderAuditoriasComparador(auditoriasComparador) +
+      window.icc.comparador.listaAuditoriasCliente(auditoriasComparador) +
       "</section>" +
       '<section class="icc-card">' +
       "<h2>Firmas registradas</h2>" +
@@ -1015,18 +1015,8 @@ window.icc.views = (function () {
     });
 
     document.getElementById("btn-nueva-comparativa").addEventListener("click", function () {
-      modalNuevaComparativa(cliente);
+      window.icc.comparador.modalNuevaAuditoriaCliente(cliente);
     });
-
-    main()
-      .querySelectorAll("[data-ver-comparativa-id]")
-      .forEach(function (btn) {
-        btn.addEventListener("click", function () {
-          var id = btn.getAttribute("data-ver-comparativa-id");
-          var auditoria = auditoriasComparador.filter(function (a) { return String(a.id) === id; })[0];
-          if (auditoria) generarPdfComparativa(cliente, auditoria.sector, auditoria.datos_entrada, auditoria.resultado);
-        });
-      });
   }
 
   function renderPresupuestosCliente(presupuestos) {
@@ -1165,61 +1155,6 @@ window.icc.views = (function () {
       } catch (err) {
         U.toast(err.message || "No se pudo crear el presupuesto", "error");
       }
-    });
-  }
-
-  function renderAuditoriasComparador(auditorias) {
-    if (!auditorias || !auditorias.length) {
-      return '<p class="icc-empty">Aun no se ha generado ninguna comparativa para este cliente.</p>';
-    }
-    return (
-      '<ul class="icc-doc-list">' +
-      auditorias
-        .map(function (a) {
-          var ahorro = a.ahorro_anual != null ? U.formatEur(a.ahorro_anual) + "/año" : "";
-          var pct = a.ahorro_porcentaje != null ? " (" + Number(a.ahorro_porcentaje).toFixed(1) + "%)" : "";
-          return (
-            "<li><span>💡 " +
-            U.escapeHtml(C.COMPARADOR_SECTORES[a.sector] || a.sector) +
-            (ahorro ? " · Ahorro estimado " + ahorro + pct : "") +
-            "</span><span class=\"icc-muted\">" +
-            U.formatFechaHora(a.created_at) +
-            '</span><button type="button" class="icc-link-btn" data-ver-comparativa-id="' +
-            a.id +
-            '">Ver PDF</button></li>'
-          );
-        })
-        .join("") +
-      "</ul>"
-    );
-  }
-
-  function modalNuevaComparativa(cliente) {
-    U.openModal(
-      "<h2>Nueva comparativa</h2>" +
-      '<p class="icc-muted">Elige el sector que quieres auditar para ' + U.escapeHtml(cliente.razon_social) + ".</p>" +
-      '<div class="icc-form">' +
-      Object.keys(C.COMPARADOR_SECTORES)
-        .map(function (s) {
-          return (
-            '<button type="button" class="icc-btn icc-btn-secondary" style="width:100%;margin-bottom:8px" data-elegir-sector-comparador="' +
-            s +
-            '">' +
-            C.COMPARADOR_SECTORES[s] +
-            "</button>"
-          );
-        })
-        .join("") +
-      '<div class="icc-modal-actions">' +
-      '<button type="button" class="icc-btn icc-btn-ghost" data-close-btn>Cancelar</button>' +
-      "</div></div>"
-    );
-    document.querySelectorAll("[data-elegir-sector-comparador]").forEach(function (btn) {
-      btn.addEventListener("click", function () {
-        var sector = btn.getAttribute("data-elegir-sector-comparador");
-        U.closeModal();
-        location.hash = "#/comparador/nueva/" + cliente.id + "/" + sector;
-      });
     });
   }
 
@@ -3370,6 +3305,9 @@ window.icc.views = (function () {
 
   // -------------------------------------------------------------- Comparador
   var COMPARADOR_CATALOGOS = ["energia", "telefonia", "alarmas"];
+  // Catalogos editables en Comparador -> Tarifas ("mercado" = operadoras de la
+  // competencia para la Auditoria de Telecomunicaciones).
+  var TARIFA_CATALOGOS = ["energia", "telefonia", "alarmas", "mercado"];
 
   function campoNum(name, label, valor, opts) {
     opts = opts || {};
@@ -3404,9 +3342,16 @@ window.icc.views = (function () {
       main().innerHTML = '<p class="icc-empty">No tienes acceso a esta seccion.</p>';
       return;
     }
-    catalogoActivo = COMPARADOR_CATALOGOS.indexOf(catalogoActivo) >= 0 ? catalogoActivo : "energia";
+    catalogoActivo = TARIFA_CATALOGOS.indexOf(catalogoActivo) >= 0 ? catalogoActivo : "energia";
     main().innerHTML = '<div class="icc-loading">Cargando tarifas…</div>';
-    var tarifas = await D.listarTarifas(catalogoActivo, false);
+    var tarifas;
+    try {
+      tarifas = await D.listarTarifas(catalogoActivo, false);
+    } catch (err) {
+      main().innerHTML = '<p class="icc-empty">' + U.escapeHtml(err.message || "No se pudieron cargar las tarifas") + "</p>";
+      return;
+    }
+    var campoDestacada = catalogoActivo === "mercado" ? "recomendada" : "destacada";
 
     var columnas = {
       energia: [
@@ -3429,30 +3374,41 @@ window.icc.views = (function () {
         { k: "coste_instalacion", l: "Instalacion" },
         { k: "permanencia_meses", l: "Permanencia" },
       ],
+      mercado: [
+        { k: "operador", l: "Operadora" },
+        { k: "cuota_mensual", l: "€/mes" },
+        { k: "promocion", l: "Promocion" },
+        { k: "valoracion", l: "Valoracion" },
+      ],
     };
     var cols = columnas[catalogoActivo];
 
     main().innerHTML =
-      '<div class="icc-page-head"><h1>Comparador · Tarifas propias</h1>' +
+      '<div class="icc-page-head"><div><a href="#/comparador" class="icc-back">← Volver al Comparador</a>' +
+      "<h1>Comparador · " + (catalogoActivo === "mercado" ? "Operadoras de mercado" : "Tarifas propias") + "</h1>" +
+      (catalogoActivo === "mercado"
+        ? '<p class="icc-muted">Precios de la competencia que usa la Auditoría de Telecomunicaciones. La marcada como recomendada es la que se propone por defecto.</p>'
+        : "") +
+      "</div>" +
       '<button class="icc-btn icc-btn-primary" id="btn-nueva-tarifa">+ Nueva tarifa</button>' +
       "</div>" +
       '<div class="icc-tabs">' +
-      COMPARADOR_CATALOGOS.map(function (c) {
-        return '<a class="icc-tab' + (c === catalogoActivo ? " is-active" : "") + '" href="#/comparador/tarifas/' + c + '">' + C.COMPARADOR_SECTORES[c] + "</a>";
+      TARIFA_CATALOGOS.map(function (c) {
+        return '<a class="icc-tab' + (c === catalogoActivo ? " is-active" : "") + '" href="#/comparador/tarifas/' + c + '">' + C.CATALOGOS_TARIFA[c] + "</a>";
       }).join("") +
       "</div>" +
       '<div class="icc-card" style="margin-top:14px">' +
       (tarifas.length
         ? '<table class="icc-table"><thead><tr>' +
           cols.map(function (c) { return "<th>" + c.l + "</th>"; }).join("") +
-          "<th>Activa</th><th>Destacada</th><th></th></tr></thead><tbody>" +
+          "<th>Activa</th><th>" + (campoDestacada === "recomendada" ? "Recomendada" : "Destacada") + "</th><th></th></tr></thead><tbody>" +
           tarifas
             .map(function (t) {
               return (
                 "<tr>" +
                 cols.map(function (c) { return "<td>" + U.escapeHtml(String(t[c.k] != null ? t[c.k] : "-")) + "</td>"; }).join("") +
                 '<td><input type="checkbox" data-toggle-activo="' + t.id + '"' + (t.activo ? " checked" : "") + "></td>" +
-                '<td><input type="checkbox" data-toggle-destacada="' + t.id + '"' + (t.destacada ? " checked" : "") + "></td>" +
+                '<td><input type="checkbox" data-toggle-destacada="' + t.id + '"' + (t[campoDestacada] ? " checked" : "") + "></td>" +
                 '<td><button type="button" class="icc-link-btn" data-editar-tarifa-id="' + t.id + '">Editar</button> ' +
                 '<button type="button" class="icc-link-btn" style="color:var(--red)" data-borrar-tarifa-id="' + t.id + '">Borrar</button></td>' +
                 "</tr>"
@@ -3460,7 +3416,7 @@ window.icc.views = (function () {
             })
             .join("") +
           "</tbody></table>"
-        : '<p class="icc-empty">Sin tarifas en ' + C.COMPARADOR_SECTORES[catalogoActivo] + " todavia.</p>") +
+        : '<p class="icc-empty">Sin tarifas en ' + C.CATALOGOS_TARIFA[catalogoActivo] + " todavia.</p>") +
       "</div>";
 
     document.getElementById("btn-nueva-tarifa").addEventListener("click", function () {
@@ -3487,7 +3443,7 @@ window.icc.views = (function () {
     main().querySelectorAll("[data-toggle-activo], [data-toggle-destacada]").forEach(function (chk) {
       chk.addEventListener("change", async function () {
         var id = chk.getAttribute("data-toggle-activo") || chk.getAttribute("data-toggle-destacada");
-        var campo = chk.hasAttribute("data-toggle-activo") ? "activo" : "destacada";
+        var campo = chk.hasAttribute("data-toggle-activo") ? "activo" : campoDestacada;
         var payload = {};
         payload[campo] = chk.checked;
         try {
@@ -3505,6 +3461,48 @@ window.icc.views = (function () {
     var esNueva = !tarifa;
     tarifa = tarifa || {};
     var camposEspecificos = "";
+
+    if (catalogo === "mercado") {
+      U.openModal(
+        "<h2>" + (esNueva ? "Nueva operadora" : "Editar operadora") + " · Mercado</h2>" +
+        '<form id="form-tarifa" class="icc-form">' +
+        campoTexto("operador", "Operadora / oferta", true, "text", tarifa.operador) +
+        campoNum("cuota_mensual", "Cuota mensual (€, IVA incluido)", tarifa.cuota_mensual) +
+        campoTexto("promocion", "Promocion (ej. 79,28 € × 3 meses)", false, "text", tarifa.promocion) +
+        campoTexto("valoracion", "Valoracion breve (aparece en el informe)", false, "text", tarifa.valoracion) +
+        '<div class="icc-field"><label>Caracteristicas (una por linea; se usan si es la recomendada)</label>' +
+        '<textarea class="icc-textarea" name="caracteristicas">' + U.escapeHtml(tarifa.caracteristicas || "") + "</textarea></div>" +
+        campoCheck("recomendada", "Recomendada por defecto en la auditoria", tarifa.recomendada) +
+        campoCheck("activo", "Activa (se compara en los informes)", tarifa.activo !== false) +
+        '<div class="icc-modal-actions">' +
+        '<button type="button" class="icc-btn icc-btn-ghost" data-close-btn>Cancelar</button>' +
+        '<button type="submit" class="icc-btn icc-btn-primary">' + (esNueva ? "Añadir" : "Guardar cambios") + "</button>" +
+        "</div></form>"
+      );
+      document.getElementById("form-tarifa").addEventListener("submit", async function (e) {
+        e.preventDefault();
+        var fd = new FormData(e.target);
+        var payload = {
+          operador: fd.get("operador"),
+          cuota_mensual: fd.get("cuota_mensual") || 0,
+          promocion: fd.get("promocion") || null,
+          valoracion: fd.get("valoracion") || null,
+          caracteristicas: fd.get("caracteristicas") || null,
+          recomendada: e.target.querySelector('[name="recomendada"]').checked,
+          activo: e.target.querySelector('[name="activo"]').checked,
+        };
+        try {
+          if (esNueva) await D.crearTarifa("mercado", payload);
+          else await D.actualizarTarifa("mercado", tarifa.id, payload);
+          U.toast(esNueva ? "Operadora añadida" : "Operadora actualizada", "success");
+          U.closeModal();
+          viewTarifas("mercado");
+        } catch (err) {
+          U.toast(err.message || "No se pudo guardar", "error");
+        }
+      });
+      return;
+    }
 
     if (catalogo === "energia") {
       camposEspecificos =
@@ -3603,1240 +3601,12 @@ window.icc.views = (function () {
   }
 
   // ---------------------------------------------------------- Comparador · wizard
-  async function viewComparadorWizard(clienteId, sector) {
-    if (COMPARADOR_CATALOGOS.indexOf(sector) < 0) {
-      location.hash = "#/clientes/" + clienteId;
-      return;
-    }
-    main().innerHTML = '<div class="icc-loading">Cargando comparador…</div>';
-    var catalogoKey = sector === "telefonia" ? "telefonia" : sector;
-    var [cliente, tarifas] = await Promise.all([D.obtenerCliente(clienteId), D.listarTarifas(catalogoKey, true)]);
-    if (!cliente) {
-      main().innerHTML = '<p class="icc-empty">Cliente no encontrado o sin acceso.</p>';
-      return;
-    }
-
-    main().innerHTML =
-      '<div class="icc-page-head"><div><a href="#/clientes/' + cliente.id + '" class="icc-back">← Volver a ' + U.escapeHtml(cliente.razon_social) + '</a>' +
-      "<h1>Comparador · " + C.COMPARADOR_SECTORES[sector] + "</h1></div></div>" +
-      '<section class="icc-card"><form id="form-comparador" class="icc-form">' +
-      '<div class="icc-field"><label>Factura del cliente (PDF o imagen, opcional)</label>' +
-      '<input class="icc-input" type="file" name="archivo_factura" accept="application/pdf,image/*">' +
-      '<p class="icc-muted" style="margin:2px 0 0">Se guarda en la documentacion del cliente para que quede disponible para descargar.</p></div>' +
-      formularioSector(sector) +
-      '<div class="icc-modal-actions" style="justify-content:flex-start">' +
-      '<button type="submit" class="icc-btn icc-btn-primary">Calcular ahorro</button>' +
-      "</div></form></section>" +
-      '<section id="resultado-comparador"></section>';
-
-    wirearFormularioSector(sector);
-
-    document.getElementById("form-comparador").addEventListener("submit", async function (e) {
-      e.preventDefault();
-      try {
-        var datosEntrada = leerFormularioSector(sector);
-        var resultado = calcularSector(sector, datosEntrada, tarifas);
-
-        var archivoFactura = document.querySelector('[name="archivo_factura"]').files[0];
-        if (archivoFactura) {
-          try {
-            await D.subirDocumento(cliente.id, "factura", archivoFactura, "Subida desde el Comparador (" + C.COMPARADOR_SECTORES[sector] + ")");
-            U.toast("Factura guardada en el expediente del cliente", "success");
-          } catch (err) {
-            U.toast("No se pudo guardar la factura: " + (err.message || ""), "error");
-          }
-        }
-
-        pintarResultadoComparador(cliente, sector, datosEntrada, resultado);
-      } catch (err) {
-        console.error(err);
-        U.toast("Revisa los datos introducidos: " + (err.message || ""), "error");
-      }
-    });
+  // El comparador vive ahora en js/comparador.js. Esta ruta antigua
+  // (#/comparador/nueva/:cliente/:sector) redirige al asistente nuevo.
+  function viewComparadorWizard(clienteId, sector) {
+    location.hash = "#/comparador/nueva?cliente=" + encodeURIComponent(clienteId) + (sector ? "&sector=" + encodeURIComponent(sector) : "");
   }
 
-  function formularioSector(sector) {
-    if (sector === "energia") {
-      return (
-        '<div class="icc-field">' + campoCheck("incluye_luz", "Incluir suministro de Luz", true) + "</div>" +
-        '<div id="bloque-luz">' +
-        campoSelect("luz_segmento", "Peaje contratado", [{ value: "2.0TD", label: "2.0TD (hogar/pequeño negocio)" }, { value: "3.0TD", label: "3.0TD (negocio, >15kW)" }], "2.0TD") +
-        campoTexto("luz_proveedor", "Compañia actual", false, "text", "") +
-        campoNum("luz_dias_factura", "Dias que cubre la factura", 30) +
-        '<h4>Potencia contratada</h4>' +
-        campoNum("luz_potencia_p1", "Potencia P1 (kW)", 4.6, { step: "0.01" }) +
-        campoNum("luz_potencia_p2", "Potencia P2 (kW)", 4.6, { step: "0.01" }) +
-        campoNum("luz_potencia_p3", "Potencia P3 (kW, solo 3.0TD)", "", { step: "0.01" }) +
-        '<h4>Consumo del periodo (kWh)</h4>' +
-        campoNum("luz_consumo_p1", "Consumo P1 (punta)", 120) +
-        campoNum("luz_consumo_p2", "Consumo P2 (llana)", 90) +
-        campoNum("luz_consumo_p3", "Consumo P3 (valle)", 60) +
-        '<h4>Precio actual (tal y como aparece en la factura)</h4>' +
-        campoNum("luz_precio_potencia_p1", "Precio potencia P1 (€/kW/dia)", 0.09, { step: "0.000001" }) +
-        campoNum("luz_precio_potencia_p2", "Precio potencia P2 (€/kW/dia)", 0.09, { step: "0.000001" }) +
-        campoNum("luz_precio_potencia_p3", "Precio potencia P3 (€/kW/dia)", "", { step: "0.000001" }) +
-        campoNum("luz_precio_energia_p1", "Precio energia P1 (€/kWh)", 0.16, { step: "0.000001" }) +
-        campoNum("luz_precio_energia_p2", "Precio energia P2 (€/kWh)", 0.16, { step: "0.000001" }) +
-        campoNum("luz_precio_energia_p3", "Precio energia P3 (€/kWh)", 0.16, { step: "0.000001" }) +
-        campoNum("luz_termino_fijo", "Termino fijo actual (€/mes)", 0) +
-        campoNum("luz_alquiler_contador", "Alquiler contador (€/dia)", 0.026, { step: "0.000001" }) +
-        "</div>" +
-        '<div class="icc-field">' + campoCheck("incluye_gas", "Incluir suministro de Gas", false) + "</div>" +
-        '<div id="bloque-gas" style="display:none">' +
-        campoSelect("gas_segmento", "Segmento de consumo", [{ value: "RL.1", label: "RL.1 · <5.000 kWh/año" }, { value: "RL.2", label: "RL.2 · 5.000-50.000 kWh/año" }], "RL.1") +
-        campoTexto("gas_proveedor", "Compañia actual", false, "text", "") +
-        campoNum("gas_dias_factura", "Dias que cubre la factura", 30) +
-        campoNum("gas_consumo", "Consumo del periodo (kWh)", 350) +
-        campoNum("gas_precio_energia", "Precio energia actual (€/kWh)", 0.07, { step: "0.000001" }) +
-        campoNum("gas_termino_fijo", "Termino fijo actual (€/mes)", 8) +
-        "</div>"
-      );
-    }
-    if (sector === "telefonia") {
-      var fibraRows = "";
-      for (var i = 1; i <= 3; i++) {
-        fibraRows +=
-          '<div class="icc-comparador-row icc-fibra-' + i + '"' + (i > 1 ? ' style="display:none"' : "") + ">" +
-          campoTexto("fibra" + i + "_etiqueta", "Fibra " + i + " — referencia", false, "text", i === 1 ? "Fibra principal" : "") +
-          campoNum("fibra" + i + "_velocidad", "Velocidad deseada (Mb)", i === 1 ? 300 : "") +
-          "</div>";
-      }
-      var lineaRows = "";
-      for (var j = 1; j <= 6; j++) {
-        lineaRows +=
-          '<div class="icc-comparador-row icc-linea-' + j + '"' + (j > 1 ? ' style="display:none"' : "") + ">" +
-          campoTexto("linea" + j + "_numero", "Linea " + j + " — telefono (opcional)", false, "text", "") +
-          campoNum("linea" + j + "_gb", "GB deseados", j === 1 ? 30 : "") +
-          campoCheck("linea" + j + "_ilimitado", "Datos ilimitados", false) +
-          "</div>";
-      }
-      return (
-        campoTexto("tel_operador", "Operador actual", false, "text", "") +
-        campoSelect("tel_num_fibras", "Numero de fibras a comparar", [{ value: "1", label: "1" }, { value: "2", label: "2" }, { value: "3", label: "3" }], "1") +
-        fibraRows +
-        campoSelect("tel_num_lineas", "Numero de lineas moviles", [{ value: "1", label: "1" }, { value: "2", label: "2" }, { value: "3", label: "3" }, { value: "4", label: "4" }, { value: "5", label: "5" }, { value: "6", label: "6" }], "1") +
-        lineaRows +
-        '<h4>Factura actual (IVA incluido)</h4>' +
-        campoNum("tel_cuota_actual", "Cuotas mensuales (€/mes)", 55) +
-        campoNum("tel_consumos_actual", "Consumos fuera de bono (€)", 0) +
-        campoNum("tel_otros_actual", "Otros conceptos: roaming, servicios… (€)", 0)
-      );
-    }
-    // alarmas
-    return (
-      campoTexto("alarma_proveedor", "Compañia actual", false, "text", "") +
-      campoSelect("alarma_tipo_kit", "Tipo de kit actual", [
-        { value: "basica", label: "Basica (sin camaras)" },
-        { value: "camaras", label: "Con camaras" },
-        { value: "gama_alta", label: "Gama alta" },
-        { value: "comercial", label: "Comercial / negocio" },
-      ], "basica") +
-      campoNum("alarma_num_camaras", "Numero de camaras", 0, { step: "1" }) +
-      campoNum("alarma_num_sensores", "Numero de sensores/detectores", 2, { step: "1" }) +
-      campoNum("alarma_cuota_actual", "Cuota mensual actual (€/mes)", 39.9) +
-      campoNum("alarma_permanencia_restante", "Permanencia restante (meses)", 0, { step: "1" })
-    );
-  }
-
-  function wirearFormularioSector(sector) {
-    var form = document.getElementById("form-comparador");
-    if (sector === "energia") {
-      var chkLuz = form.querySelector('[name="incluye_luz"]');
-      var chkGas = form.querySelector('[name="incluye_gas"]');
-      var bloqueLuz = document.getElementById("bloque-luz");
-      var bloqueGas = document.getElementById("bloque-gas");
-      chkLuz.addEventListener("change", function () { bloqueLuz.style.display = chkLuz.checked ? "" : "none"; });
-      chkGas.addEventListener("change", function () { bloqueGas.style.display = chkGas.checked ? "" : "none"; });
-    } else if (sector === "telefonia") {
-      form.querySelector('[name="tel_num_fibras"]').addEventListener("change", function (e) {
-        var n = Number(e.target.value);
-        for (var i = 1; i <= 3; i++) {
-          form.querySelector(".icc-fibra-" + i).style.display = i <= n ? "" : "none";
-        }
-      });
-      form.querySelector('[name="tel_num_lineas"]').addEventListener("change", function (e) {
-        var n = Number(e.target.value);
-        for (var j = 1; j <= 6; j++) {
-          form.querySelector(".icc-linea-" + j).style.display = j <= n ? "" : "none";
-        }
-      });
-    }
-  }
-
-  function leerFormularioSector(sector) {
-    var form = document.getElementById("form-comparador");
-    var val = function (name) {
-      var el = form.querySelector('[name="' + name + '"]');
-      return el ? el.value : "";
-    };
-    var checked = function (name) {
-      var el = form.querySelector('[name="' + name + '"]');
-      return el ? el.checked : false;
-    };
-
-    if (sector === "energia") {
-      return {
-        incluyeLuz: checked("incluye_luz"),
-        incluyeGas: checked("incluye_gas"),
-        luz: {
-          segmento: val("luz_segmento"),
-          proveedorActual: val("luz_proveedor"),
-          diasFactura: val("luz_dias_factura"),
-          potencias: { p1: val("luz_potencia_p1"), p2: val("luz_potencia_p2"), p3: val("luz_potencia_p3") },
-          consumos: { p1: val("luz_consumo_p1"), p2: val("luz_consumo_p2"), p3: val("luz_consumo_p3") },
-          precioPotenciaActual: { p1: val("luz_precio_potencia_p1"), p2: val("luz_precio_potencia_p2"), p3: val("luz_precio_potencia_p3") },
-          precioEnergiaActual: { p1: val("luz_precio_energia_p1"), p2: val("luz_precio_energia_p2"), p3: val("luz_precio_energia_p3") },
-          terminoFijoActualMensual: val("luz_termino_fijo"),
-          alquilerContadorDiaActual: val("luz_alquiler_contador"),
-        },
-        gas: {
-          segmento: val("gas_segmento"),
-          proveedorActual: val("gas_proveedor"),
-          diasFactura: val("gas_dias_factura"),
-          consumoKwh: val("gas_consumo"),
-          precioEnergiaActual: val("gas_precio_energia"),
-          terminoFijoActualMensual: val("gas_termino_fijo"),
-        },
-      };
-    }
-    if (sector === "telefonia") {
-      var numFibras = Number(val("tel_num_fibras")) || 1;
-      var numLineas = Number(val("tel_num_lineas")) || 1;
-      var fibras = [];
-      for (var i = 1; i <= numFibras; i++) {
-        fibras.push({ etiqueta: val("fibra" + i + "_etiqueta") || "Fibra " + i, velocidadDeseada: val("fibra" + i + "_velocidad") });
-      }
-      var lineasMoviles = [];
-      for (var j = 1; j <= numLineas; j++) {
-        lineasMoviles.push({ numero: val("linea" + j + "_numero"), gbDeseados: val("linea" + j + "_gb"), ilimitado: checked("linea" + j + "_ilimitado") });
-      }
-      return {
-        operadorActual: val("tel_operador"),
-        fibras: fibras,
-        lineasMoviles: lineasMoviles,
-        cuotaMensualActual: val("tel_cuota_actual"),
-        consumosActual: val("tel_consumos_actual"),
-        otrosConceptosActual: val("tel_otros_actual"),
-      };
-    }
-    return {
-      proveedorActual: val("alarma_proveedor"),
-      tipoKitActual: val("alarma_tipo_kit"),
-      numCamarasActual: val("alarma_num_camaras"),
-      numSensoresActual: val("alarma_num_sensores"),
-      cuotaMensualActual: val("alarma_cuota_actual"),
-      permanenciaRestanteMeses: val("alarma_permanencia_restante"),
-    };
-  }
-
-  function calcularSector(sector, datos, tarifas) {
-    var calc = window.icc.comparadorCalc;
-    if (sector === "energia") {
-      var resultado = { luz: null, gas: null };
-      if (datos.incluyeLuz) resultado.luz = calc.compararLuz(datos.luz, tarifas);
-      if (datos.incluyeGas) resultado.gas = calc.compararGas(datos.gas, tarifas);
-      var costeActualAnual = (resultado.luz ? resultado.luz.costeActual.totalAnual : 0) + (resultado.gas ? resultado.gas.costeActual.totalAnual : 0);
-      var costePropuestaAnual =
-        (resultado.luz ? (resultado.luz.mejorPropuesta ? resultado.luz.mejorPropuesta.coste.totalAnual : resultado.luz.costeActual.totalAnual) : 0) +
-        (resultado.gas ? (resultado.gas.mejorPropuesta ? resultado.gas.mejorPropuesta.coste.totalAnual : resultado.gas.costeActual.totalAnual) : 0);
-      resultado.totales = {
-        costeActualAnual: costeActualAnual,
-        costePropuestaAnual: costePropuestaAnual,
-        ahorroAnual: costeActualAnual - costePropuestaAnual,
-        ahorroPorcentaje: costeActualAnual > 0 ? ((costeActualAnual - costePropuestaAnual) / costeActualAnual) * 100 : 0,
-      };
-      return resultado;
-    }
-    if (sector === "telefonia") {
-      var r = calc.compararTelefonia(datos, tarifas);
-      r.totales = { costeActualAnual: r.costeActualAnual, costePropuestaAnual: r.costePropuestaAnual, ahorroAnual: r.ahorroAnual, ahorroPorcentaje: r.ahorroPorcentaje };
-      return r;
-    }
-    var ra = calc.compararAlarmas(datos, tarifas);
-    ra.totales = { costeActualAnual: ra.costeActualAnual, costePropuestaAnual: ra.costePropuestaAnual, ahorroAnual: ra.ahorroAnual, ahorroPorcentaje: ra.ahorroPorcentaje };
-    return ra;
-  }
-
-  function pintarResultadoComparador(cliente, sector, datosEntrada, resultado) {
-    var t = resultado.totales;
-    var host = document.getElementById("resultado-comparador");
-    host.innerHTML =
-      '<section class="icc-card" style="margin-top:14px">' +
-      "<h2>Resultado</h2>" +
-      '<div class="icc-stat-grid">' +
-      statCard("Coste actual anual", U.formatEur(t.costeActualAnual), "#f87171") +
-      statCard("Propuesta IC anual", U.formatEur(t.costePropuestaAnual), "#22d3ee") +
-      statCard("Ahorro anual", U.formatEur(t.ahorroAnual), "#34d399") +
-      statCard("Ahorro %", t.ahorroPorcentaje.toFixed(1) + "%", "#d4a62a") +
-      "</div>" +
-      '<div class="icc-modal-actions" style="justify-content:flex-start">' +
-      '<button type="button" class="icc-btn icc-btn-secondary" id="btn-descargar-pdf-comparador">Descargar PDF</button>' +
-      '<button type="button" class="icc-btn icc-btn-primary" id="btn-guardar-comparador">Guardar en el expediente</button>' +
-      "</div></section>";
-
-    document.getElementById("btn-descargar-pdf-comparador").addEventListener("click", function () {
-      generarPdfComparativa(cliente, sector, datosEntrada, resultado);
-    });
-    document.getElementById("btn-guardar-comparador").addEventListener("click", async function () {
-      try {
-        await D.guardarAuditoriaComparador({
-          cliente_id: cliente.id,
-          sector: sector,
-          datos_entrada: datosEntrada,
-          resultado: resultado,
-          coste_actual_anual: t.costeActualAnual,
-          coste_propuesto_anual: t.costePropuestaAnual,
-          ahorro_anual: t.ahorroAnual,
-          ahorro_porcentaje: t.ahorroPorcentaje,
-        });
-        U.toast("Comparativa guardada en el expediente", "success");
-        location.hash = "#/clientes/" + cliente.id;
-      } catch (err) {
-        U.toast(err.message || "No se pudo guardar la comparativa", "error");
-      }
-    });
-  }
-
-  // -------------------------------------------------- PDF de auditoria/comparativa
-  var PDF_COLOR = {
-    navy: [11, 15, 25],
-    linea: [224, 227, 233],
-    fondoSuave: [247, 248, 250],
-    texto: [30, 34, 44],
-    mudo: [110, 118, 132],
-    mudoClaro: [168, 173, 186],
-    oro: [212, 166, 42],
-    doradoBg: [252, 243, 214],
-    verde: [6, 140, 97],
-    verdeBg: [226, 246, 237],
-    ambar: [180, 95, 6],
-    ambarBg: [253, 240, 214],
-    rojo: [185, 28, 28],
-    rojoBg: [253, 236, 236],
-  };
-
-  function pdfNum(v) {
-    return Number(v) || 0;
-  }
-
-  function pdfNumeroInforme(cliente) {
-    var d = new Date();
-    return (
-      "IC-" +
-      d.getFullYear() +
-      String(d.getMonth() + 1).padStart(2, "0") +
-      String(d.getDate()).padStart(2, "0") +
-      "-" +
-      String(cliente.id).padStart(4, "0")
-    );
-  }
-
-  function pdfTruncar(doc, texto, anchoMax) {
-    texto = String(texto == null ? "" : texto);
-    if (doc.getTextWidth(texto) <= anchoMax) return texto;
-    var t = texto;
-    while (t.length > 1 && doc.getTextWidth(t + "…") > anchoMax) {
-      t = t.slice(0, -1);
-    }
-    return t + "…";
-  }
-
-  function pdfEncabezadoSuperior(doc, numeroInforme) {
-    var w = doc.internal.pageSize.getWidth();
-    var logo = window.icc.pdfAssets && window.icc.pdfAssets.logoBase64;
-    if (logo) {
-      try {
-        doc.addImage(logo, "PNG", 14, 7, 13, 13);
-      } catch (e) {
-        /* sin logo si el navegador no puede decodificarlo */
-      }
-    }
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(11.5);
-    doc.setTextColor.apply(doc, PDF_COLOR.texto);
-    doc.text("INTEGRAL CONNECTION", 31, 13);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(7.5);
-    doc.setTextColor.apply(doc, PDF_COLOR.mudo);
-    doc.text("C O N S U L T I N G", 31, 18);
-
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(8.3);
-    doc.setTextColor.apply(doc, PDF_COLOR.texto);
-    doc.text("Presupuesto " + numeroInforme, w - 14, 11, { align: "right" });
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(7.6);
-    doc.setTextColor.apply(doc, PDF_COLOR.mudo);
-    doc.text("Emitido el " + new Date().toLocaleDateString("es-ES") + " · Valido 30 dias", w - 14, 16.5, { align: "right" });
-
-    doc.setDrawColor.apply(doc, PDF_COLOR.linea);
-    doc.setLineWidth(0.3);
-    doc.line(14, 25, w - 14, 25);
-    doc.setTextColor.apply(doc, PDF_COLOR.texto);
-    return 25;
-  }
-
-  var PDF_SECTOR_PORTADA = {
-    energia: {
-      titulo: ["Informe de Auditoria y Optimizacion", "de Energia"],
-      subtitulo: "Comparamos tu factura de luz y gas con el mercado para reducir el coste sin cambiar de instalacion.",
-    },
-    telefonia: {
-      titulo: ["Informe de Auditoria y Optimizacion", "de Telecomunicaciones"],
-      subtitulo: "Comparamos tu fibra y lineas moviles con el mercado para reducir el coste sin perder prestaciones.",
-    },
-    alarmas: {
-      titulo: ["Informe de Auditoria y Optimizacion", "de Alarmas y Seguridad"],
-      subtitulo: "Comparamos tu sistema de seguridad con el mercado para optimizar el coste sin perder cobertura.",
-    },
-  };
-
-  function pdfMetaCampos(sector, cliente, datosEntrada) {
-    var hoy = new Date().toLocaleDateString("es-ES");
-    var proveedorActual = "-";
-    if (sector === "energia") {
-      proveedorActual = (datosEntrada.luz && datosEntrada.luz.proveedorActual) || (datosEntrada.gas && datosEntrada.gas.proveedorActual) || "-";
-    } else if (sector === "telefonia") {
-      proveedorActual = datosEntrada.operadorActual || "-";
-    } else {
-      proveedorActual = datosEntrada.proveedorActual || "-";
-    }
-    return [
-      { label: "Cliente", value: cliente.razon_social || "-" },
-      { label: "CIF", value: cliente.cif || "-" },
-      { label: "Proveedor actual", value: proveedorActual || "-" },
-      { label: "Fecha del estudio", value: hoy },
-    ];
-  }
-
-  function pdfHeroBand(doc, sector, cliente, datosEntrada, yStart) {
-    var w = doc.internal.pageSize.getWidth();
-    var alto = 58;
-    doc.setFillColor.apply(doc, PDF_COLOR.navy);
-    doc.rect(0, yStart, w, alto, "F");
-
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(7.6);
-    doc.setTextColor.apply(doc, PDF_COLOR.oro);
-    doc.text("INFORME DE AUDITORIA Y OPTIMIZACION  ·  COMPARATIVA INDEPENDIENTE DE MERCADO", 14, yStart + 11);
-
-    var portada = PDF_SECTOR_PORTADA[sector] || PDF_SECTOR_PORTADA.alarmas;
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(18.5);
-    doc.setTextColor(255, 255, 255);
-    doc.text(portada.titulo[0], 14, yStart + 22);
-    doc.text(portada.titulo[1], 14, yStart + 30.5);
-
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
-    doc.setTextColor.apply(doc, [205, 209, 219]);
-    var subLineas = doc.splitTextToSize(portada.subtitulo, w - 28);
-    doc.text(subLineas, 14, yStart + 38);
-
-    var meta = pdfMetaCampos(sector, cliente, datosEntrada);
-    var margen = 14;
-    var anchoCol = (w - margen * 2) / meta.length;
-    var yMeta = yStart + alto - 9;
-    meta.forEach(function (m, idx) {
-      var x = margen + idx * anchoCol;
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(6.6);
-      doc.setTextColor.apply(doc, [150, 156, 170]);
-      doc.text(m.label.toUpperCase(), x, yMeta - 4.5);
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(9);
-      doc.setTextColor(255, 255, 255);
-      doc.text(pdfTruncar(doc, m.value, anchoCol - 4), x, yMeta + 1.5);
-    });
-
-    doc.setFillColor.apply(doc, PDF_COLOR.oro);
-    doc.rect(0, yStart + alto, w, 1.4, "F");
-    doc.setTextColor.apply(doc, PDF_COLOR.texto);
-    return yStart + alto + 1.4 + 10;
-  }
-
-  function pdfStatCardsHero(doc, y, items) {
-    var w = doc.internal.pageSize.getWidth();
-    var margen = 14;
-    var gap = 5;
-    var anchoCard = (w - margen * 2 - gap * (items.length - 1)) / items.length;
-    var alto = 27;
-    items.forEach(function (it, idx) {
-      var x = margen + idx * (anchoCard + gap);
-      if (it.variant === "oscuro") {
-        doc.setFillColor.apply(doc, PDF_COLOR.navy);
-        doc.roundedRect(x, y, anchoCard, alto, 2, 2, "F");
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(7.4);
-        doc.setTextColor.apply(doc, PDF_COLOR.oro);
-        doc.text(pdfTruncar(doc, it.label.toUpperCase(), anchoCard - 10), x + 6, y + 8);
-        doc.setFontSize(16.5);
-        doc.setTextColor(255, 255, 255);
-        doc.text(pdfTruncar(doc, it.value, anchoCard - 10), x + 6, y + 18);
-        if (it.sub) {
-          doc.setFont("helvetica", "normal");
-          doc.setFontSize(7);
-          doc.setTextColor.apply(doc, PDF_COLOR.mudoClaro);
-          doc.text(pdfTruncar(doc, it.sub, anchoCard - 10), x + 6, y + 23.5);
-        }
-      } else {
-        var bg = it.variant === "rojo" ? PDF_COLOR.rojoBg : PDF_COLOR.fondoSuave;
-        doc.setDrawColor.apply(doc, PDF_COLOR.linea);
-        doc.setFillColor.apply(doc, bg);
-        doc.roundedRect(x, y, anchoCard, alto, 2, 2, "FD");
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(7.4);
-        doc.setTextColor.apply(doc, it.variant === "rojo" ? PDF_COLOR.rojo : PDF_COLOR.mudo);
-        doc.text(pdfTruncar(doc, it.label.toUpperCase(), anchoCard - 10), x + 6, y + 8);
-        doc.setFontSize(16.5);
-        doc.setTextColor.apply(doc, it.variant === "rojo" ? PDF_COLOR.rojo : PDF_COLOR.texto);
-        doc.text(pdfTruncar(doc, it.value, anchoCard - 10), x + 6, y + 18);
-        if (it.sub) {
-          doc.setFont("helvetica", "normal");
-          doc.setFontSize(7);
-          doc.setTextColor.apply(doc, PDF_COLOR.mudo);
-          doc.text(pdfTruncar(doc, it.sub, anchoCard - 10), x + 6, y + 23.5);
-        }
-      }
-    });
-    doc.setTextColor.apply(doc, PDF_COLOR.texto);
-    return y + alto + 11;
-  }
-
-  function pdfTituloNumerado(doc, y, numero, texto) {
-    var w = doc.internal.pageSize.getWidth();
-    var cx = 17.6;
-    var cy = y - 2.6;
-    doc.setFillColor.apply(doc, PDF_COLOR.oro);
-    doc.circle(cx, cy, 3.6, "F");
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(9.5);
-    doc.setTextColor.apply(doc, PDF_COLOR.navy);
-    doc.text(String(numero), cx, cy + 1.3, { align: "center" });
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(13);
-    doc.setTextColor.apply(doc, PDF_COLOR.navy);
-    doc.text(pdfTruncar(doc, texto, w - 40), 25, y);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
-    doc.setTextColor.apply(doc, PDF_COLOR.texto);
-    return y + 8;
-  }
-
-  function pdfDiagTag(ahorroPorcentaje) {
-    if (ahorroPorcentaje <= 1) return "Correcto";
-    if (ahorroPorcentaje <= 12) return "Revisable";
-    return "Caro";
-  }
-
-  function pdfTagColor(tag) {
-    var t = String(tag || "").toLowerCase();
-    if (t === "recomendado" || t === "correcto") return { bg: PDF_COLOR.verdeBg, fg: PDF_COLOR.verde };
-    if (t === "revisable") return { bg: PDF_COLOR.ambarBg, fg: PDF_COLOR.ambar };
-    return { bg: PDF_COLOR.rojoBg, fg: PDF_COLOR.rojo };
-  }
-
-  function pdfFilasDiagnosticoEnergia(resultado) {
-    var filas = [];
-    if (resultado.luz) {
-      var l = resultado.luz;
-      var factorAnual = 365 / (l.costeActual.diasFactura || 30);
-      filas.push(["Luz · Termino de energia (anualizado)", U.formatEur(l.costeActual.terminoEnergia * factorAnual), pdfDiagTag(l.ahorroPorcentaje)]);
-      filas.push(["Luz · Termino de potencia (anualizado)", U.formatEur(l.costeActual.terminoPotencia * factorAnual), pdfDiagTag(l.ahorroPorcentaje)]);
-      filas.push(["Luz · Coste total anual actual", U.formatEur(l.costeActual.totalAnual), pdfDiagTag(l.ahorroPorcentaje)]);
-      if (l.mejorPropuesta) {
-        filas.push(["Luz · Propuesta IC (" + l.mejorPropuesta.tarifa.proveedor + ")", U.formatEur(l.mejorPropuesta.coste.totalAnual) + " / año", "Recomendado"]);
-      }
-    }
-    if (resultado.gas) {
-      var g = resultado.gas;
-      filas.push(["Gas · Coste total anual actual", U.formatEur(g.costeActual.totalAnual), pdfDiagTag(g.ahorroPorcentaje)]);
-      if (g.mejorPropuesta) {
-        filas.push(["Gas · Propuesta IC (" + g.mejorPropuesta.tarifa.proveedor + ")", U.formatEur(g.mejorPropuesta.coste.totalAnual) + " / año", "Recomendado"]);
-      }
-    }
-    if (filas.length === 0) filas.push(["Sin datos de luz ni gas en este estudio", "-", "-"]);
-    return filas;
-  }
-
-  function pdfFilasDiagnosticoTelefonia(resultado) {
-    var d = resultado.desgloseActual;
-    return [
-      ["Cuotas mensuales actuales", U.formatEur(d.cuotas), pdfDiagTag(resultado.ahorroPorcentaje)],
-      ["Consumos / excesos actuales", U.formatEur(d.consumos), d.consumos > 0 ? "Revisable" : "Correcto"],
-      ["Otros conceptos actuales", U.formatEur(d.otros), d.otros > 0 ? "Revisable" : "Correcto"],
-      ["Total factura mensual actual (IVA incl.)", U.formatEur(d.total), pdfDiagTag(resultado.ahorroPorcentaje)],
-      ["Total factura anual actual", U.formatEur(resultado.costeActualAnual), pdfDiagTag(resultado.ahorroPorcentaje)],
-    ];
-  }
-
-  function pdfFilasDiagnosticoAlarmas(resultado) {
-    return [
-      ["Cuota mensual actual", U.formatEur(resultado.costeActualMensual), pdfDiagTag(resultado.ahorroPorcentaje)],
-      ["Coste anual actual", U.formatEur(resultado.costeActualAnual), pdfDiagTag(resultado.ahorroPorcentaje)],
-      ["Cubre el equipamiento necesario", resultado.cubreEquipamiento ? "Si" : "No revisado", resultado.cubreEquipamiento ? "Correcto" : "Revisable"],
-    ];
-  }
-
-  function pdfFraseDiagnostico(sector, resultado, t) {
-    var pagaMes = t.costeActualAnual / 12;
-    var diffMes = (t.costeActualAnual - t.costePropuestaAnual) / 12;
-    if (diffMes <= 0) {
-      return "Paga " + U.formatEur(pagaMes) + " al mes. Tu tarifa actual ya esta en linea con el mercado.";
-    }
-    return (
-      "Paga " +
-      U.formatEur(pagaMes) +
-      " al mes. " +
-      U.formatEur(diffMes) +
-      " al mes (" +
-      t.ahorroPorcentaje.toFixed(0) +
-      "%) podrian estar mejor optimizados con otra tarifa."
-    );
-  }
-
-  function pdfDiagnosticoTabla(doc, y, filas) {
-    doc.autoTable({
-      startY: y,
-      margin: { left: 14, right: 14 },
-      head: [["Concepto", "Importe", "Diagnostico"]],
-      body: filas,
-      styles: { fontSize: 8.5, cellPadding: 3, textColor: PDF_COLOR.texto },
-      headStyles: { fillColor: PDF_COLOR.navy, textColor: [255, 255, 255], fontStyle: "bold" },
-      alternateRowStyles: { fillColor: PDF_COLOR.fondoSuave },
-      didParseCell: function (data) {
-        if (data.section === "body" && data.column.index === 2) data.cell.text = [];
-      },
-      didDrawCell: function (data) {
-        if (data.section !== "body" || data.column.index !== 2) return;
-        var tag = String(data.cell.raw);
-        if (tag === "-") return;
-        var c = pdfTagColor(tag);
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(7.3);
-        var boxW = doc.getTextWidth(tag) + 6;
-        var boxH = 5.6;
-        var bx = data.cell.x + 2;
-        var by = data.cell.y + (data.cell.height - boxH) / 2;
-        doc.setFillColor.apply(doc, c.bg);
-        doc.roundedRect(bx, by, boxW, boxH, 1.4, 1.4, "F");
-        doc.setTextColor.apply(doc, c.fg);
-        doc.text(tag, bx + 3, by + boxH / 2 + 1.1);
-        doc.setTextColor.apply(doc, PDF_COLOR.texto);
-        doc.setFont("helvetica", "normal");
-      },
-    });
-    return doc.lastAutoTable.finalY + 8;
-  }
-
-  function pdfCallouts(doc, y, items) {
-    var w = doc.internal.pageSize.getWidth();
-    var margen = 14;
-    var gap = 5;
-    var ancho = (w - margen * 2 - gap * (items.length - 1)) / items.length;
-    var alto = 25;
-    items.forEach(function (it, idx) {
-      var x = margen + idx * (ancho + gap);
-      doc.setFillColor.apply(doc, PDF_COLOR.fondoSuave);
-      doc.rect(x, y, ancho, alto, "F");
-      doc.setFillColor.apply(doc, it.color || PDF_COLOR.rojo);
-      doc.rect(x, y, 1.3, alto, "F");
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(8.2);
-      doc.setTextColor.apply(doc, PDF_COLOR.texto);
-      var tituloLineas = doc.splitTextToSize(it.titulo, ancho - 10);
-      doc.text(tituloLineas, x + 6, y + 7);
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(7.5);
-      doc.setTextColor.apply(doc, PDF_COLOR.mudo);
-      var descLineas = doc.splitTextToSize(it.desc, ancho - 10);
-      doc.text(descLineas, x + 6, y + 7 + tituloLineas.length * 4.1 + 3);
-    });
-    doc.setTextColor.apply(doc, PDF_COLOR.texto);
-    return y + alto + 8;
-  }
-
-  function pdfCalloutsSector(sector, resultado, t) {
-    var mejorCorto = pdfMejorNombreCorto(sector, resultado);
-    var items = [
-      {
-        color: PDF_COLOR.rojo,
-        titulo: t.ahorroPorcentaje > 35 ? "Muy por encima del mercado" : t.ahorroPorcentaje > 12 ? "Por encima del mercado" : "Margen de mejora",
-        desc: "Pagas " + U.formatEur(t.costeActualAnual / 12) + "/mes; el mercado ofrece lo mismo desde " + U.formatEur(t.costePropuestaAnual / 12) + "/mes.",
-      },
-      {
-        color: PDF_COLOR.verde,
-        titulo: U.formatEur(t.ahorroAnual) + " al año de ahorro",
-        desc: "Cambiando a " + mejorCorto + " ahorras " + U.formatEur(t.ahorroAnual) + " al año, IVA incluido.",
-      },
-      {
-        color: PDF_COLOR.oro,
-        titulo: "Revisalo cada mes",
-        desc: "Los precios del mercado cambian. Actualizamos esta comparativa cada mes para mantener el ahorro.",
-      },
-    ];
-    return items;
-  }
-
-  function pdfItemsComparativa(sector, resultado) {
-    var items = [];
-    if (sector === "energia") {
-      if (resultado.luz && resultado.luz.todasLasPropuestas) {
-        resultado.luz.todasLasPropuestas.forEach(function (c) {
-          items.push({
-            proveedor: c.tarifa.proveedor,
-            nombre: c.tarifa.nombre_tarifa,
-            descripcion: c.tarifa.descripcion,
-            value: c.coste.totalMensualMedio,
-            destacado: Boolean(resultado.luz.mejorPropuesta) && c.tarifa.id === resultado.luz.mejorPropuesta.tarifa.id,
-          });
-        });
-      }
-      if (resultado.gas && resultado.gas.todasLasPropuestas) {
-        resultado.gas.todasLasPropuestas.forEach(function (c) {
-          items.push({
-            proveedor: c.tarifa.proveedor,
-            nombre: c.tarifa.nombre_tarifa,
-            descripcion: c.tarifa.descripcion,
-            value: c.coste.totalMensualMedio,
-            destacado: Boolean(resultado.gas.mejorPropuesta) && c.tarifa.id === resultado.gas.mejorPropuesta.tarifa.id,
-          });
-        });
-      }
-    } else if (sector === "telefonia") {
-      var elegidoId = resultado.propuesta.componentes[0] ? resultado.propuesta.componentes[0].tarifa.id : null;
-      if (resultado.propuesta.todasLasPropuestas) {
-        resultado.propuesta.todasLasPropuestas.forEach(function (p) {
-          items.push({
-            proveedor: p.tarifa.proveedor,
-            nombre: p.tarifa.nombre_tarifa,
-            descripcion: p.tarifa.descripcion,
-            value: p.precioMensual,
-            destacado: p.tarifa.id === elegidoId,
-          });
-        });
-      } else {
-        resultado.propuesta.componentes.forEach(function (c) {
-          items.push({
-            proveedor: c.tarifa.proveedor,
-            nombre: c.tarifa.nombre_tarifa,
-            descripcion: c.tarifa.descripcion,
-            value: pdfNum(c.tarifa.precio_mensual) * c.cantidad,
-            destacado: true,
-          });
-        });
-      }
-    } else {
-      if (resultado.kitPropuesto) {
-        items.push({
-          proveedor: resultado.kitPropuesto.proveedor,
-          nombre: resultado.kitPropuesto.nombre_tarifa || resultado.kitPropuesto.nombre_kit,
-          descripcion: resultado.kitPropuesto.descripcion,
-          value: pdfNum(resultado.kitPropuesto.cuota_mensual),
-          destacado: true,
-        });
-      }
-    }
-    items.sort(function (a, b) { return a.value - b.value; });
-    return items;
-  }
-
-  function pdfMejorNombreCorto(sector, resultado) {
-    if (sector === "energia") {
-      var l = resultado.luz && resultado.luz.mejorPropuesta;
-      if (l) return l.tarifa.proveedor;
-      var g = resultado.gas && resultado.gas.mejorPropuesta;
-      if (g) return g.tarifa.proveedor;
-      return "tu propuesta IC";
-    }
-    if (sector === "telefonia") {
-      var c = resultado.propuesta.componentes[0];
-      return c ? c.tarifa.proveedor : "tu propuesta IC";
-    }
-    return resultado.kitPropuesto ? resultado.kitPropuesto.proveedor : "tu propuesta IC";
-  }
-
-  function pdfNombreTarifaSinDuplicar(proveedor, nombre) {
-    proveedor = proveedor || "";
-    nombre = nombre || "";
-    if (nombre.toLowerCase().indexOf(proveedor.toLowerCase()) === 0) return nombre;
-    return (proveedor + " " + nombre).trim();
-  }
-
-  function pdfMejorNombre(sector, resultado) {
-    if (sector === "energia") {
-      var l = resultado.luz && resultado.luz.mejorPropuesta;
-      var g = resultado.gas && resultado.gas.mejorPropuesta;
-      if (l && g) return l.tarifa.proveedor + " + " + g.tarifa.proveedor;
-      if (l) return pdfNombreTarifaSinDuplicar(l.tarifa.proveedor, l.tarifa.nombre_tarifa);
-      if (g) return pdfNombreTarifaSinDuplicar(g.tarifa.proveedor, g.tarifa.nombre_tarifa);
-      return "tu propuesta IC";
-    }
-    if (sector === "telefonia") {
-      var c = resultado.propuesta.componentes[0];
-      return c ? pdfNombreTarifaSinDuplicar(c.tarifa.proveedor, c.tarifa.nombre_tarifa) : "tu propuesta IC";
-    }
-    return resultado.kitPropuesto ? pdfNombreTarifaSinDuplicar(resultado.kitPropuesto.proveedor, resultado.kitPropuesto.nombre_tarifa || "") : "tu propuesta IC";
-  }
-
-  function pdfBarrasConLineaHoy(doc, y, items, actualAnnual) {
-    var w = doc.internal.pageSize.getWidth();
-    var margen = 14;
-    var anchoEtiqueta = 46;
-    var anchoDisponible = w - margen * 2 - anchoEtiqueta - 24;
-    var maxOperador = Math.max.apply(null, items.map(function (i) { return i.value * 12; })) || 1;
-    var maxValor = Math.max(actualAnnual, maxOperador) * 1.06;
-    var alturaBarra = 6.2;
-    var espacio = 3.2;
-
-    items.forEach(function (it, idx) {
-      var yy = y + idx * (alturaBarra + espacio);
-      var anual = it.value * 12;
-      doc.setFont("helvetica", it.destacado ? "bold" : "normal");
-      doc.setFontSize(7.8);
-      doc.setTextColor.apply(doc, it.destacado ? PDF_COLOR.navy : PDF_COLOR.texto);
-      doc.text(pdfTruncar(doc, it.proveedor + " — " + it.nombre, anchoEtiqueta), margen, yy + alturaBarra - 1.6);
-      var anchoBarra = Math.max(2, (anual / maxValor) * anchoDisponible);
-      var color = it.destacado ? PDF_COLOR.oro : [196, 201, 210];
-      doc.setFillColor.apply(doc, color);
-      doc.rect(margen + anchoEtiqueta, yy, anchoBarra, alturaBarra, "F");
-      doc.setFont("helvetica", it.destacado ? "bold" : "normal");
-      doc.setFontSize(7.4);
-      doc.setTextColor.apply(doc, PDF_COLOR.mudo);
-      doc.text(U.formatEur(anual) + "/año", margen + anchoEtiqueta + anchoBarra + 2, yy + alturaBarra - 1.6);
-    });
-
-    var finalY = y + items.length * (alturaBarra + espacio);
-    var lineaX = margen + anchoEtiqueta + Math.min(1, actualAnnual / maxValor) * anchoDisponible;
-    doc.setDrawColor.apply(doc, PDF_COLOR.rojo);
-    doc.setLineDashPattern([1.3, 1.1], 0);
-    doc.setLineWidth(0.6);
-    doc.line(lineaX, y - 3, lineaX, finalY + 2);
-    doc.setLineDashPattern([], 0);
-
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(7.6);
-    doc.setTextColor.apply(doc, PDF_COLOR.rojo);
-    var etiquetaHoy = "Hoy: " + U.formatEur(actualAnnual) + "/año";
-    var anchoEtq = doc.getTextWidth(etiquetaHoy);
-    var xEtq = Math.min(Math.max(lineaX - anchoEtq / 2, margen + anchoEtiqueta), w - 14 - anchoEtq);
-    doc.text(etiquetaHoy, xEtq, y - 6);
-    doc.setTextColor.apply(doc, PDF_COLOR.texto);
-    return finalY + 10;
-  }
-
-  function pdfTablaComparativa(doc, y, items, actualMensual, numeroInforme) {
-    var filas = items.map(function (it) {
-      var anual = it.value * 12;
-      return [
-        it.proveedor,
-        it.nombre,
-        it.descripcion ? pdfTruncar(doc, it.descripcion, 95) : "-",
-        U.formatEur(it.value),
-        U.formatEur(anual),
-        U.formatEur(actualMensual * 12 - anual),
-      ];
-    });
-    filas.push(["Tu situacion actual", "-", "-", U.formatEur(actualMensual), U.formatEur(actualMensual * 12), "-"]);
-
-    doc.autoTable({
-      startY: y,
-      margin: { top: 30, left: 14, right: 14 },
-      head: [["Operador", "Tarifa", "Descripcion", "Precio/mes", "Precio/año", "Ahorro/año"]],
-      body: filas,
-      styles: { fontSize: 7.4, cellPadding: 2.2, textColor: PDF_COLOR.texto },
-      headStyles: { fillColor: PDF_COLOR.navy, textColor: [255, 255, 255], fontStyle: "bold" },
-      columnStyles: { 2: { cellWidth: 58 } },
-      didParseCell: function (data) {
-        if (data.section !== "body") return;
-        var esActual = data.row.index === filas.length - 1;
-        if (esActual) {
-          data.cell.styles.fillColor = PDF_COLOR.rojoBg;
-          data.cell.styles.textColor = PDF_COLOR.rojo;
-          data.cell.styles.fontStyle = "italic";
-        } else if (items[data.row.index] && items[data.row.index].destacado) {
-          data.cell.styles.fillColor = PDF_COLOR.doradoBg;
-          if (data.column.index === 0) data.cell.styles.fontStyle = "bold";
-        }
-      },
-      didDrawPage: function () {
-        pdfEncabezadoSuperior(doc, numeroInforme);
-      },
-    });
-    return doc.lastAutoTable.finalY + 6;
-  }
-
-  function pdfPaginaComparativa(doc, numeroInforme, sector, resultado, t) {
-    doc.addPage();
-    pdfEncabezadoSuperior(doc, numeroInforme);
-    var items = pdfItemsComparativa(sector, resultado);
-    var y = pdfTituloNumerado(doc, 44, 2, "Comparativa de mercado: " + items.length + " tarifas");
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(9.5);
-    doc.setTextColor.apply(doc, PDF_COLOR.texto);
-    var mejorCorto = pdfMejorNombreCorto(sector, resultado);
-    var w = doc.internal.pageSize.getWidth();
-    var fraseLineas = doc.splitTextToSize(
-      "Todas las alternativas por debajo de tu coste actual te ahorran dinero. " + mejorCorto + " es la que mejor combina ahorro y prestaciones.",
-      w - 28
-    );
-    doc.text(fraseLineas, 14, y);
-    y += fraseLineas.length * 4.6 + 6;
-
-    if (items.length === 0) {
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(9);
-      doc.setTextColor.apply(doc, PDF_COLOR.mudo);
-      doc.text("Todavia no hay tarifas suficientes cargadas en el Comparador para esta comparativa.", 14, y);
-      return;
-    }
-    var actualMensual = t.costeActualAnual / 12;
-    y = pdfBarrasConLineaHoy(doc, y, items.slice(0, 10), t.costeActualAnual) + 2;
-    y = pdfTablaComparativa(doc, y, items, actualMensual, numeroInforme);
-
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(6.8);
-    doc.setTextColor.apply(doc, PDF_COLOR.mudo);
-    var nota = doc.splitTextToSize(
-      "Importes con IVA incluido. Tarifas y precios cargados en el Comparador de ICC, revisados mensualmente. Estudio orientativo sujeto a confirmacion de condiciones con la comercializadora.",
-      w - 28
-    );
-    doc.text(nota, 14, y);
-    doc.setTextColor.apply(doc, PDF_COLOR.texto);
-  }
-
-  function pdfTituloSeccionSimple(doc, y, texto) {
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(10.5);
-    doc.setTextColor.apply(doc, PDF_COLOR.navy);
-    doc.text(texto, 14, y);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
-    doc.setTextColor.apply(doc, PDF_COLOR.texto);
-    return y + 7;
-  }
-
-  function pdfDibujarCheck(doc, x, yBase, color) {
-    doc.setDrawColor.apply(doc, color);
-    doc.setLineWidth(0.8);
-    doc.line(x, yBase - 1.1, x + 1.1, yBase + 0.4);
-    doc.line(x + 1.1, yBase + 0.4, x + 2.9, yBase - 2.3);
-  }
-
-  function pdfChecklist2col(doc, y, items) {
-    var w = doc.internal.pageSize.getWidth();
-    var colW = (w - 28 - 8) / 2;
-    var colX = [14, 14 + colW + 8];
-    var colY = [y, y];
-    items.forEach(function (texto, idx) {
-      var col = idx % 2;
-      var x = colX[col];
-      var yy = colY[col];
-      pdfDibujarCheck(doc, x, yy, PDF_COLOR.verde);
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(8.2);
-      doc.setTextColor.apply(doc, PDF_COLOR.texto);
-      var lineas = doc.splitTextToSize(texto, colW - 8);
-      doc.text(lineas, x + 5, yy);
-      colY[col] = yy + lineas.length * 4.3 + 4.5;
-    });
-    doc.setTextColor.apply(doc, PDF_COLOR.texto);
-    return Math.max(colY[0], colY[1]) + 4;
-  }
-
-  var PDF_VENTAJAS_ICC = [
-    "Trabajamos con todas las compañias: comparativa 100% independiente del mercado.",
-    "Gestion integral del cambio: portabilidad, alta y baja sin que tengas que llamar a nadie.",
-    "Revisamos tu factura cada mes para detectar subidas de precio o cargos nuevos.",
-    "Un gestor de Integral Connection Consulting lleva tu caso de principio a fin.",
-  ];
-
-  function pdfVentajasPropuesta(sector, resultado) {
-    var lista = [];
-    if (sector === "telefonia") {
-      var c = resultado.propuesta.componentes[0];
-      var tarifa = c ? c.tarifa : null;
-      if (tarifa) {
-        if (tarifa.datos_ilimitados) lista.push("Datos moviles ilimitados para todas las lineas incluidas.");
-        if (pdfNum(tarifa.velocidad_fibra_mb) > 0) lista.push("Fibra de " + tarifa.velocidad_fibra_mb + " Mb simetricos.");
-        if (pdfNum(tarifa.permanencia_meses) === 0) lista.push("Sin permanencia: puedes cambiar cuando quieras.");
-        else lista.push("Permanencia de " + tarifa.permanencia_meses + " meses con precio garantizado.");
-        if (tarifa.descripcion) lista.push(tarifa.descripcion);
-      }
-    } else if (sector === "energia") {
-      if (resultado.luz && resultado.luz.mejorPropuesta) {
-        lista.push("Luz con " + resultado.luz.mejorPropuesta.tarifa.proveedor + ": " + (resultado.luz.mejorPropuesta.tarifa.descripcion || "precio competitivo verificado."));
-      }
-      if (resultado.gas && resultado.gas.mejorPropuesta) {
-        lista.push("Gas con " + resultado.gas.mejorPropuesta.tarifa.proveedor + ": " + (resultado.gas.mejorPropuesta.tarifa.descripcion || "precio competitivo verificado."));
-      }
-      lista.push("Mismo punto de suministro: solo cambia la facturacion, no la instalacion.");
-      lista.push("Sin coste de alta ni corte de suministro durante el cambio.");
-    } else {
-      lista.push("Cobertura equivalente o superior a tu sistema actual.");
-      if (resultado.kitPropuesto && resultado.kitPropuesto.descripcion) lista.push(resultado.kitPropuesto.descripcion);
-      lista.push("Instalacion y puesta en marcha gestionadas por Integral Connection Consulting.");
-    }
-    if (lista.length === 0) lista.push("Mejor combinacion de precio y prestaciones para tu perfil de consumo.");
-    return lista;
-  }
-
-  function pdfCTAFinal(doc, y, t, agente) {
-    var w = doc.internal.pageSize.getWidth();
-    var pasos = [
-      ["1 · Firme", "Este presupuesto"],
-      ["2 · Gestionamos", "Portabilidad / alta"],
-      ["3 · Ahorra", "Desde el primer mes"],
-    ];
-    var pasoW = 36;
-    var gapPasos = 5;
-    var pasoX0 = w - 14 - pasoW * 3 - gapPasos * 2;
-    var anchoTexto = pasoX0 - 14 - 8;
-
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(12);
-    var tituloLineas = doc.splitTextToSize(
-      "Cada mes sin cambiar le cuesta " + U.formatEur((t.costeActualAnual - t.costePropuestaAnual) / 12) + ".",
-      anchoTexto
-    );
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(7.8);
-    var subLineas = doc.splitTextToSize("Firme hoy y nos encargamos de todo: gestion del cambio sin que tenga que llamar a nadie.", anchoTexto);
-
-    var bandH = Math.max(34, 8 + tituloLineas.length * 5.2 + 3 + subLineas.length * 3.8 + 6);
-
-    doc.setFillColor.apply(doc, PDF_COLOR.navy);
-    doc.rect(0, y, w, bandH, "F");
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(12);
-    doc.setTextColor(255, 255, 255);
-    doc.text(tituloLineas, 14, y + 11);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(7.8);
-    doc.setTextColor.apply(doc, [195, 200, 210]);
-    doc.text(subLineas, 14, y + 11 + tituloLineas.length * 5.2 + 3);
-
-    pasos.forEach(function (p, idx) {
-      var x = pasoX0 + idx * (pasoW + gapPasos);
-      doc.setDrawColor(60, 66, 82);
-      doc.setLineWidth(0.3);
-      doc.roundedRect(x, y + 5, pasoW, bandH - 10, 1.5, 1.5, "S");
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(7.4);
-      doc.setTextColor.apply(doc, PDF_COLOR.oro);
-      doc.text(p[0], x + 3, y + 5 + 8);
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(6.8);
-      doc.setTextColor(210, 213, 222);
-      doc.text(p[1], x + 3, y + 5 + 14, { maxWidth: pasoW - 6 });
-    });
-    y += bandH;
-
-    doc.setFillColor.apply(doc, PDF_COLOR.oro);
-    doc.rect(0, y, w, 12, "F");
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(9);
-    doc.setTextColor.apply(doc, PDF_COLOR.navy);
-    var texto =
-      agente && agente.email
-        ? "Escriba a " + (agente.nombre || "su gestor") + ": " + agente.email
-        : "Contacte con su gestor comercial de Integral Connection Consulting";
-    doc.text(texto, 14, y + 8);
-    doc.setTextColor.apply(doc, PDF_COLOR.texto);
-    return y + 12 + 10;
-  }
-
-  function pdfAceptacionFirma(doc, y, mejorNombre, ahorroAnual, agente) {
-    var w = doc.internal.pageSize.getWidth();
-    var colW = (w - 28 - 8) / 2;
-    var alto = 44;
-
-    doc.setDrawColor.apply(doc, PDF_COLOR.linea);
-    doc.setLineWidth(0.3);
-    doc.roundedRect(14, y, colW, alto, 2, 2, "S");
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(7.6);
-    doc.setTextColor.apply(doc, PDF_COLOR.oro);
-    doc.text("ACEPTACION DE LA PROPUESTA", 18, y + 7.5);
-    doc.setDrawColor.apply(doc, PDF_COLOR.texto);
-    doc.rect(18, y + 12.5, 3.2, 3.2, "S");
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(7.4);
-    doc.setTextColor.apply(doc, PDF_COLOR.texto);
-    var opcionLineas = doc.splitTextToSize(mejorNombre + " (recomendada) · ahorro " + U.formatEur(ahorroAnual) + "/año", colW - 30).slice(0, 2);
-    doc.text(opcionLineas, 24, y + 15);
-    var yOtra = y + 16 + opcionLineas.length * 3.6;
-    doc.rect(18, yOtra, 3.2, 3.2, "S");
-    doc.text("Otra opcion: ______________________", 24, yOtra + 2.5);
-    doc.setDrawColor.apply(doc, PDF_COLOR.linea);
-    doc.line(18, y + 30, 18 + colW - 8, y + 30);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(7.2);
-    doc.setTextColor.apply(doc, PDF_COLOR.mudo);
-    doc.text("Nombre y apellidos / DNI-CIF", 18, y + 33.5);
-    doc.line(18, y + 39.5, 18 + colW - 8, y + 39.5);
-    doc.text("Fecha y firma del cliente", 18, y + 43);
-
-    var x2 = 14 + colW + 8;
-    var logo = window.icc.pdfAssets && window.icc.pdfAssets.logoBase64;
-    if (logo) {
-      try {
-        doc.addImage(logo, "PNG", x2, y, 13, 13);
-      } catch (e) {
-        /* sin logo */
-      }
-    }
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(9.5);
-    doc.setTextColor.apply(doc, PDF_COLOR.texto);
-    doc.text(pdfTruncar(doc, (agente && agente.nombre) || "Integral Connection Consulting", colW - 20), x2 + 16, y + 6);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(7.4);
-    doc.setTextColor.apply(doc, PDF_COLOR.mudo);
-    doc.text("Asesor/a comercial · Integral Connection Consulting", x2 + 16, y + 11);
-    if (agente && agente.email) doc.text(pdfTruncar(doc, agente.email, colW - 20), x2 + 16, y + 15.5);
-    doc.setDrawColor.apply(doc, PDF_COLOR.linea);
-    doc.line(x2, y + 32, x2 + colW, y + 32);
-    doc.setFontSize(7.2);
-    doc.text("Firma del asesor/a", x2, y + 36);
-    doc.setTextColor.apply(doc, PDF_COLOR.texto);
-    return y + alto;
-  }
-
-  function pdfPaginaPropuesta(doc, numeroInforme, sector, cliente, resultado, t, agente) {
-    doc.addPage();
-    pdfEncabezadoSuperior(doc, numeroInforme);
-    var mejorNombre = pdfMejorNombre(sector, resultado);
-    var w = doc.internal.pageSize.getWidth();
-    var y = pdfTituloNumerado(doc, 44, 3, pdfTruncar(doc, "Nuestra propuesta: " + mejorNombre, w - 40));
-
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(9.5);
-    doc.setTextColor.apply(doc, PDF_COLOR.texto);
-    var intro = doc.splitTextToSize(
-      "Con " + mejorNombre + " tu coste baja de " + U.formatEur(t.costeActualAnual / 12) + " a " + U.formatEur(t.costePropuestaAnual / 12) + " al mes.",
-      w - 28
-    );
-    doc.text(intro, 14, y);
-    y += intro.length * 5 + 6;
-
-    var colW = (w - 28 - 8) / 2;
-    var filasResumen = [
-      ["Paga hoy", U.formatEur(t.costeActualAnual / 12) + " / mes"],
-      ["Pagara con " + pdfMejorNombreCorto(sector, resultado), U.formatEur(t.costePropuestaAnual / 12) + " / mes"],
-      ["Diferencia mensual", U.formatEur((t.costeActualAnual - t.costePropuestaAnual) / 12) + " / mes"],
-      ["Ahorro anual (IVA incl.)", U.formatEur(t.ahorroAnual)],
-    ];
-    doc.autoTable({
-      startY: y,
-      margin: { left: 14 },
-      tableWidth: colW,
-      body: filasResumen,
-      theme: "plain",
-      styles: { fontSize: 8.6, cellPadding: 2.8, textColor: PDF_COLOR.texto },
-      columnStyles: { 1: { halign: "right", fontStyle: "bold" } },
-    });
-    var leftEndY = doc.lastAutoTable.finalY;
-
-    var cardX = 14 + colW + 8;
-    var cardY = y - 4;
-    var cardH = Math.max(leftEndY - cardY, 38);
-    doc.setFillColor.apply(doc, PDF_COLOR.navy);
-    doc.roundedRect(cardX, cardY, colW, cardH, 2, 2, "F");
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(7.6);
-    doc.setTextColor.apply(doc, PDF_COLOR.oro);
-    doc.text("AHORRO ANUAL GARANTIZADO", cardX + 7, cardY + 10);
-    doc.setFontSize(20);
-    doc.setTextColor(255, 255, 255);
-    doc.text(U.formatEur(t.ahorroAnual), cardX + 7, cardY + 22);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(7.4);
-    doc.setTextColor.apply(doc, PDF_COLOR.mudoClaro);
-    doc.text("IVA incluido · " + U.formatEur(t.ahorroAnual * 3) + " en 3 años", cardX + 7, cardY + 29);
-    doc.setTextColor.apply(doc, PDF_COLOR.texto);
-
-    y = Math.max(leftEndY, cardY + cardH) + 10;
-
-    y = pdfTituloSeccionSimple(doc, y, "Por que elegir esta propuesta");
-    y = pdfChecklist2col(doc, y, pdfVentajasPropuesta(sector, resultado));
-
-    y = pdfTituloSeccionSimple(doc, y, "Por que con Integral Connection Consulting");
-    y = pdfChecklist2col(doc, y, PDF_VENTAJAS_ICC);
-
-    var h = doc.internal.pageSize.getHeight();
-    if (y > h - 95) y = h - 95;
-    y = pdfCTAFinal(doc, y + 2, t, agente);
-    pdfAceptacionFirma(doc, y, mejorNombre, t.ahorroAnual, agente);
-  }
-
-  function pdfPiePagina(doc) {
-    var pageCount = doc.internal.getNumberOfPages();
-    var w = doc.internal.pageSize.getWidth();
-    var h = doc.internal.pageSize.getHeight();
-    for (var i = 1; i <= pageCount; i++) {
-      doc.setPage(i);
-      doc.setDrawColor.apply(doc, PDF_COLOR.oro);
-      doc.setLineWidth(0.5);
-      doc.line(14, h - 12, w - 14, h - 12);
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(7);
-      doc.setTextColor.apply(doc, PDF_COLOR.mudo);
-      doc.text("Integral Connection Consulting · Estudio orientativo sujeto a confirmacion de condiciones con la comercializadora", 14, h - 7.5);
-      doc.text(String(i) + " / " + pageCount, w - 14, h - 7.5, { align: "right" });
-    }
-  }
-
-  function generarPdfComparativa(cliente, sector, datosEntrada, resultado) {
-    if (!window.jspdf || !window.jspdf.jsPDF) {
-      U.toast("No se pudo cargar el generador de PDF (revisa la conexion o recarga la pagina)", "error");
-      return;
-    }
-    try {
-      var t = resultado.totales;
-      var doc = new window.jspdf.jsPDF();
-      var numeroInforme = pdfNumeroInforme(cliente);
-      var agente = (window.icc.auth && window.icc.auth.state && window.icc.auth.state.user) || null;
-
-      var y = pdfEncabezadoSuperior(doc, numeroInforme);
-      y = pdfHeroBand(doc, sector, cliente, datosEntrada, y);
-      y = pdfStatCardsHero(doc, y, [
-        { label: "Lo que paga hoy", value: U.formatEur(t.costeActualAnual / 12), sub: U.formatEur(t.costeActualAnual) + " al año", variant: "rojo" },
-        { label: "Con nuestra propuesta", value: U.formatEur(t.costePropuestaAnual / 12), sub: pdfMejorNombreCorto(sector, resultado), variant: "neutro" },
-        {
-          label: "Ahorro anual · IVA incluido",
-          value: U.formatEur(t.ahorroAnual),
-          sub: U.formatEur(t.ahorroAnual / 12) + " al mes × 12 meses",
-          variant: "oscuro",
-        },
-      ]);
-
-      y = pdfTituloNumerado(doc, y, 1, "Diagnostico: lo que esta pagando");
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(9.5);
-      doc.setTextColor.apply(doc, PDF_COLOR.texto);
-      var w = doc.internal.pageSize.getWidth();
-      var fraseLineas = doc.splitTextToSize(pdfFraseDiagnostico(sector, resultado, t), w - 28);
-      doc.text(fraseLineas, 14, y);
-      y += fraseLineas.length * 4.6 + 6;
-
-      var filasDiagnostico =
-        sector === "energia" ? pdfFilasDiagnosticoEnergia(resultado) : sector === "telefonia" ? pdfFilasDiagnosticoTelefonia(resultado) : pdfFilasDiagnosticoAlarmas(resultado);
-      y = pdfDiagnosticoTabla(doc, y, filasDiagnostico);
-      pdfCallouts(doc, y, pdfCalloutsSector(sector, resultado, t));
-
-      pdfPaginaComparativa(doc, numeroInforme, sector, resultado, t);
-      pdfPaginaPropuesta(doc, numeroInforme, sector, cliente, resultado, t, agente);
-      pdfPiePagina(doc);
-
-      var prefijo = sector === "energia" ? "auditoria-energia-" : sector === "telefonia" ? "auditoria-telecomunicaciones-" : "auditoria-alarmas-";
-      doc.save(prefijo + U.slugFile(cliente.razon_social || "cliente") + ".pdf");
-      U.toast("PDF generado: revisa la carpeta de Descargas de tu navegador", "success");
-    } catch (err) {
-      console.error("generarPdfComparativa", err);
-      U.toast("No se pudo generar el PDF de esta comparativa. Prueba a recargar la pagina (Ctrl+F5) y repetir.", "error");
-    }
-  }
   // ------------------------------------------------------------ Presupuestos
   async function viewPresupuestos() {
     var params = new URLSearchParams(location.hash.split("?")[1] || "");
