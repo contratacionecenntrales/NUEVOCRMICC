@@ -97,6 +97,8 @@
 
     items.push({ label: "Ficheros", href: "#/ficheros" });
 
+    items.push({ label: "Mi ficha", href: "#/mi-ficha" });
+
     items.push({ label: "Proformas / Facturas", href: "#/proformas" });
 
     items.push({
@@ -138,13 +140,14 @@
       '<div class="icc-notif-panel" id="notif-panel" hidden></div>' +
       "</div>" +
       '<div class="icc-user-card icc-user-card--top">' +
+      '<a class="icc-user-link" href="#/mi-ficha" title="Mi ficha de agente" style="display:flex;align-items:center;gap:10px">' +
       '<div class="icc-avatar">' +
       U.initials(st.user.nombre) +
       "</div><div><p class=\"icc-user-name\">" +
       U.escapeHtml(st.user.nombre) +
       "</p><span class=\"icc-tag-role\">" +
       C.ROLES[st.rolPrincipal] +
-      '</span></div><button class="icc-signout" id="btn-signout" title="Cerrar sesion">⏻</button>' +
+      '</span></div></a><button class="icc-signout" id="btn-signout" title="Cerrar sesion">⏻</button>' +
       "</div>" +
       "</div>" +
       "</div>" +
@@ -249,6 +252,8 @@
               n.id +
               '" data-cliente-id="' +
               (n.cliente_id || "") +
+              '" data-tipo="' +
+              U.escapeHtml(n.tipo || "") +
               '"><p>' +
               U.escapeHtml(n.mensaje) +
               "</p><span class=\"icc-muted\">" +
@@ -267,8 +272,10 @@
           U.toast(err.message || "No se pudo marcar como leida", "error");
         }
         var clienteId = item.getAttribute("data-cliente-id");
+        var tipoNotif = item.getAttribute("data-tipo") || "";
         panel.hidden = true;
         if (clienteId) location.hash = "#/clientes/" + clienteId;
+        else if (tipoNotif.indexOf("ficha_agente:") === 0) location.hash = "#/agentes/" + tipoNotif.split(":")[1];
         actualizarBadgeNotif();
       });
     });
@@ -313,6 +320,12 @@
         await window.icc.views.viewPresupuestoDetalle(ruta.replace("#/presupuestos/", ""));
       } else if (ruta === "#/contratos") {
         await window.icc.views.viewContratos();
+      } else if (ruta === "#/mi-ficha") {
+        await window.icc.views.viewFichaAgente(window.icc.auth.state.user.id);
+      } else if (/^#\/agentes\/\d+$/.test(ruta)) {
+        // El permiso real lo decide api/ficha_agente.php (propio agente,
+        // su jefe de equipo o Admin/Super Admin).
+        await window.icc.views.viewFichaAgente(ruta.replace("#/agentes/", ""));
       } else if (ruta === "#/agentes") {
         if (!window.icc.auth.esBackofficeOAdmin()) {
           main.innerHTML = '<p class="icc-empty">No tienes acceso a esta seccion.</p>';

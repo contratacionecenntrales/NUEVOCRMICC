@@ -163,6 +163,14 @@ propio CRM — ya no hace falta volver a tocar la base de datos a mano.
    (solo Admin puede asignarlo, sin límite de comerciales por jefe). En esa
    misma columna, cada Jefe de equipo puede tener a su vez un Admin/Super
    Admin responsable (jerarquía Admin → Jefe de equipo → Comerciales).
+   Para la **ficha de cada agente** (Agentes → clic en el nombre, o "Mi
+   ficha" para el propio agente), importa también
+   `sql/migracion_ficha_agente.sql`. Es un área privada: solo la ven el
+   propio agente, su Jefe de equipo y Admin/Super Admin. Incluye datos
+   personales (los mantiene el agente), gestión y objetivos mensuales (los
+   fija su jefe o dirección), un historial de seguimiento (reuniones,
+   objetivos, formaciones, incidencias...) con aviso en la campana al otro
+   lado, y su actividad real en el CRM calculada en vivo.
    Si te falta la sección "Presupuestos", importa también
    `sql/migracion_presupuestos.sql` (añade el tipo de cliente
    Residencial/Empresa/Prime y la tabla de presupuestos por sector), y

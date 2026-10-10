@@ -1692,6 +1692,13 @@ window.icc.views = (function () {
     var rolesParaAdmin = esSuperAdmin
       ? Object.keys(C.ROLES)
       : Object.keys(C.ROLES).filter(function (r) { return r !== "admin" && r !== "super_admin"; });
+    // Misma regla que api/ficha_agente.php: la ficha la abren el propio
+    // agente, su Jefe de equipo y Admin/Super Admin (Admin no abre la de otro Admin).
+    function puedeVerFicha(a) {
+      if (String(a.id) === String(miId) || esSuperAdmin) return true;
+      if (esAdmin) return a.rol !== "admin" && a.rol !== "super_admin";
+      return esJefeDeEquipo && String(a.supervisor_id) === String(miId);
+    }
 
     main().innerHTML =
       '<div class="icc-page-head"><h1>Agentes</h1><div>' +
@@ -1727,9 +1734,11 @@ window.icc.views = (function () {
           var puedeGestionarFila = esSuperAdmin || (esAdmin && (!esObjetivoAdminTier || esYoMismo));
           return (
             "<tr><td>" +
-            (esAdmin || esJefeDeEquipo
-              ? '<a class="icc-link-btn" href="#/clientes?comercial_id=' + a.id + '" title="Ver las cuentas de este agente">' + nombreCompleto + "</a>"
-              : nombreCompleto) +
+            (puedeVerFicha(a)
+              ? '<a class="icc-link-btn" href="#/agentes/' + a.id + '" title="Abrir la ficha de este agente">' + nombreCompleto + "</a>"
+              : esAdmin || esJefeDeEquipo
+                ? '<a class="icc-link-btn" href="#/clientes?comercial_id=' + a.id + '" title="Ver las cuentas de este agente">' + nombreCompleto + "</a>"
+                : nombreCompleto) +
             "</td>" +
             "<td>" + U.escapeHtml(a.email) + "</td>" +
             "<td>" + U.escapeHtml(a.empresa || "-") + "<br><span class=\"icc-muted\">" + U.escapeHtml(a.cif || "") + "</span></td>" +
@@ -1872,6 +1881,336 @@ window.icc.views = (function () {
   }
 
   // --------------------------------------------------- Auditoria "Ver como"
+  // --------------------------------------------------------- Ficha de agente
+  // Area privada de cada agente: la ven el propio agente, su Jefe de equipo
+  // y Admin/Super Admin. Todos ven la misma ficha (datos, objetivos,
+  // seguimiento y su actividad real en el CRM), siempre sincronizada.
+  function barraObjetivo(valor, objetivo, formato) {
+    var v = Number(valor || 0);
+    var o = Number(objetivo || 0);
+    var texto = formato(v) + (o ? " / " + formato(o) : "");
+    if (!o) return '<span class="icc-stat-value">' + texto + "</span>";
+    var pct = Math.min(100, Math.round((v / o) * 100));
+    var color = pct >= 100 ? "var(--esmeralda)" : pct >= 60 ? "var(--cian)" : "var(--oro)";
+    return (
+      '<span class="icc-stat-value">' + texto + "</span>" +
+      '<div class="icc-progress"><div class="icc-progress-fill" style="width:' + pct + "%;background:" + color + '"></div></div>' +
+      '<span class="icc-muted" style="font-size:11px">' + pct + "% del objetivo</span>"
+    );
+  }
+
+  function tarjetaFicha(label, contenidoHtml, color) {
+    return (
+      '<div class="icc-stat-card" style="--stat-color:' + (color || "var(--esmeralda)") + '">' +
+      contenidoHtml +
+      '<span class="icc-stat-label">' + label + "</span></div>"
+    );
+  }
+
+  async function viewFichaAgente(id) {
+    main().innerHTML = '<div class="icc-loading">Cargando ficha del agente…</div>';
+    var datos;
+    try {
+      datos = await D.obtenerFichaAgente(id);
+    } catch (err) {
+      main().innerHTML = '<p class="icc-empty">' + U.escapeHtml(err.message || "No se pudo cargar la ficha") + "</p>";
+      return;
+    }
+
+    var a = datos.agente;
+    var f = datos.ficha || {};
+    var r = datos.resumen;
+    var esGestor = datos.permisos.editar_gestion;
+    var miId = window.icc.auth.state.user && window.icc.auth.state.user.id;
+    var esPropia = String(a.id) === String(miId);
+    var nombreCompleto = (a.nombre + " " + (a.apellidos || "")).trim();
+    var num = function (v) { return String(Math.round(Number(v || 0) * 100) / 100).replace(".", ","); };
+
+    var clientesPorEstado = {};
+    (r.clientes_por_estado || []).forEach(function (c) { clientesPorEstado[c.estado] = Number(c.total); });
+    var totalClientes = Object.keys(clientesPorEstado).reduce(function (s, k) { return s + clientesPorEstado[k]; }, 0);
+    var enCurso = totalClientes - (clientesPorEstado.cliente_activo || 0) - (clientesPorEstado.perdido || 0);
+
+    var tiposSeg = C.TIPOS_SEGUIMIENTO_AGENTE;
+    var params = new URLSearchParams(location.hash.split("?")[1] || "");
+    var filtroTipo = params.get("tipo") || "";
+    var seguimiento = (datos.seguimiento || []).filter(function (s) { return !filtroTipo || s.tipo === filtroTipo; });
+    var rutaFicha = esPropia && location.hash.indexOf("#/mi-ficha") === 0 ? "#/mi-ficha" : "#/agentes/" + a.id;
+
+    main().innerHTML =
+      '<div class="icc-page-head">' +
+      "<div>" +
+      (window.icc.auth.esBackofficeOAdmin() ? '<a href="#/agentes" class="icc-back">← Volver a Agentes</a>' : "") +
+      "<h1>" + U.escapeHtml(nombreCompleto) + "</h1>" +
+      '<p class="icc-muted">' + U.escapeHtml(C.ROLES[a.rol] || a.rol) +
+      (datos.supervisor ? " · Depende de " + U.escapeHtml(datos.supervisor.nombre) : "") +
+      (Number(a.bloqueado) ? ' · <span style="color:var(--red)">Cuenta bloqueada</span>' : "") +
+      "</p>" +
+      '<p class="icc-ficha-privada">🔒 Ficha privada: solo la ven ' + (esPropia ? "tú" : U.escapeHtml(a.nombre)) +
+      ", su jefe de equipo y dirección.</p>" +
+      "</div>" +
+      '<div class="icc-head-actions icc-ficha-acciones">' +
+      '<a class="icc-btn icc-btn-ghost" href="#/clientes?comercial_id=' + a.id + '">Clientes</a>' +
+      '<a class="icc-btn icc-btn-ghost" href="#/contratos?comercial_id=' + a.id + '">Contratos</a>' +
+      '<a class="icc-btn icc-btn-ghost" href="#/agenda?comercial_id=' + a.id + '">Agenda</a>' +
+      (datos.carpeta_personal_id ? '<a class="icc-btn icc-btn-ghost" href="#/ficheros/' + datos.carpeta_personal_id + '">Carpeta personal</a>' : "") +
+      "</div></div>" +
+
+      '<div class="icc-stat-grid">' +
+      tarjetaFicha("Contratos este mes", barraObjetivo(r.contratos.mes, f.objetivo_contratos_mes, num), "var(--esmeralda)") +
+      tarjetaFicha("kW este mes", barraObjetivo(r.contratos.kw_mes, f.objetivo_kw_mes, num), "var(--cian)") +
+      tarjetaFicha("Facturado este mes", barraObjetivo(r.proformas.facturado_mes, f.objetivo_facturacion_mes, U.formatEur), "var(--oro)") +
+      tarjetaFicha("Pendiente de cobro", '<span class="icc-stat-value">' + U.formatEur(r.proformas.pendiente_cobro) + "</span>", "#f87171") +
+      tarjetaFicha("Clientes activos", '<span class="icc-stat-value">' + (clientesPorEstado.cliente_activo || 0) + "</span>", "#34d399") +
+      tarjetaFicha("Clientes en curso", '<span class="icc-stat-value">' + enCurso + "</span>", "#60a5fa") +
+      tarjetaFicha("Presupuestos abiertos", '<span class="icc-stat-value">' + Number(r.presupuestos.abiertos || 0) + "</span>", "#a78bfa") +
+      tarjetaFicha("Próximas citas", '<span class="icc-stat-value">' + Number(r.citas.proximas || 0) + "</span>", "#fbbf24") +
+      "</div>" +
+
+      '<div class="icc-grid-2">' +
+      '<section class="icc-card">' +
+      '<div class="icc-card-head"><h2>Datos del agente</h2>' +
+      '<button class="icc-btn icc-btn-ghost" id="btn-editar-personal">Editar</button></div>' +
+      filaDato("Email", a.email) +
+      filaDato("Telefono", a.telefono) +
+      filaDato("Empresa / CIF", [a.empresa, a.cif].filter(Boolean).join(" · ")) +
+      filaDato("DNI / NIE", f.dni) +
+      filaDato("Fecha de nacimiento", f.fecha_nacimiento ? U.formatFecha(f.fecha_nacimiento) : "") +
+      filaDato("Direccion", [f.direccion, f.codigo_postal, f.poblacion, f.provincia].filter(Boolean).join(", ")) +
+      filaDato("Email personal", f.email_personal) +
+      filaDato("IBAN", f.iban) +
+      filaDato("Contacto de emergencia", f.contacto_emergencia) +
+      filaDato("Alta en el CRM", U.formatFecha(a.created_at)) +
+      "</section>" +
+      '<section class="icc-card">' +
+      '<div class="icc-card-head"><h2>Gestión y objetivos</h2>' +
+      (esGestor ? '<button class="icc-btn icc-btn-ghost" id="btn-editar-gestion">Editar</button>' : "") +
+      "</div>" +
+      filaDato("Tipo de relacion", C.TIPOS_RELACION_AGENTE[f.tipo_relacion] || "") +
+      filaDato("Fecha de incorporacion", f.fecha_incorporacion ? U.formatFecha(f.fecha_incorporacion) : "") +
+      filaDato("Zona", f.zona) +
+      filaDato("Sectores", f.sectores) +
+      filaDato("Objetivo contratos / mes", f.objetivo_contratos_mes != null ? num(f.objetivo_contratos_mes) : "") +
+      filaDato("Objetivo kW / mes", f.objetivo_kw_mes != null ? num(f.objetivo_kw_mes) : "") +
+      filaDato("Objetivo facturacion / mes", f.objetivo_facturacion_mes != null ? U.formatEur(f.objetivo_facturacion_mes) : "") +
+      filaDato("Contratos totales", String(Number(r.contratos.total || 0)) + " · " + num(r.contratos.kw_total) + " kW") +
+      (f.observaciones
+        ? '<h3>Observaciones</h3><p class="icc-ficha-texto">' + U.escapeHtml(f.observaciones) + "</p>"
+        : "") +
+      (!esGestor ? '<p class="icc-muted">Estos datos los gestiona tu jefe de equipo o dirección.</p>' : "") +
+      "</section>" +
+      "</div>" +
+
+      '<section class="icc-card">' +
+      '<div class="icc-card-head"><h2>Seguimiento</h2>' +
+      '<button class="icc-btn icc-btn-primary" id="btn-nuevo-seguimiento">+ Nueva entrada</button></div>' +
+      '<div class="icc-tabs">' +
+      '<a class="icc-tab' + (!filtroTipo ? " is-active" : "") + '" href="' + rutaFicha + '">Todo (' + datos.seguimiento.length + ")</a>" +
+      Object.keys(tiposSeg)
+        .map(function (t) {
+          var n = datos.seguimiento.filter(function (s) { return s.tipo === t; }).length;
+          return '<a class="icc-tab' + (filtroTipo === t ? " is-active" : "") + '" href="' + rutaFicha + "?tipo=" + t + '">' +
+            tiposSeg[t].icono + " " + tiposSeg[t].label + " (" + n + ")</a>";
+        })
+        .join("") +
+      "</div>" +
+      (seguimiento.length
+        ? '<div class="icc-timeline">' +
+          seguimiento
+            .map(function (s) {
+              var t = tiposSeg[s.tipo] || tiposSeg.nota;
+              var puedeBorrar = esGestor || String(s.autor_id) === String(miId);
+              return (
+                '<div class="icc-timeline-item" style="--tl-color:' + t.color + '">' +
+                '<div class="icc-timeline-head">' +
+                '<span class="icc-badge" style="--badge-color:' + t.color + '">' + t.icono + " " + t.label + "</span>" +
+                "<strong>" + U.escapeHtml(s.titulo) + "</strong>" +
+                (puedeBorrar ? '<button class="icc-link-btn" style="color:var(--red)" data-borrar-seg="' + s.id + '">Borrar</button>' : "") +
+                "</div>" +
+                (s.contenido ? '<p class="icc-ficha-texto">' + U.escapeHtml(s.contenido) + "</p>" : "") +
+                '<span class="icc-muted" style="font-size:11px">' + U.formatFecha(s.fecha) + " · " +
+                U.escapeHtml(s.autor_nombre || "Usuario eliminado") +
+                (s.autor_rol ? " (" + U.escapeHtml(C.ROLES[s.autor_rol] || s.autor_rol) + ")" : "") +
+                "</span></div>"
+              );
+            })
+            .join("") +
+          "</div>"
+        : '<p class="icc-empty">Sin entradas' + (filtroTipo ? " de este tipo" : "") + ". Anota reuniones, objetivos, formaciones o incidencias: " +
+          (esPropia ? "tus superiores" : U.escapeHtml(a.nombre)) + " lo vera al momento.</p>") +
+      "</section>" +
+
+      '<div class="icc-grid-2">' +
+      '<section class="icc-card"><h2>Últimos contratos</h2>' +
+      (r.ultimos_contratos && r.ultimos_contratos.length
+        ? '<table class="icc-table"><thead><tr><th>Titular</th><th>Sector</th><th>kW</th><th>Estado</th><th>Alta</th></tr></thead><tbody>' +
+          r.ultimos_contratos
+            .map(function (c) {
+              var est = C.ESTADOS_CONTRATO[c.estado] || { label: c.estado, color: "#94a3b8" };
+              return (
+                "<tr><td>" + U.escapeHtml(c.titular) + "</td><td>" + U.escapeHtml(C.SECTORES[c.sector] || c.sector) + "</td><td>" +
+                (c.kw != null ? num(c.kw) : "-") + '</td><td><span class="icc-badge" style="--badge-color:' + est.color + '">' +
+                est.label + "</span></td><td>" + U.formatFecha(c.fecha_alta) + "</td></tr>"
+              );
+            })
+            .join("") +
+          "</tbody></table>"
+        : '<p class="icc-empty">Sin contratos todavia.</p>') +
+      "</section>" +
+      '<section class="icc-card"><h2>Próximas citas</h2>' +
+      (r.proximas_citas && r.proximas_citas.length
+        ? r.proximas_citas
+            .map(function (c) {
+              return (
+                '<div class="icc-data-row"><span>' + U.escapeHtml(c.cliente_nombre) + "</span>" +
+                '<span class="icc-muted">' + U.formatFecha(c.fecha) + " · " + String(c.hora_inicio || "").slice(0, 5) + "</span></div>"
+              );
+            })
+            .join("")
+        : '<p class="icc-empty">Sin citas programadas.</p>') +
+      '<p class="icc-muted" style="margin-top:10px">Citas realizadas este mes: ' + Number(r.citas.realizadas_mes || 0) + "</p>" +
+      "</section>" +
+      "</div>";
+
+    document.getElementById("btn-editar-personal").addEventListener("click", function () {
+      modalFichaPersonal(a, f);
+    });
+    var btnGestion = document.getElementById("btn-editar-gestion");
+    if (btnGestion) {
+      btnGestion.addEventListener("click", function () {
+        modalFichaGestion(a, f);
+      });
+    }
+    document.getElementById("btn-nuevo-seguimiento").addEventListener("click", function () {
+      modalNuevoSeguimiento(a);
+    });
+    main()
+      .querySelectorAll("[data-borrar-seg]")
+      .forEach(function (btn) {
+        btn.addEventListener("click", async function () {
+          if (!confirm("¿Borrar esta entrada del seguimiento?")) return;
+          try {
+            await D.borrarSeguimientoAgente(a.id, btn.getAttribute("data-borrar-seg"));
+            U.toast("Entrada borrada", "success");
+            viewFichaAgente(a.id);
+          } catch (err) {
+            U.toast(err.message || "No se pudo borrar", "error");
+          }
+        });
+      });
+  }
+
+  function campoFecha(name, label, valor) {
+    return campoTexto(name, label, false, "date", valor ? String(valor).slice(0, 10) : "");
+  }
+
+  function modalFichaPersonal(a, f) {
+    U.openModal(
+      "<h2>Datos del agente</h2>" +
+      '<form id="form-ficha-personal" class="icc-form">' +
+      campoTexto("dni", "DNI / NIE", false, "text", f.dni) +
+      campoFecha("fecha_nacimiento", "Fecha de nacimiento", f.fecha_nacimiento) +
+      campoTexto("direccion", "Direccion", false, "text", f.direccion) +
+      campoTexto("codigo_postal", "Codigo postal", false, "text", f.codigo_postal) +
+      campoTexto("poblacion", "Poblacion", false, "text", f.poblacion) +
+      campoTexto("provincia", "Provincia", false, "text", f.provincia) +
+      campoTexto("email_personal", "Email personal", false, "email", f.email_personal) +
+      campoTexto("iban", "IBAN (para liquidaciones)", false, "text", f.iban) +
+      campoTexto("contacto_emergencia", "Contacto de emergencia", false, "text", f.contacto_emergencia) +
+      '<div class="icc-modal-actions">' +
+      '<button type="button" class="icc-btn icc-btn-ghost" data-close-btn>Cancelar</button>' +
+      '<button type="submit" class="icc-btn icc-btn-primary">Guardar</button>' +
+      "</div></form>"
+    );
+    document.getElementById("form-ficha-personal").addEventListener("submit", async function (e) {
+      e.preventDefault();
+      var payload = Object.fromEntries(new FormData(e.target).entries());
+      try {
+        await D.guardarFichaAgente(a.id, payload);
+        U.toast("Ficha actualizada", "success");
+        U.closeModal();
+        viewFichaAgente(a.id);
+      } catch (err) {
+        U.toast(err.message || "No se pudo guardar", "error");
+      }
+    });
+  }
+
+  function modalFichaGestion(a, f) {
+    U.openModal(
+      "<h2>Gestión y objetivos · " + U.escapeHtml(a.nombre) + "</h2>" +
+      '<form id="form-ficha-gestion" class="icc-form">' +
+      '<div class="icc-field"><label>Tipo de relacion</label><select class="icc-select" name="tipo_relacion">' +
+      '<option value="">Sin especificar</option>' +
+      Object.keys(C.TIPOS_RELACION_AGENTE)
+        .map(function (t) {
+          return '<option value="' + t + '"' + (f.tipo_relacion === t ? " selected" : "") + ">" + C.TIPOS_RELACION_AGENTE[t] + "</option>";
+        })
+        .join("") +
+      "</select></div>" +
+      campoFecha("fecha_incorporacion", "Fecha de incorporacion", f.fecha_incorporacion) +
+      campoTexto("zona", "Zona asignada", false, "text", f.zona) +
+      campoTexto("sectores", "Sectores que trabaja", false, "text", f.sectores) +
+      campoTexto("objetivo_contratos_mes", "Objetivo contratos / mes", false, "number", f.objetivo_contratos_mes) +
+      campoTexto("objetivo_kw_mes", "Objetivo kW / mes", false, "number", f.objetivo_kw_mes) +
+      campoTexto("objetivo_facturacion_mes", "Objetivo facturacion / mes (€)", false, "number", f.objetivo_facturacion_mes) +
+      '<div class="icc-field"><label>Observaciones (las ve tambien el agente)</label>' +
+      '<textarea class="icc-textarea" name="observaciones">' + U.escapeHtml(f.observaciones || "") + "</textarea></div>" +
+      '<div class="icc-modal-actions">' +
+      '<button type="button" class="icc-btn icc-btn-ghost" data-close-btn>Cancelar</button>' +
+      '<button type="submit" class="icc-btn icc-btn-primary">Guardar</button>' +
+      "</div></form>"
+    );
+    document.getElementById("form-ficha-gestion").addEventListener("submit", async function (e) {
+      e.preventDefault();
+      var payload = Object.fromEntries(new FormData(e.target).entries());
+      try {
+        await D.guardarFichaAgente(a.id, payload);
+        U.toast("Gestión actualizada", "success");
+        U.closeModal();
+        viewFichaAgente(a.id);
+      } catch (err) {
+        U.toast(err.message || "No se pudo guardar", "error");
+      }
+    });
+  }
+
+  function modalNuevoSeguimiento(a) {
+    var hoy = new Date();
+    var hoyIsoTxt = hoy.getFullYear() + "-" + String(hoy.getMonth() + 1).padStart(2, "0") + "-" + String(hoy.getDate()).padStart(2, "0");
+    U.openModal(
+      "<h2>Nueva entrada de seguimiento</h2>" +
+      '<form id="form-nuevo-seguimiento" class="icc-form">' +
+      '<div class="icc-field"><label>Tipo</label><select class="icc-select" name="tipo">' +
+      Object.keys(C.TIPOS_SEGUIMIENTO_AGENTE)
+        .map(function (t) {
+          return '<option value="' + t + '">' + C.TIPOS_SEGUIMIENTO_AGENTE[t].icono + " " + C.TIPOS_SEGUIMIENTO_AGENTE[t].label + "</option>";
+        })
+        .join("") +
+      "</select></div>" +
+      campoTexto("titulo", "Titulo", true, "text") +
+      campoFecha("fecha", "Fecha", hoyIsoTxt) +
+      '<div class="icc-field"><label>Detalle</label><textarea class="icc-textarea" name="contenido"></textarea></div>' +
+      '<p class="icc-muted">La entrada la ven ' + U.escapeHtml(a.nombre) + ", su jefe de equipo y dirección, y les llega un aviso.</p>" +
+      '<div class="icc-modal-actions">' +
+      '<button type="button" class="icc-btn icc-btn-ghost" data-close-btn>Cancelar</button>' +
+      '<button type="submit" class="icc-btn icc-btn-primary">Guardar entrada</button>' +
+      "</div></form>"
+    );
+    document.getElementById("form-nuevo-seguimiento").addEventListener("submit", async function (e) {
+      e.preventDefault();
+      var payload = Object.fromEntries(new FormData(e.target).entries());
+      try {
+        await D.crearSeguimientoAgente(a.id, payload);
+        U.toast("Entrada guardada", "success");
+        U.closeModal();
+        viewFichaAgente(a.id);
+      } catch (err) {
+        U.toast(err.message || "No se pudo guardar", "error");
+      }
+    });
+  }
+
   async function viewAuditoriaVerComo() {
     main().innerHTML = '<div class="icc-loading">Cargando historial…</div>';
     var historial;
@@ -4268,6 +4607,7 @@ window.icc.views = (function () {
     viewClienteDetalle: viewClienteDetalle,
     viewContratos: viewContratos,
     viewAgentes: viewAgentes,
+    viewFichaAgente: viewFichaAgente,
     viewAuditoriaVerComo: viewAuditoriaVerComo,
     viewFicheros: viewFicheros,
     viewDiagnosticoStorage: viewDiagnosticoStorage,

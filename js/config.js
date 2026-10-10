@@ -117,4 +117,21 @@ window.ICC_CONST = {
     ko: { label: "KO", color: "#f87171" },
   },
   ESTADOS_CITA_ORDEN: ["programada", "realizada", "reprogramada", "ko"],
+
+  TIPOS_RELACION_AGENTE: {
+    autonomo: "Autonomo",
+    empleado: "Empleado",
+    colaborador: "Colaborador",
+    subagente: "Subagente",
+    otro: "Otro",
+  },
+
+  TIPOS_SEGUIMIENTO_AGENTE: {
+    nota: { label: "Nota", icono: "📝", color: "#94a3b8" },
+    reunion: { label: "Reunion", icono: "🤝", color: "#60a5fa" },
+    objetivo: { label: "Objetivo", icono: "🎯", color: "#22d3ee" },
+    formacion: { label: "Formacion", icono: "🎓", color: "#a78bfa" },
+    incidencia: { label: "Incidencia", icono: "⚠️", color: "#f87171" },
+    reconocimiento: { label: "Reconocimiento", icono: "🏆", color: "#34d399" },
+  },
 };

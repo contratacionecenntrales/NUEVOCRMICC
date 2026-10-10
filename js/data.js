@@ -135,6 +135,24 @@ window.icc.data = (function () {
     await API.del("api/agentes.php?id=" + encodeURIComponent(id));
   }
 
+  // ---------------------------------------------------------- Ficha de agente
+  async function obtenerFichaAgente(id) {
+    return API.get("api/ficha_agente.php?id=" + encodeURIComponent(id));
+  }
+
+  async function guardarFichaAgente(id, payload) {
+    await API.put("api/ficha_agente.php?id=" + encodeURIComponent(id), payload);
+  }
+
+  async function crearSeguimientoAgente(id, payload) {
+    var data = await API.post("api/ficha_agente.php?id=" + encodeURIComponent(id), payload);
+    return data.id;
+  }
+
+  async function borrarSeguimientoAgente(id, seguimientoId) {
+    await API.del("api/ficha_agente.php?id=" + encodeURIComponent(id) + "&seguimiento_id=" + encodeURIComponent(seguimientoId));
+  }
+
   async function historialImpersonacion() {
     var data = await API.get("api/auth.php?action=historial_impersonacion");
     return data.historial;
@@ -335,6 +353,10 @@ window.icc.data = (function () {
     crearAgente: crearAgente,
     actualizarAgente: actualizarAgente,
     borrarAgente: borrarAgente,
+    obtenerFichaAgente: obtenerFichaAgente,
+    guardarFichaAgente: guardarFichaAgente,
+    crearSeguimientoAgente: crearSeguimientoAgente,
+    borrarSeguimientoAgente: borrarSeguimientoAgente,
     historialImpersonacion: historialImpersonacion,
     listarCarpetasFicheros: listarCarpetasFicheros,
     crearCarpetaFichero: crearCarpetaFichero,
