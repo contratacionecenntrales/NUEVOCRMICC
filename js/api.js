@@ -18,6 +18,12 @@ window.icc.api = (function () {
       data = null;
     }
     if (!res.ok) {
+      // Sesion cerrada en remoto (Seguridad avanzada) o contrasena que hay
+      // que cambiar: se recarga para mostrar el login o la pantalla de cambio.
+      var conSesion = window.icc.auth && window.icc.auth.state && window.icc.auth.state.user;
+      if (conSesion && (res.status === 401 || (res.status === 403 && data && data.debe_cambiar_password))) {
+        setTimeout(function () { location.reload(); }, 600);
+      }
       var err = new Error((data && data.error) || "Error inesperado (" + res.status + ")");
       err.status = res.status;
       throw err;

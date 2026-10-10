@@ -10,6 +10,7 @@
 require __DIR__ . '/config.php';
 
 $user = icc_require_auth();
+icc_require_permiso_metodo($user, ['GET' => 'contratos.exportar']);
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') icc_json(['error' => 'Metodo no permitido'], 405);
 
 $estadosValidos = ['tramitado', 'ok', 'ko', 'incidencias', 'verificado', 'decomisionado', 'en_distribuidora'];

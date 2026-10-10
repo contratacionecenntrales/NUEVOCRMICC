@@ -2,6 +2,7 @@
 require __DIR__ . '/config.php';
 
 $user = icc_require_auth();
+icc_require_permiso_metodo($user, ['GET' => 'agenda.ver', 'POST' => 'agenda.gestionar', 'PUT' => 'agenda.gestionar', 'DELETE' => 'agenda.gestionar']);
 $metodo = $_SERVER['REQUEST_METHOD'];
 $id = isset($_GET['id']) ? (int)$_GET['id'] : null;
 $sectoresValidos = ['energia', 'telecomunicaciones', 'alarmas', 'multisectorial'];

@@ -56,12 +56,7 @@ function icc_ficha_cargar_objetivo(PDO $db, int $id): array {
 }
 
 function icc_ficha_notificar(PDO $db, int $destinoId, int $agenteId, string $mensaje): void {
-  try {
-    $db->prepare('INSERT INTO notificaciones (user_id, tipo, mensaje) VALUES (?, ?, ?)')
-      ->execute([$destinoId, 'ficha_agente:' . $agenteId, icc_ficha_cortar($mensaje, 500)]);
-  } catch (Exception $e) {
-    error_log('ICC ficha agente: no se pudo notificar: ' . $e->getMessage());
-  }
+  icc_notificar($destinoId, 'ficha_agente', 'ficha_agente:' . $agenteId, $mensaje);
 }
 
 /** Ejecuta una consulta de resumen; si la tabla aun no existe, devuelve $porDefecto. */

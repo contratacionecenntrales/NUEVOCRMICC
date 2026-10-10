@@ -8,13 +8,15 @@
 require __DIR__ . '/config.php';
 
 $user = icc_require_auth();
+icc_require_permiso_metodo($user, ['GET' => 'ficheros.ver', 'POST' => 'ficheros.subir', 'DELETE' => 'ficheros.borrar']);
 $metodo = $_SERVER['REQUEST_METHOD'];
 $id = isset($_GET['id']) ? (int)$_GET['id'] : null;
 
 function icc_carpeta_con_permisos(array $user, array $carpeta): array {
   $carpeta['puede_subir'] = $carpeta['propietario_id'] === null
-    ? in_array($user['rol'], ['backoffice', 'jefe_de_equipo', 'admin', 'super_admin'], true)
+    ? icc_tiene_permiso($user, 'ficheros.subir')
     : icc_es_admin_o_superior($user);
+  $carpeta['puede_borrar'] = icc_tiene_permiso($user, 'ficheros.borrar');
   $carpeta['es_personal'] = $carpeta['propietario_id'] !== null;
   return $carpeta;
 }
@@ -66,7 +68,6 @@ if ($metodo === 'GET' && $id === null) {
 }
 
 if ($metodo === 'POST' && $id === null) {
-  icc_require_role(['backoffice', 'jefe_de_equipo', 'admin', 'super_admin']);
   icc_require_csrf();
   $body = icc_body();
   $nombre = trim($body['nombre'] ?? '');
@@ -88,7 +89,6 @@ if ($metodo === 'POST' && $id === null) {
 }
 
 if ($metodo === 'DELETE' && $id !== null) {
-  icc_require_role(['admin', 'super_admin']);
   icc_require_csrf();
   $db = icc_db();
   $stmt = $db->prepare('SELECT * FROM ficheros_carpetas WHERE id = ?');

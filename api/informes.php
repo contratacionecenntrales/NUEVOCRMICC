@@ -2,6 +2,7 @@
 require __DIR__ . '/config.php';
 
 $user = icc_require_auth();
+icc_require_permiso_metodo($user, ['GET' => 'informes.ver']);
 $idsEquipo = icc_equipo_comercial_ids($user);
 $tipo = $_GET['tipo'] ?? '';
 $db = icc_db();

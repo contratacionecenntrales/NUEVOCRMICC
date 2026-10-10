@@ -2,6 +2,7 @@
 require __DIR__ . '/config.php';
 
 $user = icc_require_auth();
+icc_require_permiso_metodo($user, ['GET' => 'ficheros.ver', 'DELETE' => 'ficheros.borrar']);
 $metodo = $_SERVER['REQUEST_METHOD'];
 
 function icc_cargar_carpeta_fichero(PDO $db, int $carpetaId): ?array {
@@ -36,7 +37,7 @@ if ($metodo === 'POST') {
   if (!$carpeta || !icc_carpeta_fichero_visible($user, $carpeta)) icc_json(['error' => 'Carpeta no encontrada'], 404);
 
   $puedeSubir = $carpeta['propietario_id'] === null
-    ? in_array($user['rol'], ['backoffice', 'jefe_de_equipo', 'admin', 'super_admin'], true)
+    ? icc_tiene_permiso($user, 'ficheros.subir')
     : icc_es_admin_o_superior($user);
   if (!$puedeSubir) icc_json(['error' => 'No tienes permiso para subir archivos en esta carpeta'], 403);
 
@@ -65,7 +66,6 @@ if ($metodo === 'POST') {
 }
 
 if ($metodo === 'DELETE') {
-  icc_require_role(['admin', 'super_admin']);
   icc_require_csrf();
   $id = (int)($_GET['id'] ?? 0);
   if (!$id) icc_json(['error' => 'Falta id'], 400);

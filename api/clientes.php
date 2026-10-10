@@ -2,6 +2,7 @@
 require __DIR__ . '/config.php';
 
 $user = icc_require_auth();
+icc_require_permiso_metodo($user, ['GET' => 'clientes.ver', 'POST' => 'clientes.crear', 'PUT' => 'clientes.editar']);
 $metodo = $_SERVER['REQUEST_METHOD'];
 $id = isset($_GET['id']) ? (int)$_GET['id'] : null;
 $tiposClienteValidos = ['residencial', 'pyme', 'comunidad_vecinos', 'gran_cuenta'];

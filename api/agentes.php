@@ -28,9 +28,16 @@ if ($metodo === 'GET' && $id === null) {
     }
   }
 
-  $sql = 'SELECT id, nombre, apellidos, email, telefono, empresa, cif, tipo, rol, supervisor_id, bloqueado, created_at FROM usuarios';
+  $columnas = 'u.id, u.nombre, u.apellidos, u.email, u.telefono, u.empresa, u.cif, u.tipo, u.rol, u.supervisor_id, u.bloqueado, u.created_at';
+  $join = '';
+  if (icc_v52()) {
+    $columnas .= ', u.numero_relacion, u.avatar_ruta, u.ultimo_acceso, p.estado_disponibilidad, p.ausencia_hasta';
+    $join = ' LEFT JOIN usuarios_preferencias p ON p.usuario_id = u.id';
+  }
+  $where = array_map(function ($w) { return 'u.' . $w; }, $where);
+  $sql = "SELECT $columnas FROM usuarios u$join";
   if ($where) $sql .= ' WHERE ' . implode(' AND ', $where);
-  $sql .= ' ORDER BY nombre ASC';
+  $sql .= ' ORDER BY u.nombre ASC';
 
   $stmt = $db->prepare($sql);
   $stmt->execute($params);
@@ -96,6 +103,10 @@ if ($metodo === 'POST' && $id === null) {
     $supervisorId,
   ]);
   $nuevoId = (int)$db->lastInsertId();
+  if (icc_v52()) {
+    $db->prepare("UPDATE usuarios SET numero_relacion = CONCAT('ICC-', LPAD(id, 5, '0')), debe_cambiar_password = 1 WHERE id = ?")->execute([$nuevoId]);
+  }
+  icc_auditar($nuevoId, (int)$user['id'], 'cuenta_creada', 'Cuenta creada por ' . $user['nombre'] . ' con rol ' . $rol . ' (contrasena provisional)');
 
   if ($rol === 'comercial') {
     icc_crear_carpeta_personal_fichero($db, $nuevoId, $nombre);
@@ -202,6 +213,7 @@ if ($metodo === 'PUT' && $id !== null) {
   if (!$sets) icc_json(['ok' => true]);
   $valores[] = $id;
   $db->prepare('UPDATE usuarios SET ' . implode(', ', $sets) . ' WHERE id = ?')->execute($valores);
+  icc_registrar_cambios_cuenta($db, $user, $id, $body, $rolObjetivo, $rolFinal);
   icc_json(['ok' => true]);
 }
 
@@ -246,6 +258,33 @@ if ($metodo === 'DELETE' && $id !== null) {
 }
 
 icc_json(['error' => 'Peticion no valida'], 404);
+
+/**
+ * Efectos secundarios de un cambio de cuenta: historial, permisos y sesiones.
+ * - Cambiar el rol reescribe los permisos con los de fabrica del rol nuevo.
+ * - Bloquear la cuenta cierra al momento todas sus sesiones abiertas.
+ */
+function icc_registrar_cambios_cuenta(PDO $db, array $autor, int $id, array $body, string $rolAnterior, string $rolNuevo): void {
+  $autorId = (int)$autor['id'];
+  if ($rolNuevo !== $rolAnterior) {
+    if (icc_v52()) $db->prepare('DELETE FROM usuarios_permisos WHERE usuario_id = ?')->execute([$id]);
+    icc_auditar($id, $autorId, 'rol_cambiado', "Rol cambiado de $rolAnterior a $rolNuevo; permisos restablecidos a los del rol");
+  }
+  if (array_key_exists('bloqueado', $body)) {
+    if ($body['bloqueado']) {
+      $n = icc_sesiones_cerrar($id, $autorId, 'cuenta_bloqueada');
+      icc_auditar($id, $autorId, 'cuenta_bloqueada', 'Cuenta bloqueada' . ($n ? '; ' . icc_n_sesiones($n) : ''));
+    } else {
+      icc_auditar($id, $autorId, 'cuenta_desbloqueada', 'Cuenta desbloqueada');
+    }
+  }
+  if (array_key_exists('supervisor_id', $body) && icc_es_admin_o_superior($autor)) {
+    icc_auditar($id, $autorId, 'responsable_cambiado', $body['supervisor_id'] ? 'Asignado al responsable #' . (int)$body['supervisor_id'] : 'Sin responsable asignado');
+  }
+  if (!empty($body['password'])) {
+    icc_auditar($id, $autorId, 'password_cambiada', 'Contrasena cambiada desde Agentes');
+  }
+}
 
 /**
  * Jerarquia: Admin/Super Admin -> Jefe de equipo -> Comerciales.

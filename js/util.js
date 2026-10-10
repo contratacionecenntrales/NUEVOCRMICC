@@ -123,6 +123,32 @@ window.icc.util = (function () {
       .join("");
   }
 
+  // Foto de perfil del usuario, o sus iniciales si no tiene.
+  function avatar(user, size) {
+    size = size || 34;
+    var estilo = 'style="width:' + size + "px;height:" + size + "px;font-size:" + Math.round(size * 0.36) + 'px"';
+    if (user && user.avatar_ruta) {
+      return (
+        '<img class="icc-avatar icc-avatar-img" ' + estilo + ' alt="" src="api/descargar.php?tipo=avatares&ruta=' +
+        encodeURIComponent(user.avatar_ruta) + '">'
+      );
+    }
+    return '<div class="icc-avatar" ' + estilo + ">" + initials(user ? user.nombre + " " + (user.apellidos || "") : "") + "</div>";
+  }
+
+  function haceCuanto(value) {
+    if (!value) return "nunca";
+    var d = parseFechaSql(value);
+    var seg = Math.round((Date.now() - d.getTime()) / 1000);
+    if (seg < 90) return "hace un momento";
+    var min = Math.round(seg / 60);
+    if (min < 60) return "hace " + min + " min";
+    var h = Math.round(min / 60);
+    if (h < 24) return "hace " + h + (h === 1 ? " hora" : " horas");
+    var dias = Math.round(h / 24);
+    return "hace " + dias + (dias === 1 ? " dia" : " dias");
+  }
+
   function qs(params) {
     var url = new URLSearchParams(window.location.search);
     return params ? url.get(params) : url;
@@ -140,6 +166,8 @@ window.icc.util = (function () {
     servicioChips: servicioChips,
     slugFile: slugFile,
     initials: initials,
+    avatar: avatar,
+    haceCuanto: haceCuanto,
     qs: qs,
   };
 })();

@@ -10,6 +10,57 @@ window.ICC_CONST = {
     super_admin: "Super Administrador",
   },
 
+  ROLES_DESC: {
+    comercial: "Gestiona su propia cartera: clientes, presupuestos, contratos y agenda",
+    backoffice: "Estudios de ahorro, tarifas y soporte a toda la red comercial",
+    jefe_de_equipo: "Supervision comercial de su equipo asignado",
+    admin: "Direccion: ve y gestiona todo el negocio y las cuentas del equipo",
+    super_admin: "Control total, incluidas las cuentas de Administrador",
+  },
+
+  ESTADOS_DISPONIBILIDAD: {
+    disponible: { label: "Disponible", color: "#34d399" },
+    ocupado: { label: "Ocupado", color: "#fbbf24" },
+    ausente: { label: "Ausente", color: "#94a3b8" },
+    vacaciones: { label: "Vacaciones", color: "#60a5fa" },
+    baja: { label: "Baja", color: "#f87171" },
+  },
+
+  DIAS_SEMANA: [
+    ["lun", "Lunes"], ["mar", "Martes"], ["mie", "Miercoles"], ["jue", "Jueves"],
+    ["vie", "Viernes"], ["sab", "Sabado"], ["dom", "Domingo"],
+  ],
+
+  AVISOS_USUARIO: [
+    ["ficha_agente", "Seguimiento de la ficha", "Cuando alguien anota una reunion, objetivo o incidencia en tu ficha (o en la de alguien de tu equipo)"],
+    ["oferta_presentada", "Estudios de ahorro listos", "Cuando backoffice publica el estudio comparativo de uno de tus clientes"],
+    ["cuenta", "Avisos de la cuenta", "Cambios en tus permisos y otros avisos de seguridad"],
+  ],
+
+  ACCIONES_HISTORIAL: {
+    login: "Inicio de sesion",
+    login_fallido: "Intento de acceso fallido",
+    cuenta_creada: "Cuenta creada",
+    datos_actualizados: "Ficha actualizada",
+    foto_actualizada: "Foto de perfil actualizada",
+    foto_eliminada: "Foto de perfil eliminada",
+    rol_cambiado: "Rol cambiado",
+    responsable_cambiado: "Responsable cambiado",
+    permisos_cambiados: "Permisos modificados",
+    permisos_restablecidos: "Permisos restablecidos al rol",
+    cuenta_bloqueada: "Cuenta bloqueada",
+    cuenta_desbloqueada: "Cuenta desbloqueada",
+    password_cambiada: "Contrasena cambiada",
+    password_restablecida: "Contrasena restablecida",
+    cambio_password_exigido: "Cambio de contrasena exigido",
+    cambio_password_no_exigido: "Ya no se exige cambio de contrasena",
+    sesiones_cerradas: "Sesiones cerradas",
+    sesion_cerrada: "Sesion cerrada",
+    disponibilidad_actualizada: "Disponibilidad actualizada",
+    avisos_actualizados: "Notificaciones actualizadas",
+    ver_como: "Acceso con \"Ver como\"",
+  },
+
   ESTADOS: {
     lead_captado: { label: "Nuevo Lead / Prospecto", color: "#94a3b8" },
     estudio_backoffice: { label: "Auditoria / Analisis de Factura", color: "#fbbf24" },

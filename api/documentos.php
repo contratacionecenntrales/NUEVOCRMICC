@@ -2,6 +2,7 @@
 require __DIR__ . '/config.php';
 
 $user = icc_require_auth();
+icc_require_permiso_metodo($user, ['GET' => 'clientes.ver', 'POST' => 'documentos.subir']);
 $metodo = $_SERVER['REQUEST_METHOD'];
 
 function icc_obtener_cliente_o_404(PDO $db, int $clienteId, array $user): array {

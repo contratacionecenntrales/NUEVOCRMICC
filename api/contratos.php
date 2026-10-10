@@ -2,6 +2,7 @@
 require __DIR__ . '/config.php';
 
 $user = icc_require_auth();
+icc_require_permiso_metodo($user, ['GET' => 'contratos.ver', 'POST' => 'contratos.crear', 'PUT' => 'contratos.crear', 'DELETE' => 'contratos.borrar']);
 $metodo = $_SERVER['REQUEST_METHOD'];
 $id = isset($_GET['id']) ? (int)$_GET['id'] : null;
 $estadosValidos = ['tramitado', 'ok', 'ko', 'incidencias', 'verificado', 'decomisionado', 'en_distribuidora'];

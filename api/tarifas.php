@@ -104,7 +104,7 @@ if ($metodo === 'GET') {
 }
 
 // A partir de aqui, solo backoffice/jefe_de_equipo/admin puede escribir
-icc_require_role(['backoffice', 'jefe_de_equipo', 'admin', 'super_admin']);
+icc_require_permiso($user, 'tarifas.gestionar');
 icc_require_csrf();
 
 if ($metodo === 'POST') {

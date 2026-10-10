@@ -322,6 +322,25 @@ window.icc.data = (function () {
     await API.del("api/citas.php?id=" + encodeURIComponent(id));
   }
 
+  // ---------------------------------------------------- Ficha de usuario
+  async function obtenerUsuario(id) {
+    return API.get("api/usuario.php?id=" + encodeURIComponent(id));
+  }
+
+  async function accionUsuario(id, accion, payload) {
+    return API.post("api/usuario.php?id=" + encodeURIComponent(id) + "&accion=" + accion, payload || {});
+  }
+
+  async function subirAvatarUsuario(id, file) {
+    var fd = new FormData();
+    fd.append("archivo", file);
+    return API.postForm("api/usuario.php?id=" + encodeURIComponent(id) + "&accion=avatar", fd);
+  }
+
+  async function borrarAvatarUsuario(id) {
+    return API.del("api/usuario.php?id=" + encodeURIComponent(id) + "&accion=avatar");
+  }
+
   // ---------------------------------------------------------------- Descargas
   function urlDescarga(tipo, ruta, forzarDescarga) {
     return (
@@ -354,6 +373,10 @@ window.icc.data = (function () {
     actualizarAgente: actualizarAgente,
     borrarAgente: borrarAgente,
     obtenerFichaAgente: obtenerFichaAgente,
+    obtenerUsuario: obtenerUsuario,
+    accionUsuario: accionUsuario,
+    subirAvatarUsuario: subirAvatarUsuario,
+    borrarAvatarUsuario: borrarAvatarUsuario,
     guardarFichaAgente: guardarFichaAgente,
     crearSeguimientoAgente: crearSeguimientoAgente,
     borrarSeguimientoAgente: borrarSeguimientoAgente,

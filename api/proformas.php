@@ -2,6 +2,7 @@
 require __DIR__ . '/config.php';
 
 $user = icc_require_auth();
+icc_require_permiso_metodo($user, ['GET' => 'proformas.ver', 'POST' => 'proformas.crear', 'PUT' => 'proformas.crear', 'DELETE' => 'proformas.borrar']);
 $metodo = $_SERVER['REQUEST_METHOD'];
 $id = isset($_GET['id']) ? (int)$_GET['id'] : null;
 $facturadoPorValidos = ['ICC', 'ELITE_ENERGY', 'EVOLVIX_GLOBAL'];
@@ -95,7 +96,6 @@ if ($metodo === 'PUT' && $id !== null) {
 }
 
 if ($metodo === 'DELETE' && $id !== null) {
-  icc_require_role(['admin', 'super_admin']);
   icc_require_csrf();
   $db = icc_db();
   $stmt = $db->prepare('SELECT ruta_archivo FROM proformas WHERE id = ?');

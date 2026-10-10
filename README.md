@@ -171,6 +171,18 @@ propio CRM — ya no hace falta volver a tocar la base de datos a mano.
    fija su jefe o dirección), un historial de seguimiento (reuniones,
    objetivos, formaciones, incidencias...) con aviso en la campana al otro
    lado, y su actividad real en el CRM calculada en vivo.
+   Para la **ficha de usuario avanzada** (pestañas Información, Roles y
+   permisos, Disponibilidad y agenda, Notificaciones y Seguridad avanzada),
+   importa también `sql/migracion_usuarios_avanzado.sql` (una sola vez).
+   Añade foto de perfil, prefijo/extensión y Nº de relación; permisos
+   granulares por módulo que el servidor aplica de verdad (con excepciones
+   al rol y "Restablecer al rol"); horario y estado de disponibilidad;
+   preferencias de avisos; y seguridad: restablecer contraseña (se muestra
+   una vez y obliga a cambiarla), exigir cambio en el próximo acceso,
+   sesiones activas con cierre remoto, bloqueo temporal tras 5 intentos
+   fallidos e historial completo de la cuenta. Las cuentas nuevas creadas
+   desde Agentes deben cambiar la contraseña provisional al entrar.
+   Mientras no importes esta migración el CRM sigue funcionando igual.
    Si te falta la sección "Presupuestos", importa también
    `sql/migracion_presupuestos.sql` (añade el tipo de cliente
    Residencial/Empresa/Prime y la tabla de presupuestos por sector), y

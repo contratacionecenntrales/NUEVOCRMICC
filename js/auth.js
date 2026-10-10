@@ -84,6 +84,24 @@ window.icc.auth = (function () {
     return tieneRol("super_admin");
   }
 
+  // Permisos granulares calculados por el servidor (rol + excepciones).
+  function puede(permiso) {
+    if (!state.user) return false;
+    if (!Array.isArray(state.user.permisos)) return true;
+    return state.user.permisos.indexOf(permiso) !== -1;
+  }
+
+  async function cambiarPassword(actual, nueva) {
+    var data = await API.post("api/auth.php?action=cambiar_password", { actual: actual, nueva: nueva });
+    if (data.user) state.user = data.user;
+    notify();
+  }
+
+  async function refrescarUsuario() {
+    var data = await API.get("api/auth.php?action=me");
+    if (data.user) state.user = data.user;
+  }
+
   return {
     init: init,
     onChange: onChange,
@@ -95,6 +113,9 @@ window.icc.auth = (function () {
     esBackofficeOAdmin: esBackofficeOAdmin,
     esAdminOSuperior: esAdminOSuperior,
     esSuperAdmin: esSuperAdmin,
+    puede: puede,
+    cambiarPassword: cambiarPassword,
+    refrescarUsuario: refrescarUsuario,
     get state() {
       return state;
     },

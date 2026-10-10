@@ -882,7 +882,7 @@ window.icc.views = (function () {
       return;
     }
 
-    var puedeEstudio = window.icc.auth.esBackofficeOAdmin();
+    var puedeEstudio = window.icc.auth.puede("estudios.subir");
     var enlacePublico = location.href.replace(/index\.html.*$/, "").replace(/#.*$/, "") + "subir.html?token=" + cliente.upload_token;
 
     main().innerHTML =
@@ -1724,7 +1724,11 @@ window.icc.views = (function () {
       "</tr></thead><tbody>" +
       agentes
         .map(function (a) {
-          var nombreCompleto = U.escapeHtml(a.nombre + " " + (a.apellidos || ""));
+          var dispAgente = a.estado_disponibilidad && a.estado_disponibilidad !== "disponible" ? C.ESTADOS_DISPONIBILIDAD[a.estado_disponibilidad] : null;
+          var nombreCompleto =
+            '<span class="icc-agente-nombre">' + U.avatar(a, 30) + "<span>" + U.escapeHtml(a.nombre + " " + (a.apellidos || "")) +
+            (dispAgente ? '<br><span class="icc-badge" style="--badge-color:' + dispAgente.color + '">' + dispAgente.label + "</span>" : "") +
+            "</span></span>";
           var esObjetivoAdminTier = a.rol === "admin" || a.rol === "super_admin";
           var esYoMismo = String(a.id) === String(miId);
           // Un Admin normal no puede gestionar (rol/bloqueo/ver como/borrar)
@@ -1907,13 +1911,13 @@ window.icc.views = (function () {
     );
   }
 
-  async function viewFichaAgente(id) {
-    main().innerHTML = '<div class="icc-loading">Cargando ficha del agente…</div>';
+  async function renderResumenFicha(id, cont) {
+    cont.innerHTML = '<div class="icc-loading">Cargando resumen…</div>';
     var datos;
     try {
       datos = await D.obtenerFichaAgente(id);
     } catch (err) {
-      main().innerHTML = '<p class="icc-empty">' + U.escapeHtml(err.message || "No se pudo cargar la ficha") + "</p>";
+      cont.innerHTML = '<p class="icc-empty">' + U.escapeHtml(err.message || "No se pudo cargar la ficha") + "</p>";
       return;
     }
 
@@ -1937,18 +1941,10 @@ window.icc.views = (function () {
     var seguimiento = (datos.seguimiento || []).filter(function (s) { return !filtroTipo || s.tipo === filtroTipo; });
     var rutaFicha = esPropia && location.hash.indexOf("#/mi-ficha") === 0 ? "#/mi-ficha" : "#/agentes/" + a.id;
 
-    main().innerHTML =
-      '<div class="icc-page-head">' +
-      "<div>" +
-      (window.icc.auth.esBackofficeOAdmin() ? '<a href="#/agentes" class="icc-back">← Volver a Agentes</a>' : "") +
-      "<h1>" + U.escapeHtml(nombreCompleto) + "</h1>" +
-      '<p class="icc-muted">' + U.escapeHtml(C.ROLES[a.rol] || a.rol) +
-      (datos.supervisor ? " · Depende de " + U.escapeHtml(datos.supervisor.nombre) : "") +
-      (Number(a.bloqueado) ? ' · <span style="color:var(--red)">Cuenta bloqueada</span>' : "") +
-      "</p>" +
-      '<p class="icc-ficha-privada">🔒 Ficha privada: solo la ven ' + (esPropia ? "tú" : U.escapeHtml(a.nombre)) +
+    cont.innerHTML =
+      '<div class="icc-ficha-toolbar">' +
+      '<p class="icc-ficha-privada">🔒 Resumen privado: solo lo ven ' + (esPropia ? "tú" : U.escapeHtml(a.nombre)) +
       ", su jefe de equipo y dirección.</p>" +
-      "</div>" +
       '<div class="icc-head-actions icc-ficha-acciones">' +
       '<a class="icc-btn icc-btn-ghost" href="#/clientes?comercial_id=' + a.id + '">Clientes</a>' +
       '<a class="icc-btn icc-btn-ghost" href="#/contratos?comercial_id=' + a.id + '">Contratos</a>' +
@@ -2084,7 +2080,7 @@ window.icc.views = (function () {
     document.getElementById("btn-nuevo-seguimiento").addEventListener("click", function () {
       modalNuevoSeguimiento(a);
     });
-    main()
+    cont
       .querySelectorAll("[data-borrar-seg]")
       .forEach(function (btn) {
         btn.addEventListener("click", async function () {
@@ -2092,12 +2088,712 @@ window.icc.views = (function () {
           try {
             await D.borrarSeguimientoAgente(a.id, btn.getAttribute("data-borrar-seg"));
             U.toast("Entrada borrada", "success");
-            viewFichaAgente(a.id);
+            recargarFicha();
           } catch (err) {
             U.toast(err.message || "No se pudo borrar", "error");
           }
         });
       });
+  }
+
+  // ======================================================= Ficha de usuario
+  // Pantalla con pestanas: Resumen (seguimiento y objetivos), Informacion,
+  // Roles y permisos, Disponibilidad y agenda, Notificaciones y Seguridad.
+  // Cada pestana solo aparece si el servidor dice que se puede ver
+  // (api/usuario.php decide los permisos de verdad).
+  var fichaActual = { id: null, seccion: "resumen" };
+
+  function recargarFicha() {
+    return viewFichaAgente(fichaActual.id, fichaActual.seccion);
+  }
+
+  var SECCIONES_FICHA = [
+    { clave: "resumen", label: "Resumen y seguimiento", icono: "📊" },
+    { clave: "informacion", label: "Usuario · Información", icono: "👤" },
+    { clave: "permisos", label: "Roles y permisos", icono: "🛡️", requiere: "ver_permisos" },
+    { clave: "disponibilidad", label: "Disponibilidad y agenda", icono: "🕒" },
+    { clave: "notificaciones", label: "Notificaciones", icono: "🔔", requiere: "ver_notificaciones" },
+    { clave: "seguridad", label: "Seguridad avanzada", icono: "🔐", requiere: "ver_seguridad" },
+  ];
+
+  function badgeColor(texto, color) {
+    return '<span class="icc-badge" style="--badge-color:' + color + '">' + texto + "</span>";
+  }
+
+  function switchHtml(attrs, marcado, deshabilitado) {
+    return (
+      '<label class="icc-switch"><input type="checkbox" ' + attrs + (marcado ? " checked" : "") + (deshabilitado ? " disabled" : "") +
+      '><span class="icc-switch-slider"></span></label>'
+    );
+  }
+
+  function barraGuardar(id) {
+    return (
+      '<div class="icc-savebar" id="' + id + '">' +
+      '<span class="icc-muted icc-savebar-msg">Hay cambios sin guardar</span>' +
+      '<button type="button" class="icc-btn icc-btn-ghost" data-descartar>Descartar</button>' +
+      '<button type="submit" class="icc-btn icc-btn-primary">💾 Guardar cambios</button>' +
+      "</div>"
+    );
+  }
+
+  // Marca la barra de guardar cuando el formulario cambia.
+  function vigilarCambios(form) {
+    var barra = form.querySelector(".icc-savebar");
+    if (!barra) return;
+    form.addEventListener("input", function () { barra.classList.add("is-dirty"); });
+    form.addEventListener("change", function () { barra.classList.add("is-dirty"); });
+    var btn = barra.querySelector("[data-descartar]");
+    if (btn) btn.addEventListener("click", function () { recargarFicha(); });
+  }
+
+  function avisoMigracion(datos) {
+    return datos.migracion_pendiente
+      ? '<div class="icc-aviso">⚠️ Falta importar <code>sql/migracion_usuarios_avanzado.sql</code> en la base de datos: ' +
+        "hasta entonces esta pestaña es solo de consulta.</div>"
+      : "";
+  }
+
+  async function viewFichaAgente(id, seccion) {
+    fichaActual = { id: String(id), seccion: seccion || "resumen" };
+    main().innerHTML = '<div class="icc-loading">Cargando ficha…</div>';
+    var datos;
+    try {
+      datos = await D.obtenerUsuario(id);
+    } catch (err) {
+      main().innerHTML = '<p class="icc-empty">' + U.escapeHtml(err.message || "No se pudo cargar la ficha") + "</p>";
+      return;
+    }
+    var u = datos.usuario;
+    var puede = datos.puede;
+    var base = datos.es_propia && location.hash.indexOf("#/mi-ficha") === 0 ? "#/mi-ficha" : "#/agentes/" + u.id;
+    var secciones = SECCIONES_FICHA.filter(function (s) { return !s.requiere || puede[s.requiere]; });
+    if (!secciones.some(function (s) { return s.clave === fichaActual.seccion; })) fichaActual.seccion = "resumen";
+    var pref = datos.preferencias || {};
+    var disp = C.ESTADOS_DISPONIBILIDAD[pref.estado_disponibilidad] || C.ESTADOS_DISPONIBILIDAD.disponible;
+    var nombreCompleto = (u.nombre + " " + (u.apellidos || "")).trim();
+
+    main().innerHTML =
+      (window.icc.auth.esBackofficeOAdmin() ? '<a href="#/agentes" class="icc-back">← Volver a Agentes</a>' : "") +
+      '<div class="icc-uficha">' +
+      '<header class="icc-uficha-head">' +
+      U.avatar(u, 64) +
+      '<div class="icc-uficha-titulo">' +
+      "<h1>" + U.escapeHtml(nombreCompleto) + " " +
+      (Number(u.bloqueado) ? badgeColor("Bloqueado", "#f87171") : badgeColor("Activo", "#34d399")) +
+      (pref.estado_disponibilidad && pref.estado_disponibilidad !== "disponible" ? " " + badgeColor(disp.label, disp.color) : "") +
+      "</h1>" +
+      '<p class="icc-muted">' + U.escapeHtml(u.email) + " · " + U.escapeHtml(C.ROLES[u.rol] || u.rol) +
+      (u.numero_relacion ? ' · relación <code>' + U.escapeHtml(u.numero_relacion) + "</code>" : "") +
+      (datos.supervisor ? " · Depende de " + U.escapeHtml(datos.supervisor.nombre) : "") +
+      "</p></div></header>" +
+      '<div class="icc-uficha-body">' +
+      '<nav class="icc-uficha-menu">' +
+      secciones
+        .map(function (s) {
+          return (
+            '<a class="icc-uficha-menu-item' + (s.clave === fichaActual.seccion ? " is-active" : "") + '" href="' + base + "/" + s.clave + '">' +
+            '<span class="ico">' + s.icono + "</span>" + s.label + "</a>"
+          );
+        })
+        .join("") +
+      '<p class="icc-uficha-pie">Alta ' + U.formatFecha(u.created_at) +
+      (u.ultimo_acceso !== undefined ? " · último acceso " + U.haceCuanto(u.ultimo_acceso) : "") + "</p>" +
+      "</nav>" +
+      '<section class="icc-uficha-panel" id="ficha-panel"></section>' +
+      "</div></div>";
+
+    var cont = document.getElementById("ficha-panel");
+    var render = {
+      resumen: function () { return renderResumenFicha(u.id, cont); },
+      informacion: function () { renderInfoUsuario(cont, datos); },
+      permisos: function () { renderPermisosUsuario(cont, datos); },
+      disponibilidad: function () { renderDisponibilidadUsuario(cont, datos); },
+      notificaciones: function () { renderNotificacionesUsuario(cont, datos); },
+      seguridad: function () { renderSeguridadUsuario(cont, datos); },
+    };
+    await render[fichaActual.seccion]();
+  }
+
+  // Si el usuario editado es el que esta conectado, refresca su cabecera.
+  async function trasGuardarUsuario(datos) {
+    if (datos.es_propia) {
+      try {
+        await window.icc.auth.refrescarUsuario();
+        window.icc.app && window.icc.app.repintarCabecera && window.icc.app.repintarCabecera();
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    recargarFicha();
+  }
+
+  // ----------------------------------------------------- Usuario · Informacion
+  function campoFicha(name, label, valor, opciones) {
+    opciones = opciones || {};
+    return (
+      '<div class="icc-field' + (opciones.clase ? " " + opciones.clase : "") + '"><label>' + label + (opciones.requerido ? " *" : "") + "</label>" +
+      '<input class="icc-input" name="' + name + '" type="' + (opciones.tipo || "text") + '" value="' + U.escapeHtml(valor || "") + '"' +
+      (opciones.requerido ? " required" : "") + (opciones.soloLectura ? " readonly" : "") + (opciones.deshabilitado ? " disabled" : "") +
+      (opciones.placeholder ? ' placeholder="' + U.escapeHtml(opciones.placeholder) + '"' : "") + ">" +
+      (opciones.ayuda ? '<span class="icc-ayuda">' + opciones.ayuda + "</span>" : "") +
+      "</div>"
+    );
+  }
+
+  function renderInfoUsuario(cont, datos) {
+    var u = datos.usuario;
+    var p = datos.puede;
+    var editable = p.editar_info;
+    var sinMigracion = datos.migracion_pendiente;
+
+    cont.innerHTML =
+      avisoMigracion(datos) +
+      '<form id="form-info-usuario" class="icc-form">' +
+      "<h2>Datos personales</h2>" +
+      '<div class="icc-foto-row">' +
+      '<div class="icc-foto-wrap">' + U.avatar(u, 96) + "</div>" +
+      "<div><strong>Foto del perfil</strong>" +
+      '<p class="icc-muted">Tamaño propuesto 512 × 512 px, no mayor de 2,5 MB. Formatos PNG, JPG o WebP.</p>' +
+      (editable && !sinMigracion
+        ? '<input type="file" id="input-avatar" accept="image/png,image/jpeg,image/webp" hidden>' +
+          '<button type="button" class="icc-btn icc-btn-secondary" id="btn-cambiar-avatar">Cambiar foto</button> ' +
+          (u.avatar_ruta ? '<button type="button" class="icc-btn icc-btn-ghost" id="btn-quitar-avatar">Quitar</button>' : "")
+        : "") +
+      "</div></div>" +
+      '<div class="icc-form-grid">' +
+      campoFicha("nombre", "Nombre", u.nombre, { requerido: true, deshabilitado: !editable }) +
+      campoFicha("apellidos", "Apellidos", u.apellidos, { deshabilitado: !editable }) +
+      campoFicha("email", "Correo electrónico", u.email, {
+        requerido: true, tipo: "email", clase: "icc-col-2", deshabilitado: !p.editar_email,
+        ayuda: "Es su identificador de acceso al CRM." + (p.editar_email ? "" : " Solo dirección puede cambiarlo."),
+      }) +
+      (u.prefijo_telefono !== undefined ? campoFicha("prefijo_telefono", "Prefijo", u.prefijo_telefono || "+34", { deshabilitado: !editable }) : "") +
+      campoFicha("telefono", "Teléfono", u.telefono, { tipo: "tel", deshabilitado: !editable }) +
+      (u.extension !== undefined ? campoFicha("extension", "Extensión", u.extension, { deshabilitado: !editable, placeholder: "—" }) : "") +
+      campoFicha("empresa", "Empresa", u.empresa, { deshabilitado: !editable }) +
+      campoFicha("cif", "CIF", u.cif, { deshabilitado: !editable }) +
+      '<div class="icc-field"><label>Estado de la cuenta</label>' +
+      '<select class="icc-select" name="bloqueado"' + (p.editar_estado ? "" : " disabled") + ">" +
+      '<option value="0"' + (Number(u.bloqueado) ? "" : " selected") + ">Activo</option>" +
+      '<option value="1"' + (Number(u.bloqueado) ? " selected" : "") + ">Bloqueado</option>" +
+      "</select>" +
+      '<span class="icc-ayuda">Al bloquearla se cierran al momento todas sus sesiones.</span></div>' +
+      (u.numero_relacion
+        ? '<div class="icc-field icc-col-2"><label>Nº de relación</label>' +
+          '<div class="icc-copy-row"><input class="icc-input" readonly value="' + U.escapeHtml(u.numero_relacion) + '" id="input-relacion">' +
+          '<button type="button" class="icc-btn icc-btn-ghost" id="btn-copiar-relacion" title="Copiar">📋</button></div>' +
+          '<span class="icc-ayuda">Identificador interno único. No se modifica.</span></div>'
+        : "") +
+      "</div>" +
+      "<h2>Organización</h2>" +
+      filaDato("Rol", C.ROLES[u.rol] || u.rol) +
+      filaDato("Depende de", datos.supervisor ? (datos.supervisor.nombre + " " + (datos.supervisor.apellidos || "")).trim() : "Sin responsable asignado") +
+      filaDato("Alta en el CRM", U.formatFecha(u.created_at)) +
+      (u.ultimo_acceso !== undefined ? filaDato("Último acceso", u.ultimo_acceso ? U.formatFechaHora(u.ultimo_acceso) + " (" + U.haceCuanto(u.ultimo_acceso) + ")" : "Nunca") : "") +
+      (editable ? barraGuardar("savebar-info") : "") +
+      "</form>";
+
+    var form = document.getElementById("form-info-usuario");
+    vigilarCambios(form);
+    var btnCopiar = document.getElementById("btn-copiar-relacion");
+    if (btnCopiar) {
+      btnCopiar.addEventListener("click", function () {
+        navigator.clipboard && navigator.clipboard.writeText(u.numero_relacion);
+        U.toast("Nº de relación copiado", "success");
+      });
+    }
+    var btnAvatar = document.getElementById("btn-cambiar-avatar");
+    if (btnAvatar) {
+      var input = document.getElementById("input-avatar");
+      btnAvatar.addEventListener("click", function () { input.click(); });
+      input.addEventListener("change", async function () {
+        var file = input.files[0];
+        if (!file) return;
+        if (file.size > 2.5 * 1024 * 1024) {
+          U.toast("La imagen supera los 2,5 MB", "error");
+          return;
+        }
+        try {
+          await D.subirAvatarUsuario(u.id, file);
+          U.toast("Foto actualizada", "success");
+          trasGuardarUsuario(datos);
+        } catch (err) {
+          U.toast(err.message || "No se pudo subir la foto", "error");
+        }
+      });
+    }
+    var btnQuitar = document.getElementById("btn-quitar-avatar");
+    if (btnQuitar) {
+      btnQuitar.addEventListener("click", async function () {
+        if (!confirm("¿Quitar la foto de perfil?")) return;
+        try {
+          await D.borrarAvatarUsuario(u.id);
+          U.toast("Foto eliminada", "success");
+          trasGuardarUsuario(datos);
+        } catch (err) {
+          U.toast(err.message || "No se pudo quitar la foto", "error");
+        }
+      });
+    }
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      var fd = new FormData(form);
+      var payload = {};
+      ["nombre", "apellidos", "telefono", "empresa", "cif", "prefijo_telefono", "extension"].forEach(function (k) {
+        if (fd.has(k)) payload[k] = fd.get(k);
+      });
+      if (p.editar_email) payload.email = fd.get("email");
+      if (p.editar_estado) {
+        payload.bloqueado = fd.get("bloqueado") === "1";
+        if (payload.bloqueado && !Number(u.bloqueado) && !confirm("Se bloqueará la cuenta y se cerrarán todas sus sesiones. ¿Continuar?")) return;
+      }
+      try {
+        await D.accionUsuario(u.id, "info", payload);
+        U.toast("Información guardada", "success");
+        trasGuardarUsuario(datos);
+      } catch (err) {
+        U.toast(err.message || "No se pudo guardar", "error");
+      }
+    });
+  }
+
+  // --------------------------------------------------------- Roles y permisos
+  function renderPermisosUsuario(cont, datos) {
+    var u = datos.usuario;
+    var editable = datos.puede.editar_permisos && !datos.migracion_pendiente;
+    var perm = datos.permisos;
+    var efectivos = perm.efectivos || [];
+    var excepciones = perm.excepciones || {};
+    var numExcepciones = Object.keys(excepciones).length;
+    var esSuperAdmin = window.icc.auth.esSuperAdmin();
+    var rolesAsignables = Object.keys(C.ROLES).filter(function (r) {
+      return esSuperAdmin || (r !== "admin" && r !== "super_admin");
+    });
+
+    cont.innerHTML =
+      avisoMigracion(datos) +
+      '<form id="form-permisos-usuario" class="icc-form">' +
+      "<h2>Rol y permisos granulares</h2>" +
+      '<div class="icc-rol-row">' +
+      '<div class="icc-field" style="flex:1"><label>Rol asignado</label>' +
+      (datos.puede.editar_permisos
+        ? '<select class="icc-select" id="select-rol-usuario">' +
+          rolesAsignables
+            .map(function (r) { return '<option value="' + r + '"' + (u.rol === r ? " selected" : "") + ">" + C.ROLES[r] + "</option>"; })
+            .join("") +
+          "</select>"
+        : '<input class="icc-input" disabled value="' + U.escapeHtml(C.ROLES[u.rol] || u.rol) + '">') +
+      '<span class="icc-ayuda">' + U.escapeHtml(C.ROLES_DESC[u.rol] || "") + "</span></div>" +
+      '<div class="icc-rol-excepciones">' +
+      "<span class=\"icc-muted\">Permisos fuera del rol</span> " +
+      badgeColor(numExcepciones + (numExcepciones === 1 ? " excepción" : " excepciones"), numExcepciones ? "#fbbf24" : "#94a3b8") +
+      (editable && numExcepciones ? ' <button type="button" class="icc-btn icc-btn-ghost" id="btn-restablecer-permisos">↺ Restablecer al rol</button>' : "") +
+      "</div></div>" +
+      (datos.puede.editar_permisos
+        ? '<div class="icc-aviso icc-aviso-oro">⚠️ Cambiar el rol reescribe los permisos con los de fábrica del nuevo rol. Ajusta después las excepciones que necesites.</div>'
+        : '<p class="icc-muted">' + (datos.es_propia ? "Estos son tus permisos en el CRM. Los gestiona dirección." : "") + "</p>") +
+      perm.catalogo
+        .map(function (grupo) {
+          return (
+            '<div class="icc-perm-grupo"><div class="icc-perm-grupo-head">' + U.escapeHtml(grupo.modulo) + "</div>" +
+            grupo.permisos
+              .map(function (pm) {
+                var deFabrica = pm.roles.indexOf(u.rol) !== -1;
+                var activo = efectivos.indexOf(pm.clave) !== -1;
+                return (
+                  '<div class="icc-perm-row" data-perm-row="' + pm.clave + '" data-fabrica="' + (deFabrica ? 1 : 0) + '">' +
+                  switchHtml('data-perm="' + pm.clave + '"', activo, !editable) +
+                  '<div class="icc-perm-text"><strong>' + U.escapeHtml(pm.label) + "</strong>" +
+                  ' <span class="icc-perm-excepcion"' + (activo === deFabrica ? " hidden" : "") + ">excepción</span>" +
+                  '<span class="icc-muted">' + U.escapeHtml(pm.desc) + "</span></div>" +
+                  '<code class="icc-perm-clave">' + pm.clave + "</code></div>"
+                );
+              })
+              .join("") +
+            "</div>"
+          );
+        })
+        .join("") +
+      '<p class="icc-muted" style="margin-top:6px">Siempre ligados al rol (no se delegan): qué datos ve cada uno según su equipo, ' +
+      'la gestión de cuentas de usuario, "Ver como" y las copias de seguridad.</p>' +
+      (editable ? barraGuardar("savebar-permisos") : "") +
+      "</form>";
+
+    var form = document.getElementById("form-permisos-usuario");
+    vigilarCambios(form);
+    form.querySelectorAll("[data-perm]").forEach(function (chk) {
+      chk.addEventListener("change", function () {
+        var fila = form.querySelector('[data-perm-row="' + chk.getAttribute("data-perm") + '"]');
+        var deFabrica = fila.getAttribute("data-fabrica") === "1";
+        fila.querySelector(".icc-perm-excepcion").hidden = chk.checked === deFabrica;
+      });
+    });
+    var selectRol = document.getElementById("select-rol-usuario");
+    if (selectRol) {
+      selectRol.addEventListener("change", async function () {
+        if (!confirm("Cambiar el rol a " + C.ROLES[selectRol.value] + " reescribirá sus permisos con los de fábrica. ¿Continuar?")) {
+          selectRol.value = u.rol;
+          return;
+        }
+        try {
+          await D.actualizarAgente(u.id, { rol: selectRol.value });
+          U.toast("Rol actualizado", "success");
+          recargarFicha();
+        } catch (err) {
+          U.toast(err.message || "No se pudo cambiar el rol", "error");
+          selectRol.value = u.rol;
+        }
+      });
+    }
+    var btnRest = document.getElementById("btn-restablecer-permisos");
+    if (btnRest) {
+      btnRest.addEventListener("click", async function () {
+        if (!confirm("¿Quitar todas las excepciones y dejar solo los permisos de su rol?")) return;
+        try {
+          await D.accionUsuario(u.id, "restablecer_permisos");
+          U.toast("Permisos restablecidos al rol", "success");
+          recargarFicha();
+        } catch (err) {
+          U.toast(err.message || "No se pudo restablecer", "error");
+        }
+      });
+    }
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      var permisos = {};
+      form.querySelectorAll("[data-perm]").forEach(function (chk) { permisos[chk.getAttribute("data-perm")] = chk.checked; });
+      try {
+        await D.accionUsuario(u.id, "permisos", { permisos: permisos });
+        U.toast("Permisos guardados", "success");
+        recargarFicha();
+      } catch (err) {
+        U.toast(err.message || "No se pudieron guardar los permisos", "error");
+      }
+    });
+  }
+
+  // -------------------------------------------------- Disponibilidad y agenda
+  function horarioPorDefecto() {
+    var h = {};
+    C.DIAS_SEMANA.forEach(function (d, i) {
+      h[d[0]] = { activo: i < 5, desde: "09:00", hasta: "18:00" };
+    });
+    return h;
+  }
+
+  function renderDisponibilidadUsuario(cont, datos) {
+    var u = datos.usuario;
+    var pref = datos.preferencias || {};
+    var editable = datos.puede.editar_disponibilidad && !datos.migracion_pendiente;
+    var horario = pref.horario || horarioPorDefecto();
+    var citas = datos.proximas_citas || [];
+
+    var citasPorDia = {};
+    citas.forEach(function (c) { (citasPorDia[c.fecha] = citasPorDia[c.fecha] || []).push(c); });
+
+    cont.innerHTML =
+      avisoMigracion(datos) +
+      '<form id="form-disponibilidad" class="icc-form">' +
+      "<h2>Estado actual</h2>" +
+      '<div class="icc-form-grid">' +
+      '<div class="icc-field"><label>Disponibilidad</label><select class="icc-select" name="estado_disponibilidad"' + (editable ? "" : " disabled") + ">" +
+      Object.keys(C.ESTADOS_DISPONIBILIDAD)
+        .map(function (k) {
+          return '<option value="' + k + '"' + ((pref.estado_disponibilidad || "disponible") === k ? " selected" : "") + ">" + C.ESTADOS_DISPONIBILIDAD[k].label + "</option>";
+        })
+        .join("") +
+      "</select></div>" +
+      campoFicha("ausencia_desde", "Ausencia desde", pref.ausencia_desde, { tipo: "date", deshabilitado: !editable }) +
+      campoFicha("ausencia_hasta", "Ausencia hasta", pref.ausencia_hasta, { tipo: "date", deshabilitado: !editable }) +
+      campoFicha("nota_disponibilidad", "Nota", pref.nota_disponibilidad, {
+        clase: "icc-col-3", deshabilitado: !editable, placeholder: "Ej.: de vacaciones, su equipo lo atiende María",
+      }) +
+      "</div>" +
+      '<div class="icc-card-head"><h2>Horario laboral</h2>' +
+      (editable ? '<button type="button" class="icc-btn icc-btn-ghost" id="btn-copiar-lunes">Copiar lunes a laborables</button>' : "") +
+      "</div>" +
+      '<div class="icc-horario">' +
+      C.DIAS_SEMANA.map(function (d) {
+        var h = horario[d[0]] || { activo: false, desde: "09:00", hasta: "18:00" };
+        return (
+          '<div class="icc-horario-row" data-dia="' + d[0] + '">' +
+          switchHtml('data-dia-activo="' + d[0] + '"', h.activo, !editable) +
+          '<span class="icc-horario-dia">' + d[1] + "</span>" +
+          '<input class="icc-input" type="time" data-dia-desde="' + d[0] + '" value="' + U.escapeHtml(h.desde || "09:00") + '"' + (editable ? "" : " disabled") + ">" +
+          '<span class="icc-muted">a</span>' +
+          '<input class="icc-input" type="time" data-dia-hasta="' + d[0] + '" value="' + U.escapeHtml(h.hasta || "18:00") + '"' + (editable ? "" : " disabled") + ">" +
+          "</div>"
+        );
+      }).join("") +
+      "</div>" +
+      (editable ? barraGuardar("savebar-disp") : "") +
+      "</form>" +
+      '<div class="icc-card-head" style="margin-top:22px"><h2>Agenda · próximos 14 días</h2>' +
+      '<a class="icc-btn icc-btn-ghost" href="#/agenda?comercial_id=' + u.id + '">Abrir agenda</a></div>' +
+      (citas.length
+        ? Object.keys(citasPorDia)
+            .map(function (fecha) {
+              return (
+                '<div class="icc-cal-dia"><div class="icc-cal-fecha">' + U.formatFecha(fecha) + "</div>" +
+                citasPorDia[fecha]
+                  .map(function (c) {
+                    var est = C.ESTADOS_CITA[c.estado] || { label: c.estado, color: "#94a3b8" };
+                    return (
+                      '<div class="icc-cal-cita"><span class="icc-cal-hora">' + String(c.hora_inicio || "").slice(0, 5) + "–" +
+                      String(c.hora_fin || "").slice(0, 5) + "</span><span>" + U.escapeHtml(c.cliente_nombre) + "</span>" +
+                      badgeColor(est.label, est.color) + "</div>"
+                    );
+                  })
+                  .join("") +
+                "</div>"
+              );
+            })
+            .join("")
+        : '<p class="icc-empty">Sin citas en los próximos 14 días.</p>');
+
+    var form = document.getElementById("form-disponibilidad");
+    vigilarCambios(form);
+    var btnCopiar = document.getElementById("btn-copiar-lunes");
+    if (btnCopiar) {
+      btnCopiar.addEventListener("click", function () {
+        var desde = form.querySelector('[data-dia-desde="lun"]').value;
+        var hasta = form.querySelector('[data-dia-hasta="lun"]').value;
+        ["mar", "mie", "jue", "vie"].forEach(function (d) {
+          form.querySelector('[data-dia-activo="' + d + '"]').checked = true;
+          form.querySelector('[data-dia-desde="' + d + '"]').value = desde;
+          form.querySelector('[data-dia-hasta="' + d + '"]').value = hasta;
+        });
+        form.querySelector(".icc-savebar").classList.add("is-dirty");
+      });
+    }
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      var fd = new FormData(form);
+      var nuevoHorario = {};
+      C.DIAS_SEMANA.forEach(function (d) {
+        nuevoHorario[d[0]] = {
+          activo: form.querySelector('[data-dia-activo="' + d[0] + '"]').checked,
+          desde: form.querySelector('[data-dia-desde="' + d[0] + '"]').value,
+          hasta: form.querySelector('[data-dia-hasta="' + d[0] + '"]').value,
+        };
+      });
+      try {
+        await D.accionUsuario(u.id, "disponibilidad", {
+          horario: nuevoHorario,
+          estado_disponibilidad: fd.get("estado_disponibilidad"),
+          ausencia_desde: fd.get("ausencia_desde") || "",
+          ausencia_hasta: fd.get("ausencia_hasta") || "",
+          nota_disponibilidad: fd.get("nota_disponibilidad") || "",
+        });
+        U.toast("Disponibilidad guardada", "success");
+        recargarFicha();
+      } catch (err) {
+        U.toast(err.message || "No se pudo guardar", "error");
+      }
+    });
+  }
+
+  // ------------------------------------------------------------ Notificaciones
+  function renderNotificacionesUsuario(cont, datos) {
+    var u = datos.usuario;
+    var prefs = (datos.preferencias && datos.preferencias.notificaciones) || {};
+    var editable = !datos.migracion_pendiente;
+    cont.innerHTML =
+      avisoMigracion(datos) +
+      '<form id="form-notificaciones" class="icc-form">' +
+      "<h2>Avisos en la campana</h2>" +
+      '<p class="icc-muted">Elige qué avisos llegan a la campana 🔔 de ' + (datos.es_propia ? "tu cuenta" : U.escapeHtml(u.nombre)) + ".</p>" +
+      '<div class="icc-perm-grupo">' +
+      C.AVISOS_USUARIO.map(function (a) {
+        var activo = prefs[a[0]] === undefined ? true : !!prefs[a[0]];
+        return (
+          '<div class="icc-perm-row">' + switchHtml('name="' + a[0] + '"', activo, !editable) +
+          '<div class="icc-perm-text"><strong>' + a[1] + '</strong><span class="icc-muted">' + a[2] + "</span></div></div>"
+        );
+      }).join("") +
+      "</div>" +
+      (editable ? barraGuardar("savebar-notif") : "") +
+      "</form>";
+    var form = document.getElementById("form-notificaciones");
+    vigilarCambios(form);
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      var payload = {};
+      C.AVISOS_USUARIO.forEach(function (a) { payload[a[0]] = form.querySelector('[name="' + a[0] + '"]').checked; });
+      try {
+        await D.accionUsuario(u.id, "notificaciones", payload);
+        U.toast("Preferencias guardadas", "success");
+        recargarFicha();
+      } catch (err) {
+        U.toast(err.message || "No se pudo guardar", "error");
+      }
+    });
+  }
+
+  // --------------------------------------------------------- Seguridad avanzada
+  function describirDispositivo(ua) {
+    ua = ua || "";
+    var nav = /Edg\//.test(ua) ? "Edge" : /OPR\//.test(ua) ? "Opera" : /Chrome\//.test(ua) ? "Chrome" : /Firefox\//.test(ua) ? "Firefox" : /Safari\//.test(ua) ? "Safari" : "Navegador";
+    var so = /Windows/.test(ua) ? "Windows" : /Android/.test(ua) ? "Android" : /iPhone|iPad/.test(ua) ? "iOS" : /Mac OS X/.test(ua) ? "macOS" : /Linux/.test(ua) ? "Linux" : "";
+    var icono = /Android|iPhone|iPad|Mobile/.test(ua) ? "📱" : "💻";
+    return icono + " " + nav + (so ? " · " + so : "");
+  }
+
+  function renderSeguridadUsuario(cont, datos) {
+    var u = datos.usuario;
+    var p = datos.puede;
+    var seg = datos.seguridad || { sesiones: [], historial: [] };
+    var sinMigracion = datos.migracion_pendiente;
+
+    cont.innerHTML =
+      avisoMigracion(datos) +
+      "<h2>Credenciales</h2>" +
+      (!sinMigracion && (p.reset_password || p.cerrar_sesiones)
+        ? '<div class="icc-doc-actions">' +
+          (p.reset_password ? '<button type="button" class="icc-btn icc-btn-secondary" id="btn-reset-password">↻ Restablecer contraseña</button>' : "") +
+          (p.cerrar_sesiones
+            ? '<button type="button" class="icc-btn icc-btn-ghost" id="btn-cerrar-sesiones">⇥ ' + (datos.es_propia ? "Cerrar mis otras sesiones" : "Cerrar todas las sesiones") + "</button>"
+            : "") +
+          "</div>" +
+          (p.reset_password
+            ? '<p class="icc-muted">Al restablecerla se genera una contraseña que cumple la política corporativa, se cierran sus sesiones y se le exige cambiarla al entrar. Se muestra una sola vez.</p>'
+            : "")
+        : "") +
+      '<div class="icc-seg-opcion">' +
+      '<div><strong>Exigir cambio de contraseña en el próximo acceso</strong><span class="icc-muted">Recomendado tras entregar credenciales en mano.</span></div>' +
+      switchHtml('id="chk-exigir-cambio"', Number(u.debe_cambiar_password) === 1, !p.exigir_cambio || sinMigracion) +
+      "</div>" +
+      '<div class="icc-seg-opcion">' +
+      "<div><strong>Protección contra accesos indebidos</strong>" +
+      '<span class="icc-muted">Tras 5 intentos fallidos en 15 minutos la cuenta se bloquea temporalmente. Contraseñas de 8+ caracteres con letras y números.</span></div>' +
+      badgeColor(sinMigracion ? "Pendiente" : "Activa", sinMigracion ? "#94a3b8" : "#34d399") +
+      "</div>" +
+      (u.password_actualizada_en !== undefined
+        ? '<p class="icc-muted">Última actualización de la contraseña: ' + (u.password_actualizada_en ? U.formatFechaHora(u.password_actualizada_en) : "sin registrar") + "</p>"
+        : "") +
+      (p.cambiar_mi_password
+        ? '<form id="form-cambiar-password" class="icc-form icc-card" style="margin-top:12px">' +
+          "<h3>Cambiar mi contraseña</h3>" +
+          '<div class="icc-form-grid">' +
+          campoFicha("actual", "Contraseña actual", "", { tipo: "password", requerido: true }) +
+          campoFicha("nueva", "Nueva contraseña", "", { tipo: "password", requerido: true, ayuda: "Mínimo 8 caracteres, con letras y números." }) +
+          campoFicha("repetir", "Repite la nueva", "", { tipo: "password", requerido: true }) +
+          "</div>" +
+          '<div><button type="submit" class="icc-btn icc-btn-primary">Cambiar contraseña</button></div>' +
+          "</form>"
+        : "") +
+      "<h2 style=\"margin-top:22px\">Sesiones activas</h2>" +
+      (seg.sesiones.length
+        ? seg.sesiones
+            .map(function (s) {
+              return (
+                '<div class="icc-sesion-row"><div><strong>' + describirDispositivo(s.user_agent) + "</strong>" +
+                (s.es_actual ? " " + badgeColor("Esta sesión", "#22d3ee") : "") +
+                '<span class="icc-muted">IP ' + U.escapeHtml(s.ip || "-") + " · iniciada " + U.formatFechaHora(s.creada_en) +
+                " · activa " + U.haceCuanto(s.ultima_actividad) + "</span></div>" +
+                (p.cerrar_sesiones && !s.es_actual ? '<button type="button" class="icc-btn icc-btn-ghost" data-cerrar-sesion="' + s.id + '">Cerrar</button>' : "") +
+                "</div>"
+              );
+            })
+            .join("")
+        : '<p class="icc-empty">No hay sesiones abiertas.</p>') +
+      "<h2 style=\"margin-top:22px\">Historial de esta cuenta</h2>" +
+      (seg.historial.length
+        ? '<div class="icc-hist">' +
+          seg.historial
+            .map(function (h) {
+              var alerta = ["login_fallido", "cuenta_bloqueada", "password_restablecida"].indexOf(h.accion) !== -1;
+              return (
+                '<div class="icc-hist-item' + (alerta ? " is-alerta" : "") + '"><strong>' + U.escapeHtml(C.ACCIONES_HISTORIAL[h.accion] || h.accion) + "</strong>" +
+                (h.detalle && h.detalle.toLowerCase() !== String(C.ACCIONES_HISTORIAL[h.accion] || "").toLowerCase()
+                  ? "<span>" + U.escapeHtml(h.detalle) + "</span>"
+                  : "") +
+                '<span class="icc-muted">' + U.escapeHtml(h.autor_nombre || "Sistema") + " · " + U.formatFechaHora(h.created_at) +
+                (h.ip ? " · IP " + U.escapeHtml(h.ip) : "") + "</span></div>"
+              );
+            })
+            .join("") +
+          "</div>"
+        : '<p class="icc-empty">Sin movimientos registrados todavía.</p>');
+
+    var btnReset = document.getElementById("btn-reset-password");
+    if (btnReset) {
+      btnReset.addEventListener("click", async function () {
+        if (!confirm("Se generará una contraseña nueva para " + u.nombre + ", se cerrarán sus sesiones y tendrá que cambiarla al entrar. ¿Continuar?")) return;
+        try {
+          var r = await D.accionUsuario(u.id, "reset_password");
+          U.openModal(
+            "<h2>Contraseña provisional</h2>" +
+            '<p class="icc-muted">Entrégasela a ' + U.escapeHtml(u.nombre) + " por un canal seguro. No se volverá a mostrar.</p>" +
+            '<div class="icc-copy-row"><input class="icc-input icc-pass-mostrar" readonly value="' + U.escapeHtml(r.password) + '" id="input-pass-temporal">' +
+            '<button type="button" class="icc-btn icc-btn-ghost" id="btn-copiar-pass">📋 Copiar</button></div>' +
+            '<div class="icc-modal-actions"><button type="button" class="icc-btn icc-btn-primary" data-close-btn>Hecho</button></div>'
+          );
+          document.getElementById("btn-copiar-pass").addEventListener("click", function () {
+            navigator.clipboard && navigator.clipboard.writeText(r.password);
+            U.toast("Contraseña copiada", "success");
+          });
+          recargarFicha();
+        } catch (err) {
+          U.toast(err.message || "No se pudo restablecer", "error");
+        }
+      });
+    }
+    var btnCerrar = document.getElementById("btn-cerrar-sesiones");
+    if (btnCerrar) {
+      btnCerrar.addEventListener("click", async function () {
+        if (!confirm(datos.es_propia ? "¿Cerrar tus sesiones abiertas en otros dispositivos?" : "¿Cerrar todas las sesiones de " + u.nombre + "?")) return;
+        try {
+          var r = await D.accionUsuario(u.id, "cerrar_sesiones");
+          U.toast(r.cerradas ? r.cerradas + " sesiones cerradas" : "No había otras sesiones abiertas", "success");
+          recargarFicha();
+        } catch (err) {
+          U.toast(err.message || "No se pudieron cerrar", "error");
+        }
+      });
+    }
+    cont.querySelectorAll("[data-cerrar-sesion]").forEach(function (btn) {
+      btn.addEventListener("click", async function () {
+        try {
+          await D.accionUsuario(u.id, "cerrar_sesion", { sesion_id: btn.getAttribute("data-cerrar-sesion") });
+          U.toast("Sesión cerrada", "success");
+          recargarFicha();
+        } catch (err) {
+          U.toast(err.message || "No se pudo cerrar", "error");
+        }
+      });
+    });
+    var chkExigir = document.getElementById("chk-exigir-cambio");
+    if (chkExigir && p.exigir_cambio) {
+      chkExigir.addEventListener("change", async function () {
+        try {
+          await D.accionUsuario(u.id, "exigir_cambio", { valor: chkExigir.checked });
+          U.toast(chkExigir.checked ? "Deberá cambiar la contraseña al entrar" : "Ya no se le exige cambiarla", "success");
+          recargarFicha();
+        } catch (err) {
+          chkExigir.checked = !chkExigir.checked;
+          U.toast(err.message || "No se pudo actualizar", "error");
+        }
+      });
+    }
+    var formPass = document.getElementById("form-cambiar-password");
+    if (formPass) {
+      formPass.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        var fd = new FormData(formPass);
+        if (fd.get("nueva") !== fd.get("repetir")) {
+          U.toast("Las contraseñas nuevas no coinciden", "error");
+          return;
+        }
+        try {
+          await window.icc.auth.cambiarPassword(fd.get("actual"), fd.get("nueva"));
+          U.toast("Contraseña cambiada. Se han cerrado tus otras sesiones.", "success");
+        } catch (err) {
+          U.toast(err.message || "No se pudo cambiar", "error");
+        }
+      });
+    }
   }
 
   function campoFecha(name, label, valor) {
@@ -2129,7 +2825,7 @@ window.icc.views = (function () {
         await D.guardarFichaAgente(a.id, payload);
         U.toast("Ficha actualizada", "success");
         U.closeModal();
-        viewFichaAgente(a.id);
+        recargarFicha();
       } catch (err) {
         U.toast(err.message || "No se pudo guardar", "error");
       }
@@ -2168,7 +2864,7 @@ window.icc.views = (function () {
         await D.guardarFichaAgente(a.id, payload);
         U.toast("Gestión actualizada", "success");
         U.closeModal();
-        viewFichaAgente(a.id);
+        recargarFicha();
       } catch (err) {
         U.toast(err.message || "No se pudo guardar", "error");
       }
@@ -2204,7 +2900,7 @@ window.icc.views = (function () {
         await D.crearSeguimientoAgente(a.id, payload);
         U.toast("Entrada guardada", "success");
         U.closeModal();
-        viewFichaAgente(a.id);
+        recargarFicha();
       } catch (err) {
         U.toast(err.message || "No se pudo guardar", "error");
       }
@@ -2262,7 +2958,7 @@ window.icc.views = (function () {
     var ruta = arbol.ruta || [];
     var carpetas = arbol.carpetas || [];
     var puedeSubirAqui = actual ? actual.puede_subir : false;
-    var puedeCrearCarpeta = window.icc.auth.esBackofficeOAdmin() && (!actual || !actual.es_personal);
+    var puedeCrearCarpeta = window.icc.auth.puede("ficheros.subir") && (!actual || !actual.es_personal);
 
     var migas =
       '<a class="icc-tab' + (!carpetaId ? " is-active" : "") + '" href="#/ficheros">🏠 Raiz</a>' +
@@ -2304,7 +3000,7 @@ window.icc.views = (function () {
               return (
                 '<li><a class="icc-link-btn" style="margin-left:0" href="#/ficheros/' + c.id + '">📁 ' + U.escapeHtml(c.nombre) +
                 (c.es_personal ? " 🔒" : "") + "</a>" +
-                (esAdmin && !c.es_personal
+                (window.icc.auth.puede("ficheros.borrar") && !c.es_personal
                   ? '<button type="button" class="icc-link-btn" style="color:var(--red)" data-borrar-carpeta-id="' + c.id + '">Borrar</button>'
                   : "") +
                 "</li>"
@@ -2334,7 +3030,7 @@ window.icc.views = (function () {
                       ? ""
                       : '<a class="icc-link-btn" target="_blank" href="' + D.urlDescarga("ficheros", f.ruta_archivo) + '">Ver</a>' +
                         '<a class="icc-link-btn" href="' + D.urlDescarga("ficheros", f.ruta_archivo, true) + '">Descargar</a>') +
-                    (esAdmin
+                    (window.icc.auth.puede("ficheros.borrar")
                       ? '<button type="button" class="icc-link-btn" style="color:var(--red)" data-borrar-fichero-id="' + f.id + '" data-huerfano="' + (f.existe === false ? "1" : "0") + '">' +
                         (f.existe === false ? "Borrar registro" : "Borrar") + "</button>"
                       : "") +
@@ -2590,7 +3286,7 @@ window.icc.views = (function () {
                 (p.ruta_archivo
                   ? ' <a class="icc-link-btn" target="_blank" href="' + D.urlDescarga("proformas", p.ruta_archivo) + '">Ver</a>'
                   : "") +
-                (esAdmin
+                (window.icc.auth.puede("proformas.borrar")
                   ? ' <button type="button" class="icc-link-btn" style="color:var(--red)" data-borrar-proforma-id="' + p.id + '">Borrar</button>'
                   : "") +
                 "</td></tr>"
@@ -2704,7 +3400,7 @@ window.icc.views = (function () {
   }
 
   async function viewTarifas(catalogoActivo) {
-    if (!window.icc.auth.esBackofficeOAdmin()) {
+    if (!window.icc.auth.puede("tarifas.gestionar")) {
       main().innerHTML = '<p class="icc-empty">No tienes acceso a esta seccion.</p>';
       return;
     }
@@ -4435,7 +5131,7 @@ window.icc.views = (function () {
           );
         })
         .join("") +
-      (esAdmin
+      (window.icc.auth.puede("presupuestos.borrar")
         ? '<div class="icc-modal-actions" style="justify-content:flex-start;margin-top:14px">' +
           '<button type="button" class="icc-btn icc-btn-ghost" style="color:var(--red)" id="btn-borrar-presupuesto">Borrar presupuesto</button>' +
           "</div>"

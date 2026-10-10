@@ -7,6 +7,7 @@
 require __DIR__ . '/config.php';
 
 $user = icc_require_auth();
+icc_require_permiso_metodo($user, ['GET' => 'presupuestos.ver', 'POST' => 'presupuestos.crear', 'PUT' => 'presupuestos.crear', 'DELETE' => 'presupuestos.borrar']);
 $metodo = $_SERVER['REQUEST_METHOD'];
 $id = isset($_GET['id']) ? (int)$_GET['id'] : null;
 $sectoresValidos = ['alarmas', 'energia', 'telecomunicaciones', 'seguros', 'financiero'];
@@ -220,7 +221,6 @@ if ($metodo === 'PUT' && $id !== null) {
 }
 
 if ($metodo === 'DELETE' && $id !== null) {
-  icc_require_role(['backoffice', 'jefe_de_equipo', 'admin', 'super_admin']);
   icc_require_csrf();
   $db = icc_db();
   $stmt = $db->prepare('SELECT * FROM presupuestos WHERE id = ?');

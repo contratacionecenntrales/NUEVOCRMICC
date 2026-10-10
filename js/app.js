@@ -62,13 +62,14 @@
 
   function navItems() {
     var interno = window.icc.auth.esBackofficeOAdmin();
+    var puede = window.icc.auth.puede;
     var items = [{ href: "#/dashboard", label: "Inicio" }];
 
-    items.push({ label: "Agenda", href: "#/agenda" });
+    if (puede("agenda.ver")) items.push({ label: "Agenda", href: "#/agenda" });
 
-    items.push({ label: "Presupuestos", href: "#/presupuestos" });
+    if (puede("presupuestos.ver")) items.push({ label: "Presupuestos", href: "#/presupuestos" });
 
-    items.push({
+    if (puede("contratos.ver")) items.push({
       label: "Contratos",
       href: "#/contratos",
       submenu: [
@@ -85,7 +86,7 @@
       items.push({ label: "Agentes", href: "#/agentes" });
     }
 
-    if (interno) {
+    if (puede("tarifas.gestionar")) {
       items.push({
         label: "Comparador",
         href: "#/comparador/tarifas",
@@ -95,13 +96,13 @@
       });
     }
 
-    items.push({ label: "Ficheros", href: "#/ficheros" });
+    if (puede("ficheros.ver")) items.push({ label: "Ficheros", href: "#/ficheros" });
 
     items.push({ label: "Mi ficha", href: "#/mi-ficha" });
 
-    items.push({ label: "Proformas / Facturas", href: "#/proformas" });
+    if (puede("proformas.ver")) items.push({ label: "Proformas / Facturas", href: "#/proformas" });
 
-    items.push({
+    if (puede("informes.ver")) items.push({
       label: "Informes / Reportes",
       href: "#/informes",
       submenu: [
@@ -141,9 +142,8 @@
       "</div>" +
       '<div class="icc-user-card icc-user-card--top">' +
       '<a class="icc-user-link" href="#/mi-ficha" title="Mi ficha de agente" style="display:flex;align-items:center;gap:10px">' +
-      '<div class="icc-avatar">' +
-      U.initials(st.user.nombre) +
-      "</div><div><p class=\"icc-user-name\">" +
+      U.avatar(st.user, 34) +
+      "<div><p class=\"icc-user-name\">" +
       U.escapeHtml(st.user.nombre) +
       "</p><span class=\"icc-tag-role\">" +
       C.ROLES[st.rolPrincipal] +
@@ -295,9 +295,114 @@
     }
   }
 
+  // Rutas que dependen de un permiso granular (ver api/config.php).
+  var PERMISO_RUTA = [
+    ["#/agenda", "agenda.ver"],
+    ["#/presupuestos", "presupuestos.ver"],
+    ["#/contratos", "contratos.ver"],
+    ["#/clientes", "clientes.ver"],
+    ["#/ficheros", "ficheros.ver"],
+    ["#/proformas", "proformas.ver"],
+    ["#/informes", "informes.ver"],
+    ["#/comparador/tarifas", "tarifas.gestionar"],
+    ["#/comparador/nueva", "comparador.usar"],
+  ];
+
+  function sinPermisoRuta(ruta) {
+    return PERMISO_RUTA.some(function (r) {
+      return (ruta === r[0] || ruta.indexOf(r[0] + "/") === 0) && !window.icc.auth.puede(r[1]);
+    });
+  }
+
+  // Oculta botones de acciones para las que el usuario no tiene permiso
+  // (el servidor las rechaza igualmente; esto evita botones que fallan).
+  var REGLAS_BOTONES = [
+    ["#btn-nuevo-cliente, #btn-toggle-nuevo-cliente", "clientes.crear"],
+    ["#btn-editar-cliente, #select-estado", "clientes.editar"],
+    ["#btn-subir-factura", "documentos.subir"],
+    ["#btn-nuevo-presupuesto, #btn-nuevo-presupuesto-general", "presupuestos.crear"],
+    ["#btn-nueva-comparativa", "comparador.usar"],
+    ["#btn-nuevo-contrato", "contratos.crear"],
+    ["#btn-borrar-contrato", "contratos.borrar"],
+    ["#btn-exportar-contratos-csv, #btn-exportar-contratos-xlsx", "contratos.exportar"],
+    ["#btn-nueva-cita, #btn-dashboard-nueva-cita, #btn-fab-cita", "agenda.gestionar"],
+    ["#btn-nueva-proforma", "proformas.crear"],
+  ];
+
+  function aplicarPermisosUI() {
+    if (!window.icc.auth.state.user) return;
+    REGLAS_BOTONES.forEach(function (r) {
+      if (window.icc.auth.puede(r[1])) return;
+      document.querySelectorAll(r[0]).forEach(function (el) { el.style.display = "none"; });
+    });
+  }
+
+  var permisosUIPendiente = false;
+  new MutationObserver(function () {
+    if (permisosUIPendiente) return;
+    permisosUIPendiente = true;
+    requestAnimationFrame(function () {
+      permisosUIPendiente = false;
+      aplicarPermisosUI();
+    });
+  }).observe(document.documentElement, { childList: true, subtree: true });
+
+  // ------------------------------------------------- Cambio de contrasena obligatorio
+  function renderCambioObligatorio() {
+    var st = window.icc.auth.state;
+    root().innerHTML =
+      '<div class="icc-auth-wrap"><div class="icc-auth-card icc-card" style="max-width:440px;margin:auto">' +
+      '<div class="icc-brand"><img src="assets/logo.svg" alt="ICC" class="icc-brand-logo">' +
+      "<div><strong>Integral Connection</strong><span>Consulting · CRM</span></div></div>" +
+      "<h2>Cambia tu contraseña</h2>" +
+      '<p class="icc-muted">Hola ' + U.escapeHtml(st.user.nombre) + ", estás usando una contraseña provisional. " +
+      "Por seguridad, elige una nueva antes de continuar.</p>" +
+      '<form id="form-cambio-obligatorio" class="icc-form">' +
+      '<div class="icc-field"><label>Contraseña provisional</label><input class="icc-input" name="actual" type="password" required></div>' +
+      '<div class="icc-field"><label>Nueva contraseña</label><input class="icc-input" name="nueva" type="password" minlength="8" required>' +
+      '<span class="icc-ayuda">Mínimo 8 caracteres, con letras y números.</span></div>' +
+      '<div class="icc-field"><label>Repite la nueva</label><input class="icc-input" name="repetir" type="password" minlength="8" required></div>' +
+      '<button type="submit" class="icc-btn icc-btn-primary icc-btn-block">Guardar y entrar</button>' +
+      '<button type="button" class="icc-btn icc-btn-ghost icc-btn-block" id="btn-salir-cambio">Salir</button>' +
+      "</form></div></div>";
+    document.getElementById("btn-salir-cambio").addEventListener("click", function () {
+      window.icc.auth.signOut();
+    });
+    document.getElementById("form-cambio-obligatorio").addEventListener("submit", async function (e) {
+      e.preventDefault();
+      var fd = new FormData(e.target);
+      if (fd.get("nueva") !== fd.get("repetir")) {
+        U.toast("Las contraseñas nuevas no coinciden", "error");
+        return;
+      }
+      try {
+        await window.icc.auth.cambiarPassword(fd.get("actual"), fd.get("nueva"));
+        U.toast("Contraseña actualizada", "success");
+      } catch (err) {
+        U.toast(err.message || "No se pudo cambiar la contraseña", "error");
+      }
+    });
+  }
+
+  function debeCambiarPassword(state) {
+    return !!state.user && Number(state.user.debe_cambiar_password) === 1 && !state.impersonando;
+  }
+
+  window.icc.app = {
+    repintarCabecera: function () {
+      shellPintado = false;
+      router();
+    },
+  };
+
   // ------------------------------------------------------------------ Router
   async function router() {
     if (!window.icc.auth.state.user) return;
+    if (debeCambiarPassword(window.icc.auth.state)) {
+      shellPintado = false;
+      renderCambioObligatorio();
+      return;
+    }
     if (!shellPintado) renderShell();
     pintarNav();
 
@@ -306,7 +411,9 @@
     var main = document.getElementById("icc-main");
 
     try {
-      if (ruta === "#/dashboard" || hash === "" || hash === "#") {
+      if (sinPermisoRuta(ruta)) {
+        main.innerHTML = '<p class="icc-empty">No tienes permiso para acceder a esta sección. Si lo necesitas, pídeselo a dirección.</p>';
+      } else if (ruta === "#/dashboard" || hash === "" || hash === "#") {
         await window.icc.views.viewDashboard();
       } else if (ruta === "#/clientes") {
         await window.icc.views.viewClientes();
@@ -320,12 +427,13 @@
         await window.icc.views.viewPresupuestoDetalle(ruta.replace("#/presupuestos/", ""));
       } else if (ruta === "#/contratos") {
         await window.icc.views.viewContratos();
-      } else if (ruta === "#/mi-ficha") {
-        await window.icc.views.viewFichaAgente(window.icc.auth.state.user.id);
-      } else if (/^#\/agentes\/\d+$/.test(ruta)) {
-        // El permiso real lo decide api/ficha_agente.php (propio agente,
-        // su jefe de equipo o Admin/Super Admin).
-        await window.icc.views.viewFichaAgente(ruta.replace("#/agentes/", ""));
+      } else if (/^#\/mi-ficha(\/[a-z]+)?$/.test(ruta)) {
+        await window.icc.views.viewFichaAgente(window.icc.auth.state.user.id, ruta.split("/")[2] || "resumen");
+      } else if (/^#\/agentes\/\d+(\/[a-z]+)?$/.test(ruta)) {
+        // El permiso real lo deciden api/usuario.php y api/ficha_agente.php
+        // (propio usuario, su jefe de equipo o Admin/Super Admin).
+        var partesFicha = ruta.split("/");
+        await window.icc.views.viewFichaAgente(partesFicha[2], partesFicha[3] || "resumen");
       } else if (ruta === "#/agentes") {
         if (!window.icc.auth.esBackofficeOAdmin()) {
           main.innerHTML = '<p class="icc-empty">No tienes acceso a esta seccion.</p>';

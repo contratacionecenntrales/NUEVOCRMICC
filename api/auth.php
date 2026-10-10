@@ -37,6 +37,7 @@ if ($metodo === 'POST' && $accion === 'ver_como') {
   $_SESSION['impersonacion_log_id'] = (int)$db->lastInsertId();
   $_SESSION['impersonador_id'] = (int)$admin['id'];
   $_SESSION['user_id'] = $objetivoId;
+  icc_auditar($objetivoId, (int)$admin['id'], 'ver_como', $admin['nombre'] . ' ha entrado en la cuenta con "Ver como"');
 
   $nuevoUsuario = icc_current_user(true);
   icc_json(['user' => $nuevoUsuario, 'csrf' => icc_ensure_csrf(), 'impersonando' => icc_info_impersonacion()]);
@@ -73,11 +74,27 @@ if ($metodo === 'POST' && $accion === 'login') {
     icc_json(['error' => 'Indica email y contrasena'], 400);
   }
 
-  $stmt = icc_db()->prepare('SELECT * FROM usuarios WHERE email = ?');
+  $db = icc_db();
+  $stmt = $db->prepare('SELECT * FROM usuarios WHERE email = ?');
   $stmt->execute([$email]);
   $user = $stmt->fetch();
 
+  // Proteccion contra fuerza bruta: 5 intentos fallidos en 15 minutos
+  // bloquean temporalmente el acceso a esa cuenta.
+  if ($user && icc_v52()) {
+    $stmt = $db->prepare(
+      "SELECT COUNT(*) AS total FROM usuarios_auditoria
+       WHERE usuario_id = ? AND accion = 'login_fallido' AND created_at > (NOW() - INTERVAL 15 MINUTE)
+         AND created_at > COALESCE((SELECT MAX(created_at) FROM usuarios_auditoria WHERE usuario_id = ? AND accion = 'login'), '1970-01-01')"
+    );
+    $stmt->execute([$user['id'], $user['id']]);
+    if ((int)$stmt->fetch()['total'] >= 5) {
+      icc_json(['error' => 'Demasiados intentos fallidos. Espera 15 minutos o pide a administracion que restablezca tu contrasena.'], 429);
+    }
+  }
+
   if (!$user || !password_verify($password, $user['password_hash'])) {
+    if ($user) icc_auditar((int)$user['id'], null, 'login_fallido', 'Contrasena incorrecta');
     icc_json(['error' => 'Email o contrasena incorrectos'], 401);
   }
   if ((int)$user['bloqueado'] === 1) {
@@ -85,10 +102,40 @@ if ($metodo === 'POST' && $accion === 'login') {
   }
 
   session_regenerate_id(true);
-  unset($_SESSION['impersonador_id'], $_SESSION['impersonacion_log_id']);
+  unset($_SESSION['impersonador_id'], $_SESSION['impersonacion_log_id'], $_SESSION['sesion_token']);
   $_SESSION['user_id'] = (int)$user['id'];
-  unset($user['password_hash']);
-  icc_json(['user' => $user, 'csrf' => icc_ensure_csrf(), 'impersonando' => null]);
+  icc_sesion_crear((int)$user['id']);
+  icc_auditar((int)$user['id'], (int)$user['id'], 'login', 'Inicio de sesion');
+  icc_json(['user' => icc_current_user(true), 'csrf' => icc_ensure_csrf(), 'impersonando' => null]);
+}
+
+if ($metodo === 'POST' && $accion === 'cambiar_password') {
+  $user = icc_require_auth();
+  icc_require_csrf();
+  if (!empty($_SESSION['impersonador_id'])) {
+    icc_json(['error' => 'No puedes cambiar la contrasena de otro usuario desde "Ver como"'], 403);
+  }
+  $body = icc_body();
+  $actual = (string)($body['actual'] ?? '');
+  $nueva = (string)($body['nueva'] ?? '');
+  $error = icc_validar_politica_password($nueva);
+  if ($error) icc_json(['error' => $error], 400);
+
+  $db = icc_db();
+  $stmt = $db->prepare('SELECT password_hash FROM usuarios WHERE id = ?');
+  $stmt->execute([$user['id']]);
+  $hashActual = $stmt->fetch()['password_hash'];
+  if (!password_verify($actual, $hashActual)) {
+    icc_json(['error' => 'La contrasena actual no es correcta'], 400);
+  }
+  if ($nueva === $actual) {
+    icc_json(['error' => 'La nueva contrasena debe ser distinta de la actual'], 400);
+  }
+  $sets = 'password_hash = ?' . (icc_v52() ? ', debe_cambiar_password = 0, password_actualizada_en = NOW()' : '');
+  $db->prepare("UPDATE usuarios SET $sets WHERE id = ?")->execute([password_hash($nueva, PASSWORD_DEFAULT), $user['id']]);
+  $cerradas = icc_sesiones_cerrar((int)$user['id'], (int)$user['id'], 'cambio_password', icc_sesion_actual_id());
+  icc_auditar((int)$user['id'], (int)$user['id'], 'password_cambiada', 'Cambiada por el propio usuario' . ($cerradas ? '; ' . icc_n_sesiones($cerradas) : ''));
+  icc_json(['ok' => true, 'user' => icc_current_user(true)]);
 }
 
 // No existe alta publica: las cuentas del equipo las crea un administrador
@@ -97,6 +144,10 @@ if ($metodo === 'POST' && $accion === 'login') {
 if ($metodo === 'POST' && $accion === 'logout') {
   if (!empty($_SESSION['impersonador_id'])) {
     icc_cerrar_impersonacion_actual();
+  }
+  if (icc_v52() && !empty($_SESSION['sesion_token'])) {
+    icc_db()->prepare("UPDATE usuarios_sesiones SET cerrada_en = NOW(), motivo_cierre = 'logout' WHERE token_hash = ? AND cerrada_en IS NULL")
+      ->execute([hash('sha256', $_SESSION['sesion_token'])]);
   }
   $_SESSION = [];
   session_destroy();

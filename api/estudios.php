@@ -20,7 +20,7 @@ if ($metodo === 'GET') {
 }
 
 if ($metodo === 'POST') {
-  $user = icc_require_role(['backoffice', 'jefe_de_equipo', 'admin', 'super_admin']);
+  icc_require_permiso($user, 'estudios.subir');
   icc_require_csrf();
 
   $clienteId = (int)($_POST['cliente_id'] ?? 0);
@@ -69,8 +69,7 @@ if ($metodo === 'POST') {
 
       if (!empty($cliente['comercial_id'])) {
         $mensaje = 'Estudio de ahorro listo para ' . $cliente['razon_social'] . '. Ya puedes defender la propuesta y pasar a la firma.';
-        $db->prepare('INSERT INTO notificaciones (user_id, cliente_id, tipo, mensaje) VALUES (?, ?, "oferta_presentada", ?)')
-          ->execute([$cliente['comercial_id'], $clienteId, $mensaje]);
+        icc_notificar((int)$cliente['comercial_id'], 'oferta_presentada', 'oferta_presentada', $mensaje, $clienteId);
       }
     }
 

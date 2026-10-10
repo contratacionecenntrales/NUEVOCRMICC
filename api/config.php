@@ -96,6 +96,25 @@ function icc_body(): array {
 }
 
 /**
+ * true si ya se importo sql/migracion_usuarios_avanzado.sql. Mientras no,
+ * todo lo nuevo (sesiones, permisos a medida, auditoria...) se desactiva
+ * solo y el CRM sigue funcionando exactamente como antes.
+ */
+function icc_v52(): bool {
+  static $ok = null;
+  if ($ok === null) {
+    try {
+      icc_db()->query('SELECT debe_cambiar_password FROM usuarios LIMIT 0');
+      icc_db()->query('SELECT 1 FROM usuarios_sesiones LIMIT 0');
+      $ok = true;
+    } catch (PDOException $e) {
+      $ok = false;
+    }
+  }
+  return $ok;
+}
+
+/**
  * $forzar vuelve a consultar la base de datos aunque ya haya una cache de
  * una llamada anterior en la misma peticion: necesario justo despues de
  * cambiar $_SESSION['user_id'] (entrar/salir de "Ver como"), donde la
@@ -105,15 +124,247 @@ function icc_current_user(bool $forzar = false): ?array {
   if (empty($_SESSION['user_id'])) return null;
   static $cache = null;
   if ($cache !== null && !$forzar) return $cache;
-  $stmt = icc_db()->prepare('SELECT id, nombre, apellidos, email, telefono, empresa, cif, tipo, rol, bloqueado FROM usuarios WHERE id = ?');
+  $v52 = icc_v52();
+  $columnas = 'id, nombre, apellidos, email, telefono, empresa, cif, tipo, rol, bloqueado' .
+    ($v52 ? ', numero_relacion, prefijo_telefono, extension, avatar_ruta, debe_cambiar_password' : '');
+  $stmt = icc_db()->prepare("SELECT $columnas FROM usuarios WHERE id = ?");
   $stmt->execute([$_SESSION['user_id']]);
   $user = $stmt->fetch();
   if (!$user || (int)$user['bloqueado'] === 1) {
     session_destroy();
     return null;
   }
+  if ($v52 && !icc_sesion_valida()) {
+    $_SESSION = [];
+    session_destroy();
+    return null;
+  }
+  $user['permisos'] = icc_permisos_efectivos($user);
   $cache = $user;
   return $user;
+}
+
+/** Politica corporativa de contrasenas: devuelve el error o null. */
+function icc_validar_politica_password(string $password): ?string {
+  if (strlen($password) < 8) return 'La contrasena debe tener al menos 8 caracteres';
+  if (!preg_match('/[A-Za-z]/', $password) || !preg_match('/\d/', $password)) {
+    return 'La contrasena debe combinar letras y numeros';
+  }
+  return null;
+}
+
+/** Contrasena provisional que cumple la politica (sin caracteres ambiguos). */
+function icc_generar_password(): string {
+  $letras = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ';
+  $numeros = '23456789';
+  $todo = $letras . $numeros . '!@#%*?';
+  $pwd = $letras[random_int(0, strlen($letras) - 1)] . $numeros[random_int(0, strlen($numeros) - 1)];
+  for ($i = 0; $i < 10; $i++) $pwd .= $todo[random_int(0, strlen($todo) - 1)];
+  return str_shuffle($pwd);
+}
+
+function icc_ip(): ?string {
+  return $_SERVER['REMOTE_ADDR'] ?? null;
+}
+
+/** Id del usuario real que abrio la sesion (el admin, si esta en "Ver como"). */
+function icc_usuario_real_id(): int {
+  return (int)($_SESSION['impersonador_id'] ?? $_SESSION['user_id'] ?? 0);
+}
+
+/** Registra una sesion nueva (login) y guarda su token en la sesion PHP. */
+function icc_sesion_crear(int $usuarioId): void {
+  if (!icc_v52()) return;
+  $token = bin2hex(random_bytes(32));
+  $_SESSION['sesion_token'] = $token;
+  icc_db()->prepare('INSERT INTO usuarios_sesiones (usuario_id, token_hash, ip, user_agent) VALUES (?, ?, ?, ?)')
+    ->execute([$usuarioId, hash('sha256', $token), icc_ip(), substr((string)($_SERVER['HTTP_USER_AGENT'] ?? ''), 0, 255)]);
+  icc_db()->prepare('UPDATE usuarios SET ultimo_acceso = NOW() WHERE id = ?')->execute([$usuarioId]);
+}
+
+function icc_sesion_actual_id(): ?int {
+  if (!icc_v52() || empty($_SESSION['sesion_token'])) return null;
+  $stmt = icc_db()->prepare('SELECT id FROM usuarios_sesiones WHERE token_hash = ?');
+  $stmt->execute([hash('sha256', $_SESSION['sesion_token'])]);
+  $fila = $stmt->fetch();
+  return $fila ? (int)$fila['id'] : null;
+}
+
+/**
+ * Comprueba que la sesion no se haya cerrado en remoto (desde Seguridad).
+ * Las sesiones abiertas antes de importar la migracion se "adoptan" al vuelo.
+ */
+function icc_sesion_valida(): bool {
+  $db = icc_db();
+  if (empty($_SESSION['sesion_token'])) {
+    icc_sesion_crear(icc_usuario_real_id());
+    return true;
+  }
+  $stmt = $db->prepare('SELECT id, cerrada_en, ultima_actividad < (NOW() - INTERVAL 1 MINUTE) AS refrescar FROM usuarios_sesiones WHERE token_hash = ?');
+  $stmt->execute([hash('sha256', $_SESSION['sesion_token'])]);
+  $sesion = $stmt->fetch();
+  if (!$sesion || $sesion['cerrada_en'] !== null) return false;
+  if ((int)$sesion['refrescar'] === 1) {
+    $db->prepare('UPDATE usuarios_sesiones SET ultima_actividad = NOW() WHERE id = ?')->execute([$sesion['id']]);
+    $db->prepare('UPDATE usuarios SET ultimo_acceso = NOW() WHERE id = ?')->execute([icc_usuario_real_id()]);
+  }
+  return true;
+}
+
+/** Cierra sesiones abiertas de un usuario (todas, o todas menos $excepto). */
+function icc_sesiones_cerrar(int $usuarioId, ?int $autorId, string $motivo, ?int $excepto = null): int {
+  if (!icc_v52()) return 0;
+  $sql = 'UPDATE usuarios_sesiones SET cerrada_en = NOW(), cerrada_por = ?, motivo_cierre = ? WHERE usuario_id = ? AND cerrada_en IS NULL';
+  $params = [$autorId, $motivo, $usuarioId];
+  if ($excepto !== null) {
+    $sql .= ' AND id <> ?';
+    $params[] = $excepto;
+  }
+  $stmt = icc_db()->prepare($sql);
+  $stmt->execute($params);
+  return $stmt->rowCount();
+}
+
+function icc_n_sesiones(int $n): string {
+  return $n === 1 ? '1 sesion cerrada' : "$n sesiones cerradas";
+}
+
+/** Anota un evento en el historial de la cuenta (nunca rompe la peticion). */
+function icc_auditar(int $usuarioId, ?int $autorId, string $accion, string $detalle = ''): void {
+  if (!icc_v52()) return;
+  try {
+    icc_db()->prepare('INSERT INTO usuarios_auditoria (usuario_id, autor_id, accion, detalle, ip) VALUES (?, ?, ?, ?, ?)')
+      ->execute([$usuarioId, $autorId, $accion, substr($detalle, 0, 500), icc_ip()]);
+  } catch (Exception $e) {
+    error_log('ICC auditoria: ' . $e->getMessage());
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Permisos granulares. Cada permiso trae de fabrica los roles que lo tienen
+// (identico a como funcionaba el CRM antes); desde la ficha del usuario un
+// Admin puede dar o quitar permisos sueltos como "excepcion" a su rol.
+// La visibilidad por equipo (que datos ve cada uno) y la gestion de cuentas
+// siguen ligadas al rol y no se pueden delegar.
+// -----------------------------------------------------------------------------
+const ICC_TODOS_ROLES = ['comercial', 'backoffice', 'jefe_de_equipo', 'admin', 'super_admin'];
+const ICC_ROLES_INTERNOS = ['backoffice', 'jefe_de_equipo', 'admin', 'super_admin'];
+const ICC_ROLES_ADMIN = ['admin', 'super_admin'];
+
+function icc_catalogo_permisos(): array {
+  return [
+    ['modulo' => 'Clientes y expedientes', 'permisos' => [
+      ['clave' => 'clientes.ver', 'label' => 'Ver clientes', 'desc' => 'Consultar leads y clientes de su cartera', 'roles' => ICC_TODOS_ROLES],
+      ['clave' => 'clientes.crear', 'label' => 'Crear clientes', 'desc' => 'Dar de alta un nuevo lead o cliente', 'roles' => ICC_TODOS_ROLES],
+      ['clave' => 'clientes.editar', 'label' => 'Editar ficha de cliente', 'desc' => 'Datos, estado y servicios de interes', 'roles' => ICC_TODOS_ROLES],
+      ['clave' => 'documentos.subir', 'label' => 'Subir documentacion', 'desc' => 'Adjuntar facturas y contratos firmados', 'roles' => ICC_TODOS_ROLES],
+      ['clave' => 'estudios.subir', 'label' => 'Publicar estudios comparativos', 'desc' => 'Subir el PDF del estudio de backoffice', 'roles' => ICC_ROLES_INTERNOS],
+    ]],
+    ['modulo' => 'Presupuestos', 'permisos' => [
+      ['clave' => 'presupuestos.ver', 'label' => 'Ver presupuestos', 'desc' => 'Consultar el historico de propuestas', 'roles' => ICC_TODOS_ROLES],
+      ['clave' => 'presupuestos.crear', 'label' => 'Crear y editar presupuestos', 'desc' => 'Generar y actualizar propuestas', 'roles' => ICC_TODOS_ROLES],
+      ['clave' => 'presupuestos.borrar', 'label' => 'Borrar presupuestos', 'desc' => 'Eliminar propuestas', 'roles' => ICC_ROLES_INTERNOS],
+    ]],
+    ['modulo' => 'Contratos', 'permisos' => [
+      ['clave' => 'contratos.ver', 'label' => 'Ver contratos', 'desc' => 'Listado y detalle de contratos', 'roles' => ICC_TODOS_ROLES],
+      ['clave' => 'contratos.crear', 'label' => 'Crear y editar contratos', 'desc' => 'Alta y cambios de estado', 'roles' => ICC_TODOS_ROLES],
+      ['clave' => 'contratos.borrar', 'label' => 'Borrar contratos', 'desc' => 'Eliminar contratos', 'roles' => ICC_TODOS_ROLES],
+      ['clave' => 'contratos.exportar', 'label' => 'Exportar contratos', 'desc' => 'Descargar CSV y Excel', 'roles' => ICC_TODOS_ROLES],
+    ]],
+    ['modulo' => 'Agenda', 'permisos' => [
+      ['clave' => 'agenda.ver', 'label' => 'Ver agenda', 'desc' => 'Consultar citas', 'roles' => ICC_TODOS_ROLES],
+      ['clave' => 'agenda.gestionar', 'label' => 'Gestionar citas', 'desc' => 'Crear, mover y borrar citas', 'roles' => ICC_TODOS_ROLES],
+    ]],
+    ['modulo' => 'Comparador', 'permisos' => [
+      ['clave' => 'comparador.usar', 'label' => 'Usar el comparador', 'desc' => 'Generar comparativas de ahorro', 'roles' => ICC_TODOS_ROLES],
+      ['clave' => 'tarifas.gestionar', 'label' => 'Gestionar tarifas', 'desc' => 'Ver y editar el catalogo de tarifas', 'roles' => ICC_ROLES_INTERNOS],
+    ]],
+    ['modulo' => 'Ficheros', 'permisos' => [
+      ['clave' => 'ficheros.ver', 'label' => 'Ver el centro de ficheros', 'desc' => 'Consultar y descargar dosieres corporativos', 'roles' => ICC_TODOS_ROLES],
+      ['clave' => 'ficheros.subir', 'label' => 'Subir ficheros y crear carpetas', 'desc' => 'Anadir documentos a las carpetas compartidas', 'roles' => ICC_ROLES_INTERNOS],
+      ['clave' => 'ficheros.borrar', 'label' => 'Eliminar ficheros y carpetas', 'desc' => 'Retirar documentos del repositorio', 'roles' => ICC_ROLES_ADMIN],
+    ]],
+    ['modulo' => 'Proformas / Facturas', 'permisos' => [
+      ['clave' => 'proformas.ver', 'label' => 'Ver proformas', 'desc' => 'Consultar proformas y facturas', 'roles' => ICC_TODOS_ROLES],
+      ['clave' => 'proformas.crear', 'label' => 'Crear y editar proformas', 'desc' => 'Emitir y marcar como pagadas', 'roles' => ICC_TODOS_ROLES],
+      ['clave' => 'proformas.borrar', 'label' => 'Borrar proformas', 'desc' => 'Eliminar proformas', 'roles' => ICC_ROLES_ADMIN],
+    ]],
+    ['modulo' => 'Informes', 'permisos' => [
+      ['clave' => 'informes.ver', 'label' => 'Ver informes', 'desc' => 'Cartera, kW, contratos por sector/tarifa/compania', 'roles' => ICC_TODOS_ROLES],
+    ]],
+  ];
+}
+
+/** [clave => definicion] de todos los permisos. */
+function icc_permisos_indice(): array {
+  static $indice = null;
+  if ($indice === null) {
+    $indice = [];
+    foreach (icc_catalogo_permisos() as $grupo) {
+      foreach ($grupo['permisos'] as $p) $indice[$p['clave']] = $p + ['modulo' => $grupo['modulo']];
+    }
+  }
+  return $indice;
+}
+
+/** Excepciones guardadas para un usuario: [clave => true|false]. */
+function icc_permisos_excepciones(int $usuarioId): array {
+  if (!icc_v52()) return [];
+  $stmt = icc_db()->prepare('SELECT permiso, concedido FROM usuarios_permisos WHERE usuario_id = ?');
+  $stmt->execute([$usuarioId]);
+  $out = [];
+  foreach ($stmt->fetchAll() as $fila) $out[$fila['permiso']] = (int)$fila['concedido'] === 1;
+  return $out;
+}
+
+/** Lista de claves de permiso que tiene de verdad el usuario. */
+function icc_permisos_efectivos(array $user): array {
+  $excepciones = icc_permisos_excepciones((int)$user['id']);
+  $out = [];
+  foreach (icc_permisos_indice() as $clave => $p) {
+    $tiene = $excepciones[$clave] ?? in_array($user['rol'], $p['roles'], true);
+    if ($tiene) $out[] = $clave;
+  }
+  return $out;
+}
+
+function icc_tiene_permiso(array $user, string $permiso): bool {
+  $lista = $user['permisos'] ?? icc_permisos_efectivos($user);
+  return in_array($permiso, $lista, true);
+}
+
+/** Exige el permiso que corresponde al metodo HTTP de la peticion. */
+function icc_require_permiso_metodo(array $user, array $mapa): void {
+  $permiso = $mapa[$_SERVER['REQUEST_METHOD']] ?? null;
+  if ($permiso !== null) icc_require_permiso($user, $permiso);
+}
+
+function icc_require_permiso(array $user, string $permiso): void {
+  if (!icc_tiene_permiso($user, $permiso)) {
+    $def = icc_permisos_indice()[$permiso] ?? null;
+    icc_json(['error' => 'No tienes permiso para esta accion' . ($def ? ' (' . $def['label'] . ')' : '')], 403);
+  }
+}
+
+/**
+ * Avisos de la campana respetando las preferencias de cada usuario
+ * ($categoria: ficha_agente | oferta_presentada | cuenta).
+ */
+function icc_notificar(int $userId, string $categoria, string $tipo, string $mensaje, ?int $clienteId = null): void {
+  try {
+    $db = icc_db();
+    if (icc_v52()) {
+      $stmt = $db->prepare('SELECT notificaciones FROM usuarios_preferencias WHERE usuario_id = ?');
+      $stmt->execute([$userId]);
+      $fila = $stmt->fetch();
+      $prefs = $fila && $fila['notificaciones'] ? json_decode($fila['notificaciones'], true) : [];
+      if (is_array($prefs) && array_key_exists($categoria, $prefs) && !$prefs[$categoria]) return;
+    }
+    $db->prepare('INSERT INTO notificaciones (user_id, cliente_id, tipo, mensaje) VALUES (?, ?, ?, ?)')
+      ->execute([$userId, $clienteId, substr($tipo, 0, 40), function_exists('mb_substr') ? mb_substr($mensaje, 0, 500) : substr($mensaje, 0, 500)]);
+  } catch (Exception $e) {
+    error_log('ICC notificacion: ' . $e->getMessage());
+  }
 }
 
 /**
@@ -145,6 +396,12 @@ function icc_cerrar_impersonacion_actual(): void {
 function icc_require_auth(): array {
   $user = icc_current_user();
   if (!$user) icc_json(['error' => 'No has iniciado sesion'], 401);
+  // Contrasena provisional: hasta cambiarla solo puede usar api/auth.php
+  // (salvo un Admin en modo "Ver como", que no conoce esa contrasena).
+  if (!empty($user['debe_cambiar_password']) && empty($_SESSION['impersonador_id'])
+    && basename($_SERVER['SCRIPT_NAME'] ?? '') !== 'auth.php') {
+    icc_json(['error' => 'Debes cambiar tu contrasena antes de continuar', 'debe_cambiar_password' => true], 403);
+  }
   return $user;
 }
 
