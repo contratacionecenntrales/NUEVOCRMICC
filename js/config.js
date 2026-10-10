@@ -178,16 +178,29 @@ window.ICC_CONST = {
     energia: { label: "Energia", color: "#60a5fa" },
     telecomunicaciones: { label: "Telecomunicaciones", color: "#34d399" },
     alarmas: { label: "Alarmas", color: "#f59e0b" },
+    seguros: { label: "Seguros", color: "#f472b6" },
+    financiero: { label: "Financiero", color: "#22d3ee" },
     multisectorial: { label: "Multisectorial", color: "#a78bfa" },
   },
 
   ESTADOS_CITA: {
     programada: { label: "Programada", color: "#60a5fa" },
+    confirmada: { label: "Confirmada", color: "#22d3ee" },
     realizada: { label: "Realizada", color: "#34d399" },
     reprogramada: { label: "Reprogramada", color: "#fbbf24" },
     ko: { label: "KO", color: "#f87171" },
   },
-  ESTADOS_CITA_ORDEN: ["programada", "realizada", "reprogramada", "ko"],
+  ESTADOS_CITA_ORDEN: ["programada", "confirmada", "realizada", "reprogramada", "ko"],
+
+  TIPOS_CITA: {
+    visita: { label: "Visita", icono: "🤝" },
+    llamada: { label: "Llamada", icono: "📞" },
+    reunion: { label: "Reunion", icono: "👥" },
+    videollamada: { label: "Videollamada", icono: "💻" },
+    seguimiento: { label: "Seguimiento", icono: "🔁" },
+    firma: { label: "Firma", icono: "✍️" },
+    otro: { label: "Otro", icono: "📌" },
+  },
 
   TIPOS_RELACION_AGENTE: {
     autonomo: "Autonomo",

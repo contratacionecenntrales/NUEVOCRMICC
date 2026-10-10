@@ -193,6 +193,11 @@ propio CRM — ya no hace falta volver a tocar la base de datos a mano.
    están en `js/comparador_motor.js` (generado desde el proyecto
    integral-connection-comparador) y las pantallas en `js/comparador.js`.
    Los datos de empresa de los PDF se editan en `js/config.js` (EMPRESA).
+   Para la **agenda avanzada** (vistas Día/Semana/Mes/Año/Lista, citas a
+   cualquier minuto, arrastrar para mover, citas vinculadas a clientes del
+   CRM, tipo de cita, resumen de la reunión, próximos pasos y "pasar a
+   presupuesto"), importa también `sql/migracion_agenda_avanzada.sql` (una
+   sola vez). La pantalla está en `js/agenda.js`.
    Si te falta la sección "Presupuestos", importa también
    `sql/migracion_presupuestos.sql` (añade el tipo de cliente
    Residencial/Empresa/Prime y la tabla de presupuestos por sector), y

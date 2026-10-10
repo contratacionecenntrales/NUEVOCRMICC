@@ -1,18 +1,54 @@
 <?php
+/**
+ * ICC CRM · Agenda comercial.
+ *
+ * GET  (filtros)              citas del rango (?desde ?hasta ?fecha ?comercial_id ?estado ?sector ?tipo ?cliente_id ?q)
+ * GET  ?id=X                  una cita con su cliente y el historial de citas con ese cliente
+ * GET  ?resumen=anio&anio=Y   recuento de citas por dia de todo un año (vista Año)
+ * GET  ?kpis=1&fecha=Y-m-d    indicadores para la cabecera de la agenda
+ * POST                        nueva cita
+ * PUT  ?id=X                  editar / mover / resumen / estado
+ * DELETE ?id=X                borrar
+ *
+ * Visibilidad: comercial = las suyas; jefe de equipo = su equipo;
+ * backoffice/admin = todas. Las funciones nuevas (cliente vinculado, tipo,
+ * resumen, proximos pasos, presupuesto) requieren sql/migracion_agenda_avanzada.sql.
+ */
 require __DIR__ . '/config.php';
 
 $user = icc_require_auth();
 icc_require_permiso_metodo($user, ['GET' => 'agenda.ver', 'POST' => 'agenda.gestionar', 'PUT' => 'agenda.gestionar', 'DELETE' => 'agenda.gestionar']);
 $metodo = $_SERVER['REQUEST_METHOD'];
 $id = isset($_GET['id']) ? (int)$_GET['id'] : null;
-$sectoresValidos = ['energia', 'telecomunicaciones', 'alarmas', 'multisectorial'];
-$estadosValidos = ['programada', 'realizada', 'reprogramada', 'ko'];
+$db = icc_db();
+
+/** true si ya se importo sql/migracion_agenda_avanzada.sql. */
+function agenda_v2(PDO $db): bool {
+  static $ok = null;
+  if ($ok === null) {
+    try {
+      $db->query('SELECT cliente_id, tipo, resumen FROM citas LIMIT 0');
+      $ok = true;
+    } catch (PDOException $e) {
+      $ok = false;
+    }
+  }
+  return $ok;
+}
+
+$v2 = agenda_v2($db);
+$sectoresValidos = $v2
+  ? ['energia', 'telecomunicaciones', 'alarmas', 'multisectorial', 'seguros', 'financiero']
+  : ['energia', 'telecomunicaciones', 'alarmas', 'multisectorial'];
+$estadosValidos = $v2
+  ? ['programada', 'confirmada', 'realizada', 'reprogramada', 'ko']
+  : ['programada', 'realizada', 'reprogramada', 'ko'];
+$tiposValidos = ['visita', 'llamada', 'reunion', 'videollamada', 'seguimiento', 'firma', 'otro'];
 
 /**
  * Devuelve un aviso (no bloqueante) si ya existe otra cita del mismo
  * comercial que se solapa en horario con la franja dada, en la misma
- * fecha. Nunca impide guardar: el comercial puede tener motivos para
- * quedarse igual (p.ej. una llamada corta encajada entre dos visitas).
+ * fecha. Nunca impide guardar.
  */
 function icc_aviso_solape_cita(PDO $db, int $comercialId, string $fecha, string $horaInicio, string $horaFin, ?int $excluirId = null): ?string {
   $sql = "SELECT cliente_nombre, hora_inicio, hora_fin FROM citas
@@ -27,152 +63,295 @@ function icc_aviso_solape_cita(PDO $db, int $comercialId, string $fecha, string 
   $stmt->execute($params);
   $choque = $stmt->fetch();
   if (!$choque) return null;
-  return 'Ya tienes otra cita con ' . $choque['cliente_nombre'] . ' de ' . substr($choque['hora_inicio'], 0, 5) .
-    ' a ' . substr($choque['hora_fin'], 0, 5) . ' ese dia. Se ha guardado igualmente.';
+  return 'Ojo: se solapa con la cita de ' . $choque['cliente_nombre'] . ' de ' . substr($choque['hora_inicio'], 0, 5) .
+    ' a ' . substr($choque['hora_fin'], 0, 5) . '. Se ha guardado igualmente.';
 }
 
-if ($metodo === 'GET' && $id === null) {
-  $db = icc_db();
-  $where = [];
-  $params = [];
+function agenda_hora_valida($h): bool {
+  return is_string($h) && preg_match('/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/', $h) === 1;
+}
 
-  $idsEquipo = icc_equipo_comercial_ids($user);
-  if ($idsEquipo !== null) {
-    $where[] = 'comercial_id IN (' . implode(',', array_fill(0, count($idsEquipo), '?')) . ')';
-    array_push($params, ...$idsEquipo);
+function agenda_fecha_valida($f): bool {
+  return is_string($f) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $f) === 1;
+}
+
+/** Condicion de visibilidad (alias "c" = citas). */
+function agenda_where_base(array $user, array &$where, array &$params): void {
+  $ids = icc_equipo_comercial_ids($user);
+  if ($ids !== null) {
+    $where[] = 'c.comercial_id IN (' . implode(',', array_fill(0, count($ids), '?')) . ')';
+    array_push($params, ...$ids);
   }
   if (!empty($_GET['comercial_id']) && icc_puede_ver_comercial($user, (int)$_GET['comercial_id'])) {
-    $where[] = 'comercial_id = ?';
+    $where[] = 'c.comercial_id = ?';
     $params[] = (int)$_GET['comercial_id'];
   }
-  if (!empty($_GET['fecha'])) {
-    $where[] = 'fecha = ?';
-    $params[] = $_GET['fecha'];
-  }
-  if (!empty($_GET['desde'])) {
-    $where[] = 'fecha >= ?';
-    $params[] = $_GET['desde'];
-  }
-  if (!empty($_GET['hasta'])) {
-    $where[] = 'fecha <= ?';
-    $params[] = $_GET['hasta'];
-  }
-  if (!empty($_GET['estado']) && in_array($_GET['estado'], $estadosValidos, true)) {
-    $where[] = 'estado = ?';
-    $params[] = $_GET['estado'];
-  }
-  if (!empty($_GET['sector']) && in_array($_GET['sector'], $sectoresValidos, true)) {
-    $where[] = 'sector = ?';
-    $params[] = $_GET['sector'];
-  }
+}
 
-  $sql = 'SELECT c.*, u.nombre AS comercial_nombre FROM citas c LEFT JOIN usuarios u ON u.id = c.comercial_id';
-  if ($where) $sql .= ' WHERE ' . implode(' AND ', $where);
-  $sql .= ' ORDER BY c.fecha ASC, c.hora_inicio ASC LIMIT 1000';
+function agenda_cliente_visible(PDO $db, array $user, int $clienteId): ?array {
+  $stmt = $db->prepare('SELECT * FROM clientes WHERE id = ?');
+  $stmt->execute([$clienteId]);
+  $cliente = $stmt->fetch();
+  return $cliente && icc_puede_ver_comercial($user, $cliente['comercial_id']) ? $cliente : null;
+}
+
+// ======================================================================= GET
+if ($metodo === 'GET') {
+  $joinCliente = $v2 ? ' LEFT JOIN clientes cl ON cl.id = c.cliente_id' : '';
+  $colsCliente = $v2 ? ', cl.razon_social AS cliente_razon_social, cl.estado AS cliente_estado' : '';
 
   try {
+    // --- Una cita con su cliente e historial
+    if ($id !== null) {
+      $stmt = $db->prepare("SELECT c.*, u.nombre AS comercial_nombre$colsCliente FROM citas c LEFT JOIN usuarios u ON u.id = c.comercial_id$joinCliente WHERE c.id = ?");
+      $stmt->execute([$id]);
+      $cita = $stmt->fetch();
+      if (!$cita || !icc_puede_ver_comercial($user, $cita['comercial_id'])) icc_json(['error' => 'Cita no encontrada'], 404);
+
+      $cliente = null;
+      $historial = [];
+      $presupuestos = [];
+      if ($v2 && $cita['cliente_id']) {
+        $cliente = agenda_cliente_visible($db, $user, (int)$cita['cliente_id']);
+        if ($cliente) {
+          unset($cliente['upload_token']);
+          $stmt = $db->prepare(
+            'SELECT c.id, c.fecha, c.hora_inicio, c.hora_fin, c.tipo, c.estado, c.sector, c.resumen, c.proximos_pasos, u.nombre AS comercial_nombre
+             FROM citas c LEFT JOIN usuarios u ON u.id = c.comercial_id
+             WHERE c.cliente_id = ? ORDER BY c.fecha DESC, c.hora_inicio DESC LIMIT 50'
+          );
+          $stmt->execute([$cita['cliente_id']]);
+          $historial = $stmt->fetchAll();
+          $stmt = $db->prepare('SELECT id, sector, estado, created_at FROM presupuestos WHERE cliente_id = ? ORDER BY created_at DESC LIMIT 20');
+          $stmt->execute([$cita['cliente_id']]);
+          $presupuestos = $stmt->fetchAll();
+        }
+      } elseif ($v2) {
+        // Sin cliente vinculado: historial por nombre de negocio (mismo comercial/equipo).
+        $params = [$cita['cliente_nombre'], $id];
+        $where = ['c.cliente_nombre = ?', 'c.id <> ?'];
+        agenda_where_base($user, $where, $params);
+        $stmt = $db->prepare('SELECT c.id, c.fecha, c.hora_inicio, c.hora_fin, c.tipo, c.estado, c.sector, c.resumen, c.proximos_pasos FROM citas c WHERE ' . implode(' AND ', $where) . ' ORDER BY c.fecha DESC LIMIT 30');
+        $stmt->execute($params);
+        $historial = $stmt->fetchAll();
+      }
+      icc_json(['cita' => $cita, 'cliente' => $cliente, 'historial' => $historial, 'presupuestos' => $presupuestos, 'agenda_v2' => $v2]);
+    }
+
+    // --- Recuento por dia de todo un año (vista Año)
+    if (($_GET['resumen'] ?? '') === 'anio') {
+      $anio = (int)($_GET['anio'] ?? date('Y'));
+      $where = ['c.fecha BETWEEN ? AND ?'];
+      $params = [sprintf('%04d-01-01', $anio), sprintf('%04d-12-31', $anio)];
+      agenda_where_base($user, $where, $params);
+      $stmt = $db->prepare(
+        "SELECT c.fecha, COUNT(*) AS total, SUM(c.estado = 'realizada') AS realizadas, SUM(c.estado = 'ko') AS ko
+         FROM citas c WHERE " . implode(' AND ', $where) . ' GROUP BY c.fecha ORDER BY c.fecha'
+      );
+      $stmt->execute($params);
+      icc_json(['dias' => $stmt->fetchAll(), 'anio' => $anio]);
+    }
+
+    // --- Indicadores
+    if (!empty($_GET['kpis'])) {
+      $ref = agenda_fecha_valida($_GET['fecha'] ?? '') ? $_GET['fecha'] : date('Y-m-d');
+      $where = [];
+      $params = [];
+      agenda_where_base($user, $where, $params);
+      $w = $where ? ' AND ' . implode(' AND ', $where) : '';
+      $sinResumen = $v2 ? "SUM(c.estado = 'realizada' AND (c.resumen IS NULL OR c.resumen = '') AND c.fecha >= (? - INTERVAL 60 DAY))" : '0';
+      $sql = "SELECT
+          SUM(c.fecha = ? AND c.estado <> 'ko') AS hoy,
+          SUM(c.fecha BETWEEN (? - INTERVAL WEEKDAY(?) DAY) AND (? - INTERVAL WEEKDAY(?) DAY + INTERVAL 6 DAY)) AS semana,
+          SUM(c.fecha BETWEEN DATE_FORMAT(?, '%Y-%m-01') AND LAST_DAY(?)) AS mes,
+          SUM(c.fecha BETWEEN DATE_FORMAT(?, '%Y-%m-01') AND LAST_DAY(?) AND c.estado = 'realizada') AS mes_realizadas,
+          SUM(c.fecha BETWEEN DATE_FORMAT(?, '%Y-%m-01') AND LAST_DAY(?) AND c.estado = 'ko') AS mes_ko,
+          SUM(c.fecha < ? AND c.estado IN ('programada', 'confirmada', 'reprogramada')) AS sin_cerrar,
+          $sinResumen AS sin_resumen
+        FROM citas c WHERE 1 = 1$w";
+      $p = [$ref, $ref, $ref, $ref, $ref, $ref, $ref, $ref, $ref, $ref, $ref, $ref];
+      if ($v2) $p[] = $ref;
+      $stmt = $db->prepare($sql);
+      $stmt->execute(array_merge($p, $params));
+      $k = array_map('intval', $stmt->fetch());
+      icc_json(['kpis' => $k, 'agenda_v2' => $v2]);
+    }
+
+    // --- Listado del rango
+    $where = [];
+    $params = [];
+    agenda_where_base($user, $where, $params);
+    if (agenda_fecha_valida($_GET['fecha'] ?? '')) {
+      $where[] = 'c.fecha = ?';
+      $params[] = $_GET['fecha'];
+    }
+    if (agenda_fecha_valida($_GET['desde'] ?? '')) {
+      $where[] = 'c.fecha >= ?';
+      $params[] = $_GET['desde'];
+    }
+    if (agenda_fecha_valida($_GET['hasta'] ?? '')) {
+      $where[] = 'c.fecha <= ?';
+      $params[] = $_GET['hasta'];
+    }
+    if (!empty($_GET['estado']) && in_array($_GET['estado'], $estadosValidos, true)) {
+      $where[] = 'c.estado = ?';
+      $params[] = $_GET['estado'];
+    }
+    if (!empty($_GET['sector']) && in_array($_GET['sector'], $sectoresValidos, true)) {
+      $where[] = 'c.sector = ?';
+      $params[] = $_GET['sector'];
+    }
+    if ($v2 && !empty($_GET['tipo']) && in_array($_GET['tipo'], $tiposValidos, true)) {
+      $where[] = 'c.tipo = ?';
+      $params[] = $_GET['tipo'];
+    }
+    if ($v2 && !empty($_GET['cliente_id'])) {
+      $where[] = 'c.cliente_id = ?';
+      $params[] = (int)$_GET['cliente_id'];
+    }
+    if (!empty($_GET['q'])) {
+      $q = '%' . trim($_GET['q']) . '%';
+      $where[] = '(c.cliente_nombre LIKE ? OR c.contacto_nombre LIKE ? OR c.telefono LIKE ? OR c.notas LIKE ?' . ($v2 ? ' OR c.resumen LIKE ?' : '') . ')';
+      array_push($params, $q, $q, $q, $q);
+      if ($v2) $params[] = $q;
+    }
+
+    $sql = "SELECT c.*, u.nombre AS comercial_nombre$colsCliente FROM citas c LEFT JOIN usuarios u ON u.id = c.comercial_id$joinCliente";
+    if ($where) $sql .= ' WHERE ' . implode(' AND ', $where);
+    $sql .= ' ORDER BY c.fecha ASC, c.hora_inicio ASC LIMIT 3000';
     $stmt = $db->prepare($sql);
     $stmt->execute($params);
-    icc_json(['citas' => $stmt->fetchAll()]);
+    icc_json(['citas' => $stmt->fetchAll(), 'agenda_v2' => $v2]);
   } catch (Exception $e) {
     icc_json(['error' => icc_mensaje_error('No se pudo cargar la agenda (¿falta importar sql/migracion_agenda.sql?)', $e, $user)], 500);
   }
 }
 
+// ============================================================ POST / PUT comun
+/**
+ * Lee y valida los campos de una cita del cuerpo de la peticion.
+ * $parcial = true en PUT (solo los campos presentes).
+ */
+function agenda_leer_campos(PDO $db, array $user, array $body, bool $parcial, bool $v2, array $sectoresValidos, array $estadosValidos, array $tiposValidos, ?array $actual = null): array {
+  $c = [];
+  $texto = ['cliente_nombre' => 200, 'contacto_nombre' => 150, 'telefono' => 30, 'direccion' => 500, 'notas' => 5000];
+  if ($v2) $texto += ['email' => 190, 'proximos_pasos' => 500, 'resumen' => 20000];
+  foreach ($texto as $campo => $max) {
+    if (array_key_exists($campo, $body)) $c[$campo] = substr(trim((string)$body[$campo]), 0, $max);
+  }
+  if (array_key_exists('fecha', $body)) {
+    if (!agenda_fecha_valida($body['fecha'])) icc_json(['error' => 'Fecha no valida'], 400);
+    $c['fecha'] = $body['fecha'];
+  }
+  foreach (['hora_inicio', 'hora_fin'] as $campo) {
+    if (array_key_exists($campo, $body)) {
+      if (!agenda_hora_valida($body[$campo])) icc_json(['error' => 'Hora no valida (formato HH:MM)'], 400);
+      $c[$campo] = strlen($body[$campo]) === 5 ? $body[$campo] . ':00' : $body[$campo];
+    }
+  }
+  if (array_key_exists('sector', $body)) {
+    if (!in_array($body['sector'], $sectoresValidos, true)) icc_json(['error' => 'Sector no valido'], 400);
+    $c['sector'] = $body['sector'];
+  }
+  if (array_key_exists('estado', $body)) {
+    if (!in_array($body['estado'], $estadosValidos, true)) icc_json(['error' => 'Estado no valido'], 400);
+    $c['estado'] = $body['estado'];
+  }
+  if ($v2 && array_key_exists('tipo', $body)) {
+    if (!in_array($body['tipo'], $tiposValidos, true)) icc_json(['error' => 'Tipo de cita no valido'], 400);
+    $c['tipo'] = $body['tipo'];
+  }
+  if ($v2 && array_key_exists('cliente_id', $body)) {
+    if ($body['cliente_id'] === null || $body['cliente_id'] === '' || (int)$body['cliente_id'] === 0) {
+      $c['cliente_id'] = null;
+    } else {
+      $cliente = agenda_cliente_visible($db, $user, (int)$body['cliente_id']);
+      if (!$cliente) icc_json(['error' => 'Cliente no encontrado'], 404);
+      $c['cliente_id'] = (int)$cliente['id'];
+      if (empty($c['cliente_nombre']) && !$parcial) $c['cliente_nombre'] = $cliente['razon_social'];
+    }
+  }
+  if ($v2 && array_key_exists('presupuesto_id', $body)) {
+    $presId = (int)$body['presupuesto_id'];
+    $clienteDeCita = $c['cliente_id'] ?? ($actual['cliente_id'] ?? null);
+    if ($presId) {
+      $stmt = $db->prepare('SELECT id FROM presupuestos WHERE id = ? AND cliente_id = ?');
+      $stmt->execute([$presId, (int)$clienteDeCita]);
+      if (!$stmt->fetch()) icc_json(['error' => 'El presupuesto no pertenece al cliente de la cita'], 400);
+    }
+    $c['presupuesto_id'] = $presId ?: null;
+  }
+
+  // Validaciones de conjunto (con los valores finales).
+  $fin = array_merge($actual ?? [], $c);
+  if (!$parcial) {
+    foreach (['cliente_nombre' => 'Indica el negocio o cliente', 'fecha' => 'Indica la fecha', 'hora_inicio' => 'Indica la hora de inicio', 'hora_fin' => 'Indica la hora de fin'] as $campo => $msg) {
+      if (empty($fin[$campo])) icc_json(['error' => $msg], 400);
+    }
+  }
+  if (isset($fin['cliente_nombre']) && trim((string)$fin['cliente_nombre']) === '') icc_json(['error' => 'Indica el negocio o cliente'], 400);
+  if (!empty($fin['hora_inicio']) && !empty($fin['hora_fin']) && $fin['hora_fin'] <= $fin['hora_inicio']) {
+    icc_json(['error' => 'La hora de fin debe ser posterior a la de inicio'], 400);
+  }
+  return $c;
+}
+
+// ====================================================================== POST
 if ($metodo === 'POST' && $id === null) {
   icc_require_csrf();
   $body = icc_body();
-  $clienteNombre = trim($body['cliente_nombre'] ?? '');
-  $fecha = $body['fecha'] ?? '';
-  $horaInicio = $body['hora_inicio'] ?? '';
-  $horaFin = $body['hora_fin'] ?? '';
-  if ($clienteNombre === '' || $fecha === '' || $horaInicio === '' || $horaFin === '') {
-    icc_json(['error' => 'Negocio/cliente, fecha y horas de inicio y fin son obligatorios'], 400);
-  }
-  if ($horaFin <= $horaInicio) {
-    icc_json(['error' => 'La hora de fin debe ser posterior a la hora de inicio'], 400);
-  }
-
-  $db = icc_db();
+  $campos = agenda_leer_campos($db, $user, $body, false, $v2, $sectoresValidos, $estadosValidos, $tiposValidos);
   $comercialId = !empty($body['comercial_id']) && icc_puede_ver_comercial($user, (int)$body['comercial_id'])
     ? (int)$body['comercial_id']
     : (int)$user['id'];
-  $sector = in_array($body['sector'] ?? '', $sectoresValidos, true) ? $body['sector'] : 'energia';
+  $campos['comercial_id'] = $comercialId;
+  if (!isset($campos['sector'])) $campos['sector'] = 'energia';
+  if ($v2) $campos['creado_por'] = (int)$user['id'];
 
   try {
-    $stmt = $db->prepare(
-      'INSERT INTO citas (comercial_id, cliente_nombre, contacto_nombre, telefono, direccion, sector, fecha, hora_inicio, hora_fin, notas)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
-    );
-    $stmt->execute([
-      $comercialId,
-      $clienteNombre,
-      trim($body['contacto_nombre'] ?? ''),
-      trim($body['telefono'] ?? ''),
-      trim($body['direccion'] ?? ''),
-      $sector,
-      $fecha,
-      $horaInicio,
-      $horaFin,
-      trim($body['notas'] ?? ''),
-    ]);
-
+    $cols = array_keys($campos);
+    $db->prepare('INSERT INTO citas (' . implode(', ', $cols) . ') VALUES (' . implode(', ', array_fill(0, count($cols), '?')) . ')')
+      ->execute(array_values($campos));
     $nuevoId = (int)$db->lastInsertId();
     icc_json([
       'id' => $nuevoId,
-      'aviso' => icc_aviso_solape_cita($db, $comercialId, $fecha, $horaInicio, $horaFin, $nuevoId),
+      'aviso' => icc_aviso_solape_cita($db, $comercialId, $campos['fecha'], $campos['hora_inicio'], $campos['hora_fin'], $nuevoId),
     ], 201);
   } catch (Exception $e) {
-    icc_json(['error' => icc_mensaje_error('No se pudo guardar la cita (¿falta importar sql/migracion_agenda.sql?)', $e, $user)], 500);
+    icc_json(['error' => icc_mensaje_error('No se pudo guardar la cita', $e, $user)], 500);
   }
 }
 
+// ======================================================================= PUT
 if ($metodo === 'PUT' && $id !== null) {
   icc_require_csrf();
-  $db = icc_db();
   try {
     $stmt = $db->prepare('SELECT * FROM citas WHERE id = ?');
     $stmt->execute([$id]);
     $cita = $stmt->fetch();
-    $visible = $cita && icc_puede_ver_comercial($user, $cita['comercial_id']);
-    if (!$visible) icc_json(['error' => 'No encontrado'], 404);
+    if (!$cita || !icc_puede_ver_comercial($user, $cita['comercial_id'])) icc_json(['error' => 'No encontrado'], 404);
 
     $body = icc_body();
-    $sets = [];
-    $valores = [];
-    foreach (['cliente_nombre', 'contacto_nombre', 'telefono', 'direccion', 'fecha', 'hora_inicio', 'hora_fin', 'notas'] as $campo) {
-      if (array_key_exists($campo, $body)) {
-        $sets[] = "$campo = ?";
-        $valores[] = trim((string)$body[$campo]);
-      }
-    }
-    if (array_key_exists('sector', $body) && in_array($body['sector'], $sectoresValidos, true)) {
-      $sets[] = 'sector = ?';
-      $valores[] = $body['sector'];
-    }
-    if (array_key_exists('estado', $body) && in_array($body['estado'], $estadosValidos, true)) {
-      $sets[] = 'estado = ?';
-      $valores[] = $body['estado'];
-    }
-    // Reasignar la cita a otro comercial: solo quien gestiona equipo (admin,
-    // backoffice o el jefe de ese equipo), y siempre a alguien que ya pueda ver.
+    $campos = agenda_leer_campos($db, $user, $body, true, $v2, $sectoresValidos, $estadosValidos, $tiposValidos, $cita);
+    // Reasignar a otro comercial: solo quien gestiona equipo, y siempre a alguien que ya pueda ver.
     if (array_key_exists('comercial_id', $body) && $user['rol'] !== 'comercial' && !empty($body['comercial_id'])
         && icc_puede_ver_comercial($user, (int)$body['comercial_id'])) {
-      $sets[] = 'comercial_id = ?';
-      $valores[] = (int)$body['comercial_id'];
+      $campos['comercial_id'] = (int)$body['comercial_id'];
     }
+    if (!$campos) icc_json(['ok' => true]);
 
-    if (!$sets) icc_json(['ok' => true]);
+    $sets = array_map(function ($k) { return "$k = ?"; }, array_keys($campos));
+    $valores = array_values($campos);
     $valores[] = $id;
     $db->prepare('UPDATE citas SET ' . implode(', ', $sets) . ' WHERE id = ?')->execute($valores);
 
     $stmt = $db->prepare('SELECT * FROM citas WHERE id = ?');
     $stmt->execute([$id]);
-    $actualizada = $stmt->fetch();
+    $a = $stmt->fetch();
     icc_json([
       'ok' => true,
-      'aviso' => $actualizada && $actualizada['estado'] !== 'ko'
-        ? icc_aviso_solape_cita($db, (int)$actualizada['comercial_id'], $actualizada['fecha'], $actualizada['hora_inicio'], $actualizada['hora_fin'], $id)
+      'aviso' => $a && $a['estado'] !== 'ko' && (isset($campos['fecha']) || isset($campos['hora_inicio']) || isset($campos['hora_fin']))
+        ? icc_aviso_solape_cita($db, (int)$a['comercial_id'], $a['fecha'], $a['hora_inicio'], $a['hora_fin'], $id)
         : null,
     ]);
   } catch (Exception $e) {
@@ -180,15 +359,14 @@ if ($metodo === 'PUT' && $id !== null) {
   }
 }
 
+// ==================================================================== DELETE
 if ($metodo === 'DELETE' && $id !== null) {
   icc_require_csrf();
-  $db = icc_db();
   try {
     $stmt = $db->prepare('SELECT comercial_id FROM citas WHERE id = ?');
     $stmt->execute([$id]);
     $cita = $stmt->fetch();
-    $puedeBorrar = $cita && icc_puede_ver_comercial($user, $cita['comercial_id']);
-    if (!$puedeBorrar) icc_json(['error' => 'No encontrado'], 404);
+    if (!$cita || !icc_puede_ver_comercial($user, $cita['comercial_id'])) icc_json(['error' => 'No encontrado'], 404);
     $db->prepare('DELETE FROM citas WHERE id = ?')->execute([$id]);
     icc_json(['ok' => true]);
   } catch (Exception $e) {

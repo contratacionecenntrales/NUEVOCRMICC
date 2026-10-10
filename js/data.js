@@ -324,6 +324,29 @@ window.icc.data = (function () {
     });
   }
 
+  function listarCitasRango(filtros) {
+    var qs = new URLSearchParams(filtros || {}).toString();
+    return API.get("api/citas.php" + (qs ? "?" + qs : ""));
+  }
+
+  function obtenerCita(id) {
+    return API.get("api/citas.php?id=" + encodeURIComponent(id));
+  }
+
+  function resumenAnualCitas(anio, filtros) {
+    var p = new URLSearchParams(filtros || {});
+    p.set("resumen", "anio");
+    p.set("anio", anio);
+    return API.get("api/citas.php?" + p.toString());
+  }
+
+  function kpisAgenda(fecha, filtros) {
+    var p = new URLSearchParams(filtros || {});
+    p.set("kpis", "1");
+    p.set("fecha", fecha);
+    return API.get("api/citas.php?" + p.toString());
+  }
+
   async function crearCita(payload) {
     return await API.post("api/citas.php", payload);
   }
@@ -406,6 +429,10 @@ window.icc.data = (function () {
     actualizarProforma: actualizarProforma,
     borrarProforma: borrarProforma,
     listarCitas: listarCitas,
+    listarCitasRango: listarCitasRango,
+    obtenerCita: obtenerCita,
+    resumenAnualCitas: resumenAnualCitas,
+    kpisAgenda: kpisAgenda,
     crearCita: crearCita,
     actualizarCita: actualizarCita,
     borrarCita: borrarCita,
