@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Firma digital biometrica de contratos - Integral Connection Consulting.">
+<meta name="theme-color" content="#0B0F19">
+<meta name="robots" content="noindex">
+<link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+<title>Firma digital | Integral Connection Consulting</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <div class="icc-public-wrap">
+    <div class="icc-public-card">
+      <div class="icc-brand" style="margin-bottom:18px">
+        <img src="assets/logo.svg" alt="ICC" class="icc-brand-logo">
+        <div><strong>Integral Connection</strong><span>Firma digital</span></div>
+      </div>
+
+      <div id="firma-app">
+        <div class="icc-card" id="firma-cliente-info">
+          <p class="icc-muted">Cargando datos del cliente…</p>
+        </div>
+
+        <form id="form-firma" class="icc-card icc-form" hidden>
+          <h2>Firma del contrato / propuesta</h2>
+          <p class="icc-muted">
+            El firmante declara haber recibido, leido y aceptado las condiciones de la propuesta
+            comercial presentada por Integral Connection Consulting, así como el estudio comparativo
+            de ahorro asociado a su expediente.
+          </p>
+
+          <div class="icc-field">
+            <label>Nombre completo del firmante</label>
+            <input class="icc-input" id="input-firmante-nombre" required>
+          </div>
+          <div class="icc-field">
+            <label>DNI / NIF del firmante</label>
+            <input class="icc-input" id="input-firmante-dni" required>
+          </div>
+
+          <div class="icc-field">
+            <label>Firma manuscrita</label>
+            <div class="icc-sign-pad-wrap">
+              <canvas id="firma-canvas"></canvas>
+            </div>
+            <button type="button" class="icc-btn icc-btn-ghost" id="btn-limpiar-firma" style="align-self:flex-start;margin-top:8px">
+              Borrar y repetir
+            </button>
+          </div>
+
+          <label class="icc-check" style="align-items:flex-start">
+            <input type="checkbox" id="input-consentimiento">
+            <span>
+              Confirmo mi identidad y consiento la firma electronica de este documento con plena
+              validez legal, quedando registrados fecha, hora, IP y dispositivo como evidencia.
+            </span>
+          </label>
+
+          <button type="submit" class="icc-btn icc-btn-primary" id="btn-firmar">Firmar y guardar</button>
+        </form>
+
+        <div id="firma-resultado"></div>
+      </div>
+
+      <p class="icc-muted" style="margin-top:16px;text-align:center">
+        <a href="index.html">← Volver al CRM</a>
+      </p>
+    </div>
+  </div>
+
+  <div id="icc-toasts"></div>
+
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/util.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/firmar.js"></script>
+</body>
+</html>

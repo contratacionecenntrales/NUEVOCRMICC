@@ -1,0 +1,332 @@
+/* =============================================================================
+   ICC CRM · Integral Connection Consulting
+   Tema corporativo oscuro: azul marino, gris antracita, verde esmeralda/cian.
+   ============================================================================= */
+:root{
+  --bg:#0B0F19;
+  --panel:#0F1522;
+  --card:#141B29;
+  --card-2:#0D1320;
+  --line:#232C3D;
+
+  --txt:#EDEFF3;
+  --txt-2:#9AA4B6;
+  --txt-3:#69748A;
+
+  --marino:#16324F;
+  --antracita:#1F2937;
+  --esmeralda:#10B981;
+  --cian:#22D3EE;
+  --oro:#D4A62A;
+
+  --accent:var(--esmeralda);
+  --accent-2:var(--cian);
+  --amber:#FBBF24;
+  --red:#F87171;
+  --violet:#818CF8;
+
+  --radius:14px;
+  --radius-sm:9px;
+  --shadow:0 12px 32px -14px rgba(0,0,0,.7);
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;height:100%}
+body{
+  background:var(--bg);
+  color:var(--txt);
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{margin:0 0 6px;font-weight:700;color:#fff}
+h1{font-size:26px}
+h2{font-size:16px}
+h3{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--txt-2);margin-top:18px}
+p{margin:0 0 8px}
+a{color:var(--accent-2);text-decoration:none}
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+button{cursor:pointer}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-thumb{background:#2A3448;border-radius:8px}
+
+.icc-muted{color:var(--txt-2);font-size:12.5px}
+.icc-empty{color:var(--txt-3);font-size:13px;padding:18px 0}
+.icc-loading{padding:40px;text-align:center;color:var(--txt-2);font-size:13px}
+.icc-loading-full{min-height:100vh;display:flex;align-items:center;justify-content:center}
+
+/* ---------- Login ---------- */
+.icc-auth-wrap{min-height:100vh;display:flex;align-items:stretch;justify-content:center;background:var(--bg)}
+.icc-auth-shell{width:100%;max-width:1040px;margin:auto;display:grid;grid-template-columns:1.1fr 1fr;
+  min-height:min(680px,92vh);border-radius:24px;overflow:hidden;box-shadow:var(--shadow);border:1px solid var(--line)}
+
+.icc-auth-hero{position:relative;padding:44px 40px;display:flex;flex-direction:column;justify-content:space-between;
+  color:#fff;background:
+    radial-gradient(560px 420px at 15% 8%,rgba(212,166,42,.20),transparent 62%),
+    radial-gradient(620px 460px at 105% 100%,rgba(16,185,129,.18),transparent 60%),
+    linear-gradient(165deg,var(--marino) 0%,#0D1520 78%);
+  overflow:hidden}
+.icc-auth-hero::before{content:"";position:absolute;inset:0;opacity:.5;pointer-events:none;
+  background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><polygon points="50,4 93,27 93,73 50,96 7,73 7,27" fill="none" stroke="%23D4A62A" stroke-opacity="0.14" stroke-width="1.4"/></svg>');
+  background-size:130px 130px;background-position:-20px -30px}
+.icc-auth-hero-top .icc-brand-logo{width:46px;height:46px;flex:0 0 46px}
+.icc-auth-hero-top .icc-brand strong{font-size:16px}
+.icc-auth-hero-top .icc-brand span{color:var(--oro)}
+.icc-auth-hero h1{position:relative;font-size:27px;line-height:1.25;margin:26px 0 10px;max-width:340px}
+.icc-auth-hero p.icc-auth-tagline{position:relative;color:#C7D0DE;font-size:13.5px;max-width:320px;margin-bottom:22px}
+.icc-auth-features{position:relative;list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.icc-auth-features li{display:flex;align-items:center;gap:10px;font-size:12.5px;color:#DCE3EE}
+.icc-auth-features li span.ico{width:26px;height:26px;flex:0 0 26px;border-radius:8px;display:flex;align-items:center;
+  justify-content:center;background:rgba(212,166,42,.16);color:var(--oro);font-size:13px}
+.icc-auth-hero-foot{position:relative;font-size:11px;color:#8592A6;border-top:1px solid rgba(255,255,255,.08);padding-top:16px;margin-top:26px}
+
+.icc-auth-panel{background:var(--card);padding:44px 40px;display:flex;flex-direction:column;justify-content:center}
+.icc-auth-card{width:100%;max-width:360px;margin:0 auto}
+.icc-auth-card .icc-brand{display:none}
+.icc-auth-tabs{display:flex;gap:6px;background:var(--card-2);border-radius:var(--radius-sm);padding:4px;margin:6px 0 20px}
+.icc-auth-tab{flex:1;border:none;background:none;padding:9px;border-radius:8px;color:var(--txt-2);font-weight:600;font-size:12.5px}
+.icc-auth-tab.is-active{background:var(--esmeralda);color:#03170F}
+.icc-btn-block{width:100%}
+.icc-auth-foot{margin-top:14px;text-align:center;font-size:11.5px}
+
+@media (max-width:880px){
+  .icc-auth-wrap{padding:0}
+  .icc-auth-shell{grid-template-columns:1fr;border-radius:0;min-height:100vh;max-width:none}
+  .icc-auth-hero{padding:34px 24px 26px}
+  .icc-auth-features{display:none}
+  .icc-auth-hero h1{font-size:22px;margin:18px 0 6px}
+  .icc-auth-panel{padding:30px 24px}
+  .icc-auth-card .icc-brand{display:flex;margin-bottom:4px}
+}
+
+.icc-brand{display:flex;align-items:center;gap:10px;padding:6px 2px}
+.icc-brand-logo{width:34px;height:34px;flex:0 0 34px}
+.icc-brand strong{display:block;font-size:14px;letter-spacing:.02em;color:#fff}
+.icc-brand span{display:block;font-size:10.5px;color:var(--oro);text-transform:uppercase;letter-spacing:.14em}
+
+/* ---------- App shell: barra de navegacion superior ---------- */
+.icc-app--topnav{display:flex;flex-direction:column;min-height:100vh}
+.icc-sticky-top{position:sticky;top:0;z-index:40}
+.icc-topnav{background:var(--panel);border-bottom:1px solid var(--line);
+  box-shadow:var(--shadow)}
+.icc-imp-banner{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:10px;
+  background:#92400e;color:#fff;font-size:12.5px;font-weight:600;padding:8px 16px;text-align:center}
+.icc-imp-banner-btn{flex-shrink:0;background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.3)}
+.icc-topnav-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;gap:18px;padding:10px 22px}
+.icc-topnav-brand{padding:0;flex:0 0 auto}
+.icc-topnav-brand .icc-brand-logo{width:30px;height:30px;flex:0 0 30px}
+.icc-topnav-brand strong{font-size:12.5px}
+.icc-topnav-brand span{font-size:9px}
+
+.icc-topnav-nav{display:flex;align-items:stretch;gap:2px;flex:1;flex-wrap:wrap}
+.icc-topnav-item{position:relative}
+.icc-topnav-link{display:flex;align-items:center;gap:4px;padding:10px 12px;border-radius:9px;
+  color:var(--txt-2);font-size:12.5px;font-weight:600;text-transform:uppercase;letter-spacing:.03em;white-space:nowrap}
+.icc-topnav-link:hover{background:rgba(148,163,184,.08);color:#fff}
+.icc-topnav-link.is-active{background:rgba(16,185,129,.14);color:var(--esmeralda)}
+.icc-caret{font-size:9px;opacity:.7}
+
+.icc-topnav-dropdown{display:none;position:absolute;top:100%;left:0;min-width:240px;max-height:70vh;overflow-y:auto;
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius-sm);box-shadow:var(--shadow);
+  padding:6px;z-index:50}
+.icc-topnav-dropdown a{display:block;padding:9px 11px;border-radius:8px;color:var(--txt-2);font-size:12.5px}
+.icc-topnav-dropdown a:hover{background:rgba(148,163,184,.08);color:#fff}
+.icc-topnav-item.has-submenu:hover .icc-topnav-dropdown{display:block}
+
+.icc-topnav-right{display:flex;align-items:center;gap:12px;flex:0 0 auto}
+.icc-user-card--top{border-top:none;padding-top:0}
+
+.icc-user-card{border-top:1px solid var(--line);padding-top:14px;display:flex;align-items:center;gap:10px}
+.icc-avatar{width:34px;height:34px;flex:0 0 34px;border-radius:50%;background:rgba(34,211,238,.15);
+  border:1px solid rgba(34,211,238,.35);color:var(--cian);font-weight:700;font-size:12px;
+  display:flex;align-items:center;justify-content:center}
+.icc-user-name{margin:0;font-size:12.5px;font-weight:600;color:#fff}
+.icc-tag-role{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--oro)}
+.icc-signout{margin-left:2px;background:none;border:1px solid var(--line);color:var(--txt-2);
+  width:30px;height:30px;border-radius:9px}
+.icc-signout:hover{color:var(--red);border-color:var(--red)}
+
+#icc-main{padding:24px 26px 60px;max-width:1400px;width:100%;margin:0 auto}
+
+.icc-menu-btn{display:none;background:var(--card);border:1px solid var(--line);color:var(--txt-2);
+  width:38px;height:38px;border-radius:10px;font-size:16px}
+
+.icc-filtros-row{display:flex;flex-wrap:wrap;gap:8px}
+.icc-filtros-row .icc-input,.icc-filtros-row .icc-select{width:auto;flex:1 1 160px;min-width:140px}
+
+.icc-notif-wrap{position:relative}
+.icc-notif-btn{position:relative;background:var(--card);border:1px solid var(--line);border-radius:10px;
+  width:38px;height:38px;font-size:15px}
+.icc-notif-dot{position:absolute;top:6px;right:7px;width:7px;height:7px;border-radius:50%;background:var(--red)}
+.icc-notif-panel{position:absolute;right:0;top:46px;width:320px;max-height:400px;overflow-y:auto;
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius-sm);box-shadow:var(--shadow);z-index:20}
+.icc-notif-item{padding:11px 14px;border-bottom:1px solid var(--line);cursor:pointer}
+.icc-notif-item:hover{background:rgba(148,163,184,.06)}
+.icc-notif-item.is-unread{border-left:3px solid var(--esmeralda)}
+.icc-notif-item p{margin:0 0 3px;font-size:12.5px;color:#fff}
+
+/* ---------- Page head / stat cards ---------- */
+.icc-page-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:18px;flex-wrap:wrap}
+.icc-head-actions{display:flex;align-items:center;gap:10px}
+.icc-back{font-size:12px}
+
+.icc-stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.icc-stat-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:16px;border-top:3px solid var(--stat-color,var(--esmeralda))}
+.icc-stat-value{display:block;font-size:26px;font-weight:800;color:#fff}
+.icc-stat-label{display:block;font-size:12px;color:var(--txt-2);margin-top:2px}
+
+.icc-grid-2{display:grid;grid-template-columns:1.1fr 1fr;gap:16px;align-items:start}
+
+.icc-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px;margin-bottom:16px}
+
+.icc-funnel{display:flex;flex-direction:column;gap:8px}
+.icc-funnel-step{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;
+  background:var(--card-2);color:var(--txt-2);font-size:12.5px}
+.icc-funnel-step:hover{background:rgba(34,211,238,.08);color:#fff}
+.icc-funnel-count{width:26px;height:26px;border-radius:8px;background:rgba(34,211,238,.15);color:var(--cian);
+  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px}
+
+.icc-quick-links{display:flex;flex-direction:column;gap:8px}
+.icc-quick-link{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;
+  background:var(--card-2);color:var(--txt);font-size:13px;font-weight:500;border:1px solid transparent}
+.icc-quick-link:hover{border-color:var(--esmeralda);color:#fff}
+
+/* ---------- Tabs / filters ---------- */
+.icc-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.icc-tab{padding:7px 13px;border-radius:999px;background:var(--card);border:1px solid var(--line);
+  color:var(--txt-2);font-size:12px;font-weight:600}
+.icc-tab.is-active{background:var(--esmeralda);border-color:var(--esmeralda);color:#03170F}
+
+/* ---------- Table ---------- */
+.icc-table-wrap{overflow-x:auto;padding:0}
+.icc-table{width:100%;border-collapse:collapse;font-size:13px}
+.icc-table th{text-align:left;padding:14px 18px;color:var(--txt-3);font-size:11px;text-transform:uppercase;
+  letter-spacing:.06em;border-bottom:1px solid var(--line)}
+.icc-table td{padding:13px 18px;border-bottom:1px solid var(--line);vertical-align:top}
+.icc-table tbody tr{cursor:pointer}
+.icc-table tbody tr:hover{background:rgba(148,163,184,.05)}
+
+/* ---------- Badges / chips ---------- */
+.icc-badge{display:inline-flex;align-items:center;padding:4px 10px;border-radius:999px;font-size:11px;
+  font-weight:700;background:color-mix(in srgb, var(--badge-color) 18%, transparent);color:var(--badge-color)}
+.icc-chip{display:inline-flex;padding:3px 9px;border-radius:8px;background:rgba(212,166,42,.14);
+  color:var(--oro);font-size:11px;font-weight:600;margin:2px 4px 2px 0}
+
+/* ---------- Forms ---------- */
+.icc-form{display:flex;flex-direction:column;gap:12px}
+.icc-field{display:flex;flex-direction:column;gap:5px}
+.icc-field label{font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--txt-2)}
+.icc-input,.icc-select,.icc-textarea{width:100%;background:var(--card-2);border:1px solid var(--line);
+  border-radius:10px;padding:10px 12px;color:#fff;outline:none}
+.icc-input:focus,.icc-select:focus,.icc-textarea:focus{border-color:var(--esmeralda)}
+.icc-textarea{min-height:80px;resize:vertical}
+.icc-checks{display:flex;flex-wrap:wrap;gap:10px}
+.icc-check{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--txt-2);background:var(--card-2);
+  border:1px solid var(--line);border-radius:9px;padding:7px 10px}
+.icc-comparador-row{border-top:1px solid var(--line);padding-top:10px;margin-top:4px;display:flex;flex-direction:column;gap:10px}
+.icc-form h4{font-size:12.5px;color:var(--txt-2);margin:6px 0 -2px;text-transform:uppercase;letter-spacing:.04em}
+
+.icc-btn{border:1px solid transparent;border-radius:10px;padding:10px 16px;font-size:12.5px;font-weight:700}
+.icc-btn-primary{background:var(--esmeralda);color:#03170F}
+.icc-btn-primary:hover{filter:brightness(1.08)}
+.icc-btn-secondary{background:rgba(34,211,238,.14);color:var(--cian);border-color:rgba(34,211,238,.3)}
+.icc-btn-ghost{background:none;border-color:var(--line);color:var(--txt-2)}
+.icc-btn-ghost:hover{color:#fff;border-color:var(--txt-2)}
+.icc-link-btn{background:none;border:none;color:var(--cian);font-size:12px;font-weight:600;padding:0;margin-left:auto}
+
+.icc-copy-row{display:flex;gap:8px}
+.icc-copy-row .icc-input{font-family:monospace;font-size:11.5px}
+
+.icc-data-row{display:flex;justify-content:space-between;gap:14px;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px}
+.icc-data-row:last-of-type{border-bottom:none}
+
+.icc-doc-actions{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.icc-doc-list{list-style:none;margin:0 0 6px;padding:0;display:flex;flex-direction:column;gap:2px}
+.icc-doc-list li{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}
+.icc-doc-list li.icc-doc-note{color:var(--txt-2);font-size:12px;padding-top:0;border-bottom:1px solid var(--line)}
+.icc-doc-list li.icc-fichero-fila{justify-content:space-between;flex-wrap:wrap}
+.icc-fichero-info{display:flex;align-items:center;gap:12px;min-width:0;flex:1}
+.icc-fichero-info span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.icc-fichero-acciones{display:flex;align-items:center;gap:12px;flex-shrink:0}
+.icc-fichero-acciones .icc-link-btn{margin-left:0}
+
+/* ---------- Modal ---------- */
+#icc-modal-root{position:fixed;inset:0;z-index:100;display:none}
+#icc-modal-root.is-open{display:block}
+.icc-modal-backdrop{position:fixed;inset:0;background:rgba(4,7,14,.72);display:flex;align-items:center;justify-content:center;padding:20px}
+.icc-modal{width:100%;max-width:480px;max-height:88vh;overflow-y:auto;background:var(--card);border:1px solid var(--line);
+  border-radius:var(--radius);padding:26px;box-shadow:var(--shadow)}
+.icc-modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:6px}
+.icc-form-grid2{display:grid;grid-template-columns:1fr;gap:12px}
+@media (min-width: 640px){
+  .icc-modal:has(.icc-form-grid2){max-width:640px}
+  .icc-form-grid2{grid-template-columns:1fr 1fr}
+}
+
+/* ---------- Agenda / citas ---------- */
+.icc-fab-cita{position:fixed;left:20px;bottom:20px;z-index:60;border:none;border-radius:999px;
+  background:var(--esmeralda);color:#03170F;font-weight:700;font-size:13px;padding:13px 18px;
+  box-shadow:var(--shadow);cursor:pointer}
+.icc-fab-cita:hover{filter:brightness(1.08)}
+.icc-agenda-toolbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
+.icc-agenda-nav{display:flex;gap:6px}
+.icc-agenda-timeline{margin-top:14px;display:flex;flex-direction:column}
+.icc-agenda-hora-row{display:flex;gap:12px;border-top:1px solid var(--line);padding:10px 0}
+.icc-agenda-hora-label{width:52px;flex-shrink:0;color:var(--txt-2);font-size:12px;padding-top:2px}
+.icc-agenda-hora-citas{flex:1;display:flex;flex-direction:column;gap:8px;min-width:0}
+.icc-cita-card{border:1px solid var(--line);border-left:4px solid var(--cita-color,var(--esmeralda));
+  border-radius:10px;padding:10px 12px;background:var(--card)}
+.icc-cita-head{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px}
+.icc-cita-cliente{font-weight:700;margin:4px 0 2px}
+.icc-cita-acciones{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
+.icc-agenda-semana{margin-top:14px;display:grid;grid-template-columns:repeat(7,1fr);gap:10px}
+.icc-agenda-dia-col{border:1px solid var(--line);border-radius:10px;padding:8px;min-height:80px;display:flex;flex-direction:column;gap:6px}
+.icc-agenda-dia-col.is-hoy{border-color:var(--esmeralda)}
+.icc-agenda-dia-head{display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px}
+.icc-cita-chip-compacta{display:block;width:100%;text-align:left;border:none;border-left:3px solid var(--cita-color,var(--esmeralda));
+  background:rgba(255,255,255,.04);border-radius:6px;padding:5px 7px;font-size:11.5px;color:var(--txt);cursor:pointer}
+.icc-cita-chip-compacta:hover{background:rgba(255,255,255,.08)}
+.icc-cita-hora-mini{font-weight:700;margin-right:4px}
+
+/* ---------- Toasts ---------- */
+#icc-toasts{position:fixed;bottom:20px;right:20px;z-index:200;display:flex;flex-direction:column;gap:8px}
+.icc-toast{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--esmeralda);
+  padding:11px 16px;border-radius:10px;font-size:12.5px;box-shadow:var(--shadow);opacity:0;transform:translateY(6px);
+  transition:.2s}
+.icc-toast.is-visible{opacity:1;transform:translateY(0)}
+.icc-toast--error{border-left-color:var(--red)}
+.icc-toast--success{border-left-color:var(--esmeralda)}
+
+/* ---------- Firma / paginas publicas ---------- */
+.icc-public-wrap{min-height:100vh;background:var(--bg);padding:32px 18px;display:flex;justify-content:center}
+.icc-public-card{width:100%;max-width:560px}
+.icc-sign-pad-wrap{background:#fff;border-radius:12px;overflow:hidden;touch-action:none;border:1px solid var(--line)}
+#firma-canvas{display:block;width:100%;height:220px;cursor:crosshair}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 880px){
+  .icc-grid-2{grid-template-columns:1fr}
+  .icc-stat-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width: 900px){
+  .icc-menu-btn{display:flex;align-items:center;justify-content:center;order:2}
+  .icc-topnav-inner{flex-wrap:wrap}
+  .icc-topnav-right{order:3;margin-left:auto}
+  .icc-topnav-nav{display:none;width:100%;order:4;flex-direction:column;padding-top:8px;border-top:1px solid var(--line)}
+  .icc-topnav-nav.is-open{display:flex}
+  .icc-topnav-item{width:100%}
+  .icc-topnav-link{width:100%}
+  .icc-topnav-dropdown{position:static;display:block !important;box-shadow:none;border:none;background:none;
+    padding:0 0 0 14px;margin-bottom:4px}
+  .icc-user-card--top .icc-user-name,.icc-user-card--top .icc-tag-role{display:none}
+  #icc-main{padding:18px 14px 60px}
+  .icc-stat-grid{grid-template-columns:1fr 1fr}
+}
+@media (max-width: 480px){
+  .icc-stat-grid{grid-template-columns:1fr}
+  .icc-auth-card{padding:24px 20px}
+}
+@media (max-width: 760px){
+  .icc-agenda-semana{grid-template-columns:1fr}
+  .icc-fab-cita{padding:12px 16px;font-size:12px}
+}

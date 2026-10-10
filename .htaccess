@@ -1,0 +1,78 @@
+# =============================================================================
+# ICC CRM - Integral Connection Consulting
+# Configuracion de seguridad para hosting compartido (ej. Hostalia).
+# Fuerza HTTPS, cabeceras estrictas y bloqueo de ficheros sensibles.
+# Si esta version diera error 500, renombra este archivo a htaccess.txt:
+# la aplicacion funciona igual sin el (pero sin estas protecciones) mientras
+# se investiga que directiva no admite tu plan de alojamiento.
+# NOTA: se evitan a proposito RequestReadTimeout, Options y ServerSignature
+# porque muchos alojamientos compartidos los prohiben en .htaccess y
+# devuelven error 500.
+# =============================================================================
+
+DirectoryIndex index.html
+
+# --- Tipos MIME y charset correctos --------------------------------------------
+# Necesario porque X-Content-Type-Options: nosniff (mas abajo) hace que el
+# navegador RECHACE ejecutar un .js si el servidor lo sirve con un
+# Content-Type incorrecto (algunos hostings sirven .js como text/plain).
+# Se fija ademas UTF-8 explicito: sin esto, el hosting puede aplicar su
+# charset por defecto (a menudo ISO-8859-1) y estropear tildes/enes/simbolos.
+AddDefaultCharset UTF-8
+AddType "application/javascript; charset=UTF-8" .js
+AddType "text/css; charset=UTF-8" .css
+AddType "image/svg+xml; charset=UTF-8" .svg
+
+# --- Forzar HTTPS ------------------------------------------------------------
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP:X-Forwarded-Proto} !https
+  RewriteCond %{HTTP:X-Forwarded-SSL} !on
+  RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+</IfModule>
+
+# --- Cabeceras de seguridad ---------------------------------------------------
+# Todo el backend es ahora propio (PHP + MySQL), sin dependencias externas:
+# connect-src solo necesita 'self'.
+<IfModule mod_headers.c>
+  Header always set Content-Security-Policy "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data:; font-src 'self' https://fonts.gstatic.com; connect-src 'self'; form-action 'none'; frame-ancestors 'none'; base-uri 'none'; object-src 'none'"
+  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "DENY"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Cross-Origin-Opener-Policy "same-origin"
+  Header always set Cross-Origin-Resource-Policy "same-origin"
+  Header always set Permissions-Policy "geolocation=(), camera=(), microphone=(), payment=(), usb=()"
+  Header always set X-Permitted-Cross-Domain-Policies "none"
+  Header unset X-Powered-By
+  Header set Cache-Control "no-store"
+</IfModule>
+
+# --- Bloqueo de ficheros sensibles (sintaxis doble 2.2 / 2.4) ----------------
+<FilesMatch "(^\.|\.(md|zip|log|bak|sql|env|ini|yml|py|sh)$)">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+# config.php solo debe usarse via "require" desde otros scripts PHP, nunca
+# solicitarse directamente por URL.
+<FilesMatch "^config\.php$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+# --- Compresion ---------------------------------------------------------------
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css application/javascript
+</IfModule>
