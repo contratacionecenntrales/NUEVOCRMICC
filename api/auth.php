@@ -10,7 +10,7 @@ if ($metodo === 'GET' && $accion === 'me') {
 }
 
 if ($metodo === 'POST' && $accion === 'ver_como') {
-  $admin = icc_require_role(['admin', 'super_admin']);
+  $admin = icc_require_role(['jefe_de_equipo', 'admin', 'super_admin']);
   icc_require_csrf();
   if (!empty($_SESSION['impersonador_id'])) {
     icc_json(['error' => 'Ya estas viendo el CRM como otro usuario. Vuelve a tu cuenta antes de entrar en otra.'], 409);
@@ -21,13 +21,18 @@ if ($metodo === 'POST' && $accion === 'ver_como') {
     icc_json(['error' => 'No tiene sentido entrar en tu propia cuenta'], 400);
   }
   $db = icc_db();
-  $stmt = $db->prepare('SELECT id, bloqueado, rol FROM usuarios WHERE id = ?');
+  $stmt = $db->prepare('SELECT id, bloqueado, rol, supervisor_id FROM usuarios WHERE id = ?');
   $stmt->execute([$objetivoId]);
   $objetivo = $stmt->fetch();
   if (!$objetivo) icc_json(['error' => 'Usuario no encontrado'], 404);
   if ((int)$objetivo['bloqueado'] === 1) icc_json(['error' => 'Esa cuenta esta bloqueada'], 400);
   // Un Admin normal no puede entrar en cuentas de Admin/Super Admin (solo "hacia
   // abajo" en la jerarquia); Super Admin puede entrar en cualquiera.
+  // Un Jefe de equipo solo entra en los comerciales de su propio equipo, y si
+  // tiene el permiso usuarios.ver_como.
+  if ($admin['rol'] === 'jefe_de_equipo' && !icc_jefe_gestiona($admin, $objetivo, 'usuarios.ver_como')) {
+    icc_json(['error' => 'Solo puedes entrar como los comerciales de tu equipo'], 403);
+  }
   if (in_array($objetivo['rol'], ['admin', 'super_admin'], true) && !icc_es_super_admin($admin)) {
     icc_json(['error' => 'Solo un Super Administrador puede entrar en una cuenta de Admin o Super Admin'], 403);
   }

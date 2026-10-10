@@ -78,8 +78,15 @@ Todo cambio de estado queda auditado en la tabla `historial_estado`.
 - **Jefe de equipo**: ve y gestiona clientes/contratos/proformas/estudios/
   comparador de los comerciales que tiene asignados (sin límite de tamaño
   de equipo, asignados por Admin desde Agentes), además de los suyos propios — nunca los de otros
-  equipos ni los del resto de la empresa. Puede bloquear/desbloquear a los
-  comerciales de su propio equipo (nunca a sí mismo). No puede cambiar
+  equipos ni los del resto de la empresa. Gestiona su equipo desde
+  "Agentes": **crea usuarios** (siempre como Comercial y dentro de su
+  equipo; al crearlo ve los datos de acceso para copiarlos), abre la ficha
+  de cada comercial con "⚙️ Gestionar" (datos, bloqueo, restablecer
+  contraseña, sesiones abiertas, historial y permisos — solo puede conceder
+  los permisos que él mismo tiene) y entra en su cuenta con "👁️ Ver como".
+  Esas tres capacidades son permisos del módulo "Equipo" (`usuarios.crear`,
+  `usuarios.gestionar`, `usuarios.ver_como`), activos por defecto y que
+  Admin puede retirar a cada jefe desde su ficha → Roles y permisos. No puede cambiar
   roles ni reasignar a quién pertenece cada comercial (eso sigue siendo
   solo de Administrador/Super Administrador). Si un comercial no tiene jefe
   asignado, solo Backoffice/Admin/Super Admin ven sus datos.
@@ -95,7 +102,8 @@ Todo cambio de estado queda auditado en la tabla `historial_estado`.
 
 **"Ver como"**: en "Agentes", el botón "👁️ Ver como" junto a cada usuario
 (menos la propia cuenta, y menos las cuentas de Admin/Super Admin si quien
-lo usa es un Admin normal) hace que el CRM se muestre exactamente como lo
+lo usa es un Admin normal; un Jefe de equipo solo lo tiene sobre los
+comerciales de su equipo) hace que el CRM se muestre exactamente como lo
 ve ese usuario — su dashboard, su agenda, sus permisos reales — útil para
 soporte o para comprobar qué ve un comercial sin pedirle la contraseña.
 Mientras está activo aparece una franja naranja permanente arriba de todo

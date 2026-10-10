@@ -250,6 +250,7 @@ function icc_auditar(int $usuarioId, ?int $autorId, string $accion, string $deta
 const ICC_TODOS_ROLES = ['comercial', 'backoffice', 'jefe_de_equipo', 'admin', 'super_admin'];
 const ICC_ROLES_INTERNOS = ['backoffice', 'jefe_de_equipo', 'admin', 'super_admin'];
 const ICC_ROLES_ADMIN = ['admin', 'super_admin'];
+const ICC_ROLES_EQUIPO = ['jefe_de_equipo', 'admin', 'super_admin'];
 
 function icc_catalogo_permisos(): array {
   return [
@@ -292,7 +293,25 @@ function icc_catalogo_permisos(): array {
     ['modulo' => 'Informes', 'permisos' => [
       ['clave' => 'informes.ver', 'label' => 'Ver informes', 'desc' => 'Cartera, kW, contratos por sector/tarifa/compania', 'roles' => ICC_TODOS_ROLES],
     ]],
+    // Solo tienen efecto en un Jefe de equipo (y siempre sobre los comerciales
+    // de su propio equipo): Admin/Super Admin gestionan cuentas por su rol.
+    ['modulo' => 'Equipo (Jefe de equipo)', 'permisos' => [
+      ['clave' => 'usuarios.crear', 'label' => 'Crear usuarios en su equipo', 'desc' => 'Dar de alta comerciales que quedan asignados a su equipo', 'roles' => ICC_ROLES_EQUIPO],
+      ['clave' => 'usuarios.gestionar', 'label' => 'Gestionar las cuentas de su equipo', 'desc' => 'Datos, bloqueo, contrasenas, permisos y sesiones de sus comerciales', 'roles' => ICC_ROLES_EQUIPO],
+      ['clave' => 'usuarios.ver_como', 'label' => '"Ver como" sus comerciales', 'desc' => 'Entrar en la cuenta de un comercial de su equipo (queda registrado)', 'roles' => ICC_ROLES_EQUIPO],
+    ]],
   ];
+}
+
+/**
+ * Un Jefe de equipo puede gestionar la cuenta $objetivo si es un comercial de
+ * su equipo y tiene el permiso indicado (usuarios.gestionar, usuarios.ver_como).
+ */
+function icc_jefe_gestiona(array $user, array $objetivo, string $permiso = 'usuarios.gestionar'): bool {
+  return $user['rol'] === 'jefe_de_equipo'
+    && $objetivo['rol'] === 'comercial'
+    && (int)$objetivo['supervisor_id'] === (int)$user['id']
+    && icc_tiene_permiso($user, $permiso);
 }
 
 /** [clave => definicion] de todos los permisos. */

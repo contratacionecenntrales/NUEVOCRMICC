@@ -696,3 +696,8 @@ a.icc-ag-kpi:hover{border-color:var(--stat-color)}
   .icc-ag-celda{min-height:74px}
   .icc-ag-chip{font-size:10px}
 }
+
+/* Jefe de equipo: gestion de su equipo */
+.icc-uficha-vercomo{margin-left:auto}
+.icc-credenciales{background:var(--bg-soft,rgba(148,163,184,.12));border:1px solid var(--line);border-radius:10px;padding:14px 16px;
+  font-size:13px;line-height:1.6;white-space:pre-wrap;word-break:break-word;user-select:all}

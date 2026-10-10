@@ -1194,6 +1194,68 @@ window.icc.views = (function () {
     );
   }
 
+  // "Ver como": entra en la cuenta de otro usuario (Admin, o Jefe de equipo
+  // sobre sus comerciales) hasta pulsar "Volver a mi cuenta".
+  async function entrarComo(id, nombre) {
+    if (!confirm('¿Entrar como "' + (nombre || "este usuario") + '"? Veras el CRM exactamente como lo ve el, hasta que pulses "Volver a mi cuenta".')) return;
+    // Navega primero: si se cambia de usuario antes de cambiar el hash,
+    // el repintado automatico (por el cambio de sesion) y el cambio de
+    // hash compiten entre si y la pantalla se puede quedar a medias en
+    // Agentes en vez de pasar a Inicio.
+    location.hash = "#/dashboard";
+    try {
+      await window.icc.auth.verComo(id);
+      U.toast("Viendo el CRM como " + (nombre || "otro usuario"), "success");
+    } catch (err) {
+      U.toast(err.message || "No se pudo entrar en esa cuenta", "error");
+    }
+  }
+
+  // Tras dar de alta una cuenta: datos de acceso para entregarselos al usuario.
+  function modalUsuarioCreado(id, payload) {
+    var texto =
+      "Acceso al CRM de Integral Connection Consulting\n" +
+      "Web: " + location.origin + location.pathname + "\n" +
+      "Usuario: " + payload.email + "\n" +
+      "Contraseña provisional: " + payload.password + "\n" +
+      "Al entrar por primera vez se te pedirá cambiarla.";
+    U.openModal(
+      "<h2>✅ Usuario creado</h2>" +
+      '<p class="icc-muted">' + U.escapeHtml(payload.nombre + " " + (payload.apellidos || "")) + " ya puede entrar con estos datos. " +
+      "La contraseña no se vuelve a mostrar: cópiala ahora.</p>" +
+      '<pre class="icc-credenciales" id="credenciales-nuevo">' + U.escapeHtml(texto) + "</pre>" +
+      '<div class="icc-modal-actions">' +
+      '<button type="button" class="icc-btn icc-btn-ghost" id="btn-copiar-credenciales">📋 Copiar</button>' +
+      '<button type="button" class="icc-btn icc-btn-ghost" data-close-btn>Cerrar</button>' +
+      '<a class="icc-btn icc-btn-primary" href="#/agentes/' + id + '/informacion" id="btn-abrir-ficha-nuevo">Abrir su ficha</a>' +
+      "</div>"
+    );
+    document.getElementById("btn-copiar-credenciales").addEventListener("click", function () {
+      var ok = function () { U.toast("Datos de acceso copiados", "success"); };
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(texto).then(ok, function () { U.toast("No se pudo copiar", "error"); });
+      } else {
+        var r = document.createRange();
+        r.selectNodeContents(document.getElementById("credenciales-nuevo"));
+        var sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(r);
+        document.execCommand("copy");
+        ok();
+      }
+    });
+    document.getElementById("btn-abrir-ficha-nuevo").addEventListener("click", function () { U.closeModal(); });
+  }
+
+  function passwordProvisional() {
+    var abc = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
+    var buf = new Uint32Array(10);
+    window.crypto.getRandomValues(buf);
+    var out = "";
+    for (var i = 0; i < buf.length; i++) out += abc[buf[i] % abc.length];
+    return out;
+  }
+
   function modalNuevoAgente(agentes) {
     var esAdmin = window.icc.auth.esAdminOSuperior();
     var esSuperAdmin = window.icc.auth.esSuperAdmin();
@@ -1203,12 +1265,12 @@ window.icc.views = (function () {
 
     U.openModal(
       "<h2>Nuevo usuario</h2>" +
-      (!esAdmin ? '<p class="icc-muted">Se creara como Comercial / Agente en tu propio equipo.</p>' : "") +
+      (!esAdmin ? '<p class="icc-muted">Se creará como Comercial / Agente dentro de tu equipo y podrás gestionar su cuenta y su ficha.</p>' : "") +
       '<form id="form-nuevo-agente" class="icc-form">' +
       campoTexto("nombre", "Nombre", true, "text") +
       campoTexto("apellidos", "Apellidos", false, "text") +
       campoTexto("email", "Email", true, "email") +
-      campoTexto("password", "Contrasena provisional", true, "text") +
+      campoTexto("password", "Contrasena provisional", true, "text", passwordProvisional()) +
       campoTexto("telefono", "Telefono", false, "text") +
       campoTexto("empresa", "Empresa", false, "text") +
       campoTexto("cif", "CIF", false, "text") +
@@ -1257,10 +1319,11 @@ window.icc.views = (function () {
         payload.supervisor_id = fd.get("responsable_id");
       }
       try {
-        await D.crearAgente(payload);
+        var res = await D.crearAgente(payload);
         U.toast("Usuario creado", "success");
         U.closeModal();
-        viewAgentes();
+        await viewAgentes();
+        if (res) modalUsuarioCreado(res, payload);
       } catch (err) {
         U.toast(err.message || "No se pudo crear el usuario", "error");
       }
@@ -1279,7 +1342,14 @@ window.icc.views = (function () {
     var esAdmin = window.icc.auth.esAdminOSuperior();
     var esSuperAdmin = window.icc.auth.esSuperAdmin();
     var esJefeDeEquipo = window.icc.auth.tieneRol("jefe_de_equipo");
+    var jefePuedeCrear = esJefeDeEquipo && window.icc.auth.puede("usuarios.crear");
+    var jefeGestiona = esJefeDeEquipo && window.icc.auth.puede("usuarios.gestionar");
+    var jefeVerComo = esJefeDeEquipo && window.icc.auth.puede("usuarios.ver_como");
     var miId = window.icc.auth.state.user && window.icc.auth.state.user.id;
+    // Comercial de mi propio equipo (lo que un Jefe de equipo puede gestionar).
+    function esDeMiEquipo(a) {
+      return esJefeDeEquipo && a.rol === "comercial" && String(a.supervisor_id) === String(miId);
+    }
     var rolesParaAdmin = esSuperAdmin
       ? Object.keys(C.ROLES)
       : Object.keys(C.ROLES).filter(function (r) { return r !== "admin" && r !== "super_admin"; });
@@ -1294,7 +1364,7 @@ window.icc.views = (function () {
     main().innerHTML =
       '<div class="icc-page-head"><h1>Agentes</h1><div>' +
       (esAdmin ? '<a class="icc-link-btn" href="#/auditoria-ver-como" style="margin-right:14px">🕵️ Historial de "Ver como"</a>' : "") +
-      (esAdmin || esJefeDeEquipo ? '<button class="icc-btn icc-btn-primary" id="btn-nuevo-agente">Nuevo usuario</button>' : "") +
+      (esAdmin || jefePuedeCrear ? '<button class="icc-btn icc-btn-primary" id="btn-nuevo-agente">Nuevo usuario</button>' : "") +
       "</div></div>" +
       '<div class="icc-card">' +
       '<form id="form-filtros-agente" class="icc-filtros-row">' +
@@ -1311,7 +1381,7 @@ window.icc.views = (function () {
       "</form></div>" +
       '<div class="icc-card icc-table-wrap"><table class="icc-table"><thead><tr>' +
       "<th>Nombre</th><th>Email</th><th>Empresa / CIF</th><th>Telefono</th><th>Rol</th><th>Jefe de equipo / Responsable</th><th>Estado</th>" +
-      (esAdmin ? "<th></th>" : "") +
+      (esAdmin || esJefeDeEquipo ? "<th></th>" : "") +
       "</tr></thead><tbody>" +
       agentes
         .map(function (a) {
@@ -1359,7 +1429,7 @@ window.icc.views = (function () {
                 : U.escapeHtml((agentes.filter(function (j) { return String(j.id) === String(a.supervisor_id); })[0] || {}).nombre || "Sin asignar")) +
             "</td>" +
             "<td>" +
-            (puedeGestionarFila || (esJefeDeEquipo && a.rol === "comercial" && !esYoMismo)
+            (puedeGestionarFila || (jefeGestiona && esDeMiEquipo(a))
               ? '<button class="icc-btn icc-btn-ghost" data-bloqueo-id="' + a.id + '" data-bloqueado="' + a.bloqueado + '">' +
                 (Number(a.bloqueado) ? "Desbloquear" : "Bloquear") +
                 "</button>"
@@ -1376,7 +1446,14 @@ window.icc.views = (function () {
                   ? '<button type="button" class="icc-link-btn" style="color:var(--red)" data-borrar-agente-id="' + a.id + '">Borrar</button>'
                   : "") +
                 "</td>"
-              : "") +
+              : esJefeDeEquipo
+                ? "<td>" +
+                  (esDeMiEquipo(a)
+                    ? '<a class="icc-link-btn" href="#/agentes/' + a.id + '/informacion">⚙️ Gestionar</a> ' +
+                      (jefeVerComo && !Number(a.bloqueado) ? '<button type="button" class="icc-link-btn" data-ver-como-id="' + a.id + '">👁️ Ver como</button>' : "")
+                    : "") +
+                  "</td>"
+                : "") +
             "</tr>"
           );
         })
@@ -1453,21 +1530,10 @@ window.icc.views = (function () {
     main()
       .querySelectorAll("[data-ver-como-id]")
       .forEach(function (btn) {
-        btn.addEventListener("click", async function () {
+        btn.addEventListener("click", function () {
           var id = btn.getAttribute("data-ver-como-id");
           var agente = agentes.filter(function (a) { return String(a.id) === id; })[0];
-          if (!confirm('¿Entrar como "' + (agente ? agente.nombre : "este usuario") + '"? Veras el CRM exactamente como lo ve el, hasta que pulses "Volver a mi cuenta".')) return;
-          // Navega primero: si se cambia de usuario antes de cambiar el hash,
-          // el repintado automatico (por el cambio de sesion) y el cambio de
-          // hash compiten entre si y la pantalla se puede quedar a medias en
-          // Agentes en vez de pasar a Inicio.
-          location.hash = "#/dashboard";
-          try {
-            await window.icc.auth.verComo(id);
-            U.toast("Viendo el CRM como " + (agente ? agente.nombre : "otro usuario"), "success");
-          } catch (err) {
-            U.toast(err.message || "No se pudo entrar en esa cuenta", "error");
-          }
+          entrarComo(id, agente ? agente.nombre : "");
         });
       });
 
@@ -1777,7 +1843,9 @@ window.icc.views = (function () {
       '<p class="icc-muted">' + U.escapeHtml(u.email) + " · " + U.escapeHtml(C.ROLES[u.rol] || u.rol) +
       (u.numero_relacion ? ' · relación <code>' + U.escapeHtml(u.numero_relacion) + "</code>" : "") +
       (datos.supervisor ? " · Depende de " + U.escapeHtml(datos.supervisor.nombre) : "") +
-      "</p></div></header>" +
+      "</p></div>" +
+      (puede.ver_como ? '<button type="button" class="icc-btn icc-btn-ghost icc-uficha-vercomo" id="btn-ficha-ver-como">👁️ Ver como</button>' : "") +
+      "</header>" +
       '<div class="icc-uficha-body">' +
       '<nav class="icc-uficha-menu">' +
       secciones
@@ -1793,6 +1861,9 @@ window.icc.views = (function () {
       "</nav>" +
       '<section class="icc-uficha-panel" id="ficha-panel"></section>' +
       "</div></div>";
+
+    var btnVerComo = document.getElementById("btn-ficha-ver-como");
+    if (btnVerComo) btnVerComo.addEventListener("click", function () { entrarComo(u.id, u.nombre); });
 
     var cont = document.getElementById("ficha-panel");
     var render = {
@@ -1956,6 +2027,8 @@ window.icc.views = (function () {
     var perm = datos.permisos;
     var efectivos = perm.efectivos || [];
     var excepciones = perm.excepciones || {};
+    var editables = perm.editables || [];
+    var cambiaRol = datos.puede.cambiar_rol !== undefined ? datos.puede.cambiar_rol : datos.puede.editar_permisos;
     var numExcepciones = Object.keys(excepciones).length;
     var esSuperAdmin = window.icc.auth.esSuperAdmin();
     var rolesAsignables = Object.keys(C.ROLES).filter(function (r) {
@@ -1968,7 +2041,7 @@ window.icc.views = (function () {
       "<h2>Rol y permisos granulares</h2>" +
       '<div class="icc-rol-row">' +
       '<div class="icc-field" style="flex:1"><label>Rol asignado</label>' +
-      (datos.puede.editar_permisos
+      (cambiaRol
         ? '<select class="icc-select" id="select-rol-usuario">' +
           rolesAsignables
             .map(function (r) { return '<option value="' + r + '"' + (u.rol === r ? " selected" : "") + ">" + C.ROLES[r] + "</option>"; })
@@ -1981,10 +2054,16 @@ window.icc.views = (function () {
       badgeColor(numExcepciones + (numExcepciones === 1 ? " excepción" : " excepciones"), numExcepciones ? "#fbbf24" : "#94a3b8") +
       (editable && numExcepciones ? ' <button type="button" class="icc-btn icc-btn-ghost" id="btn-restablecer-permisos">↺ Restablecer al rol</button>' : "") +
       "</div></div>" +
-      (datos.puede.editar_permisos
+      (cambiaRol
         ? '<div class="icc-aviso icc-aviso-oro">⚠️ Cambiar el rol reescribe los permisos con los de fábrica del nuevo rol. Ajusta después las excepciones que necesites.</div>'
+        : datos.puede.editar_permisos
+        ? '<p class="icc-muted">Como Jefe de equipo puedes conceder o retirar a tus comerciales los permisos que tú mismo tienes. El rol y el equipo los cambia dirección.</p>'
         : '<p class="icc-muted">' + (datos.es_propia ? "Estos son tus permisos en el CRM. Los gestiona dirección." : "") + "</p>") +
       perm.catalogo
+        .filter(function (grupo) {
+          // Los permisos de gestion de equipo solo tienen efecto en un Jefe de equipo.
+          return u.rol === "jefe_de_equipo" || !grupo.permisos.every(function (pm) { return pm.clave.indexOf("usuarios.") === 0; });
+        })
         .map(function (grupo) {
           return (
             '<div class="icc-perm-grupo"><div class="icc-perm-grupo-head">' + U.escapeHtml(grupo.modulo) + "</div>" +
@@ -1994,7 +2073,7 @@ window.icc.views = (function () {
                 var activo = efectivos.indexOf(pm.clave) !== -1;
                 return (
                   '<div class="icc-perm-row" data-perm-row="' + pm.clave + '" data-fabrica="' + (deFabrica ? 1 : 0) + '">' +
-                  switchHtml('data-perm="' + pm.clave + '"', activo, !editable) +
+                  switchHtml('data-perm="' + pm.clave + '"', activo, !editable || editables.indexOf(pm.clave) === -1) +
                   '<div class="icc-perm-text"><strong>' + U.escapeHtml(pm.label) + "</strong>" +
                   ' <span class="icc-perm-excepcion"' + (activo === deFabrica ? " hidden" : "") + ">excepción</span>" +
                   '<span class="icc-muted">' + U.escapeHtml(pm.desc) + "</span></div>" +
@@ -2007,7 +2086,8 @@ window.icc.views = (function () {
         })
         .join("") +
       '<p class="icc-muted" style="margin-top:6px">Siempre ligados al rol (no se delegan): qué datos ve cada uno según su equipo, ' +
-      'la gestión de cuentas de usuario, "Ver como" y las copias de seguridad.</p>' +
+      'la gestión de cuentas de Admin y las copias de seguridad. Los permisos de "Equipo" solo tienen efecto en un Jefe de equipo, ' +
+      'y siempre sobre los comerciales de su propio equipo.</p>' +
       (editable ? barraGuardar("savebar-permisos") : "") +
       "</form>";
 
@@ -2053,7 +2133,9 @@ window.icc.views = (function () {
     form.addEventListener("submit", async function (e) {
       e.preventDefault();
       var permisos = {};
-      form.querySelectorAll("[data-perm]").forEach(function (chk) { permisos[chk.getAttribute("data-perm")] = chk.checked; });
+      form.querySelectorAll("[data-perm]").forEach(function (chk) {
+        if (!chk.disabled) permisos[chk.getAttribute("data-perm")] = chk.checked;
+      });
       try {
         await D.accionUsuario(u.id, "permisos", { permisos: permisos });
         U.toast("Permisos guardados", "success");

@@ -56,6 +56,7 @@ if ($metodo === 'POST' && $id === null) {
   // Un jefe de equipo solo puede dar de alta comerciales, y siempre en su propio
   // equipo (nunca backoffice/jefe_de_equipo/admin, ni asignar a otro jefe).
   if ($user['rol'] === 'jefe_de_equipo') {
+    icc_require_permiso($user, 'usuarios.crear');
     $rol = 'comercial';
   }
 
@@ -126,11 +127,16 @@ if ($metodo === 'PUT' && $id !== null) {
     icc_json(['error' => 'No tienes permiso para gestionar esta cuenta'], 403);
   }
 
-  $stmt = $db->prepare('SELECT rol FROM usuarios WHERE id = ?');
+  $stmt = $db->prepare('SELECT rol, supervisor_id FROM usuarios WHERE id = ?');
   $stmt->execute([$id]);
   $objetivo = $stmt->fetch();
   if (!$objetivo) icc_json(['error' => 'Usuario no encontrado'], 404);
   $rolObjetivo = $objetivo['rol'];
+
+  // Sobre otra cuenta de su equipo, el jefe necesita el permiso usuarios.gestionar.
+  if ($user['rol'] === 'jefe_de_equipo' && $id !== (int)$user['id'] && !icc_jefe_gestiona($user, $objetivo)) {
+    icc_json(['error' => 'No tienes permiso para gestionar las cuentas de tu equipo'], 403);
+  }
 
   // Un Admin normal no puede tocar ninguna cuenta de Admin o Super Admin (ni la
   // suya, salvo que sea la propia, para poder seguir editando su propio perfil):

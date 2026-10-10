@@ -8,7 +8,10 @@
  *    de Admin/Super Admin.
  *  - El propio usuario ve todo lo suyo y edita sus datos de contacto, foto,
  *    disponibilidad, avisos y contrasena, pero nunca su rol ni sus permisos.
- *  - Su Jefe de equipo ve informacion y disponibilidad (solo lectura).
+ *  - Su Jefe de equipo ve informacion y disponibilidad; con el permiso
+ *    usuarios.gestionar gestiona ademas la cuenta de sus comerciales (datos,
+ *    bloqueo, contrasena, sesiones y permisos, estos solo dentro de los que
+ *    el mismo tiene). El rol y el equipo siguen siendo de Admin/Super Admin.
  */
 require __DIR__ . '/config.php';
 
@@ -35,25 +38,43 @@ $enVerComo = !empty($_SESSION['impersonador_id']);
 $objetivoAdminTier = in_array($objetivo['rol'], ['admin', 'super_admin'], true);
 $administra = !$esPropia && (icc_es_super_admin($user) || (icc_es_admin_o_superior($user) && !$objetivoAdminTier));
 $esSuJefe = $user['rol'] === 'jefe_de_equipo' && (int)$objetivo['supervisor_id'] === (int)$user['id'];
+$gestionaEquipo = !$esPropia && icc_jefe_gestiona($user, $objetivo);
+$gestiona = $administra || $gestionaEquipo;
 
 if (!$esPropia && !$administra && !$esSuJefe) {
   icc_json(['error' => 'No tienes acceso a la ficha de este usuario'], 403);
 }
 
 $puede = [
-  'editar_info' => $administra || $esPropia,
-  'editar_email' => $administra,
-  'editar_estado' => $administra,
-  'ver_permisos' => $administra || $esPropia,
-  'editar_permisos' => $administra,
-  'editar_disponibilidad' => $administra || $esPropia,
+  'editar_info' => $gestiona || $esPropia,
+  'editar_email' => $gestiona,
+  'editar_estado' => $gestiona,
+  'ver_permisos' => $gestiona || $esPropia,
+  'editar_permisos' => $gestiona,
+  'cambiar_rol' => $administra,
+  'editar_disponibilidad' => $gestiona || $esPropia,
   'ver_notificaciones' => $administra || $esPropia,
-  'ver_seguridad' => $administra || $esPropia,
-  'reset_password' => $administra,
-  'exigir_cambio' => $administra,
-  'cerrar_sesiones' => $administra || $esPropia,
+  'ver_seguridad' => $gestiona || $esPropia,
+  'reset_password' => $gestiona,
+  'exigir_cambio' => $gestiona,
+  'cerrar_sesiones' => $gestiona || $esPropia,
+  'ver_como' => $gestionaEquipo && icc_tiene_permiso($user, 'usuarios.ver_como') && !$enVerComo && !(int)$objetivo['bloqueado'],
   'cambiar_mi_password' => $esPropia && !$enVerComo,
 ];
+
+/**
+ * Permisos que quien entra puede conceder o retirar: Admin todos; un Jefe de
+ * equipo solo los que el mismo tiene (nunca mas de los suyos) y nunca los de
+ * gestion de equipo, que no aplican a un comercial.
+ */
+function usu_permisos_editables(array $user, bool $administra): array {
+  $todos = array_keys(icc_permisos_indice());
+  if ($administra) return $todos;
+  $propios = icc_permisos_efectivos($user);
+  return array_values(array_filter($todos, function ($c) use ($propios) {
+    return strpos($c, 'usuarios.') !== 0 && in_array($c, $propios, true);
+  }));
+}
 
 function usu_requiere(bool $permitido): void {
   if (!$permitido) icc_json(['error' => 'No tienes permiso para esta accion'], 403);
@@ -133,6 +154,7 @@ if ($metodo === 'GET') {
       'catalogo' => icc_catalogo_permisos(),
       'efectivos' => icc_permisos_efectivos($objetivo),
       'excepciones' => $excepciones,
+      'editables' => $puede['editar_permisos'] ? usu_permisos_editables($user, $administra) : [],
     ];
   }
 
@@ -257,6 +279,7 @@ if ($accion === 'permisos') {
   $deseados = is_array($body['permisos'] ?? null) ? $body['permisos'] : [];
   $indice = icc_permisos_indice();
   $anteriores = icc_permisos_efectivos($objetivo);
+  $editables = usu_permisos_editables($user, $administra);
 
   $db->beginTransaction();
   try {
@@ -264,7 +287,9 @@ if ($accion === 'permisos') {
     $ins = $db->prepare('INSERT INTO usuarios_permisos (usuario_id, permiso, concedido, actualizado_por) VALUES (?, ?, ?, ?)');
     foreach ($indice as $clave => $def) {
       $deFabrica = in_array($objetivo['rol'], $def['roles'], true);
-      $quiere = array_key_exists($clave, $deseados) ? (bool)$deseados[$clave] : in_array($clave, $anteriores, true);
+      $quiere = array_key_exists($clave, $deseados) && in_array($clave, $editables, true)
+        ? (bool)$deseados[$clave]
+        : in_array($clave, $anteriores, true);
       if ($quiere !== $deFabrica) $ins->execute([$id, $clave, $quiere ? 1 : 0, $autorId]);
     }
     $db->commit();
@@ -291,8 +316,16 @@ if ($accion === 'permisos') {
 if ($accion === 'restablecer_permisos') {
   usu_requiere($puede['editar_permisos']);
   usu_requiere_migracion();
-  $stmt = $db->prepare('DELETE FROM usuarios_permisos WHERE usuario_id = ?');
-  $stmt->execute([$id]);
+  if ($administra) {
+    $stmt = $db->prepare('DELETE FROM usuarios_permisos WHERE usuario_id = ?');
+    $stmt->execute([$id]);
+  } else {
+    // Un jefe solo restablece los permisos que el mismo podria conceder.
+    $editables = usu_permisos_editables($user, false);
+    if (!$editables) icc_json(['ok' => true]);
+    $stmt = $db->prepare('DELETE FROM usuarios_permisos WHERE usuario_id = ? AND permiso IN (' . implode(',', array_fill(0, count($editables), '?')) . ')');
+    $stmt->execute(array_merge([$id], $editables));
+  }
   if ($stmt->rowCount()) {
     icc_auditar($id, $autorId, 'permisos_restablecidos', 'Permisos restablecidos a los de fabrica del rol');
     icc_notificar($id, 'cuenta', 'cuenta', $user['nombre'] . ' ha restablecido tus permisos a los de tu rol');
