@@ -1553,8 +1553,7 @@ window.icc.views = (function () {
   }
 
   // ----------------------------------------------------------------- Agentes
-  var MAX_COMERCIALES_POR_EQUIPO = 3;
-
+  // Sin limite de tamano de equipo (equipos de 15-20 comerciales o mas).
   function opcionesJefesEquipo(agentes, supervisorActual) {
     // Admin/Super Admin tambien cuentan como posible jefe de equipo: si
     // alguien lideraba un equipo como Jefe de equipo y luego se promociona,
@@ -1568,13 +1567,36 @@ window.icc.views = (function () {
       '<option value="">Sin jefe de equipo asignado</option>' +
       jefes
         .map(function (j) {
-          var equipo = agentes.filter(function (a) { return String(a.supervisor_id) === String(j.id); }).length;
-          var lleno = equipo >= MAX_COMERCIALES_POR_EQUIPO && String(j.id) !== String(supervisorActual);
+          var equipo = agentes.filter(function (a) {
+            return a.rol === "comercial" && String(a.supervisor_id) === String(j.id);
+          }).length;
           return (
             '<option value="' + j.id + '"' +
             (String(j.id) === String(supervisorActual) ? " selected" : "") +
-            (lleno ? " disabled" : "") +
-            ">" + U.escapeHtml(j.nombre) + " (" + equipo + "/" + MAX_COMERCIALES_POR_EQUIPO + (lleno ? " · equipo completo" : "") + ")</option>"
+            ">" + U.escapeHtml(j.nombre) + " (" + equipo + (equipo === 1 ? " comercial" : " comerciales") + ")</option>"
+          );
+        })
+        .join("")
+    );
+  }
+
+  // Responsable de un Jefe de equipo: siempre un Admin o Super Admin
+  // (jerarquia Admin -> Jefe de equipo -> Comerciales).
+  function opcionesResponsablesJefe(agentes, supervisorActual) {
+    var admins = agentes.filter(function (a) {
+      return a.rol === "admin" || a.rol === "super_admin";
+    });
+    return (
+      '<option value="">Sin responsable asignado</option>' +
+      admins
+        .map(function (j) {
+          var jefes = agentes.filter(function (a) {
+            return a.rol === "jefe_de_equipo" && String(a.supervisor_id) === String(j.id);
+          }).length;
+          return (
+            '<option value="' + j.id + '"' +
+            (String(j.id) === String(supervisorActual) ? " selected" : "") +
+            ">" + U.escapeHtml(j.nombre) + " (" + jefes + (jefes === 1 ? " jefe de equipo" : " jefes de equipo") + ")</option>"
           );
         })
         .join("")
@@ -1607,8 +1629,10 @@ window.icc.views = (function () {
             })
             .join("") +
           "</select></div>" +
-          '<div class="icc-field" id="campo-supervisor"><label>Jefe de equipo asignado (solo comerciales, maximo ' + MAX_COMERCIALES_POR_EQUIPO + ' por equipo)</label>' +
-          '<select class="icc-select" name="supervisor_id">' + opcionesJefesEquipo(agentes, "") + "</select></div>"
+          '<div class="icc-field" id="campo-supervisor"><label>Jefe de equipo asignado</label>' +
+          '<select class="icc-select" name="supervisor_id">' + opcionesJefesEquipo(agentes, "") + "</select></div>" +
+          '<div class="icc-field" id="campo-responsable"><label>Admin responsable de este Jefe de equipo</label>' +
+          '<select class="icc-select" name="responsable_id">' + opcionesResponsablesJefe(agentes, "") + "</select></div>"
         : '<input type="hidden" name="rol" value="comercial">') +
       '<div class="icc-modal-actions">' +
       '<button type="button" class="icc-btn icc-btn-ghost" data-close-btn>Cancelar</button>' +
@@ -1619,8 +1643,10 @@ window.icc.views = (function () {
     if (esAdmin) {
       var selectRol = document.getElementById("select-nuevo-rol");
       var campoSupervisor = document.getElementById("campo-supervisor");
+      var campoResponsable = document.getElementById("campo-responsable");
       function actualizarVisibilidadSupervisor() {
         campoSupervisor.style.display = selectRol.value === "comercial" ? "" : "none";
+        campoResponsable.style.display = selectRol.value === "jefe_de_equipo" ? "" : "none";
       }
       actualizarVisibilidadSupervisor();
       selectRol.addEventListener("change", actualizarVisibilidadSupervisor);
@@ -1635,6 +1661,9 @@ window.icc.views = (function () {
       });
       if (esAdmin && payload.rol === "comercial" && fd.get("supervisor_id")) {
         payload.supervisor_id = fd.get("supervisor_id");
+      }
+      if (esAdmin && payload.rol === "jefe_de_equipo" && fd.get("responsable_id")) {
+        payload.supervisor_id = fd.get("responsable_id");
       }
       try {
         await D.crearAgente(payload);
@@ -1683,7 +1712,7 @@ window.icc.views = (function () {
       '<button class="icc-btn icc-btn-secondary" type="submit">Filtrar</button>' +
       "</form></div>" +
       '<div class="icc-card icc-table-wrap"><table class="icc-table"><thead><tr>' +
-      "<th>Nombre</th><th>Email</th><th>Empresa / CIF</th><th>Telefono</th><th>Rol</th><th>Jefe de equipo</th><th>Estado</th>" +
+      "<th>Nombre</th><th>Email</th><th>Empresa / CIF</th><th>Telefono</th><th>Rol</th><th>Jefe de equipo / Responsable</th><th>Estado</th>" +
       (esAdmin ? "<th></th>" : "") +
       "</tr></thead><tbody>" +
       agentes
@@ -1717,10 +1746,12 @@ window.icc.views = (function () {
               : U.escapeHtml(C.ROLES[a.rol] || a.rol)) +
             "</td>" +
             "<td>" +
-            (a.rol !== "comercial"
+            (a.rol !== "comercial" && a.rol !== "jefe_de_equipo"
               ? '<span class="icc-muted">-</span>'
               : esAdmin
-                ? '<select class="icc-select" data-supervisor-id="' + a.id + '">' + opcionesJefesEquipo(agentes, a.supervisor_id) + "</select>"
+                ? '<select class="icc-select" data-supervisor-id="' + a.id + '">' +
+                  (a.rol === "comercial" ? opcionesJefesEquipo(agentes, a.supervisor_id) : opcionesResponsablesJefe(agentes, a.supervisor_id)) +
+                  "</select>"
                 : U.escapeHtml((agentes.filter(function (j) { return String(j.id) === String(a.supervisor_id); })[0] || {}).nombre || "Sin asignar")) +
             "</td>" +
             "<td>" +

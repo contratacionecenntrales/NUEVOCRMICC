@@ -74,12 +74,10 @@ if ($metodo === 'POST' && $id === null) {
   }
 
   $supervisorId = null;
-  if ($rol === 'comercial') {
-    if ($user['rol'] === 'jefe_de_equipo') {
-      $supervisorId = icc_validar_supervisor($db, (int)$user['id']);
-    } elseif (!empty($body['supervisor_id'])) {
-      $supervisorId = icc_validar_supervisor($db, (int)$body['supervisor_id']);
-    }
+  if ($rol === 'comercial' && $user['rol'] === 'jefe_de_equipo') {
+    $supervisorId = icc_validar_supervisor($db, (int)$user['id'], $rol);
+  } elseif (in_array($rol, ['comercial', 'jefe_de_equipo'], true) && !empty($body['supervisor_id'])) {
+    $supervisorId = icc_validar_supervisor($db, (int)$body['supervisor_id'], $rol);
   }
 
   $ins = $db->prepare(
@@ -149,12 +147,14 @@ if ($metodo === 'PUT' && $id !== null) {
       $valores[] = $body['bloqueado'] ? 1 : 0;
     }
   }
+  $rolFinal = $rolObjetivo;
   if (icc_es_admin_o_superior($user)) {
     if (array_key_exists('rol', $body)) {
       $nuevoRol = $body['rol'];
       if (in_array($nuevoRol, ['comercial', 'backoffice', 'jefe_de_equipo'], true)) {
         $sets[] = 'rol = ?';
         $valores[] = $nuevoRol;
+        $rolFinal = $nuevoRol;
       } elseif (in_array($nuevoRol, ['admin', 'super_admin'], true)) {
         // El guard de mas arriba ya garantiza que, si $rolObjetivo ya era
         // admin/super_admin, solo un Super Admin ha llegado hasta aqui; falta
@@ -164,12 +164,27 @@ if ($metodo === 'PUT' && $id !== null) {
         }
         $sets[] = 'rol = ?';
         $valores[] = $nuevoRol;
+        $rolFinal = $nuevoRol;
       }
     }
     if (array_key_exists('supervisor_id', $body)) {
-      $supervisorId = $body['supervisor_id'] ? icc_validar_supervisor($db, (int)$body['supervisor_id']) : null;
+      if ($body['supervisor_id'] && (int)$body['supervisor_id'] === $id) {
+        icc_json(['error' => 'Un usuario no puede ser su propio responsable'], 400);
+      }
+      $supervisorId = $body['supervisor_id'] ? icc_validar_supervisor($db, (int)$body['supervisor_id'], $rolFinal) : null;
       $sets[] = 'supervisor_id = ?';
       $valores[] = $supervisorId;
+    } elseif ($rolFinal !== $rolObjetivo) {
+      // Al cambiar de rol, el responsable anterior puede dejar de tener
+      // sentido (p. ej. un comercial de Maria ascendido a Jefe de equipo no
+      // debe seguir colgando de Maria): se conserva solo si sigue siendo
+      // valido para el rol nuevo.
+      $stmt = $db->prepare('SELECT supervisor_id FROM usuarios WHERE id = ?');
+      $stmt->execute([$id]);
+      $supActual = $stmt->fetch()['supervisor_id'];
+      if ($supActual !== null && !icc_supervisor_valido($db, (int)$supActual, $rolFinal)) {
+        $sets[] = 'supervisor_id = NULL';
+      }
     }
   }
   foreach (['nombre', 'apellidos', 'telefono', 'empresa', 'cif', 'tipo'] as $campo) {
@@ -233,18 +248,36 @@ if ($metodo === 'DELETE' && $id !== null) {
 icc_json(['error' => 'Peticion no valida'], 404);
 
 /**
- * Valida que el supervisor exista y sea Jefe de equipo (o Admin/Super Admin:
- * alguien que venia liderando un equipo como jefe_de_equipo y luego se
- * promociona sigue pudiendo ser el supervisor de ese mismo equipo). Sin
- * limite de tamano de equipo: un Jefe de equipo puede tener tantos
+ * Jerarquia: Admin/Super Admin -> Jefe de equipo -> Comerciales.
+ * - Un comercial cuelga de un Jefe de equipo (o de un Admin/Super Admin:
+ *   alguien que venia liderando un equipo como jefe_de_equipo y luego se
+ *   promociona sigue pudiendo ser el supervisor de ese mismo equipo).
+ * - Un Jefe de equipo cuelga de un Admin/Super Admin (su responsable).
+ * Sin limite de tamano de equipo: un Jefe de equipo puede tener tantos
  * comerciales como haga falta.
  */
-function icc_validar_supervisor(PDO $db, int $supervisorId): int {
-  $stmt = $db->prepare("SELECT id FROM usuarios WHERE id = ? AND rol IN ('jefe_de_equipo', 'admin', 'super_admin')");
-  $stmt->execute([$supervisorId]);
-  if (!$stmt->fetch()) {
-    icc_json(['error' => 'El supervisor indicado no existe o no es Jefe de equipo'], 400);
+function icc_supervisor_valido(PDO $db, int $supervisorId, string $rolSubordinado): bool {
+  if ($rolSubordinado === 'comercial') {
+    $roles = ['jefe_de_equipo', 'admin', 'super_admin'];
+  } elseif ($rolSubordinado === 'jefe_de_equipo') {
+    $roles = ['admin', 'super_admin'];
+  } else {
+    return false;
   }
+  $stmt = $db->prepare('SELECT rol FROM usuarios WHERE id = ?');
+  $stmt->execute([$supervisorId]);
+  $sup = $stmt->fetch();
+  return $sup && in_array($sup['rol'], $roles, true);
+}
 
+function icc_validar_supervisor(PDO $db, int $supervisorId, string $rolSubordinado): int {
+  if (!icc_supervisor_valido($db, $supervisorId, $rolSubordinado)) {
+    $mensaje = $rolSubordinado === 'jefe_de_equipo'
+      ? 'El responsable de un Jefe de equipo debe ser un Admin o Super Admin'
+      : ($rolSubordinado === 'comercial'
+        ? 'El supervisor indicado no existe o no es Jefe de equipo'
+        : 'Solo los comerciales y los jefes de equipo tienen responsable asignado');
+    icc_json(['error' => $mensaje], 400);
+  }
   return $supervisorId;
 }

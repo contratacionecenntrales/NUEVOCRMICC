@@ -76,8 +76,8 @@ Todo cambio de estado queda auditado en la tabla `historial_estado`.
   propios clientes, contratos y proformas.
 - **Backoffice**: ve todo, sube estudios comparativos y gestiona agentes/ficheros.
 - **Jefe de equipo**: ve y gestiona clientes/contratos/proformas/estudios/
-  comparador de los comerciales que tiene asignados (máximo 3, asignados por
-  Admin desde Agentes), además de los suyos propios — nunca los de otros
+  comparador de los comerciales que tiene asignados (sin límite de tamaño
+  de equipo, asignados por Admin desde Agentes), además de los suyos propios — nunca los de otros
   equipos ni los del resto de la empresa. Puede bloquear/desbloquear a los
   comerciales de su propio equipo (nunca a sí mismo). No puede cambiar
   roles ni reasignar a quién pertenece cada comercial (eso sigue siendo
@@ -160,7 +160,9 @@ propio CRM — ya no hace falta volver a tocar la base de datos a mano.
    Si quieres que un Jefe de equipo solo vea a su equipo asignado (en vez
    de a toda la empresa), importa también `sql/migracion_jerarquia_equipos.sql`
    y asigna cada comercial a su jefe desde Agentes → columna "Jefe de equipo"
-   (solo Admin puede asignarlo, máximo 3 comerciales por jefe).
+   (solo Admin puede asignarlo, sin límite de comerciales por jefe). En esa
+   misma columna, cada Jefe de equipo puede tener a su vez un Admin/Super
+   Admin responsable (jerarquía Admin → Jefe de equipo → Comerciales).
    Si te falta la sección "Presupuestos", importa también
    `sql/migracion_presupuestos.sql` (añade el tipo de cliente
    Residencial/Empresa/Prime y la tabla de presupuestos por sector), y
