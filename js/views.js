@@ -1387,7 +1387,7 @@ window.icc.views = (function () {
     U.openModal(
       "<h2>Nuevo usuario</h2>" +
       (!esAdmin ? '<p class="icc-muted">Se creará como Comercial / Agente dentro de tu equipo y podrás gestionar su cuenta y su ficha.</p>' : "") +
-      '<form id="form-nuevo-agente" class="icc-form">' +
+      '<form id="form-nuevo-agente" class="icc-form" autocomplete="off">' +
       campoTexto("nombre", "Nombre", true, "text") +
       campoTexto("apellidos", "Apellidos", false, "text") +
       campoTexto("email", "Email", true, "email") +
@@ -2148,7 +2148,8 @@ window.icc.views = (function () {
       '<div class="icc-field' + (opciones.clase ? " " + opciones.clase : "") + '"><label>' + label + (opciones.requerido ? " *" : "") + "</label>" +
       '<input class="icc-input" name="' + name + '" type="' + (opciones.tipo || "text") + '" value="' + U.escapeHtml(valor || "") + '"' +
       (opciones.requerido ? " required" : "") + (opciones.soloLectura ? " readonly" : "") + (opciones.deshabilitado ? " disabled" : "") +
-      (opciones.placeholder ? ' placeholder="' + U.escapeHtml(opciones.placeholder) + '"' : "") + ">" +
+      (opciones.placeholder ? ' placeholder="' + U.escapeHtml(opciones.placeholder) + '"' : "") +
+      (opciones.autocomplete ? ' autocomplete="' + opciones.autocomplete + '"' : "") + ">" +
       (opciones.ayuda ? '<span class="icc-ayuda">' + opciones.ayuda + "</span>" : "") +
       "</div>"
     );
@@ -2597,12 +2598,14 @@ window.icc.views = (function () {
         ? '<p class="icc-muted">Última actualización de la contraseña: ' + (u.password_actualizada_en ? U.formatFechaHora(u.password_actualizada_en) : "sin registrar") + "</p>"
         : "") +
       (p.cambiar_mi_password
-        ? '<form id="form-cambiar-password" class="icc-form icc-card" style="margin-top:12px">' +
+        ? '<form id="form-cambiar-password" class="icc-form icc-card" style="margin-top:12px" method="post" action="#">' +
           "<h3>Cambiar mi contraseña</h3>" +
+          // Usuario oculto: asi el navegador actualiza la contraseña que tenga guardada.
+          '<input type="email" name="username" autocomplete="username" value="' + U.escapeHtml(u.email || "") + '" hidden readonly>' +
           '<div class="icc-form-grid">' +
-          campoFicha("actual", "Contraseña actual", "", { tipo: "password", requerido: true }) +
-          campoFicha("nueva", "Nueva contraseña", "", { tipo: "password", requerido: true, ayuda: "Mínimo 8 caracteres, con letras y números." }) +
-          campoFicha("repetir", "Repite la nueva", "", { tipo: "password", requerido: true }) +
+          campoFicha("actual", "Contraseña actual", "", { tipo: "password", requerido: true, autocomplete: "current-password" }) +
+          campoFicha("nueva", "Nueva contraseña", "", { tipo: "password", requerido: true, autocomplete: "new-password", ayuda: "Mínimo 8 caracteres, con letras y números." }) +
+          campoFicha("repetir", "Repite la nueva", "", { tipo: "password", requerido: true, autocomplete: "new-password" }) +
           "</div>" +
           '<div><button type="submit" class="icc-btn icc-btn-primary">Cambiar contraseña</button></div>' +
           "</form>"

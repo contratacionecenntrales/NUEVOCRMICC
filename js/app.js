@@ -34,25 +34,76 @@
       '<div class="icc-auth-panel"><div class="icc-auth-card">' +
       '<div class="icc-brand"><img src="assets/logo.svg" alt="ICC" class="icc-brand-logo">' +
       '<div><strong>Integral Connection</strong><span>Consulting · CRM</span></div></div>' +
-      '<form id="form-auth" class="icc-form">' +
-      '<div class="icc-field"><label>Email</label><input class="icc-input" name="email" type="email" required></div>' +
-      '<div class="icc-field"><label>Contrasena</label><input class="icc-input" name="password" type="password" minlength="6" required></div>' +
+      // Formulario de acceso "de verdad" (method, name, id y autocomplete) para
+      // que Chrome, Edge, Firefox y Safari ofrezcan guardar la contraseña.
+      '<form id="form-auth" name="login" class="icc-form" method="post" action="#" autocomplete="on">' +
+      '<div class="icc-field"><label for="login-email">Email</label>' +
+      '<input class="icc-input" id="login-email" name="email" type="email" autocomplete="username" autocapitalize="none" spellcheck="false" inputmode="email" required></div>' +
+      '<div class="icc-field"><label for="login-password">Contraseña</label>' +
+      '<div class="icc-pass-wrap"><input class="icc-input" id="login-password" name="password" type="password" autocomplete="current-password" minlength="6" required>' +
+      '<button type="button" class="icc-pass-ver" id="btn-ver-password" aria-label="Mostrar contraseña" aria-pressed="false" title="Mostrar contraseña">👁</button></div></div>' +
+      '<label class="icc-recordar"><input type="checkbox" name="recordar" id="login-recordar"> Recordar mi email en este equipo</label>' +
       '<button type="submit" class="icc-btn icc-btn-primary icc-btn-block" id="btn-submit-auth">Entrar</button>' +
       "</form>" +
+      '<p class="icc-muted icc-auth-guardar">🔑 Al entrar, tu navegador te ofrecerá <b>guardar la contraseña</b> para la próxima vez.</p>' +
       '<p class="icc-muted icc-auth-foot">Acceso exclusivo para el equipo de Integral Connection Consulting. Las cuentas nuevas las crea un administrador desde "Agentes".</p>' +
       "</div></div></div></div>";
 
-    document.getElementById("form-auth").addEventListener("submit", async function (e) {
+    var formAuth = document.getElementById("form-auth");
+    var campoEmail = document.getElementById("login-email");
+    var campoPass = document.getElementById("login-password");
+    var casillaRecordar = document.getElementById("login-recordar");
+
+    // Email recordado (solo el email: la contraseña la guarda el navegador).
+    var emailGuardado = "";
+    try { emailGuardado = localStorage.getItem("icc_login_email") || ""; } catch (e) { /* sin almacenamiento */ }
+    if (emailGuardado) {
+      campoEmail.value = emailGuardado;
+      casillaRecordar.checked = true;
+      campoPass.focus();
+    } else {
+      campoEmail.focus();
+    }
+
+    var btnVer = document.getElementById("btn-ver-password");
+    btnVer.addEventListener("click", function () {
+      var mostrar = campoPass.type === "password";
+      campoPass.type = mostrar ? "text" : "password";
+      btnVer.setAttribute("aria-pressed", mostrar ? "true" : "false");
+      btnVer.setAttribute("aria-label", mostrar ? "Ocultar contraseña" : "Mostrar contraseña");
+      btnVer.title = mostrar ? "Ocultar contraseña" : "Mostrar contraseña";
+      btnVer.textContent = mostrar ? "🙈" : "👁";
+      campoPass.focus();
+    });
+
+    formAuth.addEventListener("submit", async function (e) {
       e.preventDefault();
-      var fd = new FormData(e.target);
+      var email = campoEmail.value.trim();
+      var password = campoPass.value;
       var btn = document.getElementById("btn-submit-auth");
       btn.disabled = true;
+      btn.textContent = "Entrando…";
+      // Antes de enviar se vuelve a "password" para que el navegador lo reconozca.
+      if (campoPass.type !== "password") btnVer.click();
       try {
-        await window.icc.auth.signIn(fd.get("email"), fd.get("password"));
+        await window.icc.auth.signIn(email, password);
+        try {
+          if (casillaRecordar.checked) localStorage.setItem("icc_login_email", email);
+          else localStorage.removeItem("icc_login_email");
+        } catch (e2) { /* sin almacenamiento */ }
+        // Con HTTPS, Chrome/Edge permiten pedirlo de forma explicita. Sin
+        // certificado se usa la deteccion normal del navegador (envio del
+        // formulario + desaparicion de la pantalla de acceso).
+        try {
+          if (window.PasswordCredential && window.isSecureContext && navigator.credentials) {
+            navigator.credentials.store(new window.PasswordCredential({ id: email, password: password, name: email })).catch(function () {});
+          }
+        } catch (e3) { /* navegador sin soporte */ }
       } catch (err) {
         U.toast(err.message || "No se pudo iniciar sesion", "error");
-      } finally {
         btn.disabled = false;
+        btn.textContent = "Entrar";
+        campoPass.select();
       }
     });
   }
@@ -363,11 +414,12 @@
       "<h2>Cambia tu contraseña</h2>" +
       '<p class="icc-muted">Hola ' + U.escapeHtml(st.user.nombre) + ", estás usando una contraseña provisional. " +
       "Por seguridad, elige una nueva antes de continuar.</p>" +
-      '<form id="form-cambio-obligatorio" class="icc-form">' +
-      '<div class="icc-field"><label>Contraseña provisional</label><input class="icc-input" name="actual" type="password" required></div>' +
-      '<div class="icc-field"><label>Nueva contraseña</label><input class="icc-input" name="nueva" type="password" minlength="8" required>' +
+      '<form id="form-cambio-obligatorio" class="icc-form" method="post" action="#">' +
+      '<input type="email" name="username" autocomplete="username" value="' + U.escapeHtml(st.user.email || "") + '" hidden readonly>' +
+      '<div class="icc-field"><label>Contraseña provisional</label><input class="icc-input" name="actual" type="password" autocomplete="current-password" required></div>' +
+      '<div class="icc-field"><label>Nueva contraseña</label><input class="icc-input" name="nueva" type="password" autocomplete="new-password" minlength="8" required>' +
       '<span class="icc-ayuda">Mínimo 8 caracteres, con letras y números.</span></div>' +
-      '<div class="icc-field"><label>Repite la nueva</label><input class="icc-input" name="repetir" type="password" minlength="8" required></div>' +
+      '<div class="icc-field"><label>Repite la nueva</label><input class="icc-input" name="repetir" type="password" autocomplete="new-password" minlength="8" required></div>' +
       '<button type="submit" class="icc-btn icc-btn-primary icc-btn-block">Guardar y entrar</button>' +
       '<button type="button" class="icc-btn icc-btn-ghost icc-btn-block" id="btn-salir-cambio">Salir</button>' +
       "</form></div></div>";

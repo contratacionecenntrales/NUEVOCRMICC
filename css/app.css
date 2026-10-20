@@ -1381,3 +1381,14 @@ a.icc-ag-kpi:hover{transform:translateY(-2px);box-shadow:0 14px 30px -16px var(-
   .icc-ap-gestion{grid-template-columns:1fr}
   .icc-ap-equipo{padding:12px}
 }
+
+/* Login: ver contraseña, recordar email y aviso de guardar contraseña */
+.icc-pass-wrap{position:relative}
+.icc-pass-wrap .icc-input{width:100%;padding-right:48px}
+.icc-pass-ver{position:absolute;right:6px;top:50%;transform:translateY(-50%);display:grid;place-items:center;width:36px;height:36px;padding:0;
+  border:0;border-radius:9px;background:transparent;cursor:pointer;font-size:17px;opacity:.75}
+.icc-pass-ver:hover,.icc-pass-ver:focus-visible{opacity:1;background:rgba(255,255,255,.07)}
+.icc-recordar{display:flex;align-items:center;gap:9px;margin:2px 0 4px;font-size:13.5px;color:var(--txt-2);cursor:pointer;user-select:none}
+.icc-recordar input{width:17px;height:17px;accent-color:var(--esmeralda);cursor:pointer}
+.icc-auth-guardar{margin:12px 0 0;text-align:center;font-size:12.5px}
+.icc-auth-guardar b{color:var(--txt)}
