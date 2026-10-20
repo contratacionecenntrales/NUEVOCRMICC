@@ -88,6 +88,14 @@ para abrir cada informe, descargar su PDF o borrarlo.
 - Revisad cada mes las tarifas de mercado del catálogo y rellenad las
   comisiones de vuestras tarifas propias antes de usarlo con clientes.
 
+## Ficheros (biblioteca de documentos)
+
+- Solo **Administración** (admin y super admin) puede crear, renombrar, ordenar, subir y borrar carpetas y archivos. El resto del equipo solo consulta y descarga. Lo comprueba el servidor (`icc_puede_gestionar_ficheros`), así que ningún ajuste de permisos lo puede abrir a otros roles.
+- La raíz se muestra por secciones, en este orden: **Formación → Energía → Telefonía → Alarmas y seguridad → Seguros → General y administración**. La sección se deduce del nombre de la carpeta; Admin puede fijarla a mano con ✏️.
+- **↕ Ordenar carpetas** permite colocar cada carpeta con ◀ ▶; el orden se guarda al momento y lo ve todo el equipo.
+- Para elegir sección a mano y ordenar hay que importar una vez `sql/migracion_ficheros_orden.sql`. Sin ella todo funciona igual, con orden automático (sección y nombre).
+- La carpeta «Facturacion de Comerciales» la usa el CRM para las carpetas personales y no se puede renombrar ni borrar.
+
 ## Backend (`api/`)
 
 Todos los endpoints devuelven JSON y usan sesión PHP por cookie (`icc_sesion`).

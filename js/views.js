@@ -2764,7 +2764,6 @@ window.icc.views = (function () {
   async function viewFicheros(carpetaId) {
     main().innerHTML = '<div class="icc-loading">Cargando ficheros…</div>';
     var esAdmin = window.icc.auth.esAdminOSuperior();
-    var puedeBorrar = window.icc.auth.puede("ficheros.borrar");
     var esc = U.escapeHtml;
     var params = new URLSearchParams(location.hash.split("?")[1] || "");
     var vistaGuardada = "";
@@ -2783,8 +2782,14 @@ window.icc.views = (function () {
     var actual = arbol.actual; // null en la raiz
     var ruta = arbol.ruta || [];
     var carpetas = arbol.carpetas || [];
-    var puedeSubirAqui = actual ? actual.puede_subir : false;
-    var puedeCrearCarpeta = window.icc.auth.puede("ficheros.subir") && (!actual || !actual.es_personal);
+    // Solo Administracion edita: lo decide el servidor (puede_gestionar).
+    var gestiona = !!arbol.puede_gestionar;
+    var puedeBorrar = gestiona;
+    var puedeSubirAqui = !!(actual && gestiona);
+    var puedeCrearCarpeta = gestiona && (!actual || !actual.es_personal);
+    var secciones = arbol.secciones || [];
+    var ordenDisponible = arbol.orden_disponible !== false;
+    var CARPETA_SISTEMA = "Facturacion de Comerciales";
 
     // Color estable por carpeta (segun su nombre) para distinguirlas de un vistazo.
     var paleta = ["#22D3EE", "#A78BFA", "#F472B6", "#34D399", "#FBBF24", "#60A5FA", "#FB923C", "#4ADE80", "#E879F9", "#2DD4BF", "#F87171", "#93C5FD"];
@@ -2840,15 +2845,24 @@ window.icc.views = (function () {
       var n = Number(c.n_archivos || 0), s = Number(c.n_carpetas || 0);
       var detalle = [s ? plural(s, "carpeta", "carpetas") : "", plural(n, "archivo", "archivos")].filter(Boolean).join(" · ");
       return (
-        '<div class="icc-fi-carpeta" data-nombre="' + esc(String(c.nombre).toLowerCase()) + '" style="--c:' + colorCarpeta(c.nombre) + '">' +
+        '<div class="icc-fi-carpeta' + (gestiona ? " con-herr" : "") + '" data-id="' + c.id + '" data-nombre="' + esc(String(c.nombre).toLowerCase()) + '" style="--c:' + colorCarpeta(c.nombre) + '">' +
         '<a class="icc-fi-carpeta-link" href="#/ficheros/' + c.id + '">' +
         '<span class="icc-fi-carpeta-ico" aria-hidden="true"><i></i></span>' +
         '<span class="icc-fi-carpeta-txt"><strong>' + esc(c.nombre) + (c.es_personal ? " 🔒" : "") + "</strong>" +
         "<small>" + detalle + (c.ultimo_archivo ? " · " + haceDias(c.ultimo_archivo) : "") + "</small>" +
         (c.es_personal && c.propietario_nombre ? '<small class="icc-fi-dueno">Personal de ' + esc(c.propietario_nombre) + "</small>" : "") +
         "</span></a>" +
-        (puedeBorrar && !c.es_personal
-          ? '<button type="button" class="icc-fi-borrar" title="Borrar carpeta (debe estar vacía)" aria-label="Borrar carpeta ' + esc(c.nombre) + '" data-borrar-carpeta-id="' + c.id + '"' + (n || s ? ' data-llena="1"' : "") + ">🗑</button>"
+        (gestiona
+          ? '<div class="icc-fi-herr">' +
+            '<button type="button" class="icc-fi-accion icc-fi-mover" data-mover="-1" title="Mover antes" aria-label="Mover ' + esc(c.nombre) + ' antes">◀</button>' +
+            '<button type="button" class="icc-fi-accion icc-fi-mover" data-mover="1" title="Mover después" aria-label="Mover ' + esc(c.nombre) + ' después">▶</button>' +
+            (!c.es_personal
+              ? '<button type="button" class="icc-fi-accion" title="Editar nombre y sección" aria-label="Editar carpeta ' + esc(c.nombre) + '" data-editar-carpeta-id="' + c.id + '">✏️</button>'
+              : "") +
+            (!c.es_personal && !(c.nombre === CARPETA_SISTEMA && !c.parent_id)
+              ? '<button type="button" class="icc-fi-accion icc-fi-borrar" title="Borrar carpeta (debe estar vacía)" aria-label="Borrar carpeta ' + esc(c.nombre) + '" data-borrar-carpeta-id="' + c.id + '"' + (n || s ? ' data-llena="1"' : "") + ">🗑</button>"
+              : "") +
+            "</div>"
           : "") +
         "</div>"
       );
@@ -2872,7 +2886,8 @@ window.icc.views = (function () {
           '<a class="icc-btn icc-btn-ghost icc-fi-btn" target="_blank" rel="noopener" href="' + D.urlDescarga("ficheros", f.ruta_archivo) + '">👁 Ver</a>' +
           '<a class="icc-btn icc-btn-secondary icc-fi-btn" href="' + D.urlDescarga("ficheros", f.ruta_archivo, true) + '">⬇ Descargar</a>') +
         (puedeBorrar
-          ? '<button type="button" class="icc-fi-borrar" title="' + (falta ? "Borrar registro" : "Borrar archivo") + '" aria-label="Borrar ' + esc(f.nombre_archivo) + '" data-borrar-fichero-id="' + f.id + '" data-huerfano="' + (falta ? "1" : "0") + '">🗑</button>'
+          ? '<button type="button" class="icc-fi-accion" title="Renombrar" aria-label="Renombrar ' + esc(f.nombre_archivo) + '" data-renombrar-fichero-id="' + f.id + '" data-nombre-actual="' + esc(f.nombre_archivo) + '">✏️</button>' +
+            '<button type="button" class="icc-fi-accion icc-fi-borrar" title="' + (falta ? "Borrar registro" : "Borrar archivo") + '" aria-label="Borrar ' + esc(f.nombre_archivo) + '" data-borrar-fichero-id="' + f.id + '" data-huerfano="' + (falta ? "1" : "0") + '">🗑</button>'
           : "") +
         "</div></div>"
       );
@@ -2883,6 +2898,7 @@ window.icc.views = (function () {
     var nombresGrupo = { pdf: "📕 PDF", doc: "📘 Word", hoja: "📗 Excel", presentacion: "📙 PowerPoint", imagen: "🖼️ Imágenes", zip: "🗜️ ZIP", otro: "📄 Otros" };
 
     main().innerHTML =
+      '<div class="icc-fi" id="fi-raiz">' +
       '<header class="icc-ag-hero icc-fi-hero">' +
       '<div class="icc-ag-hero-txt"><span class="icc-ag-hero-kicker">🗂️ Ficheros</span>' +
       "<h1>" + esc(actual ? actual.nombre : "Biblioteca de documentos") + "</h1>" +
@@ -2894,6 +2910,7 @@ window.icc.views = (function () {
           '<a class="icc-btn icc-btn-ghost" href="#/copias-seguridad">🗄️ Copias de seguridad</a>'
         : "") +
       (puedeSubirAqui ? '<button type="button" class="icc-btn icc-btn-primary icc-ag-btn-nueva" id="btn-fi-subir">⬆ Subir archivos</button>' : "") +
+      (!gestiona ? '<span class="icc-fi-lectura" title="Solo Administración puede subir, editar o borrar">👁 Solo consulta</span>' : "") +
       "</div></header>" +
 
       '<nav class="icc-fi-migas" aria-label="Ruta de carpetas">' + migas + "</nav>" +
@@ -2904,16 +2921,36 @@ window.icc.views = (function () {
       '<section class="icc-card icc-fi-barra">' +
       '<input class="icc-input" id="fi-buscar" type="search" placeholder="🔎 Buscar en esta carpeta" value="' + esc(params.get("q") || "") + '">' +
       (puedeCrearCarpeta
-        ? '<form id="form-nueva-carpeta" class="icc-fi-nueva"><input class="icc-input" name="nombre" placeholder="Nombre de la nueva carpeta" maxlength="120" required><button class="icc-btn icc-btn-secondary" type="submit">📁 Crear carpeta</button></form>'
+        ? '<form id="form-nueva-carpeta" class="icc-fi-nueva"><input class="icc-input" name="nombre" placeholder="Nombre de la nueva carpeta" maxlength="150" required>' +
+          (!carpetaId && ordenDisponible
+            ? '<select class="icc-select" name="seccion" title="Sección donde aparecerá"><option value="">Sección automática</option>' +
+              secciones.map(function (x) { return '<option value="' + esc(x.clave) + '">' + esc(x.icono + " " + x.label) + "</option>"; }).join("") + "</select>"
+            : "") +
+          '<button class="icc-btn icc-btn-secondary" type="submit">📁 Crear carpeta</button></form>'
+        : "") +
+      (gestiona && carpetas.length > 1
+        ? '<button type="button" class="icc-btn icc-btn-ghost icc-fi-btn-ordenar" id="fi-organizar" aria-pressed="false">↕ Ordenar carpetas</button>'
         : "") +
       '<div class="icc-tabs icc-fi-vistas"><button type="button" class="icc-tab' + (vista === "cuadricula" ? " is-active" : "") + '" data-fi-vista="cuadricula">▦ Cuadrícula</button>' +
       '<button type="button" class="icc-tab' + (vista === "lista" ? " is-active" : "") + '" data-fi-vista="lista">☰ Lista</button></div>' +
       "</section>" +
 
-      (carpetas.length
+      '<div class="icc-aviso icc-fi-aviso icc-fi-ayuda-orden" hidden>↕ Usa ◀ ▶ en cada carpeta para colocarla; el orden se guarda al momento y lo ve todo el equipo. Para cambiarla de sección, pulsa ✏️.' +
+      (ordenDisponible ? "" : ' <b>Antes importa sql/migracion_ficheros_orden.sql en la base de datos.</b>') + "</div>" +
+      (!carpetas.length
+        ? ""
+        : carpetaId
         ? '<section class="icc-fi-seccion"><h2>Carpetas <span>' + carpetas.length + "</span></h2>" +
           '<div class="icc-fi-carpetas is-' + vista + '">' + carpetas.map(tarjetaCarpeta).join("") + "</div></section>"
-        : "") +
+        : secciones.map(function (sec, i) {
+            var claves = secciones.map(function (x) { return x.clave; });
+            var lista = carpetas.filter(function (c) {
+              return c.seccion === sec.clave || (i === secciones.length - 1 && claves.indexOf(c.seccion) === -1);
+            });
+            if (!lista.length) return "";
+            return '<section class="icc-fi-seccion icc-fi-grupo" data-seccion="' + esc(sec.clave) + '"><h2><span class="icc-fi-grupo-ico">' + esc(sec.icono) + "</span>" + esc(sec.label) + " <span>" + lista.length + "</span></h2>" +
+              '<div class="icc-fi-carpetas is-' + vista + '">' + lista.map(tarjetaCarpeta).join("") + "</div></section>";
+          }).join("")) +
 
       (!carpetaId
         ? (carpetas.length ? "" : '<p class="icc-empty">Todavía no hay carpetas. Crea la primera arriba.</p>')
@@ -2936,7 +2973,7 @@ window.icc.views = (function () {
             ? '<div class="icc-fi-archivos">' + ficheros.map(filaFichero).join("") + "</div>"
             : '<p class="icc-empty">Sin archivos en esta carpeta.</p>') +
           "</section>") +
-      '<p class="icc-empty icc-fi-sin-resultados" hidden>Nada coincide con la búsqueda.</p>';
+      '<p class="icc-empty icc-fi-sin-resultados" hidden>Nada coincide con la búsqueda.</p></div>';
 
     // ---- Busqueda y filtro por tipo (en el navegador, al instante)
     var tipoActivo = "";
@@ -2969,8 +3006,130 @@ window.icc.views = (function () {
         var v = b.getAttribute("data-fi-vista");
         try { localStorage.setItem("icc_ficheros_vista", v); } catch (e) { /* sin almacenamiento */ }
         main().querySelectorAll("[data-fi-vista]").forEach(function (x) { x.classList.toggle("is-active", x === b); });
-        var g = main().querySelector(".icc-fi-carpetas");
-        if (g) { g.classList.toggle("is-lista", v === "lista"); g.classList.toggle("is-cuadricula", v !== "lista"); }
+        main().querySelectorAll(".icc-fi-carpetas").forEach(function (g) { g.classList.toggle("is-lista", v === "lista"); g.classList.toggle("is-cuadricula", v !== "lista"); });
+      });
+    });
+
+    // ---- Ordenar carpetas (solo Administracion)
+    var raiz = document.getElementById("fi-raiz");
+    var btnOrganizar = document.getElementById("fi-organizar");
+    if (btnOrganizar) {
+      btnOrganizar.addEventListener("click", function () {
+        var activo = !raiz.classList.contains("is-organizando");
+        raiz.classList.toggle("is-organizando", activo);
+        btnOrganizar.setAttribute("aria-pressed", activo ? "true" : "false");
+        btnOrganizar.textContent = activo ? "✓ Terminar de ordenar" : "↕ Ordenar carpetas";
+        raiz.querySelector(".icc-fi-ayuda-orden").hidden = !activo;
+      });
+    }
+    var guardandoOrden = Promise.resolve();
+    main().querySelectorAll("[data-mover]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        if (!ordenDisponible) {
+          U.toast("Para ordenar, importa antes sql/migracion_ficheros_orden.sql en la base de datos", "error");
+          return;
+        }
+        var tarjeta = btn.closest(".icc-fi-carpeta");
+        var dir = Number(btn.getAttribute("data-mover"));
+        var vecina = dir < 0 ? tarjeta.previousElementSibling : tarjeta.nextElementSibling;
+        if (!vecina) {
+          U.toast(dir < 0 ? "Ya es la primera de su sección" : "Ya es la última de su sección", "info");
+          return;
+        }
+        if (dir < 0) tarjeta.parentNode.insertBefore(tarjeta, vecina);
+        else tarjeta.parentNode.insertBefore(vecina, tarjeta);
+        tarjeta.classList.remove("is-movida");
+        void tarjeta.offsetWidth;
+        tarjeta.classList.add("is-movida");
+        btn.focus();
+        var ids = Array.prototype.map.call(main().querySelectorAll(".icc-fi-carpeta[data-id]"), function (el) { return Number(el.getAttribute("data-id")); });
+        // Las peticiones se encadenan para que siempre gane el ultimo orden.
+        guardandoOrden = guardandoOrden.then(function () {
+          return D.ordenarCarpetasFicheros(ids).catch(function (err) {
+            U.toast(err.message || "No se pudo guardar el orden", "error");
+          });
+        });
+      });
+    });
+
+    var secOpciones = function (elegida) {
+      return '<option value="">Automática (según el nombre)</option>' +
+        secciones.map(function (x) {
+          return '<option value="' + esc(x.clave) + '"' + (elegida === x.clave ? " selected" : "") + ">" + esc(x.icono + " " + x.label) + "</option>";
+        }).join("");
+    };
+    main().querySelectorAll("[data-editar-carpeta-id]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var idC = Number(btn.getAttribute("data-editar-carpeta-id"));
+        var c = carpetas.filter(function (x) { return Number(x.id) === idC; })[0];
+        if (!c) return;
+        var esSistema = c.nombre === CARPETA_SISTEMA && !c.parent_id;
+        var conSeccion = !c.parent_id && ordenDisponible;
+        U.openModal(
+          "<h2>Editar carpeta</h2>" +
+          '<form id="form-editar-carpeta" class="icc-form">' +
+          '<div class="icc-field"><label>Nombre</label><input class="icc-input" name="nombre" maxlength="150" required value="' + esc(c.nombre) + '"' + (esSistema ? " disabled" : "") + ">" +
+          (esSistema ? '<small class="icc-muted">El CRM usa esta carpeta para las carpetas personales de facturación; no se puede renombrar.</small>' : "") + "</div>" +
+          (conSeccion
+            ? '<div class="icc-field"><label>Sección</label><select class="icc-select" name="seccion">' + secOpciones(c.seccion_elegida || "") + "</select>" +
+              '<small class="icc-muted">Ahora aparece en: ' + esc((secciones.filter(function (x) { return x.clave === c.seccion; })[0] || {}).label || "General") + "</small></div>"
+            : !c.parent_id
+            ? '<p class="icc-muted">Para elegir la sección a mano, importa antes sql/migracion_ficheros_orden.sql.</p>'
+            : "") +
+          '<div class="icc-modal-actions"><button type="button" class="icc-btn icc-btn-ghost" data-close-btn>Cancelar</button>' +
+          '<button type="submit" class="icc-btn icc-btn-primary">Guardar</button></div></form>'
+        );
+        document.getElementById("form-editar-carpeta").addEventListener("submit", async function (e) {
+          e.preventDefault();
+          var cambios = {};
+          if (!esSistema) {
+            var nuevo = e.target.nombre.value.trim();
+            if (!nuevo) return;
+            if (nuevo !== c.nombre) cambios.nombre = nuevo;
+          }
+          if (conSeccion && e.target.seccion.value !== (c.seccion_elegida || "")) cambios.seccion = e.target.seccion.value;
+          if (!Object.keys(cambios).length) { U.closeModal(); return; }
+          try {
+            await D.editarCarpetaFichero(idC, cambios);
+            U.closeModal();
+            U.toast("Carpeta actualizada", "success");
+            viewFicheros(carpetaId);
+          } catch (err) {
+            U.toast(err.message || "No se pudo guardar", "error");
+          }
+        });
+      });
+    });
+
+    main().querySelectorAll("[data-renombrar-fichero-id]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var idF = btn.getAttribute("data-renombrar-fichero-id");
+        var nombreActual = btn.getAttribute("data-nombre-actual");
+        var ext = extension(nombreActual);
+        var base = ext ? nombreActual.slice(0, -(ext.length + 1)) : nombreActual;
+        U.openModal(
+          "<h2>Renombrar archivo</h2>" +
+          '<form id="form-renombrar-fichero" class="icc-form">' +
+          '<div class="icc-field"><label>Nombre</label><div class="icc-fi-renombrar"><input class="icc-input" name="nombre" maxlength="240" required value="' + esc(base) + '">' +
+          (ext ? "<span>." + esc(ext) + "</span>" : "") + "</div></div>" +
+          '<div class="icc-modal-actions"><button type="button" class="icc-btn icc-btn-ghost" data-close-btn>Cancelar</button>' +
+          '<button type="submit" class="icc-btn icc-btn-primary">Guardar</button></div></form>'
+        );
+        var f = document.getElementById("form-renombrar-fichero");
+        f.nombre.select();
+        f.addEventListener("submit", async function (e) {
+          e.preventDefault();
+          var nuevo = f.nombre.value.trim();
+          if (!nuevo) return;
+          try {
+            await D.renombrarFichero(idF, ext ? nuevo + "." + ext : nuevo);
+            U.closeModal();
+            U.toast("Archivo renombrado", "success");
+            viewFicheros(carpetaId);
+          } catch (err) {
+            U.toast(err.message || "No se pudo renombrar", "error");
+          }
+        });
       });
     });
 
@@ -2981,7 +3140,7 @@ window.icc.views = (function () {
         var nombre = e.target.nombre.value.trim();
         if (!nombre) return;
         try {
-          await D.crearCarpetaFichero(nombre, carpetaId || null);
+          await D.crearCarpetaFichero(nombre, carpetaId || null, e.target.seccion ? e.target.seccion.value : "");
           U.toast("Carpeta creada", "success");
           viewFicheros(carpetaId);
         } catch (err) {

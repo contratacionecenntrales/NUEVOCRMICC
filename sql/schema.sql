@@ -226,6 +226,8 @@ CREATE TABLE IF NOT EXISTS ficheros_carpetas (
   parent_id INT UNSIGNED NULL,
   propietario_id INT UNSIGNED NULL,
   creado_por INT UNSIGNED NULL,
+  seccion VARCHAR(20) NULL,           -- migracion_ficheros_orden.sql
+  orden INT NOT NULL DEFAULT 0,       -- migracion_ficheros_orden.sql
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_carpeta_parent FOREIGN KEY (parent_id) REFERENCES ficheros_carpetas(id) ON DELETE CASCADE,
   CONSTRAINT fk_carpeta_propietario FOREIGN KEY (propietario_id) REFERENCES usuarios(id) ON DELETE CASCADE,

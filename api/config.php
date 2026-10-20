@@ -297,8 +297,8 @@ function icc_catalogo_permisos(): array {
     ]],
     ['modulo' => 'Ficheros', 'permisos' => [
       ['clave' => 'ficheros.ver', 'label' => 'Ver el centro de ficheros', 'desc' => 'Consultar y descargar dosieres corporativos', 'roles' => ICC_TODOS_ROLES],
-      ['clave' => 'ficheros.subir', 'label' => 'Subir ficheros y crear carpetas', 'desc' => 'Anadir documentos a las carpetas compartidas', 'roles' => ICC_ROLES_INTERNOS],
-      ['clave' => 'ficheros.borrar', 'label' => 'Eliminar ficheros y carpetas', 'desc' => 'Retirar documentos del repositorio', 'roles' => ICC_ROLES_ADMIN],
+      ['clave' => 'ficheros.subir', 'label' => 'Subir ficheros y crear carpetas', 'desc' => 'Solo Administracion: anadir, renombrar y ordenar documentos y carpetas', 'roles' => ICC_ROLES_ADMIN],
+      ['clave' => 'ficheros.borrar', 'label' => 'Eliminar ficheros y carpetas', 'desc' => 'Solo Administracion: retirar documentos del repositorio', 'roles' => ICC_ROLES_ADMIN],
     ]],
     ['modulo' => 'Proformas / Facturas', 'permisos' => [
       ['clave' => 'proformas.ver', 'label' => 'Ver proformas', 'desc' => 'Consultar proformas y facturas', 'roles' => ICC_TODOS_ROLES],
@@ -564,6 +564,61 @@ function icc_slug_archivo(string $nombre): string {
  * Carpeta personal (propietario_id fijado): solo su dueno o Admin/Super Admin
  * (privacidad estricta para facturacion/nominas/comisiones individuales).
  */
+/**
+ * Ficheros: solo Administracion (admin y super admin) puede crear, renombrar,
+ * ordenar, subir y borrar. El resto del equipo solo consulta y descarga.
+ * Se comprueba aqui y no con la matriz de permisos para que ningun ajuste
+ * de rol pueda abrir la edicion a otros usuarios por error.
+ */
+function icc_puede_gestionar_ficheros(array $user): bool {
+  return icc_es_admin_o_superior($user);
+}
+
+/** Secciones de la biblioteca, en el orden en que se muestran. */
+function icc_ficheros_secciones(): array {
+  return [
+    ['clave' => 'formacion', 'label' => 'Formación', 'icono' => '🎓'],
+    ['clave' => 'energia', 'label' => 'Energía', 'icono' => '⚡'],
+    ['clave' => 'telefonia', 'label' => 'Telefonía', 'icono' => '📶'],
+    ['clave' => 'alarmas', 'label' => 'Alarmas y seguridad', 'icono' => '🚨'],
+    ['clave' => 'seguros', 'label' => 'Seguros', 'icono' => '🛡️'],
+    ['clave' => 'general', 'label' => 'General y administración', 'icono' => '📁'],
+  ];
+}
+
+/** Seccion que le corresponde a una carpeta por su nombre (si Admin no ha elegido otra). */
+function icc_ficheros_seccion_auto(string $nombre): string {
+  $n = function_exists('mb_strtolower') ? mb_strtolower($nombre, 'UTF-8') : strtolower($nombre);
+  $n = strtr($n, ['á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u', 'ü' => 'u', 'ñ' => 'n', 'Á' => 'a', 'É' => 'e', 'Í' => 'i', 'Ó' => 'o', 'Ú' => 'u', 'Ñ' => 'n']);
+  $reglas = [
+    'formacion' => ['formacion', 'formaciones', 'curso', 'manual', 'onboarding', 'argumentario', 'guia'],
+    'telefonia' => ['telefon', 'movil', 'fibra', 'telco', 'centralita', 'internet'],
+    'alarmas' => ['alarma', 'seguridad', 'videovigilancia', 'securitas', 'prosegur'],
+    'seguros' => ['seguro', 'poliza'],
+    'energia' => ['energ', 'comercializador', 'excedente', 'bateria', 'tarifa', 'temporada', 'periodo',
+      'penalizacion', 'renovacion', 'mercado', 'electric', 'gas\\b', 'luz\\b', 'cups', 'eficiencia', 'solar', 'fotovolt', 'autoconsumo'],
+  ];
+  // Cada palabra clave debe empezar palabra ("curso" no casa con "recursos").
+  foreach ($reglas as $seccion => $palabras) {
+    if (preg_match('/(^|[^a-z0-9])(' . implode('|', $palabras) . ')/', $n)) return $seccion;
+  }
+  return 'general';
+}
+
+/** true si la BD ya tiene las columnas seccion/orden (migracion_ficheros_orden.sql). */
+function icc_ficheros_con_orden(PDO $db): bool {
+  static $cache = null;
+  if ($cache === null) {
+    try {
+      $db->query('SELECT seccion, orden FROM ficheros_carpetas LIMIT 0');
+      $cache = true;
+    } catch (PDOException $e) {
+      $cache = false;
+    }
+  }
+  return $cache;
+}
+
 function icc_carpeta_fichero_visible(array $user, array $carpeta): bool {
   if ($carpeta['propietario_id'] === null) return true;
   return icc_es_admin_o_superior($user) || (int)$carpeta['propietario_id'] === (int)$user['id'];

@@ -2,8 +2,13 @@
 require __DIR__ . '/config.php';
 
 $user = icc_require_auth();
-icc_require_permiso_metodo($user, ['GET' => 'ficheros.ver', 'DELETE' => 'ficheros.borrar']);
+icc_require_permiso($user, 'ficheros.ver');
 $metodo = $_SERVER['REQUEST_METHOD'];
+
+// Solo Administracion sube, renombra y borra; el resto del equipo consulta y descarga.
+if ($metodo !== 'GET' && !icc_puede_gestionar_ficheros($user)) {
+  icc_json(['error' => 'Solo Administracion puede subir, editar o borrar archivos'], 403);
+}
 
 function icc_cargar_carpeta_fichero(PDO $db, int $carpetaId): ?array {
   $stmt = $db->prepare('SELECT * FROM ficheros_carpetas WHERE id = ?');
@@ -38,10 +43,6 @@ if ($metodo === 'POST') {
   $carpeta = icc_cargar_carpeta_fichero($db, $carpetaId);
   if (!$carpeta || !icc_carpeta_fichero_visible($user, $carpeta)) icc_json(['error' => 'Carpeta no encontrada'], 404);
 
-  $puedeSubir = $carpeta['propietario_id'] === null
-    ? icc_tiene_permiso($user, 'ficheros.subir')
-    : icc_es_admin_o_superior($user);
-  if (!$puedeSubir) icc_json(['error' => 'No tienes permiso para subir archivos en esta carpeta'], 403);
 
   if (empty($_FILES['archivo']) || $_FILES['archivo']['error'] !== UPLOAD_ERR_OK) {
     icc_json(['error' => 'No se recibio ningun archivo valido'], 400);
@@ -65,6 +66,28 @@ if ($metodo === 'POST') {
   $ins = $db->prepare('INSERT INTO ficheros (carpeta_id, nombre_archivo, ruta_archivo, subido_por) VALUES (?, ?, ?, ?)');
   $ins->execute([$carpetaId, $archivo['name'], $carpetaId . '/' . $nombreFinal, $user['id']]);
   icc_json(['id' => (int)$db->lastInsertId()], 201);
+}
+
+if ($metodo === 'PUT') {
+  icc_require_csrf();
+  $id = (int)($_GET['id'] ?? 0);
+  if (!$id) icc_json(['error' => 'Falta id'], 400);
+  $body = icc_body();
+  $nombre = trim((string)($body['nombre'] ?? ''));
+  $nombre = preg_replace('~[\\\\/:*?"<>|\x00-\x1F]+~u', ' ', $nombre);
+  $nombre = trim(preg_replace('/\s+/u', ' ', $nombre));
+  if ($nombre === '') icc_json(['error' => 'El nombre no puede quedar vacio'], 400);
+  $db = icc_db();
+  $stmt = $db->prepare('SELECT nombre_archivo FROM ficheros WHERE id = ?');
+  $stmt->execute([$id]);
+  $actual = $stmt->fetchColumn();
+  if ($actual === false) icc_json(['error' => 'No encontrado'], 404);
+  // Se conserva siempre la extension original para que el archivo se siga abriendo bien.
+  $ext = strtolower(pathinfo((string)$actual, PATHINFO_EXTENSION));
+  if ($ext !== '' && strtolower(pathinfo($nombre, PATHINFO_EXTENSION)) !== $ext) $nombre .= '.' . $ext;
+  if (mb_strlen($nombre) > 255) icc_json(['error' => 'El nombre es demasiado largo'], 400);
+  $db->prepare('UPDATE ficheros SET nombre_archivo = ? WHERE id = ?')->execute([$nombre, $id]);
+  icc_json(['ok' => true, 'nombre_archivo' => $nombre]);
 }
 
 if ($metodo === 'DELETE') {

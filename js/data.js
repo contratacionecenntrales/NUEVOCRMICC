@@ -174,8 +174,20 @@ window.icc.data = (function () {
     return API.get("api/ficheros_carpetas.php" + qs);
   }
 
-  async function crearCarpetaFichero(nombre, parentId) {
-    return API.post("api/ficheros_carpetas.php", { nombre: nombre, parent_id: parentId || null });
+  async function crearCarpetaFichero(nombre, parentId, seccion) {
+    return API.post("api/ficheros_carpetas.php", { nombre: nombre, parent_id: parentId || null, seccion: seccion || "" });
+  }
+
+  async function editarCarpetaFichero(id, cambios) {
+    return API.put("api/ficheros_carpetas.php?id=" + encodeURIComponent(id), cambios);
+  }
+
+  async function ordenarCarpetasFicheros(ids) {
+    return API.put("api/ficheros_carpetas.php?action=ordenar", { ids: ids });
+  }
+
+  async function renombrarFichero(id, nombre) {
+    return API.put("api/ficheros.php?id=" + encodeURIComponent(id), { nombre: nombre });
   }
 
   async function borrarCarpetaFichero(id) {
@@ -414,6 +426,9 @@ window.icc.data = (function () {
     historialImpersonacion: historialImpersonacion,
     listarCarpetasFicheros: listarCarpetasFicheros,
     crearCarpetaFichero: crearCarpetaFichero,
+    editarCarpetaFichero: editarCarpetaFichero,
+    ordenarCarpetasFicheros: ordenarCarpetasFicheros,
+    renombrarFichero: renombrarFichero,
     borrarCarpetaFichero: borrarCarpetaFichero,
     listarFicheros: listarFicheros,
     subirFichero: subirFichero,
