@@ -18,7 +18,11 @@ window.icc.agenda = (function () {
   var DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
   var DIAS_CORTOS = ["L", "M", "X", "J", "V", "S", "D"];
   var MESES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-  var VISTAS = [["dia", "Día"], ["semana", "Semana"], ["mes", "Mes"], ["anio", "Año"], ["lista", "Lista"]];
+  var VISTAS = [["dia", "Día"], ["semana", "Semana"], ["equipo", "Equipo"], ["mes", "Mes"], ["anio", "Año"], ["lista", "Lista"]];
+  // "Equipo" (una fila por comercial) solo tiene sentido para quien ve a varios.
+  function vistasDisponibles() {
+    return VISTAS.filter(function (v) { return v[0] !== "equipo" || esGestor(); });
+  }
   var ESTADOS_ABIERTOS = ["programada", "confirmada", "reprogramada"];
   var agendaV2 = true;
   var agendaV3 = false; // visitas asignadas a equipos (sql/migracion_citas_equipos.sql)
@@ -227,7 +231,7 @@ window.icc.agenda = (function () {
     var p = new URLSearchParams(location.hash.split("?")[1] || "");
     var vista = p.get("vista");
     return {
-      vista: VISTAS.some(function (v) { return v[0] === vista; }) ? vista : "semana",
+      vista: vistasDisponibles().some(function (v) { return v[0] === vista; }) ? vista : "semana",
       fecha: /^\d{4}-\d{2}-\d{2}$/.test(p.get("fecha") || "") ? p.get("fecha") : hoy(),
       comercial_id: p.get("comercial_id") || "",
       estado: p.get("estado") || "",
@@ -250,7 +254,7 @@ window.icc.agenda = (function () {
 
   function rango(st) {
     var f = aFecha(st.fecha);
-    if (st.vista === "dia") return [st.fecha, st.fecha];
+    if (st.vista === "dia" || st.vista === "equipo") return [st.fecha, st.fecha];
     if (st.vista === "semana") return [iso(lunes(f)), iso(mas(lunes(f), 6))];
     if (st.vista === "anio") return [f.getFullYear() + "-01-01", f.getFullYear() + "-12-31"];
     var ini = new Date(f.getFullYear(), f.getMonth(), 1);
@@ -261,7 +265,7 @@ window.icc.agenda = (function () {
 
   function navegar(st, paso) {
     var f = aFecha(st.fecha);
-    if (st.vista === "dia") return iso(mas(f, paso));
+    if (st.vista === "dia" || st.vista === "equipo") return iso(mas(f, paso));
     if (st.vista === "semana") return iso(mas(f, 7 * paso));
     if (st.vista === "anio") return iso(new Date(f.getFullYear() + paso, f.getMonth(), 1));
     return iso(new Date(f.getFullYear(), f.getMonth() + paso, 1));
@@ -269,7 +273,7 @@ window.icc.agenda = (function () {
 
   function titulo(st) {
     var f = aFecha(st.fecha);
-    if (st.vista === "dia") return fechaLarga(st.fecha);
+    if (st.vista === "dia" || st.vista === "equipo") return fechaLarga(st.fecha);
     if (st.vista === "semana") {
       var l = lunes(f);
       var d = mas(l, 6);
@@ -318,12 +322,23 @@ window.icc.agenda = (function () {
     if (datos.agenda_v3) agendaV3 = true;
     var citas = datos.citas || [];
     var anioActual = aFecha(st.fecha).getFullYear();
+    prepararColores(agentes, citas);
+    var nHechas = citas.filter(function (c) { return c.estado === "realizada"; }).length;
+    var nPersonas = Object.keys(citas.reduce(function (o, c) { o[sinAsignar(c) ? "sin" : c.comercial_id] = 1; return o; }, {})).length;
 
     main().innerHTML =
-      '<div class="icc-page-head icc-ag-head"><div><h1>Agenda</h1><p class="icc-muted icc-ag-titulo">' + esc(mayuscula(titulo(st))) + "</p></div>" +
-      '<div class="icc-head-actions">' +
-      (puedeGestionar() ? '<button class="icc-btn icc-btn-primary" id="btn-nueva-cita">+ Nueva cita</button>' : "") +
-      "</div></div>" +
+      '<header class="icc-ag-hero">' +
+      '<div class="icc-ag-hero-txt"><span class="icc-ag-hero-kicker">📅 Agenda comercial</span>' +
+      "<h1>" + esc(mayuscula(titulo(st))) + "</h1>" +
+      (st.vista !== "anio"
+        ? '<p class="icc-ag-hero-res"><b>' + citas.length + "</b> " + (citas.length === 1 ? "cita" : "citas") +
+          (nHechas ? ' · <b class="ok">' + nHechas + "</b> realizadas" : "") +
+          (esGestor() && nPersonas ? " · <b>" + nPersonas + "</b> " + (nPersonas === 1 ? "persona" : "personas") : "") + "</p>"
+        : "") +
+      "</div>" +
+      '<div class="icc-ag-hero-acc">' +
+      (puedeGestionar() ? '<button class="icc-btn icc-btn-primary icc-ag-btn-nueva" id="btn-nueva-cita">+ Nueva cita</button>' : "") +
+      "</div></header>" +
       (!agendaV2
         ? '<div class="icc-aviso icc-aviso-oro">⚠️ Importa <code>sql/migracion_agenda_avanzada.sql</code> para vincular citas a clientes, tipos de cita, resúmenes y pasar a presupuesto.</div>'
         : "") +
@@ -332,7 +347,7 @@ window.icc.agenda = (function () {
       '<section class="icc-card icc-ag-barra">' +
       '<div class="icc-ag-fila">' +
       '<div class="icc-tabs icc-ag-vistas">' +
-      VISTAS.map(function (v) {
+      vistasDisponibles().map(function (v) {
         return '<a class="icc-tab' + (st.vista === v[0] ? " is-active" : "") + '" href="' + href(st, { vista: v[0] }) + '">' + v[1] + "</a>";
       }).join("") +
       "</div>" +
@@ -372,6 +387,7 @@ window.icc.agenda = (function () {
       }).join("") + "</select>" +
       '<button class="icc-btn icc-btn-secondary" type="submit">Filtrar</button>' +
       "</form></section>" +
+      (st.vista !== "anio" ? leyendaHtml(st, citas) : "") +
       '<div id="ag-cuerpo"></div>';
 
     var cuerpo = document.getElementById("ag-cuerpo");
@@ -380,7 +396,8 @@ window.icc.agenda = (function () {
     enlazarBandeja(bandeja, ctx);
     enlazarCitas(bandeja, ctx);
     if (st.vista === "dia") pintarRejilla(cuerpo, ctx, [aFecha(st.fecha)]);
-    else if (st.vista === "semana") pintarRejilla(cuerpo, ctx, [0, 1, 2, 3, 4, 5, 6].map(function (i) { return mas(lunes(aFecha(st.fecha)), i); }));
+    else if (st.vista === "semana") pintarTablero(cuerpo, ctx);
+    else if (st.vista === "equipo") pintarEquipo(cuerpo, ctx);
     else if (st.vista === "mes") pintarMes(cuerpo, ctx);
     else if (st.vista === "anio") pintarAnio(cuerpo, ctx, resumenAnio);
     else pintarLista(cuerpo, ctx);
@@ -388,7 +405,7 @@ window.icc.agenda = (function () {
     var btnNueva = document.getElementById("btn-nueva-cita");
     if (btnNueva) {
       btnNueva.addEventListener("click", function () {
-        modalCita(null, { fecha: st.vista === "dia" ? st.fecha : hoy(), agentes: agentes, onGuardado: view });
+        modalCita(null, { fecha: st.vista === "dia" || st.vista === "equipo" ? st.fecha : hoy(), agentes: agentes, onGuardado: view });
       });
     }
     document.getElementById("ag-filtros").addEventListener("submit", function (e) {
@@ -421,23 +438,284 @@ window.icc.agenda = (function () {
   function kpisHtml(k) {
     var cerradas = (k.mes_realizadas || 0) + (k.mes_ko || 0);
     var exito = cerradas ? Math.round(((k.mes_realizadas || 0) / cerradas) * 100) : 0;
-    var tarjeta = function (valor, label, color, link) {
-      var inner = '<span class="icc-stat-value">' + valor + '</span><span class="icc-stat-label">' + label + "</span>";
+    var tarjeta = function (valor, label, color, link, icono) {
+      var inner = '<span class="icc-ag-kpi-ico">' + (icono || "•") + '</span><span class="icc-stat-value">' + valor + '</span><span class="icc-stat-label">' + label + "</span>";
       return link
         ? '<a class="icc-stat-card icc-ag-kpi" style="--stat-color:' + color + '" href="' + link + '">' + inner + "</a>"
         : '<div class="icc-stat-card icc-ag-kpi" style="--stat-color:' + color + '">' + inner + "</div>";
     };
     return (
       '<div class="icc-ag-kpis">' +
-      tarjeta(k.hoy || 0, "Citas hoy", "var(--cian)", "#/agenda?vista=dia") +
-      tarjeta(k.semana || 0, "Esta semana", "#a78bfa", "#/agenda?vista=semana") +
-      tarjeta(k.mes || 0, "Este mes", "var(--oro)", "#/agenda?vista=mes") +
-      tarjeta(exito + "%", "Éxito del mes (" + (k.mes_realizadas || 0) + " realizadas / " + (k.mes_ko || 0) + " KO)", "var(--esmeralda)") +
-      tarjeta(k.sin_cerrar || 0, "Pasadas sin cerrar", (k.sin_cerrar ? "#f87171" : "#94a3b8"), "#/agenda?vista=lista&estado=programada") +
-      (agendaV2 ? tarjeta(k.sin_resumen || 0, "Realizadas sin resumen", (k.sin_resumen ? "#fbbf24" : "#94a3b8"), "#/agenda?vista=lista&estado=realizada") : "") +
-      (agendaV3 && esGestor() && k.por_asignar !== undefined ? tarjeta(k.por_asignar || 0, "Visitas por asignar", (k.por_asignar ? "#f59e0b" : "#94a3b8"), "#/agenda?vista=lista&sin_asignar=1") : "") +
+      tarjeta(k.hoy || 0, "Citas hoy", "var(--cian)", "#/agenda?vista=dia", "☀️") +
+      tarjeta(k.semana || 0, "Esta semana", "#a78bfa", "#/agenda?vista=semana", "🗓️") +
+      tarjeta(k.mes || 0, "Este mes", "var(--oro)", "#/agenda?vista=mes", "📆") +
+      tarjeta(exito + "%", "Éxito del mes (" + (k.mes_realizadas || 0) + " realizadas / " + (k.mes_ko || 0) + " KO)", "var(--esmeralda)", null, "🏆") +
+      tarjeta(k.sin_cerrar || 0, "Pasadas sin cerrar", (k.sin_cerrar ? "#f87171" : "#94a3b8"), "#/agenda?vista=lista&estado=programada", "⏳") +
+      (agendaV2 ? tarjeta(k.sin_resumen || 0, "Realizadas sin resumen", (k.sin_resumen ? "#fbbf24" : "#94a3b8"), "#/agenda?vista=lista&estado=realizada", "📝") : "") +
+      (agendaV3 && esGestor() && k.por_asignar !== undefined ? tarjeta(k.por_asignar || 0, "Visitas por asignar", (k.por_asignar ? "#f59e0b" : "#94a3b8"), "#/agenda?vista=lista&sin_asignar=1", "📥") : "") +
       "</div>"
     );
+  }
+
+  // ------------------------------------------------ Colores por comercial
+  // Cada comercial tiene su color en todas las vistas (mismo orden = mismo color).
+  var PALETA = ["#22D3EE", "#A78BFA", "#F472B6", "#34D399", "#FBBF24", "#60A5FA", "#FB923C", "#4ADE80", "#E879F9", "#2DD4BF", "#F87171", "#93C5FD", "#FDE047", "#C084FC"];
+  var COLOR_SIN_ASIGNAR = "#F59E0B";
+  var mapaColores = {};
+  function prepararColores(agentes, citas) {
+    var ids = {};
+    (agentes || []).forEach(function (a) { ids[a.id] = true; });
+    (citas || []).forEach(function (c) { if (c.comercial_id) ids[c.comercial_id] = true; });
+    mapaColores = {};
+    Object.keys(ids).map(Number).sort(function (a, b) { return a - b; }).forEach(function (id, i) { mapaColores[id] = PALETA[i % PALETA.length]; });
+  }
+  function colorComercial(c) {
+    if (sinAsignar(c)) return COLOR_SIN_ASIGNAR;
+    var id = Number(c.comercial_id) || 0;
+    return mapaColores[id] || PALETA[id % PALETA.length];
+  }
+  // Por comercial cuando se ve a varios; por sector cuando es la agenda de uno solo.
+  function colorCita(c, porComercial) {
+    return porComercial || sinAsignar(c) ? colorComercial(c) : meta("SECTORES_CITA", c.sector).color;
+  }
+  function iniciales(nombre) {
+    return String(nombre || "?").split(/\s+/).filter(Boolean).slice(0, 2).map(function (p) { return p.charAt(0).toUpperCase(); }).join("") || "?";
+  }
+  function avatarComercial(c, tam) {
+    var nombre = sinAsignar(c) ? "Por asignar" : (c.comercial_nombre || "");
+    return '<span class="icc-ag-ava" style="--c:' + colorComercial(c) + (tam ? ";--t:" + tam + "px" : "") + '" title="' + esc(nombre) + '">' +
+      (sinAsignar(c) ? "📥" : esc(iniciales(nombre))) + "</span>";
+  }
+
+  // Leyenda: quien tiene citas en el periodo (clic = ver solo las suyas).
+  function leyendaHtml(st, citas) {
+    if (!esGestor() || !citas.length) return "";
+    var grupos = {};
+    citas.forEach(function (c) {
+      var k = sinAsignar(c) ? "sin" : String(c.comercial_id);
+      if (!grupos[k]) grupos[k] = { c: c, n: 0 };
+      grupos[k].n++;
+    });
+    var lista = Object.keys(grupos).map(function (k) { return grupos[k]; }).sort(function (a, b) { return b.n - a.n; });
+    return (
+      '<div class="icc-ag-leyenda">' +
+      lista.map(function (g) {
+        var activo = (st.comercial_id && String(g.c.comercial_id) === st.comercial_id) || (st.sin_asignar && sinAsignar(g.c));
+        var destino = sinAsignar(g.c)
+          ? href(st, { comercial_id: "", sin_asignar: activo ? "" : "1" })
+          : href(st, { comercial_id: activo ? "" : String(g.c.comercial_id), sin_asignar: "" });
+        return (
+          '<a class="icc-ag-leyenda-item' + (activo ? " is-activo" : "") + '" style="--c:' + colorComercial(g.c) + '" href="' + destino + '" title="' + (activo ? "Ver todo el equipo" : "Ver solo sus citas") + '">' +
+          avatarComercial(g.c, 24) + "<span>" + esc(sinAsignar(g.c) ? "Por asignar" : g.c.comercial_nombre || "Sin nombre") + "</span><b>" + g.n + "</b></a>"
+        );
+      }).join("") +
+      (st.comercial_id || st.sin_asignar ? '<a class="icc-ag-leyenda-item is-todos" href="' + href(st, { comercial_id: "", sin_asignar: "" }) + '">✕ Ver todo el equipo</a>' : "") +
+      "</div>"
+    );
+  }
+
+  // ============================================================ SEMANA
+  // Tablero: una columna por dia y una tarjeta grande por cita, ordenadas
+  // por hora. Se lee bien aunque un dia tenga muchas citas a la vez.
+  function tarjetaTablero(c, porComercial) {
+    var e = meta("ESTADOS_CITA", c.estado);
+    var t = meta("TIPOS_CITA", c.tipo || "visita", { icono: "📌", label: "Cita" });
+    var s = meta("SECTORES_CITA", c.sector);
+    var ahora = c.fecha === hoy() && ESTADOS_ABIERTOS.indexOf(c.estado) !== -1 && (function () {
+      var n = new Date(); var m = n.getHours() * 60 + n.getMinutes();
+      return m >= aMin(c.hora_inicio) && m < aMin(c.hora_fin);
+    })();
+    return (
+      '<article class="icc-ag-tcard' + claseEstado(c) + (ahora ? " is-ahora" : "") + '" style="--c:' + colorCita(c, porComercial) + '" data-abrir-cita="' + c.id + '"' +
+      (puedeGestionar() ? ' draggable="true" data-drag-cita="' + c.id + '"' : "") + ">" +
+      '<header><span class="icc-ag-tcard-hora">' + hm(c.hora_inicio) + "<small> – " + hm(c.hora_fin) + "</small></span>" +
+      (agendaV2 ? '<span class="icc-ag-tcard-tipo" title="' + esc(t.label) + '">' + t.icono + "</span>" : "") + "</header>" +
+      '<h4 title="' + esc(c.cliente_nombre) + '">' + esc(c.cliente_nombre) + "</h4>" +
+      (c.direccion ? '<p class="icc-ag-tcard-dir">📍 ' + esc(c.direccion) + "</p>" : c.contacto_nombre ? '<p class="icc-ag-tcard-dir">👤 ' + esc(c.contacto_nombre) + "</p>" : "") +
+      "<footer>" +
+      (porComercial || sinAsignar(c)
+        ? avatarComercial(c, 22) + '<span class="icc-ag-tcard-com">' + esc(sinAsignar(c) ? "Por asignar" : c.comercial_nombre || "") + "</span>"
+        : '<span class="icc-ag-tcard-sector" style="--s:' + s.color + '">' + esc(s.label) + "</span>") +
+      (ahora
+        ? '<span class="icc-ag-tcard-estado" style="--e:' + e.color + '">● Ahora</span>'
+        : '<span class="icc-ag-tcard-punto" style="--e:' + e.color + '" title="' + esc(e.label) + '" aria-label="' + esc(e.label) + '"></span>') +
+      "</footer></article>"
+    );
+  }
+
+  function pintarTablero(cont, ctx) {
+    var st = ctx.st;
+    var porComercial = esGestor() && !st.comercial_id;
+    var l = lunes(aFecha(st.fecha));
+    var dias = [0, 1, 2, 3, 4, 5, 6].map(function (i) { return mas(l, i); });
+    var porDia = dias.map(function (d) {
+      var f = iso(d);
+      return ctx.citas.filter(function (c) { return c.fecha === f; }).sort(function (a, b) { return aMin(a.hora_inicio) - aMin(b.hora_inicio); });
+    });
+    var max = Math.max(1, Math.max.apply(null, porDia.map(function (x) { return x.length; })));
+    cont.innerHTML =
+      '<section class="icc-ag-tablero">' +
+      dias.map(function (d, i) {
+        var f = iso(d);
+        var lista = porDia[i];
+        var hechas = lista.filter(function (c) { return c.estado === "realizada"; }).length;
+        return (
+          '<div class="icc-ag-tcol' + (f === hoy() ? " is-hoy" : "") + (f < hoy() ? " is-pasado" : "") + (i >= 5 ? " is-finde" : "") + '" data-col-dia="' + f + '">' +
+          '<a class="icc-ag-tcol-head" href="' + href(st, { vista: "dia", fecha: f }) + '" title="Ver el horario de este día">' +
+          '<span class="icc-ag-tcol-dow">' + (f === hoy() ? "Hoy · " : "") + DIAS[i] + "</span>" +
+          '<span class="icc-ag-tcol-num">' + d.getDate() + " <small>" + MESES[d.getMonth()].slice(0, 3).toLowerCase() + "</small></span>" +
+          '<span class="icc-ag-tcol-info">' + (lista.length ? lista.length + (lista.length === 1 ? " cita" : " citas") + (hechas ? " · " + hechas + " ✓" : "") : "Libre") + "</span>" +
+          '<span class="icc-ag-tcol-carga"><i style="width:' + Math.round((lista.length / max) * 100) + '%"></i></span></a>' +
+          '<div class="icc-ag-tcol-body">' +
+          lista.map(function (c) { return tarjetaTablero(c, porComercial); }).join("") +
+          (!lista.length ? '<p class="icc-ag-tcol-vacio">Sin citas</p>' : "") +
+          (puedeGestionar() ? '<button type="button" class="icc-ag-tcol-add" data-nueva-dia="' + f + '">+ Agendar</button>' : "") +
+          "</div></div>"
+        );
+      }).join("") +
+      "</section>" +
+      (puedeGestionar() ? '<p class="icc-muted icc-ag-ayuda">Arrastra una cita a otro día para moverla (mantiene la hora) · pulsa la cabecera de un día para ver su horario.</p>' : "");
+
+    if (puedeGestionar()) {
+      cont.querySelectorAll("[data-nueva-dia]").forEach(function (b) {
+        b.addEventListener("click", function () {
+          modalCita(null, { fecha: b.getAttribute("data-nueva-dia"), agentes: ctx.agentes, onGuardado: ctx.recargar });
+        });
+      });
+      cont.querySelectorAll("[data-col-dia]").forEach(function (col) {
+        col.addEventListener("dragover", function (e) { e.preventDefault(); col.classList.add("is-drop"); });
+        col.addEventListener("dragleave", function (e) { if (!col.contains(e.relatedTarget)) col.classList.remove("is-drop"); });
+        col.addEventListener("drop", function (e) {
+          e.preventDefault();
+          col.classList.remove("is-drop");
+          var cita = ctx.citas.filter(function (c) { return String(c.id) === e.dataTransfer.getData("text/plain"); })[0];
+          if (cita) moverCita(cita, col.getAttribute("data-col-dia"), hm(cita.hora_inicio), hm(cita.hora_fin), ctx.recargar);
+        });
+      });
+    }
+    enlazarCitas(cont, ctx);
+  }
+
+  // ============================================================ EQUIPO
+  // Linea de tiempo del dia: una fila por comercial, horas en horizontal.
+  function pintarEquipo(cont, ctx) {
+    var st = ctx.st;
+    var f = st.fecha;
+    var delDia = ctx.citas.filter(function (c) { return c.fecha === f; });
+    // Solo las horas con citas (minimo 9:00-18:00), con margen de media hora.
+    var hMin = 9;
+    var hMax = 18;
+    if (delDia.length) {
+      hMin = Math.min.apply(null, delDia.map(function (c) { return Math.floor(aMin(c.hora_inicio) / 60); }));
+      hMax = Math.max.apply(null, delDia.map(function (c) { return Math.ceil(aMin(c.hora_fin) / 60); }));
+      hMin = Math.min(hMin, 9);
+      hMax = Math.max(hMax, Math.min(hMin + 9, 21));
+    }
+    var total = (hMax - hMin) * 60;
+    var pos = function (m) { return Math.max(0, Math.min(100, ((m - hMin * 60) / total) * 100)); };
+
+    // Filas: el equipo (aunque no tenga citas, para ver quien esta libre),
+    // mas cualquiera con citas ese dia y la bandeja "por asignar".
+    var filas = {};
+    var orden = [];
+    function fila(id, nombre, muestra) {
+      if (!filas[id]) {
+        filas[id] = { id: id, nombre: nombre, muestra: muestra, citas: [] };
+        orden.push(id);
+      }
+      return filas[id];
+    }
+    if (!st.sin_asignar) {
+      (ctx.agentes || []).filter(function (a) {
+        return (a.rol === "comercial" || a.rol === "jefe_de_equipo") && !Number(a.bloqueado) && (!st.comercial_id || String(a.id) === st.comercial_id);
+      }).forEach(function (a) {
+        fila(String(a.id), (a.nombre + " " + (a.apellidos || "")).trim(), { comercial_id: a.id, comercial_nombre: a.nombre + " " + (a.apellidos || "") });
+      });
+    }
+    delDia.forEach(function (c) {
+      var k = sinAsignar(c) ? "sin" : String(c.comercial_id);
+      fila(k, sinAsignar(c) ? "Por asignar" : c.comercial_nombre || "Sin nombre", c).citas.push(c);
+    });
+    orden.sort(function (a, b) {
+      if (a === "sin") return -1;
+      if (b === "sin") return 1;
+      return filas[b].citas.length - filas[a].citas.length || filas[a].nombre.localeCompare(filas[b].nombre);
+    });
+
+    var horas = "";
+    for (var h = hMin; h <= hMax; h++) horas += '<span style="left:' + pos(h * 60) + '%">' + String(h).padStart(2, "0") + ":00</span>";
+    var lineas = "";
+    for (h = hMin; h <= hMax; h++) lineas += '<i class="icc-ag-eq-linea" style="left:' + pos(h * 60) + '%"></i>';
+    var n = new Date();
+    var mAhora = n.getHours() * 60 + n.getMinutes();
+    var lineaAhora = f === hoy() && mAhora >= hMin * 60 && mAhora <= hMax * 60 ? '<i class="icc-ag-eq-ahora" style="left:' + pos(mAhora) + '%"></i>' : "";
+    var conAgenda = 0;
+
+    var cuerpo = orden.map(function (k) {
+      var fi = filas[k];
+      // Carriles para las citas que se solapan del mismo comercial.
+      var carriles = [];
+      fi.citas.sort(function (a, b) { return aMin(a.hora_inicio) - aMin(b.hora_inicio); }).forEach(function (c) {
+        var ini = aMin(c.hora_inicio);
+        var i = 0;
+        while (i < carriles.length && carriles[i] > ini) i++;
+        carriles[i] = aMin(c.hora_fin);
+        c._carril = i;
+      });
+      if (fi.citas.length) conAgenda++;
+      var minutos = fi.citas.reduce(function (s, c) { return s + Math.max(0, aMin(c.hora_fin) - aMin(c.hora_inicio)); }, 0);
+      return (
+        '<div class="icc-ag-eq-fila' + (fi.citas.length ? "" : " is-libre") + '" style="--carriles:' + Math.max(1, carriles.length) + ";--c:" + colorComercial(fi.muestra) + '">' +
+        '<div class="icc-ag-eq-quien">' + avatarComercial(fi.muestra, 36) +
+        "<div><strong>" + esc(fi.nombre) + "</strong><small>" +
+        (fi.citas.length ? fi.citas.length + (fi.citas.length === 1 ? " cita" : " citas") + " · " + Math.round(minutos / 6) / 10 + " h" : "Libre") +
+        "</small></div></div>" +
+        '<div class="icc-ag-eq-pista"' + (puedeGestionar() && k !== "sin" ? ' data-eq-comercial="' + esc(k) + '"' : "") + ">" + lineas + lineaAhora +
+        fi.citas.map(function (c) {
+          var izq = pos(aMin(c.hora_inicio));
+          var der = pos(aMin(c.hora_fin));
+          var e = meta("ESTADOS_CITA", c.estado);
+          return (
+            '<button type="button" class="icc-ag-eq-cita' + claseEstado(c) + '" style="--c:' + colorComercial(c) + ";left:" + izq + "%;width:calc(" + Math.max(der - izq, 3) + "% - 3px);top:calc(" + c._carril + ' * var(--carril) + 6px)"' +
+            ' data-abrir-cita="' + c.id + '" title="' + esc(hm(c.hora_inicio) + "–" + hm(c.hora_fin) + " · " + c.cliente_nombre + " · " + e.label + (c.direccion ? " · " + c.direccion : "")) + '">' +
+            '<span class="icc-ag-eq-hora"><i style="background:' + e.color + '"></i>' + hm(c.hora_inicio) + "–" + hm(c.hora_fin) + "</span>" +
+            "<strong>" + iconoTipo(c) + esc(c.cliente_nombre) + "</strong></button>"
+          );
+        }).join("") +
+        "</div></div>"
+      );
+    }).join("");
+
+    cont.innerHTML =
+      '<section class="icc-card icc-ag-equipo">' +
+      '<div class="icc-ag-eq-top"><div><h3>' + esc(mayuscula(fechaLarga(f))) + "</h3>" +
+      '<p class="icc-muted">' + delDia.length + (delDia.length === 1 ? " cita" : " citas") + " · " + conAgenda + " de " + orden.length + (orden.length === 1 ? " persona" : " personas") + " con agenda</p></div></div>" +
+      // 150 px por hora: una cita de 30 min ya deja leer el nombre del cliente.
+      '<div class="icc-ag-eq-scroll"><div class="icc-ag-eq-grid" style="min-width:' + (210 + (hMax - hMin) * 150) + 'px">' +
+      '<div class="icc-ag-eq-cab"><div class="icc-ag-eq-quien-cab">Comercial</div><div class="icc-ag-eq-horas">' + horas + "</div></div>" +
+      (orden.length ? cuerpo : '<p class="icc-empty">No hay nadie que mostrar con estos filtros.</p>') +
+      "</div></div></section>" +
+      (puedeGestionar() ? '<p class="icc-muted icc-ag-ayuda">Haz clic en el hueco de un comercial para agendarle una cita a esa hora.</p>' : "");
+
+    // Lleva el scroll a la primera cita del dia (o a la hora actual).
+    var scrollEq = cont.querySelector(".icc-ag-eq-scroll");
+    var primeraEq = delDia.length ? Math.min.apply(null, delDia.map(function (c) { return aMin(c.hora_inicio); })) : (f === hoy() ? mAhora : hMin * 60);
+    if (scrollEq) scrollEq.scrollLeft = Math.max(0, ((primeraEq - hMin * 60 - 30) / 60) * 150);
+    if (puedeGestionar()) {
+      cont.querySelectorAll("[data-eq-comercial]").forEach(function (pista) {
+        pista.addEventListener("click", function (e) {
+          if (e.target.closest("[data-abrir-cita]")) return;
+          var r = pista.getBoundingClientRect();
+          var m = redondear5(hMin * 60 + ((e.clientX - r.left) / r.width) * total);
+          modalCita(null, {
+            fecha: f, horaInicio: deMin(m), horaFin: deMin(m + 60),
+            plantilla: { comercial_id: pista.getAttribute("data-eq-comercial") },
+            agentes: ctx.agentes, onGuardado: ctx.recargar,
+          });
+        });
+      });
+    }
+    enlazarCitas(cont, ctx);
   }
 
   // ------------------------------------------------------ Bloque de cita
@@ -450,12 +728,12 @@ window.icc.agenda = (function () {
   }
 
   function chipCita(c, mostrarComercial) {
-    var s = meta("SECTORES_CITA", c.sector);
     return (
-      '<button type="button" class="icc-ag-chip' + claseEstado(c) + '" style="--c:' + s.color + '" data-abrir-cita="' + c.id + '"' +
-      (puedeGestionar() ? ' draggable="true" data-drag-cita="' + c.id + '"' : "") + ">" +
-      '<span class="icc-ag-chip-hora">' + hm(c.hora_inicio) + "</span> " + iconoTipo(c) + esc(c.cliente_nombre) +
-      (sinAsignar(c) ? ' <span class="icc-muted">· 📥 por asignar</span>' : mostrarComercial && c.comercial_nombre ? ' <span class="icc-muted">· ' + esc(c.comercial_nombre) + "</span>" : "") +
+      '<button type="button" class="icc-ag-chip' + claseEstado(c) + '" style="--c:' + colorCita(c, mostrarComercial) + '" data-abrir-cita="' + c.id + '"' +
+      (puedeGestionar() ? ' draggable="true" data-drag-cita="' + c.id + '"' : "") +
+      ' title="' + esc(hm(c.hora_inicio) + " · " + c.cliente_nombre + (c.comercial_nombre ? " · " + c.comercial_nombre : "")) + '">' +
+      (mostrarComercial || sinAsignar(c) ? avatarComercial(c, 18) : "") +
+      '<span class="icc-ag-chip-hora">' + hm(c.hora_inicio) + '</span><span class="icc-ag-chip-txt">' + iconoTipo(c) + esc(c.cliente_nombre) + "</span>" +
       "</button>"
     );
   }
@@ -504,17 +782,18 @@ window.icc.agenda = (function () {
       horaMax = Math.max(horaMax, Math.ceil(aMin(c.hora_fin) / 60));
     });
     var minIni = horaMin * 60;
-    var alto = (horaMax - horaMin) * 60 * PX_MIN;
+    var px = dias.length === 1 ? 1.7 : PX_MIN; // vista Dia: mas alto, se lee mejor
+    var alto = (horaMax - horaMin) * 60 * px;
     var mostrarComercial = esGestor() && !st.comercial_id;
     var esDia = dias.length === 1;
 
     var horas = "";
     for (var h = horaMin; h <= horaMax; h++) {
-      horas += '<div class="icc-ag-hora" style="top:' + (h - horaMin) * 60 * PX_MIN + 'px">' + String(h).padStart(2, "0") + ":00</div>";
+      horas += '<div class="icc-ag-hora" style="top:' + (h - horaMin) * 60 * px + 'px">' + String(h).padStart(2, "0") + ":00</div>";
     }
     var lineas = "";
     for (var m = 0; m <= (horaMax - horaMin) * 60; m += 30) {
-      lineas += '<div class="icc-ag-linea' + (m % 60 ? " is-media" : "") + '" style="top:' + m * PX_MIN + 'px"></div>';
+      lineas += '<div class="icc-ag-linea' + (m % 60 ? " is-media" : "") + '" style="top:' + m * px + 'px"></div>';
     }
 
     var ahora = new Date();
@@ -525,25 +804,24 @@ window.icc.agenda = (function () {
       var delDia = citas.filter(function (c) { return c.fecha === f; });
       var bloques = columnasSolapes(delDia).map(function (x) {
         var c = x.c;
-        var s = meta("SECTORES_CITA", c.sector);
         var e = meta("ESTADOS_CITA", c.estado);
-        var top = (aMin(c.hora_inicio) - minIni) * PX_MIN;
-        var h = Math.max(22, (aMin(c.hora_fin) - aMin(c.hora_inicio)) * PX_MIN - 2);
+        var top = (aMin(c.hora_inicio) - minIni) * px;
+        var h = Math.max(30, (aMin(c.hora_fin) - aMin(c.hora_inicio)) * px - 3);
         var ancho = 100 / x.total;
         return (
-          '<div class="icc-ag-bloque' + claseEstado(c) + '" style="--c:' + s.color + ";top:" + top + "px;height:" + h + "px;left:calc(" + x.col * ancho + "% + 2px);width:calc(" + ancho + '% - 4px)"' +
+          '<div class="icc-ag-bloque' + claseEstado(c) + '" style="--c:' + colorCita(c, mostrarComercial) + ";top:" + top + "px;height:" + h + "px;left:calc(" + x.col * ancho + "% + 2px);width:calc(" + ancho + '% - 4px)"' +
           ' data-abrir-cita="' + c.id + '"' + (puedeGestionar() ? ' draggable="true" data-drag-cita="' + c.id + '"' : "") +
           ' title="' + esc(hm(c.hora_inicio) + "–" + hm(c.hora_fin) + " · " + c.cliente_nombre) + '">' +
           '<span class="icc-ag-bloque-hora">' + hm(c.hora_inicio) + "–" + hm(c.hora_fin) + ' <i style="background:' + e.color + '"></i></span>' +
           '<strong>' + (sinAsignar(c) ? "📥 " : "") + iconoTipo(c) + esc(c.cliente_nombre) + "</strong>" +
           (h > 50 && (c.contacto_nombre || c.telefono) ? "<span>" + esc([c.contacto_nombre, c.telefono].filter(Boolean).join(" · ")) + "</span>" : "") +
-          (h > 70 && (mostrarComercial || sinAsignar(c)) && textoAsignado(c) ? "<span>" + esc(textoAsignado(c)) + "</span>" : "") +
+          (h > 44 && (mostrarComercial || sinAsignar(c)) ? '<span class="icc-ag-bloque-com">' + avatarComercial(c, 18) + esc(sinAsignar(c) ? "Por asignar" : c.comercial_nombre || "") + "</span>" : "") +
           (h > 90 && c.direccion ? "<span>📍 " + esc(c.direccion) + "</span>" : "") +
           "</div>"
         );
       }).join("");
       var lineaAhora = f === hoy() && minAhora >= minIni && minAhora <= horaMax * 60
-        ? '<div class="icc-ag-ahora" style="top:' + (minAhora - minIni) * PX_MIN + 'px"></div>'
+        ? '<div class="icc-ag-ahora" style="top:' + (minAhora - minIni) * px + 'px"></div>'
         : "";
       return '<div class="icc-ag-col' + (f === hoy() ? " is-hoy" : "") + '" data-col-fecha="' + f + '" style="height:' + alto + 'px">' + lineas + bloques + lineaAhora + "</div>";
     }).join("");
@@ -582,7 +860,7 @@ window.icc.agenda = (function () {
     // Abre la rejilla en la primera cita del periodo (o a las 8:00 si es antes).
     var scroll = cont.querySelector(".icc-ag-scroll");
     var primera = citas.reduce(function (m, c) { return Math.min(m, aMin(c.hora_inicio)); }, 8 * 60);
-    scroll.scrollTop = Math.max(0, primera - 30 - minIni) * PX_MIN;
+    scroll.scrollTop = Math.max(0, primera - 30 - minIni) * px;
 
     // Clic en hueco -> nueva cita a esa hora.
     if (puedeGestionar()) {
@@ -590,7 +868,7 @@ window.icc.agenda = (function () {
         col.addEventListener("click", function (e) {
           if (e.target.closest("[data-abrir-cita]")) return;
           var y = e.clientY - col.getBoundingClientRect().top;
-          var ini = redondear5(minIni + y / PX_MIN);
+          var ini = redondear5(minIni + y / px);
           modalCita(null, { fecha: col.getAttribute("data-col-fecha"), horaInicio: deMin(ini), horaFin: deMin(ini + 60), agentes: ctx.agentes, onGuardado: ctx.recargar });
         });
         col.addEventListener("dragover", function (e) {
@@ -606,7 +884,7 @@ window.icc.agenda = (function () {
           if (!cita) return;
           var desplaz = Number(e.dataTransfer.getData("application/x-offset") || 0);
           var y = e.clientY - col.getBoundingClientRect().top - desplaz;
-          var ini = redondear5(minIni + y / PX_MIN);
+          var ini = redondear5(minIni + y / px);
           var dur = aMin(cita.hora_fin) - aMin(cita.hora_inicio);
           moverCita(cita, col.getAttribute("data-col-fecha"), deMin(ini), deMin(ini + dur), ctx.recargar);
         });
@@ -670,13 +948,13 @@ window.icc.agenda = (function () {
     var e = meta("ESTADOS_CITA", c.estado);
     var abierta = ESTADOS_ABIERTOS.indexOf(c.estado) !== -1;
     return (
-      '<div class="icc-ag-tarjeta' + claseEstado(c) + '" style="--c:' + s.color + '" data-abrir-cita="' + c.id + '">' +
+      '<div class="icc-ag-tarjeta' + claseEstado(c) + '" style="--c:' + colorCita(c, mostrarComercial) + '" data-abrir-cita="' + c.id + '">' +
       '<div class="icc-ag-tarjeta-head"><strong>' + hm(c.hora_inicio) + "–" + hm(c.hora_fin) + "</strong>" +
       '<span class="icc-badge" style="--badge-color:' + e.color + '">' + esc(e.label) + "</span></div>" +
       '<p class="icc-ag-tarjeta-cliente">' + iconoTipo(c) + esc(c.cliente_nombre) +
       (c.cliente_id ? ' <span class="icc-badge" style="--badge-color:#22d3ee">CRM</span>' : "") + "</p>" +
       (c.contacto_nombre || c.telefono ? '<p class="icc-muted">' + esc([c.contacto_nombre, c.telefono].filter(Boolean).join(" · ")) + "</p>" : "") +
-      ((mostrarComercial || sinAsignar(c)) && textoAsignado(c) ? '<p class="icc-muted">' + esc(textoAsignado(c)) + "</p>" : "") +
+      ((mostrarComercial || sinAsignar(c)) && textoAsignado(c) ? '<p class="icc-ag-tarjeta-com">' + avatarComercial(c, 22) + esc(sinAsignar(c) ? textoAsignado(c) : c.comercial_nombre) + "</p>" : "") +
       (textoConcertada(c) ? '<p class="icc-muted">' + esc(textoConcertada(c)) + "</p>" : "") +
       (c.resumen ? '<p class="icc-ag-resumen">📝 ' + esc(String(c.resumen).slice(0, 160)) + (String(c.resumen).length > 160 ? "…" : "") + "</p>" : "") +
       (c.proximos_pasos ? '<p class="icc-muted">➡️ ' + esc(c.proximos_pasos) + "</p>" : "") +
