@@ -130,9 +130,9 @@ window.icc.comparador = (function () {
               "<td>" + (i.sector === "energia" ? "⚡ Energía" : "📶 Telefonía") + "</td>" +
               "<td>" + (i.cliente_id ? '<a class="icc-link-btn" href="#/clientes/' + i.cliente_id + '">' + esc(i.cliente_nombre || "Cliente") + "</a>" : esc(i.cliente_nombre || "—")) + "</td>" +
               '<td class="icc-muted">' + esc(resumenInforme(i)) + "</td>" +
-              '<td><strong style="color:var(--esmeralda)">' + esc(eur(i.ahorro_anual)) + "</strong></td>" +
+              '<td><strong style="color:' + (Number(i.ahorro_anual) < 0 ? "var(--red)" : "var(--esmeralda)") + '">' + esc(eur(i.ahorro_anual)) + "</strong></td>" +
               (verComercial ? "<td>" + esc(i.usuario_nombre || "") + "</td>" : "") +
-              '<td class="icc-cmp-acciones"><a class="icc-link-btn" href="' + urlHerramienta(i.sector, { informe: i.id }) + '">Abrir</a>' +
+              '<td class="icc-cmp-celda-acciones"><a class="icc-link-btn" href="' + urlHerramienta(i.sector, { informe: i.id }) + '">Abrir</a>' +
               (i.tiene_pdf ? ' <a class="icc-link-btn" href="' + urlPdf(i) + '" download>PDF</a>' : "") +
               ' <button type="button" class="icc-link-btn" style="color:var(--red)" data-borrar-informe="' + esc(i.sector + ":" + i.id) + '">Borrar</button></td></tr>'
             );

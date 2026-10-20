@@ -723,5 +723,5 @@ a.icc-ag-kpi:hover{border-color:var(--stat-color)}
 .icc-cmp-herramienta p{margin:0 0 12px;color:var(--txt-2);font-size:13px;line-height:1.5}
 .icc-cmp-herramienta-icono{font-size:30px;line-height:1;flex:0 0 auto}
 .icc-cmp-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
-.icc-cmp-acciones{white-space:nowrap}
+.icc-cmp-celda-acciones{white-space:nowrap}
 @media (max-width:640px){.icc-cmp-kpis{grid-template-columns:1fr}}
