@@ -1,0 +1,69 @@
+# =============================================================================
+# ICC CRM - VERSION TEMPORAL SIN HTTPS (usar solo mientras Hostalia activa
+# el certificado SSL del subdominio).
+#
+# COMO USAR:
+#   1. Renombra este archivo a ".htaccess" (sustituyendo al que ya tengas
+#      subido) en la raiz del dominio.
+#
+# EN CUANTO EL CERTIFICADO SSL ESTE ACTIVO (candado en el navegador sin
+# avisos), VUELVE A SUBIR EL ".htaccess" ORIGINAL (el que fuerza HTTPS y
+# trae todas las cabeceras de seguridad) Y BORRA ESTE ARCHIVO. Este CRM
+# maneja datos de clientes, contrasenas y una base de datos propia: no debe
+# quedarse permanentemente sin HTTPS.
+# =============================================================================
+
+DirectoryIndex index.html
+
+AddDefaultCharset UTF-8
+AddType "application/javascript; charset=UTF-8" .js
+AddType "text/css; charset=UTF-8" .css
+AddType "image/svg+xml; charset=UTF-8" .svg
+
+# --- HTTPS: DESACTIVADO TEMPORALMENTE -----------------------------------------
+# (el bloque de redireccion a HTTPS esta deliberadamente comentado)
+# <IfModule mod_rewrite.c>
+#   RewriteEngine On
+#   RewriteCond %{HTTPS} !=on
+#   RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+# </IfModule>
+
+# --- Cabeceras de seguridad (sin HSTS, que solo tiene sentido con HTTPS) -----
+<IfModule mod_headers.c>
+  Header always set Content-Security-Policy "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data:; font-src 'self' https://fonts.gstatic.com; connect-src 'self'; form-action 'none'; frame-ancestors 'none'; base-uri 'none'; object-src 'none'"
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "DENY"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Cross-Origin-Opener-Policy "same-origin"
+  Header always set Cross-Origin-Resource-Policy "same-origin"
+  Header always set Permissions-Policy "geolocation=(), camera=(), microphone=(), payment=(), usb=()"
+  Header always set X-Permitted-Cross-Domain-Policies "none"
+  Header unset X-Powered-By
+  Header set Cache-Control "no-store"
+</IfModule>
+
+# --- Bloqueo de ficheros sensibles (sintaxis doble 2.2 / 2.4) ----------------
+<FilesMatch "(^\.|\.(md|zip|log|bak|sql|env|ini|yml|py|sh)$)">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+<FilesMatch "^config\.php$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+# --- Compresion ---------------------------------------------------------------
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css application/javascript
+</IfModule>

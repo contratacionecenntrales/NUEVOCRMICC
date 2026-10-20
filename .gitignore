@@ -1,0 +1,6 @@
+# Credenciales locales (copia api/config.local.example.php)
+api/config.local.php
+
+# Archivos subidos por los usuarios
+storage/*
+!storage/.htaccess
