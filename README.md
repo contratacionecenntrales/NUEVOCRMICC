@@ -254,6 +254,11 @@ propio CRM — ya no hace falta volver a tocar la base de datos a mano.
    antes de importar la migración), importa además `sql/fix_roles_super_admin.sql`,
    que sube los roles de Juan y Maria por email, sin depender de cuántos
    admins haya.
+   Para poder asignar a cada usuario de Backoffice solo algunos comerciales
+   (p. ej. Daniela solo con parte del equipo de Maria), importa también
+   `sql/migracion_backoffice_asignaciones.sql`. Después, en Agentes, el Admin
+   pulsa el botón "👥" de ese usuario de Backoffice y marca sus comerciales.
+   Un Backoffice sin ninguno marcado sigue viendo toda la empresa.
 3. **Configurar la conexión**: copia `api/config.local.example.php` como
    `api/config.local.php` y rellena `ICC_DB_HOST`, `ICC_DB_NAME`,
    `ICC_DB_USER`, `ICC_DB_PASS` con los datos del paso 1 (ese archivo no

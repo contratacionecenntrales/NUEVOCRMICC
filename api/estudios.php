@@ -35,7 +35,7 @@ if ($metodo === 'POST') {
   $stmt = $db->prepare('SELECT * FROM clientes WHERE id = ?');
   $stmt->execute([$clienteId]);
   $cliente = $stmt->fetch();
-  if (!$cliente) icc_json(['error' => 'Cliente no encontrado'], 404);
+  if (!$cliente || !icc_puede_ver_comercial($user, $cliente['comercial_id'])) icc_json(['error' => 'Cliente no encontrado'], 404);
 
   $archivo = $_FILES['archivo'];
   if ($archivo['size'] > 20 * 1024 * 1024) icc_json(['error' => 'El archivo supera los 20 MB'], 400);
@@ -61,6 +61,7 @@ if ($metodo === 'POST') {
       'INSERT INTO estudios (cliente_id, documento_id, ahorro_estimado, resumen, elaborado_por) VALUES (?, ?, ?, ?, ?)'
     );
     $insEst->execute([$clienteId, $documentoId, $ahorro !== '' ? $ahorro : null, $resumen, $user['id']]);
+    $estudioId = (int)$db->lastInsertId();
 
     if (in_array($cliente['estado'], ['lead_captado', 'estudio_backoffice'], true)) {
       $db->prepare('UPDATE clientes SET estado = "oferta_presentada" WHERE id = ?')->execute([$clienteId]);
@@ -74,7 +75,7 @@ if ($metodo === 'POST') {
     }
 
     $db->commit();
-    icc_json(['id' => (int)$db->lastInsertId()], 201);
+    icc_json(['id' => $estudioId], 201);
   } catch (Exception $e) {
     $db->rollBack();
     icc_json(['error' => icc_mensaje_error('No se pudo publicar el estudio', $e, $user)], 500);

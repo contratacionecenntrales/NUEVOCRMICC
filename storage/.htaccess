@@ -1,0 +1,9 @@
+# Los archivos subidos nunca se sirven por URL directa: solo a traves de
+# api/descargar.php, que comprueba la sesion y los permisos.
+<IfModule mod_authz_core.c>
+  Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+  Order allow,deny
+  Deny from all
+</IfModule>

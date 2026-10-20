@@ -79,6 +79,12 @@ if ($metodo === 'POST' && $id === null) {
   if ($titular === '' || $fechaAlta === '') icc_json(['error' => 'Titular y fecha de alta son obligatorios'], 400);
 
   $db = icc_db();
+  if (!empty($body['cliente_id'])) {
+    $stmt = $db->prepare('SELECT comercial_id FROM clientes WHERE id = ?');
+    $stmt->execute([(int)$body['cliente_id']]);
+    $cliente = $stmt->fetch();
+    if (!$cliente || !icc_puede_ver_comercial($user, $cliente['comercial_id'])) icc_json(['error' => 'Cliente no encontrado'], 404);
+  }
   $stmt = $db->prepare(
     'INSERT INTO contratos (cliente_id, comercial_id, sector, numero_contrato, titular, cif_titular, tarifa, comercializadora, kw, estado, fecha_alta, fecha_activacion, notas)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'

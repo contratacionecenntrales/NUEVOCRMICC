@@ -1194,6 +1194,82 @@ window.icc.views = (function () {
     );
   }
 
+  // Backoffice: que comerciales concretos atiende (agrupados por Jefe de
+  // equipo). Sin ninguno marcado sigue viendo toda la empresa.
+  function modalAsignarComerciales(backoffice, agentes, asignados, alGuardar) {
+    var marcados = (asignados || []).map(String);
+    var comerciales = agentes.filter(function (a) { return a.rol === "comercial"; });
+    var grupos = {};
+    var orden = [];
+    comerciales.forEach(function (c) {
+      var clave = c.supervisor_id ? String(c.supervisor_id) : "";
+      if (!grupos[clave]) { grupos[clave] = []; orden.push(clave); }
+      grupos[clave].push(c);
+    });
+    function nombreJefe(clave) {
+      if (!clave) return "Sin jefe de equipo";
+      var j = agentes.filter(function (a) { return String(a.id) === clave; })[0];
+      return j ? "Equipo de " + j.nombre + (j.apellidos ? " " + j.apellidos : "") : "Equipo #" + clave;
+    }
+    orden.sort(function (a, b) { return nombreJefe(a).localeCompare(nombreJefe(b)); });
+
+    U.openModal(
+      "<h2>Comerciales asignados a " + U.escapeHtml(backoffice.nombre) + "</h2>" +
+      '<p class="icc-muted">Marca los comerciales que lleva este usuario de Backoffice: solo verá sus clientes, contratos, presupuestos, ' +
+      "agenda e informes, y en Agentes solo le aparecerán ellos. Si no marcas ninguno, sigue viendo toda la empresa.</p>" +
+      '<form id="form-asignar-comerciales" class="icc-form">' +
+      (orden.length
+        ? orden
+            .map(function (clave) {
+              return (
+                '<div class="icc-field"><label>' + U.escapeHtml(nombreJefe(clave)) +
+                ' <button type="button" class="icc-link-btn" data-marcar-equipo="' + U.escapeHtml(clave) + '">Marcar todo el equipo</button></label>' +
+                '<div class="icc-checks">' +
+                grupos[clave]
+                  .map(function (c) {
+                    return (
+                      '<label class="icc-check"><input type="checkbox" name="comercial" data-equipo="' + U.escapeHtml(clave) + '" value="' + c.id + '"' +
+                      (marcados.indexOf(String(c.id)) !== -1 ? " checked" : "") + "> " +
+                      U.escapeHtml(c.nombre + " " + (c.apellidos || "")) + (Number(c.bloqueado) ? " (bloqueado)" : "") + "</label>"
+                    );
+                  })
+                  .join("") +
+                "</div></div>"
+              );
+            })
+            .join("")
+        : '<p class="icc-muted">No hay comerciales dados de alta.</p>') +
+      '<div class="icc-modal-actions">' +
+      '<button type="button" class="icc-btn icc-btn-ghost" data-close-btn>Cancelar</button>' +
+      '<button type="submit" class="icc-btn icc-btn-primary">Guardar</button>' +
+      "</div></form>"
+    );
+
+    var form = document.getElementById("form-asignar-comerciales");
+    form.querySelectorAll("[data-marcar-equipo]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var clave = btn.getAttribute("data-marcar-equipo");
+        var checks = Array.prototype.filter.call(form.querySelectorAll('input[name="comercial"]'), function (i) {
+          return i.getAttribute("data-equipo") === clave;
+        });
+        var todos = checks.every(function (i) { return i.checked; });
+        checks.forEach(function (i) { i.checked = !todos; });
+      });
+    });
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      var ids = Array.prototype.map.call(form.querySelectorAll('input[name="comercial"]:checked'), function (i) { return Number(i.value); });
+      try {
+        await D.guardarAsignacionesBackoffice(backoffice.id, ids);
+        U.toast(ids.length ? "Comerciales asignados guardados" : "Sin comerciales asignados: verá toda la empresa", "success");
+        U.closeModal();
+        if (alGuardar) alGuardar();
+      } catch (err) {
+        U.toast(err.message || "No se pudieron guardar los comerciales asignados", "error");
+      }
+    });
+  }
+
   // "Ver como": entra en la cuenta de otro usuario (Admin, o Jefe de equipo
   // sobre sus comerciales) hasta pulsar "Volver a mi cuenta".
   async function entrarComo(id, nombre) {
@@ -1340,6 +1416,13 @@ window.icc.views = (function () {
     main().innerHTML = '<div class="icc-loading">Cargando agentes…</div>';
     var agentes = await D.listarAgentes(filtros);
     var esAdmin = window.icc.auth.esAdminOSuperior();
+    // null = falta la migracion de asignaciones de Backoffice (se oculta el boton).
+    var asignacionesBo = esAdmin ? await D.listarAsignacionesBackoffice().catch(function () { return null; }) : null;
+    // Para el desplegable de asignacion hace falta la lista completa de
+    // comerciales, aunque Agentes este filtrado.
+    var todosAgentes = esAdmin && Object.keys(filtros).length ? await D.listarAgentes({}).catch(function () { return agentes; }) : agentes;
+    var miUsuario = window.icc.auth.state.user || {};
+    var avisoBackoffice = miUsuario.rol === "backoffice" && Number(miUsuario.comerciales_asignados) > 0;
     var esSuperAdmin = window.icc.auth.esSuperAdmin();
     var esJefeDeEquipo = window.icc.auth.tieneRol("jefe_de_equipo");
     var jefePuedeCrear = esJefeDeEquipo && window.icc.auth.puede("usuarios.crear");
@@ -1379,8 +1462,12 @@ window.icc.views = (function () {
       "</select>" +
       '<button class="icc-btn icc-btn-secondary" type="submit">Filtrar</button>' +
       "</form></div>" +
+      (avisoBackoffice
+        ? '<div class="icc-card"><p class="icc-muted" style="margin:0">Te aparecen solo los comerciales que te ha asignado un Admin; ' +
+          "verás únicamente sus clientes, contratos, presupuestos, agenda e informes.</p></div>"
+        : "") +
       '<div class="icc-card icc-table-wrap"><table class="icc-table"><thead><tr>' +
-      "<th>Nombre</th><th>Email</th><th>Empresa / CIF</th><th>Telefono</th><th>Rol</th><th>Jefe de equipo / Responsable</th><th>Estado</th>" +
+      "<th>Nombre</th><th>Email</th><th>Empresa / CIF</th><th>Telefono</th><th>Rol</th><th>Jefe de equipo / Responsable / Comerciales</th><th>Estado</th>" +
       (esAdmin || esJefeDeEquipo ? "<th></th>" : "") +
       "</tr></thead><tbody>" +
       agentes
@@ -1420,13 +1507,19 @@ window.icc.views = (function () {
               : U.escapeHtml(C.ROLES[a.rol] || a.rol)) +
             "</td>" +
             "<td>" +
-            (a.rol !== "comercial" && a.rol !== "jefe_de_equipo"
+            (a.rol === "backoffice" && esAdmin && asignacionesBo
+              ? '<button type="button" class="icc-btn icc-btn-ghost" data-asignar-bo-id="' + a.id + '">👥 ' +
+                ((asignacionesBo[a.id] || []).length
+                  ? (asignacionesBo[a.id].length === 1 ? "1 comercial asignado" : asignacionesBo[a.id].length + " comerciales asignados")
+                  : "Toda la empresa") +
+                "</button>"
+              : a.rol !== "comercial" && a.rol !== "jefe_de_equipo"
               ? '<span class="icc-muted">-</span>'
               : esAdmin
                 ? '<select class="icc-select" data-supervisor-id="' + a.id + '">' +
                   (a.rol === "comercial" ? opcionesJefesEquipo(agentes, a.supervisor_id) : opcionesResponsablesJefe(agentes, a.supervisor_id)) +
                   "</select>"
-                : U.escapeHtml((agentes.filter(function (j) { return String(j.id) === String(a.supervisor_id); })[0] || {}).nombre || "Sin asignar")) +
+                : U.escapeHtml((agentes.filter(function (j) { return String(j.id) === String(a.supervisor_id); })[0] || {}).nombre || a.supervisor_nombre || "Sin asignar")) +
             "</td>" +
             "<td>" +
             (puedeGestionarFila || (jefeGestiona && esDeMiEquipo(a))
@@ -1481,6 +1574,15 @@ window.icc.views = (function () {
           } catch (err) {
             U.toast(err.message || "No se pudo actualizar el rol", "error");
           }
+        });
+      });
+    main()
+      .querySelectorAll("[data-asignar-bo-id]")
+      .forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var boId = btn.getAttribute("data-asignar-bo-id");
+          var bo = agentes.filter(function (a) { return String(a.id) === boId; })[0];
+          modalAsignarComerciales(bo, todosAgentes, asignacionesBo[boId] || [], viewAgentes);
         });
       });
     main()

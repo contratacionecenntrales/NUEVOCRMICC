@@ -140,6 +140,10 @@ function icc_current_user(bool $forzar = false): ?array {
     return null;
   }
   $user['permisos'] = icc_permisos_efectivos($user);
+  if ($user['rol'] === 'backoffice') {
+    // Cuantos comerciales tiene asignados (0 = ve toda la empresa).
+    $user['comerciales_asignados'] = count(icc_backoffice_asignados((int)$user['id']));
+  }
   $cache = $user;
   return $user;
 }
@@ -445,13 +449,42 @@ function icc_es_super_admin(array $user): bool {
   return $user['rol'] === 'super_admin';
 }
 
+/** true si existe la tabla de sql/migracion_backoffice_asignaciones.sql. */
+function icc_v_backoffice_asignaciones(): bool {
+  static $ok = null;
+  if ($ok === null) {
+    try {
+      icc_db()->query('SELECT 1 FROM backoffice_comerciales LIMIT 0');
+      $ok = true;
+    } catch (PDOException $e) {
+      $ok = false;
+    }
+  }
+  return $ok;
+}
+
+/** Ids de los comerciales asignados a un usuario de Backoffice ([] = ninguno). */
+function icc_backoffice_asignados(int $backofficeId): array {
+  if (!icc_v_backoffice_asignaciones()) return [];
+  $stmt = icc_db()->prepare('SELECT comercial_id FROM backoffice_comerciales WHERE backoffice_id = ?');
+  $stmt->execute([$backofficeId]);
+  return array_map('intval', array_column($stmt->fetchAll(), 'comercial_id'));
+}
+
 /**
  * Ids de comercial_id que un usuario puede ver/gestionar.
- * null = sin restriccion (backoffice/admin/super_admin ven todo).
- * array = solo esos ids (jefe_de_equipo: su equipo + el mismo; comercial: solo el mismo).
+ * null = sin restriccion (admin/super_admin, y backoffice sin comerciales asignados).
+ * array = solo esos ids (jefe_de_equipo: su equipo + el mismo; backoffice con
+ * comerciales asignados: esos comerciales + el mismo; comercial: solo el mismo).
  */
 function icc_equipo_comercial_ids(array $user): ?array {
-  if ($user['rol'] === 'backoffice' || icc_es_admin_o_superior($user)) return null;
+  if (icc_es_admin_o_superior($user)) return null;
+  if ($user['rol'] === 'backoffice') {
+    $asignados = icc_backoffice_asignados((int)$user['id']);
+    if (!$asignados) return null;
+    $asignados[] = (int)$user['id'];
+    return array_values(array_unique($asignados));
+  }
   if ($user['rol'] === 'jefe_de_equipo') {
     static $cache = [];
     if (isset($cache[$user['id']])) return $cache[$user['id']];

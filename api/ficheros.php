@@ -75,9 +75,12 @@ if ($metodo === 'DELETE') {
   // siga en el servidor: si ya no esta (borrado, ZIP mal extraido...), se
   // limpia igualmente la referencia en BD para poder subir uno nuevo.
   try {
-    $stmt = $db->prepare('SELECT ruta_archivo FROM ficheros WHERE id = ?');
+    $stmt = $db->prepare('SELECT f.ruta_archivo, c.propietario_id FROM ficheros f LEFT JOIN ficheros_carpetas c ON c.id = f.carpeta_id WHERE f.id = ?');
     $stmt->execute([$id]);
     $fichero = $stmt->fetch();
+    if ($fichero && $fichero['propietario_id'] !== null && !icc_carpeta_fichero_visible($user, $fichero)) {
+      icc_json(['error' => 'No encontrado'], 404);
+    }
     if ($fichero) {
       try {
         $ruta = ICC_STORAGE_DIR . '/ficheros/' . $fichero['ruta_archivo'];

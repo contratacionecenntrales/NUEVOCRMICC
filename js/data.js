@@ -135,6 +135,16 @@ window.icc.data = (function () {
     await API.del("api/agentes.php?id=" + encodeURIComponent(id));
   }
 
+  // Comerciales asignados a cada usuario de Backoffice (solo Admin).
+  async function listarAsignacionesBackoffice() {
+    var data = await API.get("api/backoffice_asignaciones.php");
+    return data.asignaciones || {};
+  }
+
+  async function guardarAsignacionesBackoffice(backofficeId, comercialIds) {
+    await API.put("api/backoffice_asignaciones.php?id=" + encodeURIComponent(backofficeId), { comercial_ids: comercialIds });
+  }
+
   // ---------------------------------------------------------- Ficha de agente
   async function obtenerFichaAgente(id) {
     return API.get("api/ficha_agente.php?id=" + encodeURIComponent(id));
@@ -406,6 +416,8 @@ window.icc.data = (function () {
     actualizarContrato: actualizarContrato,
     borrarContrato: borrarContrato,
     listarAgentes: listarAgentes,
+    listarAsignacionesBackoffice: listarAsignacionesBackoffice,
+    guardarAsignacionesBackoffice: guardarAsignacionesBackoffice,
     crearAgente: crearAgente,
     actualizarAgente: actualizarAgente,
     borrarAgente: borrarAgente,

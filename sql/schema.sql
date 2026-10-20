@@ -599,4 +599,20 @@ ALTER TABLE citas ADD CONSTRAINT fk_cita_presupuesto FOREIGN KEY (presupuesto_id
 ALTER TABLE citas ADD CONSTRAINT fk_cita_creado_por FOREIGN KEY (creado_por) REFERENCES usuarios(id) ON DELETE SET NULL;
 CREATE INDEX idx_citas_cliente ON citas(cliente_id, fecha);
 
+
+-- -----------------------------------------------------------------------------
+-- Comerciales asignados a cada usuario de Backoffice (vacio = ve toda la empresa).
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS backoffice_comerciales (
+  backoffice_id INT UNSIGNED NOT NULL,
+  comercial_id INT UNSIGNED NOT NULL,
+  asignado_por INT UNSIGNED NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (backoffice_id, comercial_id),
+  CONSTRAINT fk_bo_com_backoffice FOREIGN KEY (backoffice_id) REFERENCES usuarios(id) ON DELETE CASCADE,
+  CONSTRAINT fk_bo_com_comercial FOREIGN KEY (comercial_id) REFERENCES usuarios(id) ON DELETE CASCADE,
+  CONSTRAINT fk_bo_com_asignado_por FOREIGN KEY (asignado_por) REFERENCES usuarios(id) ON DELETE SET NULL,
+  INDEX idx_bo_com_comercial (comercial_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 SET FOREIGN_KEY_CHECKS = 1;

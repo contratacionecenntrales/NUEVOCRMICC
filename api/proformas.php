@@ -52,6 +52,10 @@ if ($metodo === 'POST' && $id === null) {
   if (!empty($_FILES['archivo']) && $_FILES['archivo']['error'] === UPLOAD_ERR_OK) {
     $archivo = $_FILES['archivo'];
     if ($archivo['size'] > 15 * 1024 * 1024) icc_json(['error' => 'El archivo supera los 15 MB'], 400);
+    $extensionesPermitidas = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'png', 'jpg', 'jpeg'];
+    if (!in_array(strtolower(pathinfo($archivo['name'], PATHINFO_EXTENSION)), $extensionesPermitidas, true)) {
+      icc_json(['error' => 'Tipo de archivo no permitido'], 400);
+    }
     $destinoDir = ICC_STORAGE_DIR . '/proformas';
     if (!is_dir($destinoDir)) mkdir($destinoDir, 0755, true);
     $nombreFinal = time() . '-' . icc_slug_archivo($archivo['name']);
@@ -98,10 +102,11 @@ if ($metodo === 'PUT' && $id !== null) {
 if ($metodo === 'DELETE' && $id !== null) {
   icc_require_csrf();
   $db = icc_db();
-  $stmt = $db->prepare('SELECT ruta_archivo FROM proformas WHERE id = ?');
+  $stmt = $db->prepare('SELECT comercial_id, ruta_archivo FROM proformas WHERE id = ?');
   $stmt->execute([$id]);
   $proforma = $stmt->fetch();
-  if ($proforma && $proforma['ruta_archivo']) {
+  if (!$proforma || !icc_puede_ver_comercial($user, $proforma['comercial_id'])) icc_json(['error' => 'No encontrado'], 404);
+  if ($proforma['ruta_archivo']) {
     $ruta = ICC_STORAGE_DIR . '/proformas/' . $proforma['ruta_archivo'];
     if (is_file($ruta)) @unlink($ruta);
   }

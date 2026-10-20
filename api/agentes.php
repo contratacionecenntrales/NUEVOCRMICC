@@ -28,11 +28,13 @@ if ($metodo === 'GET' && $id === null) {
     }
   }
 
-  $columnas = 'u.id, u.nombre, u.apellidos, u.email, u.telefono, u.empresa, u.cif, u.tipo, u.rol, u.supervisor_id, u.bloqueado, u.created_at';
-  $join = '';
+  // supervisor_nombre: para que se vea el Jefe de equipo aunque quien consulta
+  // no lo tenga en su lista (p. ej. un Backoffice con comerciales asignados).
+  $columnas = 'u.id, u.nombre, u.apellidos, u.email, u.telefono, u.empresa, u.cif, u.tipo, u.rol, u.supervisor_id, u.bloqueado, u.created_at, s.nombre AS supervisor_nombre';
+  $join = ' LEFT JOIN usuarios s ON s.id = u.supervisor_id';
   if (icc_v52()) {
     $columnas .= ', u.numero_relacion, u.avatar_ruta, u.ultimo_acceso, p.estado_disponibilidad, p.ausencia_hasta';
-    $join = ' LEFT JOIN usuarios_preferencias p ON p.usuario_id = u.id';
+    $join .= ' LEFT JOIN usuarios_preferencias p ON p.usuario_id = u.id';
   }
   $where = array_map(function ($w) { return 'u.' . $w; }, $where);
   $sql = "SELECT $columnas FROM usuarios u$join";
@@ -124,6 +126,12 @@ if ($metodo === 'PUT' && $id !== null) {
   // rol y a que jefe pertenece cada comercial se quedan exclusivos de Admin/Super
   // Admin (el bloqueo tiene su propia regla mas abajo, que si permite al jefe de equipo).
   if ($user['rol'] === 'jefe_de_equipo' && !icc_puede_ver_comercial($user, $id)) {
+    icc_json(['error' => 'No tienes permiso para gestionar esta cuenta'], 403);
+  }
+  // Backoffice (y cualquier otro rol sin gestion de cuentas) solo puede editar
+  // su propia cuenta: antes podia cambiar datos y contrasena de cualquier
+  // comercial o jefe de equipo.
+  if (!icc_es_admin_o_superior($user) && $user['rol'] !== 'jefe_de_equipo' && $id !== (int)$user['id']) {
     icc_json(['error' => 'No tienes permiso para gestionar esta cuenta'], 403);
   }
 
@@ -275,6 +283,11 @@ function icc_registrar_cambios_cuenta(PDO $db, array $autor, int $id, array $bod
   if ($rolNuevo !== $rolAnterior) {
     if (icc_v52()) $db->prepare('DELETE FROM usuarios_permisos WHERE usuario_id = ?')->execute([$id]);
     icc_auditar($id, $autorId, 'rol_cambiado', "Rol cambiado de $rolAnterior a $rolNuevo; permisos restablecidos a los del rol");
+    // Las asignaciones Backoffice <-> comercial solo tienen sentido con esos roles.
+    if (icc_v_backoffice_asignaciones()) {
+      if ($rolAnterior === 'backoffice') $db->prepare('DELETE FROM backoffice_comerciales WHERE backoffice_id = ?')->execute([$id]);
+      if ($rolAnterior === 'comercial') $db->prepare('DELETE FROM backoffice_comerciales WHERE comercial_id = ?')->execute([$id]);
+    }
   }
   if (array_key_exists('bloqueado', $body)) {
     if ($body['bloqueado']) {

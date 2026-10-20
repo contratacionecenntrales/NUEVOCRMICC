@@ -46,6 +46,7 @@ window.ICC_CONST = {
     foto_eliminada: "Foto de perfil eliminada",
     rol_cambiado: "Rol cambiado",
     responsable_cambiado: "Responsable cambiado",
+    comerciales_asignados: "Comerciales asignados (Backoffice)",
     permisos_cambiados: "Permisos modificados",
     permisos_restablecidos: "Permisos restablecidos al rol",
     cuenta_bloqueada: "Cuenta bloqueada",
