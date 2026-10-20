@@ -3195,75 +3195,181 @@ window.icc.views = (function () {
     ["estado", "sector", "tipo_cliente"].forEach(function (k) {
       if (params.get(k)) filtros[k] = params.get(k);
     });
+    var q = (params.get("q") || "").trim();
+    var comercialFiltro = params.get("comercial_id") || "";
+    var vista = params.get("vista") === "tablero" ? "tablero" : "lista";
+    var esc = U.escapeHtml;
 
     main().innerHTML = '<div class="icc-loading">Cargando presupuestos…</div>';
     var esAdmin = window.icc.auth.esAdminOSuperior();
-    var [presupuestos, clientes, agentes] = await Promise.all([
-      D.listarPresupuestos(filtros),
+    var gestor = window.icc.auth.esBackofficeOAdmin();
+    // Los contadores de fase se calculan sin el filtro de estado (para poder saltar entre fases).
+    var filtrosSinEstado = Object.assign({}, filtros);
+    delete filtrosSinEstado.estado;
+    var [todos, clientes, agentes] = await Promise.all([
+      D.listarPresupuestos(filtrosSinEstado),
       D.listarClientes(),
-      esAdmin ? D.listarAgentes({}) : Promise.resolve([]),
+      gestor ? D.listarAgentes({}).catch(function () { return []; }) : Promise.resolve([]),
     ]);
 
+    // Filtros que se aplican en el navegador: texto y comercial.
+    var base = todos.filter(function (p) {
+      if (comercialFiltro && String(p.comercial_id) !== comercialFiltro) return false;
+      if (q && [p.razon_social, p.cif, p.cups, p.comercializadora_actual, p.comercial_nombre].join(" ").toLowerCase().indexOf(q.toLowerCase()) === -1) return false;
+      return true;
+    });
+    var presupuestos = filtros.estado ? base.filter(function (p) { return p.estado === filtros.estado; }) : base;
+
+    var hoy = hoyIso();
+    var dias = function (fecha) { return Math.floor((new Date(hoy + "T12:00:00") - new Date(String(fecha).slice(0, 10) + "T12:00:00")) / 86400000); };
+    var diasHasta = function (fecha) { return -dias(fecha); };
+    // Parado: sin avanzar desde hace mas de 7 dias y sin cerrar.
+    var parado = function (p) { return p.estado !== "cerrado" && dias(p.updated_at || p.created_at) > 7; };
+    // Permanencia que vence en los proximos 60 dias (momento de volver a llamar).
+    var renovar = function (p) { return p.fecha_permanencia && diasHasta(p.fecha_permanencia) >= 0 && diasHasta(p.fecha_permanencia) <= 60; };
+
+    var cuenta = {};
+    C.ESTADOS_PRESUPUESTO_ORDEN.forEach(function (e) { cuenta[e] = 0; });
+    base.forEach(function (p) { cuenta[p.estado] = (cuenta[p.estado] || 0) + 1; });
+    var abiertos = base.filter(function (p) { return p.estado !== "cerrado"; });
+    var mes = hoy.slice(0, 7);
+    var cerradosMes = base.filter(function (p) { return p.estado === "cerrado" && String(p.updated_at || "").slice(0, 7) === mes; }).length;
+    var conversion = base.length ? Math.round((cuenta.cerrado / base.length) * 100) : 0;
+    var nParados = abiertos.filter(parado).length;
+    var nRenovar = base.filter(renovar).length;
+
+    var iconoSector = { energia: "⚡", telecomunicaciones: "📶", alarmas: "🚨", seguros: "🛡️", financiero: "💳" };
+    var colorSector = { energia: "#60a5fa", telecomunicaciones: "#34d399", alarmas: "#f87171", seguros: "#a78bfa", financiero: "#fbbf24" };
+    var paleta = ["#22D3EE", "#A78BFA", "#F472B6", "#34D399", "#FBBF24", "#60A5FA", "#FB923C", "#4ADE80", "#E879F9", "#2DD4BF", "#F87171", "#93C5FD", "#FDE047", "#C084FC"];
+    var ids = {};
+    agentes.forEach(function (a) { ids[a.id] = 1; });
+    base.forEach(function (p) { if (p.comercial_id) ids[p.comercial_id] = 1; });
+    var colorCom = {};
+    Object.keys(ids).map(Number).sort(function (a, b) { return a - b; }).forEach(function (id, i) { colorCom[id] = paleta[i % paleta.length]; });
+    var avatarP = function (p, t) {
+      var n = p.comercial_nombre || "Sin asignar";
+      var ini = n.split(/\s+/).filter(Boolean).slice(0, 2).map(function (x) { return x.charAt(0).toUpperCase(); }).join("");
+      return '<span class="icc-ag-ava" style="--c:' + (p.comercial_id ? colorCom[p.comercial_id] || "#64748B" : "#64748B") + ";--t:" + (t || 26) + 'px" title="' + esc(n) + '">' + esc(ini || "?") + "</span>";
+    };
+    var linkQs = function (cambios) {
+      var x = Object.assign({ estado: filtros.estado || "", sector: filtros.sector || "", tipo_cliente: filtros.tipo_cliente || "", q: q, comercial_id: comercialFiltro, vista: vista === "tablero" ? "tablero" : "" }, cambios || {});
+      var p = new URLSearchParams();
+      Object.keys(x).forEach(function (k) { if (x[k]) p.set(k, x[k]); });
+      return "#/presupuestos" + (p.toString() ? "?" + p.toString() : "");
+    };
+    var pasos = function (p) {
+      var idx = C.ESTADOS_PRESUPUESTO_ORDEN.indexOf(p.estado);
+      return '<span class="icc-pr-pasos" title="' + esc((C.ESTADOS_PRESUPUESTO[p.estado] || {}).label || p.estado) + '">' +
+        C.ESTADOS_PRESUPUESTO_ORDEN.map(function (e, i) {
+          return '<i class="' + (i < idx ? "is-hecho" : i === idx ? "is-actual" : "") + '" style="--c:' + C.ESTADOS_PRESUPUESTO[e].color + '"></i>';
+        }).join("") + "</span>";
+    };
+    var urlComparador = function (p) {
+      var tipo = p.sector === "energia" ? "energia" : p.sector === "telecomunicaciones" ? "telefonia" : null;
+      return tipo && window.icc.comparador && window.icc.auth.puede("comparador.usar") ? window.icc.comparador.urlHerramienta(tipo, { cliente: p.cliente_id }) : null;
+    };
+    var alertas = function (p) {
+      return (renovar(p) ? '<span class="icc-pr-alerta is-renovar" title="Fin de permanencia: ' + esc(U.formatFecha(p.fecha_permanencia)) + '">🔔 Permanencia en ' + diasHasta(p.fecha_permanencia) + " d</span>" : "") +
+        (parado(p) ? '<span class="icc-pr-alerta is-parado" title="Sin avanzar desde ' + esc(U.formatFecha(p.updated_at || p.created_at)) + '">🧊 ' + dias(p.updated_at || p.created_at) + " d parado</span>" : "");
+    };
+
+    var filaLista = function (p) {
+      var meta = C.ESTADOS_PRESUPUESTO[p.estado] || { label: p.estado, color: "#94a3b8" };
+      var cmp = urlComparador(p);
+      var actual = [p.comercializadora_actual, p.tarifa_actual].filter(Boolean).join(" · ");
+      return (
+        '<article class="icc-pr-fila' + (parado(p) ? " is-parado" : "") + '" style="--e:' + meta.color + ";--s:" + (colorSector[p.sector] || "#94a3b8") + '">' +
+        '<div class="icc-pr-cliente"><span class="icc-pr-sector" title="' + esc(C.SECTORES[p.sector] || p.sector) + '">' + (iconoSector[p.sector] || "📄") + "</span>" +
+        '<div><a href="#/presupuestos/' + p.id + '"><strong>' + esc(p.razon_social) + "</strong></a>" +
+        "<small>" + esc([p.cif, C.TIPO_CLIENTE[p.tipo_cliente] || p.tipo_cliente, actual || (p.cups ? "CUPS " + p.cups : "")].filter(Boolean).join(" · ")) + "</small>" +
+        '<div class="icc-pr-alertas">' + alertas(p) + "</div></div></div>" +
+        '<div class="icc-pr-estado"><span class="icc-badge" style="--badge-color:' + meta.color + '">' + esc(meta.label) + "</span>" + pasos(p) + "</div>" +
+        '<div class="icc-pr-comercial">' +
+        (esAdmin
+          ? avatarP(p, 26) + '<select class="icc-select" data-asignar-comercial="' + p.id + '"><option value="">Sin asignar</option>' +
+            agentes.map(function (a) { return '<option value="' + a.id + '"' + (String(p.comercial_id) === String(a.id) ? " selected" : "") + ">" + esc(a.nombre + " " + (a.apellidos || "")) + "</option>"; }).join("") +
+            "</select>"
+          : avatarP(p, 26) + "<span>" + esc(p.comercial_nombre || "Sin asignar") + "</span>") +
+        "</div>" +
+        '<div class="icc-pr-fecha"><b>' + esc(U.formatFecha(p.created_at)) + "</b><small>hace " + dias(p.created_at) + " d</small></div>" +
+        '<div class="icc-pr-acciones">' +
+        (cmp ? '<a class="icc-btn icc-btn-ghost icc-pr-btn" href="' + cmp + '" title="Abrir el comparador con este cliente">' + (p.sector === "energia" ? "⚡" : "📶") + " Comparar</a>" : "") +
+        '<a class="icc-btn icc-btn-secondary icc-pr-btn" href="#/presupuestos/' + p.id + '">Abrir →</a></div>' +
+        "</article>"
+      );
+    };
+
+    var tarjetaTablero = function (p) {
+      var actual = [p.comercializadora_actual, p.tarifa_actual].filter(Boolean).join(" · ");
+      return (
+        '<a class="icc-pr-card' + (parado(p) ? " is-parado" : "") + '" href="#/presupuestos/' + p.id + '" style="--c:' + (p.comercial_id ? colorCom[p.comercial_id] || "#64748B" : "#64748B") + ";--s:" + (colorSector[p.sector] || "#94a3b8") + '">' +
+        "<header><strong>" + esc(p.razon_social) + '</strong><span class="icc-pr-card-sector">' + (iconoSector[p.sector] || "📄") + "</span></header>" +
+        "<small>" + esc([C.SECTORES[p.sector] || p.sector, C.TIPO_CLIENTE[p.tipo_cliente] || p.tipo_cliente].join(" · ")) + "</small>" +
+        (actual ? '<small class="icc-pr-card-actual">Hoy: ' + esc(actual) + "</small>" : "") +
+        '<div class="icc-pr-alertas">' + alertas(p) + "</div>" +
+        "<footer>" + avatarP(p, 22) + "<span>" + esc(p.comercial_nombre || "Sin asignar") + "</span><em>" + dias(p.created_at) + " d</em></footer></a>"
+      );
+    };
+
     main().innerHTML =
-      '<div class="icc-page-head"><h1>Presupuestos</h1>' +
-      '<button class="icc-btn icc-btn-primary" id="btn-nuevo-presupuesto-general">+ Nuevo presupuesto</button>' +
+      '<header class="icc-ag-hero icc-pr-hero">' +
+      '<div class="icc-ag-hero-txt"><span class="icc-ag-hero-kicker">📄 Presupuestos</span>' +
+      "<h1>" + abiertos.length + (abiertos.length === 1 ? " presupuesto en curso" : " presupuestos en curso") + "</h1>" +
+      '<p class="icc-ag-hero-res"><b class="ok">' + cerradosMes + "</b> cerrados este mes · <b>" + conversion + "%</b> llegan a cierre" +
+      (nParados ? ' · <b class="mal">' + nParados + "</b> parados" : "") + "</p></div>" +
+      '<div class="icc-ag-hero-acc"><button class="icc-btn icc-btn-primary icc-ag-btn-nueva" id="btn-nuevo-presupuesto-general">+ Nuevo presupuesto</button></div></header>' +
+
+      // Fases (sirven de filtro)
+      '<div class="icc-pr-fases">' +
+      '<a class="icc-pr-fase' + (!filtros.estado ? " is-activa" : "") + '" style="--c:#e2e8f0" href="' + linkQs({ estado: "" }) + '"><b>' + base.length + "</b><span>Todos</span></a>" +
+      C.ESTADOS_PRESUPUESTO_ORDEN.map(function (e, i) {
+        return (
+          '<a class="icc-pr-fase' + (filtros.estado === e ? " is-activa" : "") + '" style="--c:' + C.ESTADOS_PRESUPUESTO[e].color + '" href="' + linkQs({ estado: filtros.estado === e ? "" : e }) + '">' +
+          '<em>' + (i + 1) + "</em><b>" + (cuenta[e] || 0) + "</b><span>" + esc(C.ESTADOS_PRESUPUESTO[e].label) + "</span></a>"
+        );
+      }).join("") +
       "</div>" +
-      '<div class="icc-card">' +
+      (nRenovar ? '<div class="icc-aviso icc-pr-aviso">🔔 <b>' + nRenovar + "</b> " + (nRenovar === 1 ? "cliente termina" : "clientes terminan") + " la permanencia en los próximos 60 días: buen momento para volver a llamar.</div>" : "") +
+
+      '<section class="icc-card icc-ag-barra">' +
       '<form id="form-filtros-presupuesto" class="icc-filtros-row">' +
-      '<select class="icc-select" name="estado"><option value="">Estado: todos</option>' +
-      C.ESTADOS_PRESUPUESTO_ORDEN.map(function (e) {
-        return '<option value="' + e + '"' + (filtros.estado === e ? " selected" : "") + ">" + C.ESTADOS_PRESUPUESTO[e].label + "</option>";
-      }).join("") +
-      "</select>" +
-      '<select class="icc-select" name="sector"><option value="">Sector: todos</option>' +
-      Object.keys(C.SECTORES).map(function (s) {
-        return '<option value="' + s + '"' + (filtros.sector === s ? " selected" : "") + ">" + C.SECTORES[s] + "</option>";
-      }).join("") +
-      "</select>" +
-      '<select class="icc-select" name="tipo_cliente"><option value="">Tipo de cliente: todos</option>' +
-      Object.keys(C.TIPO_CLIENTE).map(function (t) {
-        return '<option value="' + t + '"' + (filtros.tipo_cliente === t ? " selected" : "") + ">" + C.TIPO_CLIENTE[t] + "</option>";
-      }).join("") +
-      "</select>" +
+      '<input class="icc-input" name="q" placeholder="🔎 Buscar cliente, CIF, CUPS o compañía" value="' + esc(q) + '">' +
+      (gestor
+        ? '<select class="icc-select" name="comercial_id"><option value="">Todo el equipo</option>' +
+          agentes.map(function (a) { return '<option value="' + a.id + '"' + (comercialFiltro === String(a.id) ? " selected" : "") + ">" + esc(a.nombre + " " + (a.apellidos || "")) + "</option>"; }).join("") + "</select>"
+        : "") +
+      '<select class="icc-select" name="sector"><option value="">Todos los sectores</option>' +
+      Object.keys(C.SECTORES).map(function (s) { return '<option value="' + s + '"' + (filtros.sector === s ? " selected" : "") + ">" + (iconoSector[s] || "") + " " + C.SECTORES[s] + "</option>"; }).join("") + "</select>" +
+      '<select class="icc-select" name="tipo_cliente"><option value="">Todo tipo de cliente</option>' +
+      Object.keys(C.TIPO_CLIENTE).map(function (t) { return '<option value="' + t + '"' + (filtros.tipo_cliente === t ? " selected" : "") + ">" + C.TIPO_CLIENTE[t] + "</option>"; }).join("") + "</select>" +
+      (filtros.estado ? '<input type="hidden" name="estado" value="' + esc(filtros.estado) + '">' : "") +
+      (vista === "tablero" ? '<input type="hidden" name="vista" value="tablero">' : "") +
       '<button class="icc-btn icc-btn-secondary" type="submit">Filtrar</button>' +
-      "</form></div>" +
-      '<div class="icc-card icc-table-wrap"><table class="icc-table"><thead><tr>' +
-      "<th>Cliente</th><th>Sector</th><th>Tipo</th><th>Comercial</th><th>Estado</th><th>Fecha</th><th></th>" +
-      "</tr></thead><tbody>" +
-      (presupuestos.length
-        ? presupuestos
-            .map(function (p) {
-              var meta = C.ESTADOS_PRESUPUESTO[p.estado] || { label: p.estado, color: "#94a3b8" };
-              return (
-                "<tr><td>" + U.escapeHtml(p.razon_social) + '<br><span class="icc-muted">' + U.escapeHtml(p.cif) + "</span></td>" +
-                "<td>" + U.escapeHtml(C.SECTORES[p.sector] || p.sector) + "</td>" +
-                "<td>" + U.escapeHtml(C.TIPO_CLIENTE[p.tipo_cliente] || p.tipo_cliente) + "</td>" +
-                "<td>" +
-                (esAdmin
-                  ? '<select class="icc-select" data-asignar-comercial="' + p.id + '"><option value="">Sin asignar</option>' +
-                    agentes
-                      .map(function (a) { return '<option value="' + a.id + '"' + (p.comercial_id === a.id ? " selected" : "") + ">" + U.escapeHtml(a.nombre) + "</option>"; })
-                      .join("") +
-                    "</select>"
-                  : U.escapeHtml(p.comercial_nombre || "-")) +
-                "</td>" +
-                '<td><span class="icc-badge" style="--badge-color:' + meta.color + '">' + U.escapeHtml(meta.label) + "</span></td>" +
-                "<td>" + U.formatFecha(p.created_at) + "</td>" +
-                '<td><a class="icc-link-btn" href="#/presupuestos/' + p.id + '">Ver</a></td>' +
-                "</tr>"
-              );
-            })
-            .join("")
-        : '<tr><td colspan="7"><p class="icc-empty">Sin presupuestos todavia.</p></td></tr>') +
-      "</tbody></table></div>";
+      '<div class="icc-tabs icc-pr-vistas"><a class="icc-tab' + (vista === "lista" ? " is-active" : "") + '" href="' + linkQs({ vista: "" }) + '">☰ Lista</a>' +
+      '<a class="icc-tab' + (vista === "tablero" ? " is-active" : "") + '" href="' + linkQs({ vista: "tablero" }) + '">▦ Tablero</a></div>' +
+      "</form></section>" +
+
+      (vista === "tablero"
+        ? '<section class="icc-pr-tablero">' +
+          C.ESTADOS_PRESUPUESTO_ORDEN.filter(function (e) { return !filtros.estado || filtros.estado === e; }).map(function (e) {
+            var lista = presupuestos.filter(function (p) { return p.estado === e; });
+            return (
+              '<div class="icc-pr-col" style="--f:' + C.ESTADOS_PRESUPUESTO[e].color + '"><div class="icc-pl-col-head"><div class="icc-pl-col-tit"><strong>' + esc(C.ESTADOS_PRESUPUESTO[e].label) + "</strong><b>" + lista.length + "</b></div></div>" +
+              '<div class="icc-pl-col-body">' + (lista.length ? lista.map(tarjetaTablero).join("") : '<p class="icc-pl-vacio">Ninguno</p>') + "</div></div>"
+            );
+          }).join("") +
+          "</section>"
+        : '<section class="icc-pr-lista">' +
+          (presupuestos.length
+            ? '<div class="icc-pr-cab"><span>Cliente</span><span>Estado</span><span>Comercial</span><span>Fecha</span><span></span></div>' + presupuestos.map(filaLista).join("")
+            : '<p class="icc-empty">' + (todos.length ? "Ningún presupuesto coincide con el filtro." : "Sin presupuestos todavía.") + "</p>") +
+          "</section>");
 
     document.getElementById("form-filtros-presupuesto").addEventListener("submit", function (e) {
       e.preventDefault();
       var fd = new FormData(e.target);
       var qs = new URLSearchParams();
-      fd.forEach(function (v, k) {
-        if (v) qs.set(k, v);
-      });
+      fd.forEach(function (v, k) { if (String(v).trim()) qs.set(k, String(v).trim()); });
       location.hash = "#/presupuestos" + (qs.toString() ? "?" + qs.toString() : "");
     });
 
@@ -3280,9 +3386,9 @@ window.icc.views = (function () {
           try {
             await D.actualizarPresupuesto(idPresupuesto, { comercial_id: select.value || "" });
             U.toast("Comercial asignado", "success");
+            viewPresupuestos();
           } catch (err) {
             U.toast(err.message || "No se pudo asignar", "error");
-          } finally {
             select.disabled = false;
           }
         });

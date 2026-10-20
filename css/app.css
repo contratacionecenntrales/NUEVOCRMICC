@@ -1046,3 +1046,101 @@ a.icc-ag-kpi:hover{transform:translateY(-2px);box-shadow:0 14px 30px -16px var(-
 
 @media (max-width:980px){.icc-dash-grid{grid-template-columns:1fr}}
 @media (max-width:520px){.icc-dash-fase{grid-template-columns:26px 1fr 34px}.icc-dash-fase-barra{display:none}}
+
+/* =============================================================================
+   Presupuestos · rediseño: fases, filas con progreso y tablero por estado
+   ============================================================================= */
+.icc-pr-hero{background:
+    radial-gradient(120% 140% at 0% 0%,rgba(96,165,250,.22) 0%,transparent 45%),
+    radial-gradient(90% 120% at 100% 0%,rgba(244,114,182,.18) 0%,transparent 50%),
+    radial-gradient(80% 120% at 60% 120%,rgba(251,191,36,.14) 0%,transparent 55%),
+    linear-gradient(135deg,#0F1A2E 0%,#121A2B 55%,#0E1424 100%);border-color:rgba(96,165,250,.22)}
+.icc-pr-hero .icc-ag-hero-kicker{color:#93C5FD;background:rgba(96,165,250,.1);border-color:rgba(96,165,250,.3)}
+.icc-ag-hero-res b.mal{color:#FCA5A5}
+
+/* Fases (filtros) */
+.icc-pr-fases{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:10px;margin-bottom:14px}
+.icc-pr-fase{position:relative;display:flex;flex-direction:column;gap:2px;padding:12px 14px;border-radius:14px;text-decoration:none;overflow:hidden;
+  background:linear-gradient(160deg,color-mix(in srgb,var(--c) 14%,var(--card)) 0%,var(--card) 75%);
+  border:1px solid color-mix(in srgb,var(--c) 28%,var(--line));transition:transform .15s,box-shadow .15s,border-color .15s}
+.icc-pr-fase::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--c);opacity:.55}
+.icc-pr-fase:hover{transform:translateY(-2px);box-shadow:0 14px 28px -16px var(--c)}
+.icc-pr-fase.is-activa{border-color:var(--c);box-shadow:0 0 0 2px color-mix(in srgb,var(--c) 45%,transparent),0 14px 30px -16px var(--c)}
+.icc-pr-fase.is-activa::after{opacity:1}
+.icc-pr-fase em{position:absolute;right:10px;top:8px;font-style:normal;font-size:11px;font-weight:800;width:20px;height:20px;line-height:20px;text-align:center;
+  border-radius:50%;color:#0B0F19;background:var(--c)}
+.icc-pr-fase b{font-size:24px;font-weight:800;color:#fff;line-height:1.1}
+.icc-pr-fase span{font-size:12.5px;font-weight:600;color:var(--txt-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:18px}
+.icc-pr-aviso{margin-bottom:14px}
+.icc-pr-vistas{margin-left:auto}
+
+/* Lista */
+.icc-pr-lista{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.icc-pr-cab,.icc-pr-fila{display:grid;grid-template-columns:minmax(220px,2.2fr) minmax(150px,1.1fr) minmax(170px,1.3fr) 104px 210px;align-items:center;gap:14px}
+.icc-pr-cab{padding:0 16px 0 20px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--txt-3)}
+.icc-pr-fila{position:relative;padding:12px 16px 12px 20px;border-radius:14px;background:linear-gradient(90deg,color-mix(in srgb,var(--e) 8%,var(--card)) 0%,var(--card) 40%);
+  border:1px solid var(--line);transition:transform .15s,border-color .15s,box-shadow .15s}
+.icc-pr-fila::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:4px;border-radius:0 4px 4px 0;background:var(--e);box-shadow:0 0 12px var(--e)}
+.icc-pr-fila:hover{border-color:color-mix(in srgb,var(--e) 55%,var(--line));box-shadow:0 14px 28px -18px var(--e)}
+.icc-pr-fila.is-parado{border-color:rgba(248,113,113,.35)}
+.icc-pr-cliente{display:flex;align-items:flex-start;gap:12px;min-width:0}
+.icc-pr-cliente>div{min-width:0}
+.icc-pr-cliente a{color:#fff;text-decoration:none}
+.icc-pr-cliente a:hover strong{color:var(--cian)}
+.icc-pr-cliente strong{display:block;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.icc-pr-cliente small{display:block;font-size:12px;color:var(--txt-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.icc-pr-sector{flex:0 0 auto;display:grid;place-items:center;width:38px;height:38px;border-radius:11px;font-size:18px;
+  background:color-mix(in srgb,var(--s) 16%,transparent);border:1px solid color-mix(in srgb,var(--s) 40%,transparent)}
+.icc-pr-alertas{display:flex;flex-wrap:wrap;gap:5px;margin-top:4px}
+.icc-pr-alertas:empty{display:none}
+.icc-pr-alerta{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.icc-pr-alerta.is-renovar{background:rgba(251,191,36,.15);color:#FCD34D}
+.icc-pr-alerta.is-parado{background:rgba(248,113,113,.15);color:#FCA5A5}
+.icc-pr-estado{display:flex;flex-direction:column;align-items:flex-start;gap:7px;min-width:0}
+.icc-pr-pasos{display:flex;gap:4px;width:100%;max-width:150px}
+.icc-pr-pasos i{flex:1;height:5px;border-radius:3px;background:rgba(255,255,255,.08)}
+.icc-pr-pasos i.is-hecho{background:color-mix(in srgb,var(--c) 55%,transparent)}
+.icc-pr-pasos i.is-actual{background:var(--c);box-shadow:0 0 8px var(--c)}
+.icc-pr-comercial{display:flex;align-items:center;gap:8px;min-width:0;font-size:13px;font-weight:600}
+.icc-pr-comercial span:not(.icc-ag-ava){white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.icc-pr-comercial .icc-select{min-width:0;flex:1;padding:6px 8px;font-size:12.5px}
+.icc-pr-fecha b{display:block;font-size:13px;color:var(--txt)}
+.icc-pr-fecha small{font-size:11.5px;color:var(--txt-3)}
+.icc-pr-acciones{display:flex;gap:6px;justify-content:flex-end;white-space:nowrap}
+.icc-pr-btn{padding:7px 12px;font-size:12.5px}
+
+/* Tablero */
+.icc-pr-tablero{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(230px,1fr);gap:12px;overflow-x:auto;padding-bottom:8px;margin-bottom:14px;scroll-snap-type:x proximity}
+.icc-pr-col{display:flex;flex-direction:column;min-width:0;border-radius:16px;background:linear-gradient(180deg,#121A2A,#0E1422);border:1px solid var(--line);
+  border-top:3px solid var(--f);scroll-snap-align:start}
+.icc-pr-card{position:relative;display:flex;flex-direction:column;gap:5px;padding:11px 12px 11px 14px;border-radius:12px;text-decoration:none;color:var(--txt);
+  background:linear-gradient(160deg,#172238,#121B2D);border:1px solid var(--line);transition:transform .15s,border-color .15s,box-shadow .15s}
+.icc-pr-card::before{content:"";position:absolute;left:0;top:9px;bottom:9px;width:4px;border-radius:0 4px 4px 0;background:var(--c);box-shadow:0 0 12px var(--c)}
+.icc-pr-card:hover{transform:translateY(-2px);border-color:var(--c);box-shadow:0 14px 28px -14px color-mix(in srgb,var(--c) 70%,transparent)}
+.icc-pr-card.is-parado{border-color:rgba(248,113,113,.45)}
+.icc-pr-card header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.icc-pr-card strong{font-size:14px;color:#fff;line-height:1.3;word-break:break-word}
+.icc-pr-card-sector{flex:0 0 auto;font-size:16px}
+.icc-pr-card small{font-size:11.5px;color:var(--txt-2)}
+.icc-pr-card-actual{color:var(--txt-3) !important}
+.icc-pr-card footer{display:flex;align-items:center;gap:7px;margin-top:3px;min-width:0;font-size:12.5px;font-weight:600}
+.icc-pr-card footer span:not(.icc-ag-ava){flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.icc-pr-card footer em{font-style:normal;font-size:11px;color:var(--txt-3)}
+
+@media (max-width:1100px){
+  .icc-pr-cab{display:none}
+  .icc-pr-fila{grid-template-columns:1fr auto;grid-template-areas:"cli est" "com fec" "acc acc";row-gap:10px}
+  .icc-pr-cliente{grid-area:cli}.icc-pr-estado{grid-area:est;align-items:flex-end}.icc-pr-comercial{grid-area:com}
+  .icc-pr-fecha{grid-area:fec;text-align:right}.icc-pr-acciones{grid-area:acc;justify-content:stretch}
+  .icc-pr-acciones .icc-pr-btn{flex:1;text-align:center}
+}
+@media (max-width:640px){
+  .icc-pr-fases{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  .icc-pr-fase{padding:10px}
+  .icc-pr-fase b{font-size:20px}
+  .icc-pr-fila{grid-template-columns:1fr;grid-template-areas:"cli" "est" "com" "fec" "acc"}
+  .icc-pr-estado{align-items:flex-start}.icc-pr-fecha{text-align:left}
+  .icc-pr-fecha b,.icc-pr-fecha small{display:inline;margin-right:6px}
+  .icc-pr-tablero{grid-auto-columns:minmax(78vw,1fr)}
+  .icc-pr-vistas{margin-left:0;width:100%}
+}
