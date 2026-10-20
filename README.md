@@ -36,6 +36,24 @@ icc-crm/
                           del CRM; vendor/ trae las librerías de PDF
 ```
 
+## Pipeline comercial
+
+Menú **Pipeline**: tablero con cada cliente como oportunidad, por fases
+(Lead → Auditoría → Propuesta → Negociación → Ganado / Perdido). Se arrastra
+cada tarjeta a su fase (al pasar a Perdido pide el motivo); las fases se
+siguen moviendo solas con la subida de facturas, los estudios y las firmas.
+
+- Cada tarjeta: valor estimado, días en la fase (🧊 estancada si supera el
+  límite de la fase), próxima cita de la agenda o aviso "Sin próxima acción",
+  ahorro encontrado para el cliente, servicios, comercial y cierre previsto.
+- Indicadores: valor en juego, previsión ponderada por probabilidad de la
+  fase (10/25/50/75 %), tasa de cierre, ciclo medio de venta, conversión
+  entre fases, previsión por mes, motivos de pérdida y pipeline por comercial.
+- Filtros por comercial, servicio, tipo de cliente, texto y solo estancadas;
+  exportación a CSV (Excel). Cada uno ve lo de su jerarquía.
+- Valor y fecha de cierre prevista requieren importar una vez
+  `sql/migracion_pipeline_oportunidades.sql`.
+
 ## Comparador (Energía y Telefonía)
 
 Menú **Comparador** → panel con el histórico de auditorías de los dos

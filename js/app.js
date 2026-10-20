@@ -67,6 +67,8 @@
 
     if (puede("agenda.ver")) items.push({ label: "Agenda", href: "#/agenda" });
 
+    if (puede("clientes.ver")) items.push({ label: "Pipeline", href: "#/pipeline" });
+
     if (puede("presupuestos.ver")) items.push({ label: "Presupuestos", href: "#/presupuestos" });
 
     if (puede("contratos.ver")) items.push({
@@ -304,6 +306,7 @@
     ["#/presupuestos", "presupuestos.ver"],
     ["#/contratos", "contratos.ver"],
     ["#/clientes", "clientes.ver"],
+    ["#/pipeline", "clientes.ver"],
     ["#/ficheros", "ficheros.ver"],
     ["#/proformas", "proformas.ver"],
     ["#/informes", "informes.ver"],
@@ -424,6 +427,8 @@
         await window.icc.views.viewClienteDetalle(ruta.replace("#/clientes/", ""));
       } else if (ruta === "#/agenda") {
         await window.icc.views.viewAgenda();
+      } else if (ruta === "#/pipeline") {
+        await window.icc.pipeline.view();
       } else if (ruta === "#/presupuestos") {
         await window.icc.views.viewPresupuestos();
       } else if (ruta.indexOf("#/presupuestos/") === 0) {

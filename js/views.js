@@ -81,7 +81,7 @@ window.icc.views = (function () {
       "</div>" +
       '<div class="icc-grid-2">' +
       '<section class="icc-card">' +
-      "<h2>Embudo comercial</h2>" +
+      '<h2>Embudo comercial <a class="icc-link-btn" style="font-size:13px;margin-left:8px" href="#/pipeline">Ver pipeline →</a></h2>' +
       '<div class="icc-funnel">' +
       C.ESTADOS_ORDEN.filter(function (e) {
         return e !== "perdido";
@@ -288,7 +288,7 @@ window.icc.views = (function () {
       "</div>";
 
     document.getElementById("btn-nuevo-cliente").addEventListener("click", function () {
-      modalNuevoCliente();
+      modalNuevoCliente(null);
     });
     main()
       .querySelectorAll("[data-cliente-id]")
@@ -335,7 +335,8 @@ window.icc.views = (function () {
     );
   }
 
-  function modalNuevoCliente() {
+  // alCrear(id): opcional; sin ella, tras crear se abre la ficha del cliente.
+  function modalNuevoCliente(alCrear) {
     U.openModal(
       '<h2>Nuevo cliente</h2>' +
       '<form id="form-nuevo-cliente" class="icc-form">' +
@@ -394,7 +395,8 @@ window.icc.views = (function () {
         var id = await D.crearCliente(payload, servicios);
         U.closeModal();
         U.toast("Cliente creado correctamente", "success");
-        location.hash = "#/clientes/" + id;
+        if (typeof alCrear === "function") alCrear(id);
+        else location.hash = "#/clientes/" + id;
       } catch (err) {
         U.toast(err.message || "No se pudo crear el cliente", "error");
       }
@@ -3606,6 +3608,7 @@ window.icc.views = (function () {
     viewAgenda: viewAgenda,
     abrirModalCitaRapida: abrirModalCitaRapida,
     viewClientes: viewClientes,
+    modalNuevoCliente: modalNuevoCliente,
     viewClienteDetalle: viewClienteDetalle,
     viewContratos: viewContratos,
     viewAgentes: viewAgentes,
