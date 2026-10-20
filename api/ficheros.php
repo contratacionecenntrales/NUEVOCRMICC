@@ -23,7 +23,9 @@ if ($metodo === 'GET') {
   $stmt->execute([$carpetaId]);
   $ficheros = $stmt->fetchAll();
   foreach ($ficheros as &$f) {
-    $f['existe'] = is_file(ICC_STORAGE_DIR . '/ficheros/' . $f['ruta_archivo']);
+    $rutaFisica = ICC_STORAGE_DIR . '/ficheros/' . $f['ruta_archivo'];
+    $f['existe'] = is_file($rutaFisica);
+    $f['tamano'] = $f['existe'] ? (int)filesize($rutaFisica) : null;
   }
   icc_json(['ficheros' => $ficheros]);
 }

@@ -2764,13 +2764,19 @@ window.icc.views = (function () {
   async function viewFicheros(carpetaId) {
     main().innerHTML = '<div class="icc-loading">Cargando ficheros…</div>';
     var esAdmin = window.icc.auth.esAdminOSuperior();
+    var puedeBorrar = window.icc.auth.puede("ficheros.borrar");
+    var esc = U.escapeHtml;
+    var params = new URLSearchParams(location.hash.split("?")[1] || "");
+    var vistaGuardada = "";
+    try { vistaGuardada = localStorage.getItem("icc_ficheros_vista") || ""; } catch (e) { /* sin almacenamiento */ }
+    var vista = vistaGuardada === "lista" ? "lista" : "cuadricula";
 
     var arbol, ficheros;
     try {
       arbol = await D.listarCarpetasFicheros(carpetaId || null);
       ficheros = carpetaId ? await D.listarFicheros(carpetaId) : [];
     } catch (err) {
-      main().innerHTML = '<p class="icc-empty">' + U.escapeHtml(err.message || "No se pudo abrir esta carpeta") + "</p>";
+      main().innerHTML = '<p class="icc-empty">' + esc(err.message || "No se pudo abrir esta carpeta") + "</p>";
       return;
     }
 
@@ -2780,86 +2786,193 @@ window.icc.views = (function () {
     var puedeSubirAqui = actual ? actual.puede_subir : false;
     var puedeCrearCarpeta = window.icc.auth.puede("ficheros.subir") && (!actual || !actual.es_personal);
 
-    var migas =
-      '<a class="icc-tab' + (!carpetaId ? " is-active" : "") + '" href="#/ficheros">🏠 Raiz</a>' +
-      ruta
-        .map(function (r, i) {
-          return (
-            '<a class="icc-tab' + (i === ruta.length - 1 ? " is-active" : "") + '" href="#/ficheros/' + r.id + '">' +
-            U.escapeHtml(r.nombre) +
-            "</a>"
-          );
-        })
-        .join("");
+    // Color estable por carpeta (segun su nombre) para distinguirlas de un vistazo.
+    var paleta = ["#22D3EE", "#A78BFA", "#F472B6", "#34D399", "#FBBF24", "#60A5FA", "#FB923C", "#4ADE80", "#E879F9", "#2DD4BF", "#F87171", "#93C5FD"];
+    var colorCarpeta = function (nombre) {
+      var h = 0;
+      String(nombre).split("").forEach(function (ch) { h = (h * 31 + ch.charCodeAt(0)) >>> 0; });
+      return paleta[h % paleta.length];
+    };
+    var tipos = {
+      pdf: { ico: "📕", c: "#F87171", g: "pdf" },
+      doc: { ico: "📘", c: "#60A5FA", g: "doc" }, docx: { ico: "📘", c: "#60A5FA", g: "doc" },
+      xls: { ico: "📗", c: "#34D399", g: "hoja" }, xlsx: { ico: "📗", c: "#34D399", g: "hoja" },
+      ppt: { ico: "📙", c: "#FB923C", g: "presentacion" }, pptx: { ico: "📙", c: "#FB923C", g: "presentacion" },
+      png: { ico: "🖼️", c: "#E879F9", g: "imagen" }, jpg: { ico: "🖼️", c: "#E879F9", g: "imagen" }, jpeg: { ico: "🖼️", c: "#E879F9", g: "imagen" },
+      zip: { ico: "🗜️", c: "#FBBF24", g: "zip" },
+    };
+    var extension = function (n) { var m = String(n).toLowerCase().match(/\.([a-z0-9]+)$/); return m ? m[1] : ""; };
+    var tipoDe = function (f) { return tipos[extension(f.nombre_archivo)] || { ico: "📄", c: "#94A3B8", g: "otro" }; };
+    var tamano = function (b) {
+      if (b === null || b === undefined) return "";
+      if (b < 1024) return b + " B";
+      if (b < 1048576) return Math.round(b / 1024) + " KB";
+      return (b / 1048576).toFixed(1).replace(".", ",") + " MB";
+    };
+    var hoy = hoyIso();
+    var haceDias = function (fecha) {
+      if (!fecha) return "";
+      var d = Math.floor((new Date(hoy + "T12:00:00") - new Date(String(fecha).slice(0, 10) + "T12:00:00")) / 86400000);
+      return d <= 0 ? "hoy" : d === 1 ? "ayer" : "hace " + d + " d";
+    };
+    var plural = function (n, s, p) { return n + " " + (n === 1 ? s : p); };
 
+    var totalArchivosEnCarpetas = carpetas.reduce(function (a, c) { return a + Number(c.n_archivos || 0); }, 0);
+    var pesoTotal = ficheros.reduce(function (a, f) { return a + Number(f.tamano || 0); }, 0);
+    var faltan = ficheros.filter(function (f) { return f.existe === false; }).length;
+    var recientes = ficheros.filter(function (f) { var d = haceDias(f.created_at); return d === "hoy" || d === "ayer"; }).length;
+
+    var migas =
+      '<a href="#/ficheros"' + (!carpetaId ? ' class="is-actual"' : "") + ">🏠 Inicio</a>" +
+      ruta.map(function (r, i) {
+        return '<span class="icc-fi-sep">›</span><a href="#/ficheros/' + r.id + '"' + (i === ruta.length - 1 ? ' class="is-actual"' : "") + ">" + esc(r.nombre) + "</a>";
+      }).join("");
     var padreHref = ruta.length > 1 ? "#/ficheros/" + ruta[ruta.length - 2].id : "#/ficheros";
 
+    var resumen = !carpetaId
+      ? "<b>" + carpetas.length + "</b> " + (carpetas.length === 1 ? "carpeta" : "carpetas") + " · <b>" + totalArchivosEnCarpetas + "</b> " + (totalArchivosEnCarpetas === 1 ? "archivo dentro" : "archivos dentro")
+      : "<b>" + carpetas.length + "</b> " + (carpetas.length === 1 ? "subcarpeta" : "subcarpetas") + " · <b>" + ficheros.length + "</b> " + (ficheros.length === 1 ? "archivo" : "archivos") +
+        (pesoTotal ? " · <b>" + tamano(pesoTotal) + "</b>" : "") +
+        (recientes ? ' · <b class="ok">' + recientes + "</b> " + (recientes === 1 ? "nuevo" : "nuevos") : "") +
+        (faltan ? ' · <b class="mal">' + faltan + "</b> " + (faltan === 1 ? "no encontrado" : "no encontrados") : "");
+
+    var tarjetaCarpeta = function (c) {
+      var n = Number(c.n_archivos || 0), s = Number(c.n_carpetas || 0);
+      var detalle = [s ? plural(s, "carpeta", "carpetas") : "", plural(n, "archivo", "archivos")].filter(Boolean).join(" · ");
+      return (
+        '<div class="icc-fi-carpeta" data-nombre="' + esc(String(c.nombre).toLowerCase()) + '" style="--c:' + colorCarpeta(c.nombre) + '">' +
+        '<a class="icc-fi-carpeta-link" href="#/ficheros/' + c.id + '">' +
+        '<span class="icc-fi-carpeta-ico" aria-hidden="true"><i></i></span>' +
+        '<span class="icc-fi-carpeta-txt"><strong>' + esc(c.nombre) + (c.es_personal ? " 🔒" : "") + "</strong>" +
+        "<small>" + detalle + (c.ultimo_archivo ? " · " + haceDias(c.ultimo_archivo) : "") + "</small>" +
+        (c.es_personal && c.propietario_nombre ? '<small class="icc-fi-dueno">Personal de ' + esc(c.propietario_nombre) + "</small>" : "") +
+        "</span></a>" +
+        (puedeBorrar && !c.es_personal
+          ? '<button type="button" class="icc-fi-borrar" title="Borrar carpeta (debe estar vacía)" aria-label="Borrar carpeta ' + esc(c.nombre) + '" data-borrar-carpeta-id="' + c.id + '"' + (n || s ? ' data-llena="1"' : "") + ">🗑</button>"
+          : "") +
+        "</div>"
+      );
+    };
+
+    var filaFichero = function (f) {
+      var t = tipoDe(f);
+      var falta = f.existe === false;
+      return (
+        '<div class="icc-fi-archivo' + (falta ? " is-falta" : "") + '" data-nombre="' + esc(String(f.nombre_archivo).toLowerCase()) + '" data-tipo="' + t.g + '" style="--c:' + t.c + '">' +
+        '<span class="icc-fi-archivo-ico">' + (falta ? "⚠️" : t.ico) + '<em>' + esc(extension(f.nombre_archivo).toUpperCase() || "—") + "</em></span>" +
+        '<div class="icc-fi-archivo-txt">' +
+        (falta
+          ? "<strong>" + esc(f.nombre_archivo) + "</strong>"
+          : '<a href="' + D.urlDescarga("ficheros", f.ruta_archivo) + '" target="_blank" rel="noopener"><strong>' + esc(f.nombre_archivo) + "</strong></a>") +
+        "<small>" + (falta ? '<span class="icc-fi-falta">No encontrado en el servidor</span>' :
+          esc([tamano(f.tamano), U.formatFecha(f.created_at) + " (" + haceDias(f.created_at) + ")", f.subido_por_nombre ? "por " + f.subido_por_nombre : ""].filter(Boolean).join(" · "))) +
+        "</small></div>" +
+        '<div class="icc-fi-archivo-acc">' +
+        (falta ? "" :
+          '<a class="icc-btn icc-btn-ghost icc-fi-btn" target="_blank" rel="noopener" href="' + D.urlDescarga("ficheros", f.ruta_archivo) + '">👁 Ver</a>' +
+          '<a class="icc-btn icc-btn-secondary icc-fi-btn" href="' + D.urlDescarga("ficheros", f.ruta_archivo, true) + '">⬇ Descargar</a>') +
+        (puedeBorrar
+          ? '<button type="button" class="icc-fi-borrar" title="' + (falta ? "Borrar registro" : "Borrar archivo") + '" aria-label="Borrar ' + esc(f.nombre_archivo) + '" data-borrar-fichero-id="' + f.id + '" data-huerfano="' + (falta ? "1" : "0") + '">🗑</button>'
+          : "") +
+        "</div></div>"
+      );
+    };
+
+    var gruposPresentes = {};
+    ficheros.forEach(function (f) { gruposPresentes[tipoDe(f).g] = (gruposPresentes[tipoDe(f).g] || 0) + 1; });
+    var nombresGrupo = { pdf: "📕 PDF", doc: "📘 Word", hoja: "📗 Excel", presentacion: "📙 PowerPoint", imagen: "🖼️ Imágenes", zip: "🗜️ ZIP", otro: "📄 Otros" };
+
     main().innerHTML =
-      '<div class="icc-page-head"><h1>Ficheros' + (actual ? " · " + U.escapeHtml(actual.nombre) : "") + "</h1>" +
-      (carpetaId
-        ? '<div><a class="icc-btn icc-btn-secondary" href="' + padreHref + '">← Volver atrás</a> ' +
-          '<a class="icc-btn icc-btn-secondary" href="#/ficheros">Fichero Raíz</a></div>'
-        : esAdmin
-        ? '<a class="icc-link-btn" href="#/diagnostico-storage">🔍 Comprobar archivos que faltan</a> ' +
-          '<a class="icc-link-btn" href="#/copias-seguridad">🗄️ Copias de seguridad</a>'
+      '<header class="icc-ag-hero icc-fi-hero">' +
+      '<div class="icc-ag-hero-txt"><span class="icc-ag-hero-kicker">🗂️ Ficheros</span>' +
+      "<h1>" + esc(actual ? actual.nombre : "Biblioteca de documentos") + "</h1>" +
+      '<p class="icc-ag-hero-res">' + resumen + "</p></div>" +
+      '<div class="icc-ag-hero-acc icc-fi-hero-acc">' +
+      (carpetaId ? '<a class="icc-btn icc-btn-secondary" href="' + padreHref + '">← Atrás</a>' : "") +
+      (!carpetaId && esAdmin
+        ? '<a class="icc-btn icc-btn-ghost" href="#/diagnostico-storage">🔍 Archivos que faltan</a>' +
+          '<a class="icc-btn icc-btn-ghost" href="#/copias-seguridad">🗄️ Copias de seguridad</a>'
         : "") +
-      "</div>" +
-      '<div class="icc-tabs">' + migas + "</div>" +
+      (puedeSubirAqui ? '<button type="button" class="icc-btn icc-btn-primary icc-ag-btn-nueva" id="btn-fi-subir">⬆ Subir archivos</button>' : "") +
+      "</div></header>" +
+
+      '<nav class="icc-fi-migas" aria-label="Ruta de carpetas">' + migas + "</nav>" +
       (actual && actual.es_personal
-        ? '<p class="icc-muted" style="margin:8px 0">🔒 Carpeta personal de facturación — solo visible para ' +
-          U.escapeHtml(actual.propietario_nombre || "su titular") + " y Administración."
+        ? '<div class="icc-aviso icc-fi-aviso">🔒 Carpeta personal de facturación: solo la ven ' + esc(actual.propietario_nombre || "su titular") + " y Administración.</div>"
         : "") +
-      '<div class="icc-card">' +
+
+      '<section class="icc-card icc-fi-barra">' +
+      '<input class="icc-input" id="fi-buscar" type="search" placeholder="🔎 Buscar en esta carpeta" value="' + esc(params.get("q") || "") + '">' +
       (puedeCrearCarpeta
-        ? '<form id="form-nueva-carpeta" class="icc-doc-actions"><input class="icc-input" name="nombre" placeholder="Nombre de la nueva carpeta" required><button class="icc-btn icc-btn-secondary" type="submit">+ Nueva carpeta</button></form>'
+        ? '<form id="form-nueva-carpeta" class="icc-fi-nueva"><input class="icc-input" name="nombre" placeholder="Nombre de la nueva carpeta" maxlength="120" required><button class="icc-btn icc-btn-secondary" type="submit">📁 Crear carpeta</button></form>'
         : "") +
+      '<div class="icc-tabs icc-fi-vistas"><button type="button" class="icc-tab' + (vista === "cuadricula" ? " is-active" : "") + '" data-fi-vista="cuadricula">▦ Cuadrícula</button>' +
+      '<button type="button" class="icc-tab' + (vista === "lista" ? " is-active" : "") + '" data-fi-vista="lista">☰ Lista</button></div>' +
+      "</section>" +
+
       (carpetas.length
-        ? '<ul class="icc-doc-list" style="margin-top:14px">' +
-          carpetas
-            .map(function (c) {
-              return (
-                '<li><a class="icc-link-btn" style="margin-left:0" href="#/ficheros/' + c.id + '">📁 ' + U.escapeHtml(c.nombre) +
-                (c.es_personal ? " 🔒" : "") + "</a>" +
-                (window.icc.auth.puede("ficheros.borrar") && !c.es_personal
-                  ? '<button type="button" class="icc-link-btn" style="color:var(--red)" data-borrar-carpeta-id="' + c.id + '">Borrar</button>'
-                  : "") +
-                "</li>"
-              );
-            })
-            .join("") +
-          "</ul>"
+        ? '<section class="icc-fi-seccion"><h2>Carpetas <span>' + carpetas.length + "</span></h2>" +
+          '<div class="icc-fi-carpetas is-' + vista + '">' + carpetas.map(tarjetaCarpeta).join("") + "</div></section>"
         : "") +
+
       (!carpetaId
-        ? '<p class="icc-empty" style="margin-top:14px">Entra en una carpeta para ver y subir archivos.</p>'
-        : "" +
+        ? (carpetas.length ? "" : '<p class="icc-empty">Todavía no hay carpetas. Crea la primera arriba.</p>')
+        : '<section class="icc-fi-seccion"><h2>Archivos <span>' + ficheros.length + "</span>" +
+          (Object.keys(gruposPresentes).length > 1
+            ? '<div class="icc-fi-tipos">' + '<button type="button" class="icc-fi-tipo is-activo" data-fi-tipo="">Todos</button>' +
+              Object.keys(nombresGrupo).filter(function (g) { return gruposPresentes[g]; }).map(function (g) {
+                return '<button type="button" class="icc-fi-tipo" data-fi-tipo="' + g + '">' + nombresGrupo[g] + " <b>" + gruposPresentes[g] + "</b></button>";
+              }).join("") + "</div>"
+            : "") +
+          "</h2>" +
           (puedeSubirAqui
-            ? '<form id="form-subir-fichero" class="icc-doc-actions" style="margin-top:14px"><input class="icc-input" type="file" name="archivo" multiple required><button class="icc-btn icc-btn-secondary" type="submit">Subir archivo(s)</button></form>'
+            ? '<form id="form-subir-fichero" class="icc-fi-drop" tabindex="0">' +
+              '<input type="file" name="archivo" id="fi-input" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.png,.jpg,.jpeg" hidden>' +
+              '<span class="icc-fi-drop-ico">⬆</span><div><strong>Arrastra aquí los archivos</strong> o <button type="button" class="icc-link-btn" id="fi-elegir">elígelos de tu equipo</button>' +
+              "<small>PDF, Word, Excel, PowerPoint, imágenes o ZIP · máximo 30 MB cada uno</small></div>" +
+              '<div class="icc-fi-progreso" hidden><i></i><span></span></div></form>'
             : "") +
           (ficheros.length
-            ? '<ul class="icc-doc-list" style="margin-top:14px">' +
-              ficheros
-                .map(function (f) {
-                  return (
-                    '<li class="icc-fichero-fila"><div class="icc-fichero-info"><span>' +
-                    (f.existe === false ? "⚠️ " : "📄 ") + U.escapeHtml(f.nombre_archivo) +
-                    (f.existe === false ? ' <span style="color:var(--red)">(no encontrado en el servidor)</span>' : "") +
-                    "</span><span class=\"icc-muted\">" +
-                    U.formatFecha(f.created_at) + "</span></div>" +
-                    '<div class="icc-fichero-acciones">' +
-                    (f.existe === false
-                      ? ""
-                      : '<a class="icc-link-btn" target="_blank" href="' + D.urlDescarga("ficheros", f.ruta_archivo) + '">Ver</a>' +
-                        '<a class="icc-link-btn" href="' + D.urlDescarga("ficheros", f.ruta_archivo, true) + '">Descargar</a>') +
-                    (window.icc.auth.puede("ficheros.borrar")
-                      ? '<button type="button" class="icc-link-btn" style="color:var(--red)" data-borrar-fichero-id="' + f.id + '" data-huerfano="' + (f.existe === false ? "1" : "0") + '">' +
-                        (f.existe === false ? "Borrar registro" : "Borrar") + "</button>"
-                      : "") +
-                    "</div></li>"
-                  );
-                })
-                .join("") +
-              "</ul>"
-            : '<p class="icc-empty" style="margin-top:14px">Sin archivos en esta carpeta.</p>'));
+            ? '<div class="icc-fi-archivos">' + ficheros.map(filaFichero).join("") + "</div>"
+            : '<p class="icc-empty">Sin archivos en esta carpeta.</p>') +
+          "</section>") +
+      '<p class="icc-empty icc-fi-sin-resultados" hidden>Nada coincide con la búsqueda.</p>';
+
+    // ---- Busqueda y filtro por tipo (en el navegador, al instante)
+    var tipoActivo = "";
+    var buscar = document.getElementById("fi-buscar");
+    var aplicarFiltro = function () {
+      var txt = buscar.value.trim().toLowerCase();
+      var visibles = 0;
+      main().querySelectorAll(".icc-fi-carpeta,.icc-fi-archivo").forEach(function (el) {
+        var ok = (!txt || el.getAttribute("data-nombre").indexOf(txt) !== -1) &&
+          (!tipoActivo || !el.classList.contains("icc-fi-archivo") || el.getAttribute("data-tipo") === tipoActivo) &&
+          (!tipoActivo || !el.classList.contains("icc-fi-carpeta"));
+        el.hidden = !ok;
+        if (ok) visibles++;
+      });
+      var hay = main().querySelectorAll(".icc-fi-carpeta,.icc-fi-archivo").length;
+      main().querySelector(".icc-fi-sin-resultados").hidden = !(hay && !visibles);
+    };
+    buscar.addEventListener("input", aplicarFiltro);
+    main().querySelectorAll("[data-fi-tipo]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        tipoActivo = b.getAttribute("data-fi-tipo");
+        main().querySelectorAll("[data-fi-tipo]").forEach(function (x) { x.classList.toggle("is-activo", x === b); });
+        aplicarFiltro();
+      });
+    });
+    if (buscar.value) aplicarFiltro();
+
+    main().querySelectorAll("[data-fi-vista]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var v = b.getAttribute("data-fi-vista");
+        try { localStorage.setItem("icc_ficheros_vista", v); } catch (e) { /* sin almacenamiento */ }
+        main().querySelectorAll("[data-fi-vista]").forEach(function (x) { x.classList.toggle("is-active", x === b); });
+        var g = main().querySelector(".icc-fi-carpetas");
+        if (g) { g.classList.toggle("is-lista", v === "lista"); g.classList.toggle("is-cuadricula", v !== "lista"); }
+      });
+    });
 
     var formCarpeta = document.getElementById("form-nueva-carpeta");
     if (formCarpeta) {
@@ -2881,7 +2994,11 @@ window.icc.views = (function () {
       .querySelectorAll("[data-borrar-carpeta-id]")
       .forEach(function (btn) {
         btn.addEventListener("click", async function () {
-          if (!confirm("¿Borrar esta carpeta? Debe estar vacía.")) return;
+          if (btn.getAttribute("data-llena") === "1") {
+            U.toast("La carpeta tiene contenido: vacíala antes de borrarla", "error");
+            return;
+          }
+          if (!confirm("¿Borrar esta carpeta vacía?")) return;
           try {
             await D.borrarCarpetaFichero(btn.getAttribute("data-borrar-carpeta-id"));
             U.toast("Carpeta borrada", "success");
@@ -2892,18 +3009,23 @@ window.icc.views = (function () {
         });
       });
 
+    // ---- Subida: boton, selector y arrastrar y soltar
     var form = document.getElementById("form-subir-fichero");
     if (form) {
-      form.addEventListener("submit", async function (e) {
-        e.preventDefault();
-        var files = Array.prototype.slice.call(e.target.archivo.files);
-        if (!files.length) return;
-        var btn = form.querySelector('button[type="submit"]');
-        btn.disabled = true;
+      var input = document.getElementById("fi-input");
+      var progreso = form.querySelector(".icc-fi-progreso");
+      var subiendo = false;
+      var subir = async function (files) {
+        files = Array.prototype.slice.call(files || []);
+        if (!files.length || subiendo) return;
+        subiendo = true;
+        form.classList.add("is-subiendo");
+        progreso.hidden = false;
         var subidos = 0;
         var errores = [];
         for (var i = 0; i < files.length; i++) {
-          btn.textContent = "Subiendo " + (i + 1) + "/" + files.length + "…";
+          progreso.querySelector("span").textContent = "Subiendo " + (i + 1) + " de " + files.length + ": " + files[i].name;
+          progreso.querySelector("i").style.width = Math.round((i / files.length) * 100) + "%";
           try {
             await D.subirFichero(carpetaId, files[i]);
             subidos++;
@@ -2911,10 +3033,24 @@ window.icc.views = (function () {
             errores.push(files[i].name + ": " + (err.message || "error"));
           }
         }
+        progreso.querySelector("i").style.width = "100%";
         if (subidos) U.toast(subidos + " archivo" + (subidos > 1 ? "s" : "") + " subido" + (subidos > 1 ? "s" : ""), "success");
         errores.forEach(function (m) { U.toast(m, "error"); });
         viewFicheros(carpetaId);
+      };
+      document.getElementById("fi-elegir").addEventListener("click", function () { input.click(); });
+      var btnSubir = document.getElementById("btn-fi-subir");
+      if (btnSubir) btnSubir.addEventListener("click", function () { input.click(); });
+      input.addEventListener("change", function () { subir(input.files); });
+      form.addEventListener("keydown", function (e) { if ((e.key === "Enter" || e.key === " ") && e.target === form) { e.preventDefault(); input.click(); } });
+      ["dragenter", "dragover"].forEach(function (ev) {
+        form.addEventListener(ev, function (e) { e.preventDefault(); form.classList.add("is-encima"); });
       });
+      ["dragleave", "drop"].forEach(function (ev) {
+        form.addEventListener(ev, function (e) { e.preventDefault(); form.classList.remove("is-encima"); });
+      });
+      form.addEventListener("drop", function (e) { subir(e.dataTransfer && e.dataTransfer.files); });
+      form.addEventListener("submit", function (e) { e.preventDefault(); });
     }
 
     main()
@@ -2923,13 +3059,9 @@ window.icc.views = (function () {
         btn.addEventListener("click", async function () {
           var esHuerfano = btn.getAttribute("data-huerfano") === "1";
           // Un archivo ya "no encontrado en el servidor" no tiene nada fisico
-          // que perder: se borra el registro directo, sin dialogo de
-          // confirmacion (que en algunos navegadores/paneles no llega a
-          // aparecer y da sensacion de boton bloqueado).
+          // que perder: se borra el registro directo, sin dialogo de confirmacion.
           if (!esHuerfano && !confirm("¿Borrar este archivo? No se puede deshacer.")) return;
-          var textoOriginal = btn.textContent;
           btn.disabled = true;
-          btn.textContent = "Borrando…";
           try {
             await D.borrarFichero(btn.getAttribute("data-borrar-fichero-id"));
             U.toast("Archivo borrado", "success");
@@ -2937,7 +3069,6 @@ window.icc.views = (function () {
           } catch (err) {
             U.toast(err.message || "No se pudo borrar el archivo", "error");
             btn.disabled = false;
-            btn.textContent = textoOriginal;
           }
         });
       });

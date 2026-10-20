@@ -34,13 +34,21 @@ if ($metodo === 'GET' && $id === null) {
 
   if ($parentId === null) {
     $stmt = $db->query(
-      "SELECT c.*, u.nombre AS propietario_nombre FROM ficheros_carpetas c
+      "SELECT c.*, u.nombre AS propietario_nombre,
+       (SELECT COUNT(*) FROM ficheros_carpetas h WHERE h.parent_id = c.id) AS n_carpetas,
+       (SELECT COUNT(*) FROM ficheros f WHERE f.carpeta_id = c.id) AS n_archivos,
+       (SELECT MAX(f.created_at) FROM ficheros f WHERE f.carpeta_id = c.id) AS ultimo_archivo
+       FROM ficheros_carpetas c
        LEFT JOIN usuarios u ON u.id = c.propietario_id
        WHERE c.parent_id IS NULL ORDER BY c.nombre ASC"
     );
   } else {
     $stmt = $db->prepare(
-      'SELECT c.*, u.nombre AS propietario_nombre FROM ficheros_carpetas c
+      'SELECT c.*, u.nombre AS propietario_nombre,
+       (SELECT COUNT(*) FROM ficheros_carpetas h WHERE h.parent_id = c.id) AS n_carpetas,
+       (SELECT COUNT(*) FROM ficheros f WHERE f.carpeta_id = c.id) AS n_archivos,
+       (SELECT MAX(f.created_at) FROM ficheros f WHERE f.carpeta_id = c.id) AS ultimo_archivo
+       FROM ficheros_carpetas c
        LEFT JOIN usuarios u ON u.id = c.propietario_id
        WHERE c.parent_id = ? ORDER BY c.nombre ASC'
     );
