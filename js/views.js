@@ -1453,19 +1453,17 @@ window.icc.views = (function () {
 
   async function viewAgentes() {
     var params = new URLSearchParams(location.hash.split("?")[1] || "");
-    var filtros = {};
-    ["bloqueado", "nombre", "apellidos", "tipo", "empresa", "cif", "telefono"].forEach(function (k) {
-      if (params.get(k) !== null && params.get(k) !== "") filtros[k] = params.get(k);
-    });
+    var q = (params.get("q") || params.get("nombre") || "").trim();
+    var rolFiltro = params.get("rol") || "";
+    var estadoFiltro = params.get("estado") === "bloqueados" ? "bloqueados" : params.get("bloqueado") === "1" ? "bloqueados" : "";
+    var vista = params.get("vista") === "equipos" ? "equipos" : "tarjetas";
+    var esc = U.escapeHtml;
 
     main().innerHTML = '<div class="icc-loading">Cargando agentes…</div>';
-    var agentes = await D.listarAgentes(filtros);
+    var agentes = await D.listarAgentes({});
     var esAdmin = window.icc.auth.esAdminOSuperior();
     // null = falta la migracion de asignaciones de Backoffice (se oculta el boton).
     var asignacionesBo = esAdmin ? await D.listarAsignacionesBackoffice().catch(function () { return null; }) : null;
-    // Para el desplegable de asignacion hace falta la lista completa de
-    // comerciales, aunque Agentes este filtrado.
-    var todosAgentes = esAdmin && Object.keys(filtros).length ? await D.listarAgentes({}).catch(function () { return agentes; }) : agentes;
     var miUsuario = window.icc.auth.state.user || {};
     var avisoBackoffice = miUsuario.rol === "backoffice" && Number(miUsuario.comerciales_asignados) > 0;
     var esSuperAdmin = window.icc.auth.esSuperAdmin();
@@ -1473,7 +1471,7 @@ window.icc.views = (function () {
     var jefePuedeCrear = esJefeDeEquipo && window.icc.auth.puede("usuarios.crear");
     var jefeGestiona = esJefeDeEquipo && window.icc.auth.puede("usuarios.gestionar");
     var jefeVerComo = esJefeDeEquipo && window.icc.auth.puede("usuarios.ver_como");
-    var miId = window.icc.auth.state.user && window.icc.auth.state.user.id;
+    var miId = miUsuario.id;
     // Comercial de mi propio equipo (lo que un Jefe de equipo puede gestionar).
     function esDeMiEquipo(a) {
       return esJefeDeEquipo && a.rol === "comercial" && String(a.supervisor_id) === String(miId);
@@ -1489,124 +1487,230 @@ window.icc.views = (function () {
       return esJefeDeEquipo && String(a.supervisor_id) === String(miId);
     }
 
-    main().innerHTML =
-      '<div class="icc-page-head"><h1>Agentes</h1><div>' +
-      (esAdmin ? '<a class="icc-link-btn" href="#/auditoria-ver-como" style="margin-right:14px">🕵️ Historial de "Ver como"</a>' : "") +
-      (esAdmin || jefePuedeCrear ? '<button class="icc-btn icc-btn-primary" id="btn-nuevo-agente">Nuevo usuario</button>' : "") +
-      "</div></div>" +
-      '<div class="icc-card">' +
-      '<form id="form-filtros-agente" class="icc-filtros-row">' +
-      '<input class="icc-input" name="nombre" placeholder="Nombre" value="' + U.escapeHtml(filtros.nombre || "") + '">' +
-      '<input class="icc-input" name="apellidos" placeholder="Apellidos" value="' + U.escapeHtml(filtros.apellidos || "") + '">' +
-      '<input class="icc-input" name="empresa" placeholder="Empresa" value="' + U.escapeHtml(filtros.empresa || "") + '">' +
-      '<input class="icc-input" name="cif" placeholder="CIF" value="' + U.escapeHtml(filtros.cif || "") + '">' +
-      '<input class="icc-input" name="telefono" placeholder="Telefono" value="' + U.escapeHtml(filtros.telefono || "") + '">' +
-      '<select class="icc-select" name="bloqueado"><option value="">Bloqueado: todos</option>' +
-      '<option value="0"' + (filtros.bloqueado === "0" ? " selected" : "") + ">Activos</option>" +
-      '<option value="1"' + (filtros.bloqueado === "1" ? " selected" : "") + ">Bloqueados</option>" +
-      "</select>" +
-      '<button class="icc-btn icc-btn-secondary" type="submit">Filtrar</button>' +
-      "</form></div>" +
-      (avisoBackoffice
-        ? '<div class="icc-card"><p class="icc-muted" style="margin:0">Te aparecen solo los comerciales que te ha asignado un Admin; ' +
-          "verás únicamente sus clientes, contratos, presupuestos, agenda e informes.</p></div>"
-        : "") +
-      '<div class="icc-card icc-table-wrap"><table class="icc-table"><thead><tr>' +
-      "<th>Nombre</th><th>Email</th><th>Empresa / CIF</th><th>Telefono</th><th>Rol</th><th>Jefe de equipo / Responsable / Comerciales</th><th>Estado</th>" +
-      (esAdmin || esJefeDeEquipo ? "<th></th>" : "") +
-      "</tr></thead><tbody>" +
-      agentes
-        .map(function (a) {
-          var dispAgente = a.estado_disponibilidad && a.estado_disponibilidad !== "disponible" ? C.ESTADOS_DISPONIBILIDAD[a.estado_disponibilidad] : null;
-          var nombreCompleto =
-            '<span class="icc-agente-nombre">' + U.avatar(a, 30) + "<span>" + U.escapeHtml(a.nombre + " " + (a.apellidos || "")) +
-            (dispAgente ? '<br><span class="icc-badge" style="--badge-color:' + dispAgente.color + '">' + dispAgente.label + "</span>" : "") +
-            "</span></span>";
-          var esObjetivoAdminTier = a.rol === "admin" || a.rol === "super_admin";
-          var esYoMismo = String(a.id) === String(miId);
-          // Un Admin normal no puede gestionar (rol/bloqueo/ver como/borrar)
-          // ninguna cuenta de Admin o Super Admin, ni siquiera la suya propia
-          // (eso lo decide abajo cada boton por separado); eso es exclusivo
-          // de Super Admin.
-          var puedeGestionarFila = esSuperAdmin || (esAdmin && (!esObjetivoAdminTier || esYoMismo));
-          return (
-            "<tr><td>" +
-            (puedeVerFicha(a)
-              ? '<a class="icc-link-btn" href="#/agentes/' + a.id + '" title="Abrir la ficha de este agente">' + nombreCompleto + "</a>"
-              : esAdmin || esJefeDeEquipo
-                ? '<a class="icc-link-btn" href="#/clientes?comercial_id=' + a.id + '" title="Ver las cuentas de este agente">' + nombreCompleto + "</a>"
-                : nombreCompleto) +
-            "</td>" +
-            "<td>" + U.escapeHtml(a.email) + "</td>" +
-            "<td>" + U.escapeHtml(a.empresa || "-") + "<br><span class=\"icc-muted\">" + U.escapeHtml(a.cif || "") + "</span></td>" +
-            "<td>" + U.escapeHtml(a.telefono || "-") + "</td>" +
-            "<td>" +
-            (puedeGestionarFila && !esYoMismo
-              ? '<select class="icc-select" data-rol-id="' + a.id + '">' +
-                rolesParaAdmin
-                  .map(function (r) {
-                    return '<option value="' + r + '"' + (a.rol === r ? " selected" : "") + ">" + C.ROLES[r] + "</option>";
-                  })
-                  .join("") +
-                "</select>"
-              : U.escapeHtml(C.ROLES[a.rol] || a.rol)) +
-            "</td>" +
-            "<td>" +
-            (a.rol === "backoffice" && esAdmin && asignacionesBo
-              ? '<button type="button" class="icc-btn icc-btn-ghost" data-asignar-bo-id="' + a.id + '">👥 ' +
-                ((asignacionesBo[a.id] || []).length
-                  ? (asignacionesBo[a.id].length === 1 ? "1 comercial asignado" : asignacionesBo[a.id].length + " comerciales asignados")
-                  : "Toda la empresa") +
-                "</button>"
-              : a.rol !== "comercial" && a.rol !== "jefe_de_equipo"
-              ? '<span class="icc-muted">-</span>'
-              : esAdmin
-                ? '<select class="icc-select" data-supervisor-id="' + a.id + '">' +
-                  (a.rol === "comercial" ? opcionesJefesEquipo(agentes, a.supervisor_id) : opcionesResponsablesJefe(agentes, a.supervisor_id)) +
-                  "</select>"
-                : U.escapeHtml((agentes.filter(function (j) { return String(j.id) === String(a.supervisor_id); })[0] || {}).nombre || a.supervisor_nombre || "Sin asignar")) +
-            "</td>" +
-            "<td>" +
-            (puedeGestionarFila || (jefeGestiona && esDeMiEquipo(a))
-              ? '<button class="icc-btn icc-btn-ghost" data-bloqueo-id="' + a.id + '" data-bloqueado="' + a.bloqueado + '">' +
-                (Number(a.bloqueado) ? "Desbloquear" : "Bloquear") +
-                "</button>"
-              : Number(a.bloqueado)
-                ? '<span class="icc-muted">Bloqueado</span>'
-                : '<span class="icc-muted">Activo</span>') +
-            "</td>" +
-            (esAdmin
-              ? "<td>" +
-                (puedeGestionarFila && !esYoMismo
-                  ? '<button type="button" class="icc-link-btn" data-ver-como-id="' + a.id + '">👁️ Ver como</button> '
-                  : "") +
-                (puedeGestionarFila && !esYoMismo
-                  ? '<button type="button" class="icc-link-btn" style="color:var(--red)" data-borrar-agente-id="' + a.id + '">Borrar</button>'
-                  : "") +
-                "</td>"
-              : esJefeDeEquipo
-                ? "<td>" +
-                  (esDeMiEquipo(a)
-                    ? '<a class="icc-link-btn" href="#/agentes/' + a.id + '/informacion">⚙️ Gestionar</a> ' +
-                      (jefeVerComo && !Number(a.bloqueado) ? '<button type="button" class="icc-link-btn" data-ver-como-id="' + a.id + '">👁️ Ver como</button>' : "")
-                    : "") +
-                  "</td>"
-                : "") +
-            "</tr>"
-          );
-        })
-        .join("") +
-      "</tbody></table></div>";
+    var colorRol = { comercial: "#22D3EE", jefe_de_equipo: "#A78BFA", backoffice: "#FBBF24", admin: "#34D399", super_admin: "#F472B6" };
+    var iconoRol = { comercial: "💼", jefe_de_equipo: "🧭", backoffice: "🗂️", admin: "🏛️", super_admin: "👑" };
+    var grupoRol = function (r) { return r === "admin" || r === "super_admin" ? "direccion" : r; };
+    var bloqueado = function (a) { return Number(a.bloqueado) === 1; };
+    var nombreDe = function (a) { return (a.nombre + " " + (a.apellidos || "")).trim(); };
+    var porId = {};
+    agentes.forEach(function (a) { porId[a.id] = a; });
 
-    document.getElementById("form-filtros-agente").addEventListener("submit", function (e) {
-      e.preventDefault();
-      var fd = new FormData(e.target);
-      var qs = new URLSearchParams();
-      fd.forEach(function (v, k) {
-        if (v) qs.set(k, v);
+    // ---- Filtros (en el navegador)
+    var coincide = function (a) {
+      if (rolFiltro && grupoRol(a.rol) !== rolFiltro) return false;
+      if (estadoFiltro === "bloqueados" && !bloqueado(a)) return false;
+      return true;
+    };
+    var visibles = agentes.filter(coincide);
+    var textoBusqueda = function (a) {
+      return [nombreDe(a), a.email, a.empresa, a.cif, a.telefono, C.ROLES[a.rol], a.supervisor_nombre].join(" ").toLowerCase();
+    };
+
+    // ---- Resumen
+    var activos = agentes.filter(function (a) { return !bloqueado(a); });
+    var cuenta = { comercial: 0, jefe_de_equipo: 0, backoffice: 0, direccion: 0 };
+    agentes.forEach(function (a) { cuenta[grupoRol(a.rol)] = (cuenta[grupoRol(a.rol)] || 0) + 1; });
+    var nBloqueados = agentes.length - activos.length;
+    var contratosMes = agentes.reduce(function (s, a) { return s + Number(a.contratos_mes || 0); }, 0);
+    var comercialesSinJefe = agentes.filter(function (a) { return a.rol === "comercial" && !a.supervisor_id && !bloqueado(a); }).length;
+
+    var linkQs = function (cambios) {
+      var x = Object.assign({ rol: rolFiltro, estado: estadoFiltro, vista: vista === "equipos" ? "equipos" : "", q: q }, cambios || {});
+      var p = new URLSearchParams();
+      Object.keys(x).forEach(function (k) { if (x[k]) p.set(k, x[k]); });
+      return "#/agentes" + (p.toString() ? "?" + p.toString() : "");
+    };
+
+    var chip = function (clave, label, n, color, icono, esEstado) {
+      var activo = esEstado ? estadoFiltro === clave : rolFiltro === clave && !estadoFiltro;
+      if (!clave) activo = !rolFiltro && !estadoFiltro;
+      var href = esEstado
+        ? linkQs({ estado: activo ? "" : clave, rol: "" })
+        : linkQs({ rol: activo ? "" : clave, estado: "" });
+      return '<a class="icc-ap-chip' + (activo ? " is-activo" : "") + '" style="--c:' + color + '" href="' + href + '">' +
+        '<span class="icc-ap-chip-ico">' + icono + "</span><b>" + n + "</b><span>" + label + "</span></a>";
+    };
+
+    var avatarRol = function (a, t) {
+      return '<span class="icc-ap-ava" style="--c:' + (colorRol[a.rol] || "#94A3B8") + '">' + U.avatar(a, t) + "</span>";
+    };
+
+    // Control de jefe de equipo / responsable / comerciales asignados.
+    var controlEquipo = function (a, puedeGestionarFila) {
+      if (a.rol === "backoffice" && esAdmin && asignacionesBo) {
+        var n = (asignacionesBo[a.id] || []).length;
+        return '<button type="button" class="icc-btn icc-btn-ghost icc-ap-btn-bo" data-asignar-bo-id="' + a.id + '">👥 ' +
+          (n ? (n === 1 ? "1 comercial asignado" : n + " comerciales asignados") : "Ve toda la empresa") + "</button>";
+      }
+      if (a.rol !== "comercial" && a.rol !== "jefe_de_equipo") return "";
+      if (esAdmin && puedeGestionarFila) {
+        return '<select class="icc-select" data-supervisor-id="' + a.id + '" aria-label="' + (a.rol === "comercial" ? "Jefe de equipo" : "Responsable") + " de " + esc(nombreDe(a)) + '">' +
+          (a.rol === "comercial" ? opcionesJefesEquipo(agentes, a.supervisor_id) : opcionesResponsablesJefe(agentes, a.supervisor_id)) + "</select>";
+      }
+      var sup = porId[a.supervisor_id];
+      return '<span class="icc-ap-sup">' + esc(sup ? nombreDe(sup) : a.supervisor_nombre || "Sin asignar") + "</span>";
+    };
+
+    var tarjeta = function (a) {
+      var esObjetivoAdminTier = a.rol === "admin" || a.rol === "super_admin";
+      var esYoMismo = String(a.id) === String(miId);
+      // Un Admin normal no gestiona cuentas de Admin/Super Admin (solo Super Admin).
+      var puedeGestionarFila = esSuperAdmin || (esAdmin && (!esObjetivoAdminTier || esYoMismo));
+      var disp = a.estado_disponibilidad && a.estado_disponibilidad !== "disponible" ? C.ESTADOS_DISPONIBILIDAD[a.estado_disponibilidad] : null;
+      var color = colorRol[a.rol] || "#94A3B8";
+      var equipo = agentes.filter(function (x) { return x.rol === "comercial" && String(x.supervisor_id) === String(a.id); });
+      var hrefNombre = puedeVerFicha(a) ? "#/agentes/" + a.id : esAdmin || esJefeDeEquipo ? "#/clientes?comercial_id=" + a.id : "";
+
+      var datos = [];
+      if (a.rol === "comercial" || Number(a.n_clientes)) datos.push("<div><b>" + Number(a.n_clientes || 0) + "</b><span>clientes</span></div>");
+      if (a.rol === "comercial" || Number(a.contratos_mes)) datos.push('<div><b class="' + (Number(a.contratos_mes) ? "ok" : "") + '">' + Number(a.contratos_mes || 0) + "</b><span>contratos mes</span></div>");
+      if (a.rol === "jefe_de_equipo" || equipo.length) datos.push("<div><b>" + equipo.length + "</b><span>" + (equipo.length === 1 ? "comercial" : "comerciales") + "</span></div>");
+      if (a.rol === "backoffice" && asignacionesBo) {
+        var nBo = (asignacionesBo[a.id] || []).length;
+        datos.push("<div><b>" + (nBo || "Todos") + "</b><span>" + (nBo ? "asignados" : "comerciales") + "</span></div>");
+      }
+
+      var etiquetaEquipo = a.rol === "comercial" ? "Jefe de equipo" : a.rol === "jefe_de_equipo" ? "Responsable" : a.rol === "backoffice" ? "Comerciales" : "";
+      var ctrl = controlEquipo(a, puedeGestionarFila);
+      var puedeRol = puedeGestionarFila && !esYoMismo;
+      // Nadie se bloquea a si mismo (se quedaria fuera del CRM).
+      var puedeBloquear = !esYoMismo && (puedeGestionarFila || (jefeGestiona && esDeMiEquipo(a)));
+      var puedeVerComo = (esAdmin && puedeGestionarFila && !esYoMismo) || (jefeVerComo && esDeMiEquipo(a) && !bloqueado(a));
+      var puedeBorrar = esAdmin && puedeGestionarFila && !esYoMismo;
+
+      return (
+        '<article class="icc-ap-card' + (bloqueado(a) ? " is-bloqueado" : "") + '" style="--c:' + color + '" data-buscar="' + esc(textoBusqueda(a)) + '">' +
+        '<header class="icc-ap-cab">' + avatarRol(a, 48) +
+        '<div class="icc-ap-nombre">' +
+        (hrefNombre ? '<a href="' + hrefNombre + '"><strong>' + esc(nombreDe(a)) + "</strong></a>" : "<strong>" + esc(nombreDe(a)) + "</strong>") +
+        '<div class="icc-ap-badges"><span class="icc-ap-rol">' + (iconoRol[a.rol] || "") + " " + esc(C.ROLES[a.rol] || a.rol) + "</span>" +
+        (esYoMismo ? '<span class="icc-ap-tag is-tu">Tú</span>' : "") +
+        (bloqueado(a) ? '<span class="icc-ap-tag is-bloq">🔒 Bloqueado</span>' : "") +
+        (disp ? '<span class="icc-ap-tag" style="--t:' + disp.color + '">' + esc(disp.label) + "</span>" : "") +
+        "</div></div></header>" +
+        '<ul class="icc-ap-contacto">' +
+        '<li><span aria-hidden="true">✉️</span><a href="mailto:' + esc(a.email) + '">' + esc(a.email) + "</a></li>" +
+        (a.telefono ? '<li><span aria-hidden="true">📞</span><a href="tel:' + esc(String(a.telefono).replace(/\s+/g, "")) + '">' + esc(a.telefono) + "</a></li>" : "") +
+        (a.empresa || a.cif ? '<li><span aria-hidden="true">🏢</span><span>' + esc([a.empresa, a.cif].filter(Boolean).join(" · ")) + "</span></li>" : "") +
+        "</ul>" +
+        (datos.length ? '<div class="icc-ap-datos">' + datos.join("") + "</div>" : "") +
+        (puedeRol || ctrl
+          ? '<div class="icc-ap-gestion">' +
+            (puedeRol
+              ? '<label><span>Rol</span><select class="icc-select" data-rol-id="' + a.id + '" aria-label="Rol de ' + esc(nombreDe(a)) + '">' +
+                rolesParaAdmin.map(function (r) { return '<option value="' + r + '"' + (a.rol === r ? " selected" : "") + ">" + C.ROLES[r] + "</option>"; }).join("") +
+                "</select></label>"
+              : "") +
+            (ctrl ? "<label><span>" + etiquetaEquipo + "</span>" + ctrl + "</label>" : "") +
+            "</div>"
+          : "") +
+        '<footer class="icc-ap-acc">' +
+        (puedeVerFicha(a) ? '<a class="icc-btn icc-btn-secondary icc-ap-btn" href="#/agentes/' + a.id + '">Ficha →</a>' : "") +
+        (esJefeDeEquipo && esDeMiEquipo(a) ? '<a class="icc-btn icc-btn-ghost icc-ap-btn" href="#/agentes/' + a.id + '/informacion">⚙️ Gestionar</a>' : "") +
+        (puedeVerComo ? '<button type="button" class="icc-btn icc-btn-ghost icc-ap-btn" data-ver-como-id="' + a.id + '">👁 Ver como</button>' : "") +
+        (puedeBloquear
+          ? '<button type="button" class="icc-ap-icono" data-bloqueo-id="' + a.id + '" data-bloqueado="' + (bloqueado(a) ? 1 : 0) + '" title="' + (bloqueado(a) ? "Desbloquear" : "Bloquear") + '" aria-label="' + (bloqueado(a) ? "Desbloquear a " : "Bloquear a ") + esc(nombreDe(a)) + '">' + (bloqueado(a) ? "🔓" : "🔒") + "</button>"
+          : "") +
+        (puedeBorrar ? '<button type="button" class="icc-ap-icono is-borrar" data-borrar-agente-id="' + a.id + '" title="Borrar cuenta" aria-label="Borrar la cuenta de ' + esc(nombreDe(a)) + '">🗑</button>' : "") +
+        "</footer></article>"
+      );
+    };
+
+    // ---- Vista por equipos: cada jefe con sus comerciales
+    var vistaEquipos = function () {
+      var html = "";
+      var usados = {};
+      var lideres = visibles.filter(function (a) {
+        return a.rol === "jefe_de_equipo" || ((a.rol === "admin" || a.rol === "super_admin") && agentes.some(function (x) { return x.rol === "comercial" && String(x.supervisor_id) === String(a.id); }));
       });
-      location.hash = "#/agentes" + (qs.toString() ? "?" + qs.toString() : "");
-    });
+      lideres.forEach(function (j) {
+        var miembros = visibles.filter(function (x) { return x.rol === "comercial" && String(x.supervisor_id) === String(j.id); });
+        usados[j.id] = 1;
+        miembros.forEach(function (m) { usados[m.id] = 1; });
+        var cm = miembros.reduce(function (s, m) { return s + Number(m.contratos_mes || 0); }, 0);
+        html += '<section class="icc-ap-equipo" style="--c:' + (colorRol[j.rol] || "#A78BFA") + '">' +
+          '<header class="icc-ap-equipo-cab">' + avatarRol(j, 40) + "<div><h2>Equipo de " + esc(nombreDe(j)) + "</h2>" +
+          "<small>" + miembros.length + (miembros.length === 1 ? " comercial" : " comerciales") + " · " + cm + " contratos este mes</small></div></header>" +
+          '<div class="icc-ap-grid">' + tarjeta(j) + miembros.map(tarjeta).join("") + "</div></section>";
+      });
+      var grupos = [
+        { titulo: "Comerciales sin jefe de equipo", icono: "⚠️", lista: visibles.filter(function (a) { return !usados[a.id] && a.rol === "comercial"; }) },
+        { titulo: "Backoffice", icono: "🗂️", lista: visibles.filter(function (a) { return !usados[a.id] && a.rol === "backoffice"; }) },
+        { titulo: "Dirección", icono: "🏛️", lista: visibles.filter(function (a) { return !usados[a.id] && (a.rol === "admin" || a.rol === "super_admin"); }) },
+      ];
+      grupos.forEach(function (g) {
+        if (!g.lista.length) return;
+        html += '<section class="icc-ap-equipo is-grupo"><header class="icc-ap-equipo-cab"><span class="icc-ap-equipo-ico">' + g.icono + "</span><div><h2>" + esc(g.titulo) + "</h2><small>" +
+          g.lista.length + (g.lista.length === 1 ? " persona" : " personas") + "</small></div></header>" +
+          '<div class="icc-ap-grid">' + g.lista.map(tarjeta).join("") + "</div></section>";
+      });
+      return html;
+    };
+
+    main().innerHTML =
+      '<header class="icc-ag-hero icc-ap-hero">' +
+      '<div class="icc-ag-hero-txt"><span class="icc-ag-hero-kicker">👥 Agentes</span>' +
+      "<h1>" + activos.length + (activos.length === 1 ? " persona activa" : " personas activas") + " en el equipo</h1>" +
+      '<p class="icc-ag-hero-res">' +
+      [
+        [cuenta.comercial, "comercial", "comerciales"],
+        [cuenta.jefe_de_equipo, "jefe de equipo", "jefes de equipo"],
+        [cuenta.backoffice, "backoffice", "backoffice"],
+      ].filter(function (x) { return x[0]; }).map(function (x) { return "<b>" + x[0] + "</b> " + (x[0] === 1 ? x[1] : x[2]); }).join(" · ") +
+      ' · <b class="ok">' + contratosMes + "</b> " + (contratosMes === 1 ? "contrato" : "contratos") + " este mes" +
+      (nBloqueados ? ' · <b class="mal">' + nBloqueados + "</b> " + (nBloqueados === 1 ? "bloqueado" : "bloqueados") : "") + "</p></div>" +
+      '<div class="icc-ag-hero-acc icc-ap-hero-acc">' +
+      (esAdmin ? '<a class="icc-btn icc-btn-ghost" href="#/auditoria-ver-como">🕵️ Historial de «Ver como»</a>' : "") +
+      (esAdmin || jefePuedeCrear ? '<button class="icc-btn icc-btn-primary icc-ag-btn-nueva" id="btn-nuevo-agente">+ Nuevo usuario</button>' : "") +
+      "</div></header>" +
+
+      '<nav class="icc-ap-chips" aria-label="Filtrar por rol">' +
+      chip("", "Todos", agentes.length, "#E2E8F0", "👥") +
+      (cuenta.comercial ? chip("comercial", "Comerciales", cuenta.comercial, colorRol.comercial, iconoRol.comercial) : "") +
+      (cuenta.jefe_de_equipo ? chip("jefe_de_equipo", "Jefes de equipo", cuenta.jefe_de_equipo, colorRol.jefe_de_equipo, iconoRol.jefe_de_equipo) : "") +
+      (cuenta.backoffice ? chip("backoffice", "Backoffice", cuenta.backoffice, colorRol.backoffice, iconoRol.backoffice) : "") +
+      (cuenta.direccion ? chip("direccion", "Dirección", cuenta.direccion, colorRol.admin, iconoRol.admin) : "") +
+      (nBloqueados ? chip("bloqueados", "Bloqueados", nBloqueados, "#F87171", "🔒", true) : "") +
+      "</nav>" +
+      (avisoBackoffice
+        ? '<div class="icc-aviso icc-ap-aviso">Te aparecen solo los comerciales que te ha asignado un Admin; verás únicamente sus clientes, contratos, presupuestos, agenda e informes.</div>'
+        : "") +
+      (esAdmin && comercialesSinJefe
+        ? '<div class="icc-aviso icc-ap-aviso">⚠️ <b>' + comercialesSinJefe + "</b> " + (comercialesSinJefe === 1 ? "comercial activo no tiene" : "comerciales activos no tienen") +
+          ' jefe de equipo. <a href="' + linkQs({ vista: "equipos", rol: "", estado: "" }) + '">Ver por equipos</a></div>'
+        : "") +
+
+      '<section class="icc-card icc-ap-barra">' +
+      '<input class="icc-input" id="ap-buscar" type="search" placeholder="🔎 Buscar por nombre, email, empresa, CIF o teléfono" value="' + esc(q) + '">' +
+      '<div class="icc-tabs icc-ap-vistas"><a class="icc-tab' + (vista === "tarjetas" ? " is-active" : "") + '" href="' + linkQs({ vista: "" }) + '">▦ Tarjetas</a>' +
+      '<a class="icc-tab' + (vista === "equipos" ? " is-active" : "") + '" href="' + linkQs({ vista: "equipos" }) + '">🧩 Por equipos</a></div>' +
+      "</section>" +
+
+      (visibles.length
+        ? vista === "equipos"
+          ? '<div class="icc-ap-equipos">' + vistaEquipos() + "</div>"
+          : '<div class="icc-ap-grid">' + visibles.map(tarjeta).join("") + "</div>"
+        : '<p class="icc-empty">No hay usuarios con este filtro.</p>') +
+      '<p class="icc-empty icc-ap-sin-resultados" hidden>Nadie coincide con la búsqueda.</p>';
+
+    // ---- Busqueda al instante
+    var buscar = document.getElementById("ap-buscar");
+    var aplicarBusqueda = function () {
+      var txt = buscar.value.trim().toLowerCase();
+      var n = 0;
+      main().querySelectorAll(".icc-ap-card").forEach(function (c) {
+        var ok = !txt || c.getAttribute("data-buscar").indexOf(txt) !== -1;
+        c.hidden = !ok;
+        if (ok) n++;
+      });
+      main().querySelectorAll(".icc-ap-equipo").forEach(function (s) {
+        s.hidden = !s.querySelector(".icc-ap-card:not([hidden])");
+      });
+      var hay = main().querySelectorAll(".icc-ap-card").length;
+      main().querySelector(".icc-ap-sin-resultados").hidden = !(hay && !n);
+    };
+    buscar.addEventListener("input", aplicarBusqueda);
+    if (q) aplicarBusqueda();
 
     main()
       .querySelectorAll("[data-rol-id]")
@@ -1618,6 +1722,7 @@ window.icc.views = (function () {
             viewAgentes();
           } catch (err) {
             U.toast(err.message || "No se pudo actualizar el rol", "error");
+            viewAgentes();
           }
         });
       });
@@ -1626,8 +1731,7 @@ window.icc.views = (function () {
       .forEach(function (btn) {
         btn.addEventListener("click", function () {
           var boId = btn.getAttribute("data-asignar-bo-id");
-          var bo = agentes.filter(function (a) { return String(a.id) === boId; })[0];
-          modalAsignarComerciales(bo, todosAgentes, asignacionesBo[boId] || [], viewAgentes);
+          modalAsignarComerciales(porId[boId], agentes, asignacionesBo[boId] || [], viewAgentes);
         });
       });
     main()
@@ -1636,12 +1740,11 @@ window.icc.views = (function () {
         sel.addEventListener("change", async function () {
           try {
             await D.actualizarAgente(sel.getAttribute("data-supervisor-id"), { supervisor_id: sel.value || null });
-            U.toast("Jefe de equipo actualizado", "success");
-            viewAgentes();
+            U.toast("Equipo actualizado", "success");
           } catch (err) {
             U.toast(err.message || "No se pudo actualizar", "error");
-            viewAgentes();
           }
+          viewAgentes();
         });
       });
     main()
@@ -1649,16 +1752,19 @@ window.icc.views = (function () {
       .forEach(function (btn) {
         btn.addEventListener("click", async function () {
           var bloqueadoActual = Number(btn.getAttribute("data-bloqueado"));
+          var a = porId[btn.getAttribute("data-bloqueo-id")];
+          if (!bloqueadoActual && !confirm("¿Bloquear a " + (a ? nombreDe(a) : "este usuario") + "? No podrá entrar en el CRM hasta que lo desbloquees.")) return;
+          btn.disabled = true;
           try {
             await D.actualizarAgente(btn.getAttribute("data-bloqueo-id"), { bloqueado: bloqueadoActual ? 0 : 1 });
-            U.toast(bloqueadoActual ? "Agente desbloqueado" : "Agente bloqueado", "success");
+            U.toast(bloqueadoActual ? "Usuario desbloqueado" : "Usuario bloqueado", "success");
             viewAgentes();
           } catch (err) {
             U.toast(err.message || "No se pudo actualizar", "error");
+            btn.disabled = false;
           }
         });
       });
-
     main()
       .querySelectorAll("[data-borrar-agente-id]")
       .forEach(function (btn) {
@@ -1673,14 +1779,12 @@ window.icc.views = (function () {
           }
         });
       });
-
     main()
       .querySelectorAll("[data-ver-como-id]")
       .forEach(function (btn) {
         btn.addEventListener("click", function () {
           var id = btn.getAttribute("data-ver-como-id");
-          var agente = agentes.filter(function (a) { return String(a.id) === id; })[0];
-          entrarComo(id, agente ? agente.nombre : "");
+          entrarComo(id, porId[id] ? porId[id].nombre : "");
         });
       });
 

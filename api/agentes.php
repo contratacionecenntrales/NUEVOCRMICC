@@ -36,6 +36,9 @@ if ($metodo === 'GET' && $id === null) {
     $columnas .= ', u.numero_relacion, u.avatar_ruta, u.ultimo_acceso, p.estado_disponibilidad, p.ausencia_hasta';
     $join .= ' LEFT JOIN usuarios_preferencias p ON p.usuario_id = u.id';
   }
+  // Actividad de cada usuario para las tarjetas de Agentes.
+  $columnas .= ", (SELECT COUNT(*) FROM clientes cl WHERE cl.comercial_id = u.id) AS n_clientes"
+    . ", (SELECT COUNT(*) FROM contratos co WHERE co.comercial_id = u.id AND co.fecha_alta >= DATE_FORMAT(CURDATE(), '%Y-%m-01')) AS contratos_mes";
   $where = array_map(function ($w) { return 'u.' . $w; }, $where);
   $sql = "SELECT $columnas FROM usuarios u$join";
   if ($where) $sql .= ' WHERE ' . implode(' AND ', $where);
