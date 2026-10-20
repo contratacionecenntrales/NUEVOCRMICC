@@ -1,0 +1,11 @@
+# Comparadores: solo HTML, JS, CSS e imagenes. Ningun script del servidor se
+# ejecuta aqui, aunque alguien consiguiera subir uno.
+<FilesMatch "\.(php\d?|phtml|phar|pl|py|cgi|sh)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order deny,allow
+    Deny from all
+  </IfModule>
+</FilesMatch>

@@ -86,25 +86,15 @@
       items.push({ label: "Agentes", href: "#/agentes" });
     }
 
-    if (puede("comparador.usar") || puede("tarifas.gestionar")) {
-      var subComparador = [];
-      if (puede("comparador.usar")) {
-        subComparador.push(
-          { href: "#/comparador", label: "Panel e histórico de auditorías" },
-          { href: "#/comparador/nueva?sector=energia", label: "Nueva auditoría · Energía" },
-          { href: "#/comparador/nueva?sector=telefonia", label: "Nueva auditoría · Telefonía" },
-          { href: "#/comparador/nueva?sector=alarmas", label: "Nueva auditoría · Alarmas" },
-          { href: "#/comparador/nueva?sector=pack_integral", label: "Nueva auditoría · Pack Integral" },
-          { href: "#/comparador/telecom", label: "Auditoría de Telecomunicaciones" }
-        );
-      }
-      if (puede("tarifas.gestionar")) {
-        subComparador.push({ href: "#/comparador/tarifas", label: "Tarifas propias y mercado" });
-      }
+    if (puede("comparador.usar")) {
       items.push({
         label: "Comparador",
-        href: puede("comparador.usar") ? "#/comparador" : "#/comparador/tarifas",
-        submenu: subComparador,
+        href: "#/comparador",
+        submenu: [
+          { href: "#/comparador", label: "Panel e histórico de auditorías" },
+          { href: "#/comparador/energia", label: "⚡ Comparador de energía" },
+          { href: "#/comparador/telefonia", label: "📶 Comparador de telefonía" },
+        ],
       });
     }
 
@@ -317,11 +307,7 @@
     ["#/ficheros", "ficheros.ver"],
     ["#/proformas", "proformas.ver"],
     ["#/informes", "informes.ver"],
-    ["#/comparador/tarifas", "tarifas.gestionar"],
-    ["#/comparador/nueva", "comparador.usar"],
-    ["#/comparador/telecom", "comparador.usar"],
-    ["#/comparador/auditoria", "comparador.usar"],
-    ["#/comparador", "comparador.usar", true],
+    ["#/comparador", "comparador.usar"],
   ];
 
   function sinPermisoRuta(ruta) {
@@ -465,18 +451,9 @@
         }
       } else if (ruta === "#/comparador") {
         await window.icc.comparador.viewPanel();
-      } else if (ruta === "#/comparador/nueva") {
-        await window.icc.comparador.viewNueva();
-      } else if (ruta === "#/comparador/telecom") {
-        await window.icc.comparador.viewTelecom();
-      } else if (/^#\/comparador\/auditoria\/\d+$/.test(ruta)) {
-        await window.icc.comparador.viewDetalle(ruta.split("/")[3]);
-      } else if (ruta.indexOf("#/comparador/nueva/") === 0) {
-        var partesComparador = ruta.replace("#/comparador/nueva/", "").split("/");
-        await window.icc.views.viewComparadorWizard(partesComparador[0], partesComparador[1]);
-      } else if (ruta.indexOf("#/comparador/tarifas") === 0) {
-        var catalogoTarifa = ruta.replace("#/comparador/tarifas", "").replace(/^\//, "") || null;
-        await window.icc.views.viewTarifas(catalogoTarifa);
+      } else if (ruta.indexOf("#/comparador/") === 0) {
+        // Abre la pagina del comparador (y redirige los enlaces antiguos).
+        window.icc.comparador.abrirDesdeRuta(ruta, hash);
       } else if (ruta === "#/diagnostico-storage") {
         await window.icc.views.viewDiagnosticoStorage();
       } else if (ruta === "#/copias-seguridad") {

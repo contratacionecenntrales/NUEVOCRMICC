@@ -248,48 +248,25 @@ window.icc.data = (function () {
   }
 
   // -------------------------------------------------------------- Comparador
-  async function listarTarifas(catalogo, soloActivas) {
-    var qs = "catalogo=" + encodeURIComponent(catalogo) + "&soloActivas=" + (soloActivas === false ? "0" : "1");
-    var data = await API.get("api/tarifas.php?" + qs);
-    return data.tarifas;
+  // Informes de los comparadores de Energia y Telefonia (comparador/energia y
+  // comparador/telefonia). tipo: "energia" | "telefonia".
+  async function informesComparador(tipo, filtros) {
+    var p = new URLSearchParams(filtros || {});
+    p.set("recurso", "informes");
+    var data = await API.get("api/cmp_" + tipo + ".php?" + p.toString());
+    return (data || []).map(function (i) { return Object.assign({ sector: tipo }, i); });
   }
 
-  async function crearTarifa(catalogo, payload) {
-    var data = await API.post("api/tarifas.php?catalogo=" + encodeURIComponent(catalogo), payload);
-    return data;
+  // Los de un cliente, de los dos comparadores, del mas reciente al mas antiguo.
+  async function informesComparadorCliente(clienteId) {
+    var listas = await Promise.all(["energia", "telefonia"].map(function (t) {
+      return informesComparador(t, { cliente_id: clienteId }).catch(function () { return []; });
+    }));
+    return listas[0].concat(listas[1]).sort(function (x, y) { return String(y.updated_at).localeCompare(String(x.updated_at)); });
   }
 
-  async function actualizarTarifa(catalogo, id, payload) {
-    var data = await API.put("api/tarifas.php?catalogo=" + encodeURIComponent(catalogo) + "&id=" + encodeURIComponent(id), payload);
-    return data;
-  }
-
-  async function borrarTarifa(catalogo, id) {
-    await API.del("api/tarifas.php?catalogo=" + encodeURIComponent(catalogo) + "&id=" + encodeURIComponent(id));
-  }
-
-  async function listarAuditoriasComparador(clienteId) {
-    var data = await API.get("api/comparador_auditorias.php?cliente_id=" + encodeURIComponent(clienteId));
-    return data.auditorias;
-  }
-
-  async function historialAuditorias(filtros) {
-    var qs = new URLSearchParams(filtros || {}).toString();
-    return API.get("api/comparador_auditorias.php" + (qs ? "?" + qs : ""));
-  }
-
-  async function obtenerAuditoriaComparador(id) {
-    var data = await API.get("api/comparador_auditorias.php?id=" + encodeURIComponent(id));
-    return data.auditoria;
-  }
-
-  async function borrarAuditoriaComparador(id) {
-    await API.del("api/comparador_auditorias.php?id=" + encodeURIComponent(id));
-  }
-
-  async function guardarAuditoriaComparador(payload) {
-    var data = await API.post("api/comparador_auditorias.php", payload);
-    return data.id;
+  async function borrarInformeComparador(tipo, id) {
+    await API.del("api/cmp_" + tipo + ".php?recurso=informes&id=" + encodeURIComponent(id));
   }
 
   // ---------------------------------------------------------------- Informes
@@ -454,15 +431,9 @@ window.icc.data = (function () {
     crearCita: crearCita,
     actualizarCita: actualizarCita,
     borrarCita: borrarCita,
-    listarTarifas: listarTarifas,
-    crearTarifa: crearTarifa,
-    actualizarTarifa: actualizarTarifa,
-    borrarTarifa: borrarTarifa,
-    listarAuditoriasComparador: listarAuditoriasComparador,
-    guardarAuditoriaComparador: guardarAuditoriaComparador,
-    historialAuditorias: historialAuditorias,
-    obtenerAuditoriaComparador: obtenerAuditoriaComparador,
-    borrarAuditoriaComparador: borrarAuditoriaComparador,
+    informesComparador: informesComparador,
+    informesComparadorCliente: informesComparadorCliente,
+    borrarInformeComparador: borrarInformeComparador,
     listarPresupuestos: listarPresupuestos,
     obtenerPresupuesto: obtenerPresupuesto,
     crearPresupuesto: crearPresupuesto,

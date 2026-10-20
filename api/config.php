@@ -26,6 +26,17 @@ defined('ICC_STORAGE_DIR') || define('ICC_STORAGE_DIR', __DIR__ . '/../storage')
 // README). Cambialo por una cadena larga y aleatoria tuya.
 defined('ICC_BACKUP_TOKEN') || define('ICC_BACKUP_TOKEN', 'CAMBIA_ESTE_TOKEN_POR_UNO_LARGO_Y_SECRETO');
 
+// Comparador de Energia (opcional):
+// - Lectura de facturas con IA: clave de la API de Anthropic (console.anthropic.com).
+//   Sin clave, el boton "Subir factura" avisa y se rellenan los datos a mano.
+// - SIPS: proveedor de datos de CUPS. {cups} se sustituye por el CUPS consultado.
+defined('ICC_ANTHROPIC_API_KEY') || define('ICC_ANTHROPIC_API_KEY', '');
+defined('ICC_ANTHROPIC_MODEL') || define('ICC_ANTHROPIC_MODEL', 'claude-sonnet-5-5');
+defined('ICC_ANTHROPIC_URL') || define('ICC_ANTHROPIC_URL', 'https://api.anthropic.com/v1/messages');
+defined('ICC_SIPS_URL') || define('ICC_SIPS_URL', '');
+defined('ICC_SIPS_TOKEN') || define('ICC_SIPS_TOKEN', '');
+defined('ICC_SIPS_HEADER') || define('ICC_SIPS_HEADER', 'Authorization: Bearer');
+
 // -----------------------------------------------------------------------------
 error_reporting(E_ALL);
 ini_set('display_errors', '0'); // nunca mostrar errores PHP crudos al cliente
@@ -282,7 +293,7 @@ function icc_catalogo_permisos(): array {
     ]],
     ['modulo' => 'Comparador', 'permisos' => [
       ['clave' => 'comparador.usar', 'label' => 'Usar el comparador', 'desc' => 'Generar comparativas de ahorro', 'roles' => ICC_TODOS_ROLES],
-      ['clave' => 'tarifas.gestionar', 'label' => 'Gestionar tarifas', 'desc' => 'Ver y editar el catalogo de tarifas', 'roles' => ICC_ROLES_INTERNOS],
+      ['clave' => 'tarifas.gestionar', 'label' => 'Gestionar tarifas del comparador', 'desc' => 'Editar el catalogo de energia y las tarifas de mercado de telefonia', 'roles' => ICC_ROLES_INTERNOS],
     ]],
     ['modulo' => 'Ficheros', 'permisos' => [
       ['clave' => 'ficheros.ver', 'label' => 'Ver el centro de ficheros', 'desc' => 'Consultar y descargar dosieres corporativos', 'roles' => ICC_TODOS_ROLES],

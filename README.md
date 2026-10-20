@@ -31,7 +31,44 @@ icc-crm/
                           proformas) — protegido por storage/.htaccess: solo se
                           sirven a través de api/descargar.php con sesión válida
   assets/logo.svg        Isotipo IC
+  comparador/            Comparadores de Energía (energia/) y Telefonía
+                          (telefonia/): páginas propias que usan la sesión
+                          del CRM; vendor/ trae las librerías de PDF
 ```
+
+## Comparador (Energía y Telefonía)
+
+Menú **Comparador** → panel con el histórico de auditorías de los dos
+comparadores (cada uno ve las suyas; el jefe de equipo, las de su equipo;
+backoffice, las de sus comerciales asignados; admin, todas), con acceso
+para abrir cada informe, descargar su PDF o borrarlo.
+
+- **Energía** (`comparador/energia/`): asistente de 5 pasos para luz o gas
+  (subir factura con IA, CUPS por SIPS o datos a mano; estudio mensual o
+  anual), comparativa con vuestras tarifas (ranking por coste y comisión)
+  y con las de mercado, e informe de 3 páginas en PDF.
+- **Telefonía** (`comparador/telefonia/`): auditoría de fibra, fijo y
+  móvil frente a las operadoras, ranking interno por comisión e informe
+  de 3 páginas en PDF.
+- Desde la ficha de un cliente ("+ Nueva auditoría de factura"), desde un
+  presupuesto ("Ejecutar Comparador") o desde una cita ("Auditar factura")
+  el estudio se abre con los datos del cliente y queda vinculado a su ficha.
+- Al descargar el PDF, el informe se guarda con su número de presupuesto y
+  una copia del PDF queda en `storage/comparador/` (solo se descarga con
+  sesión y permiso).
+- Catálogo de energía y tarifas de mercado de telefonía: los editan Admin,
+  jefes de equipo y backoffice (permiso "Gestionar tarifas del
+  comparador"); solo Admin borra tarifas, cambia comisiones o numeración.
+  Las comisiones nunca salen en el PDF del cliente.
+- **Lectura de facturas con IA** (opcional, de pago por uso): crea una
+  clave en https://console.anthropic.com y añádela en `api/config.local.php`:
+  `define('ICC_ANTHROPIC_API_KEY', 'sk-ant-...');`. Límite: 60 facturas por
+  hora y usuario. La factura solo se envía para leerla; no se guarda.
+- **SIPS** (cuando contratéis un proveedor): `ICC_SIPS_URL` (con `{cups}`),
+  `ICC_SIPS_TOKEN` e `ICC_SIPS_HEADER` en `api/config.local.php`.
+  `api/cmp_energia_sips.php` entiende el formato estándar de la CNMC.
+- Revisad cada mes las tarifas de mercado del catálogo y rellenad las
+  comisiones de vuestras tarifas propias antes de usarlo con clientes.
 
 ## Backend (`api/`)
 
@@ -161,10 +198,6 @@ propio CRM — ya no hace falta volver a tocar la base de datos a mano.
    `sql/migracion_sectores.sql` para ponerte al día sin perder datos.
    Si además te faltan el rol "Jefe de equipo" o la carpeta "Recursos
    generales" en Ficheros, importa también `sql/migracion_roles.sql`.
-   Si te falta la sección "Comparador" (estudios de ahorro con tarifas
-   propias), importa también `sql/migracion_comparador.sql` y despues
-   `sql/seed_tarifas_comparador.sql` (precios iniciales orientativos,
-   editables luego desde el propio CRM en Comparador → Tarifas).
    Si quieres que un Jefe de equipo solo vea a su equipo asignado (en vez
    de a toda la empresa), importa también `sql/migracion_jerarquia_equipos.sql`
    y asigna cada comercial a su jefe desde Agentes → columna "Jefe de equipo"
@@ -191,16 +224,13 @@ propio CRM — ya no hace falta volver a tocar la base de datos a mano.
    fallidos e historial completo de la cuenta. Las cuentas nuevas creadas
    desde Agentes deben cambiar la contraseña provisional al entrar.
    Mientras no importes esta migración el CRM sigue funcionando igual.
-   Para el **Comparador y Auditor Inteligente** (menú Comparador), importa
-   también `sql/migracion_comparador_auditor.sql` (una sola vez). Cada
-   gestor audita la factura de un cliente del CRM (Energía, Telefonía,
-   Alarmas o Pack Integral, o la Auditoría de Telecomunicaciones avanzada
-   contra las operadoras de mercado), descarga el informe PDF y la
-   auditoría queda guardada en la ficha del cliente y en el histórico
-   (cada uno ve las de su cartera/equipo). El motor de cálculo y los PDF
-   están en `js/comparador_motor.js` (generado desde el proyecto
-   integral-connection-comparador) y las pantallas en `js/comparador.js`.
-   Los datos de empresa de los PDF se editan en `js/config.js` (EMPRESA).
+   Para el **Comparador** (menú Comparador: Energía y Telefonía), importa
+   también `sql/migracion_comparadores.sql` (se puede repetir sin duplicar
+   nada). Crea sus tablas y carga el catálogo inicial de energía (NAGINI,
+   NET y 9 comercializadoras de mercado de octubre de 2026), las comisiones
+   de telefonía y 6 perfiles de tarifas de mercado de las operadoras. La
+   numeración de presupuestos continúa en ICC-09-2838365 y es compartida
+   por los dos comparadores. Ver la sección "Comparador" más abajo.
    Para la **agenda avanzada** (vistas Día/Semana/Mes/Año/Lista, citas a
    cualquier minuto, arrastrar para mover, citas vinculadas a clientes del
    CRM, tipo de cita, resumen de la reunión, próximos pasos y "pasar a

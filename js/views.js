@@ -525,12 +525,12 @@ window.icc.views = (function () {
   // ------------------------------------------------------------- Ficha cliente
   async function viewClienteDetalle(id) {
     main().innerHTML = '<div class="icc-loading">Cargando ficha…</div>';
-    var [cliente, documentos, estudios, firmas, auditoriasComparador, presupuestos] = await Promise.all([
+    var [cliente, documentos, estudios, firmas, informesComparador, presupuestos] = await Promise.all([
       D.obtenerCliente(id),
       D.listarDocumentos(id),
       D.listarEstudios(id),
       D.listarFirmas(id),
-      D.listarAuditoriasComparador(id).catch(function () { return []; }),
+      window.icc.auth.puede("comparador.usar") ? D.informesComparadorCliente(id) : Promise.resolve([]),
       D.listarPresupuestos({ cliente_id: id }).catch(function () { return []; }),
     ]);
     if (!cliente) {
@@ -614,7 +614,7 @@ window.icc.views = (function () {
       '<div class="icc-doc-actions">' +
       '<button class="icc-btn icc-btn-secondary" id="btn-nueva-comparativa">+ Nueva auditoría de factura</button>' +
       "</div>" +
-      window.icc.comparador.listaAuditoriasCliente(auditoriasComparador) +
+      window.icc.comparador.listaInformesCliente(informesComparador) +
       "</section>" +
       '<section class="icc-card">' +
       "<h2>Firmas registradas</h2>" +
@@ -671,7 +671,7 @@ window.icc.views = (function () {
     });
 
     document.getElementById("btn-nueva-comparativa").addEventListener("click", function () {
-      window.icc.comparador.modalNuevaAuditoriaCliente(cliente);
+      window.icc.comparador.modalNuevoInformeCliente(cliente);
     });
   }
 
@@ -3143,310 +3143,6 @@ window.icc.views = (function () {
     });
   }
 
-  // -------------------------------------------------------------- Comparador
-  var COMPARADOR_CATALOGOS = ["energia", "telefonia", "alarmas"];
-  // Catalogos editables en Comparador -> Tarifas ("mercado" = operadoras de la
-  // competencia para la Auditoria de Telecomunicaciones).
-  var TARIFA_CATALOGOS = ["energia", "telefonia", "alarmas", "mercado"];
-
-  function campoNum(name, label, valor, opts) {
-    opts = opts || {};
-    return (
-      '<div class="icc-field"><label>' + label + "</label>" +
-      '<input class="icc-input" name="' + name + '" type="number" step="' + (opts.step || "0.01") + '"' +
-      (opts.min != null ? ' min="' + opts.min + '"' : "") +
-      ' value="' + (valor != null && valor !== "" ? valor : (opts.def != null ? opts.def : "")) + '"></div>'
-    );
-  }
-
-  function campoCheck(name, label, checked) {
-    return (
-      '<label class="icc-check"><input type="checkbox" name="' + name + '"' + (checked ? " checked" : "") + "> " + label + "</label>"
-    );
-  }
-
-  function campoSelect(name, label, opciones, valorActual) {
-    return (
-      '<div class="icc-field"><label>' + label + '</label><select class="icc-select" name="' + name + '">' +
-      opciones
-        .map(function (o) {
-          return '<option value="' + o.value + '"' + (o.value === valorActual ? " selected" : "") + ">" + o.label + "</option>";
-        })
-        .join("") +
-      "</select></div>"
-    );
-  }
-
-  async function viewTarifas(catalogoActivo) {
-    if (!window.icc.auth.puede("tarifas.gestionar")) {
-      main().innerHTML = '<p class="icc-empty">No tienes acceso a esta seccion.</p>';
-      return;
-    }
-    catalogoActivo = TARIFA_CATALOGOS.indexOf(catalogoActivo) >= 0 ? catalogoActivo : "energia";
-    main().innerHTML = '<div class="icc-loading">Cargando tarifas…</div>';
-    var tarifas;
-    try {
-      tarifas = await D.listarTarifas(catalogoActivo, false);
-    } catch (err) {
-      main().innerHTML = '<p class="icc-empty">' + U.escapeHtml(err.message || "No se pudieron cargar las tarifas") + "</p>";
-      return;
-    }
-    var campoDestacada = catalogoActivo === "mercado" ? "recomendada" : "destacada";
-
-    var columnas = {
-      energia: [
-        { k: "nombre_tarifa", l: "Tarifa" },
-        { k: "tipo", l: "Tipo" },
-        { k: "segmento", l: "Segmento" },
-        { k: "termino_fijo_mensual", l: "Termino fijo €/mes" },
-        { k: "permanencia_meses", l: "Permanencia" },
-      ],
-      telefonia: [
-        { k: "nombre_tarifa", l: "Tarifa" },
-        { k: "tipo", l: "Tipo" },
-        { k: "precio_mensual", l: "€/mes" },
-        { k: "permanencia_meses", l: "Permanencia" },
-      ],
-      alarmas: [
-        { k: "nombre_kit", l: "Kit" },
-        { k: "tipo_kit", l: "Tipo" },
-        { k: "cuota_mensual", l: "€/mes" },
-        { k: "coste_instalacion", l: "Instalacion" },
-        { k: "permanencia_meses", l: "Permanencia" },
-      ],
-      mercado: [
-        { k: "operador", l: "Operadora" },
-        { k: "cuota_mensual", l: "€/mes" },
-        { k: "promocion", l: "Promocion" },
-        { k: "valoracion", l: "Valoracion" },
-      ],
-    };
-    var cols = columnas[catalogoActivo];
-
-    main().innerHTML =
-      '<div class="icc-page-head"><div><a href="#/comparador" class="icc-back">← Volver al Comparador</a>' +
-      "<h1>Comparador · " + (catalogoActivo === "mercado" ? "Operadoras de mercado" : "Tarifas propias") + "</h1>" +
-      (catalogoActivo === "mercado"
-        ? '<p class="icc-muted">Precios de la competencia que usa la Auditoría de Telecomunicaciones. La marcada como recomendada es la que se propone por defecto.</p>'
-        : "") +
-      "</div>" +
-      '<button class="icc-btn icc-btn-primary" id="btn-nueva-tarifa">+ Nueva tarifa</button>' +
-      "</div>" +
-      '<div class="icc-tabs">' +
-      TARIFA_CATALOGOS.map(function (c) {
-        return '<a class="icc-tab' + (c === catalogoActivo ? " is-active" : "") + '" href="#/comparador/tarifas/' + c + '">' + C.CATALOGOS_TARIFA[c] + "</a>";
-      }).join("") +
-      "</div>" +
-      '<div class="icc-card" style="margin-top:14px">' +
-      (tarifas.length
-        ? '<table class="icc-table"><thead><tr>' +
-          cols.map(function (c) { return "<th>" + c.l + "</th>"; }).join("") +
-          "<th>Activa</th><th>" + (campoDestacada === "recomendada" ? "Recomendada" : "Destacada") + "</th><th></th></tr></thead><tbody>" +
-          tarifas
-            .map(function (t) {
-              return (
-                "<tr>" +
-                cols.map(function (c) { return "<td>" + U.escapeHtml(String(t[c.k] != null ? t[c.k] : "-")) + "</td>"; }).join("") +
-                '<td><input type="checkbox" data-toggle-activo="' + t.id + '"' + (t.activo ? " checked" : "") + "></td>" +
-                '<td><input type="checkbox" data-toggle-destacada="' + t.id + '"' + (t[campoDestacada] ? " checked" : "") + "></td>" +
-                '<td><button type="button" class="icc-link-btn" data-editar-tarifa-id="' + t.id + '">Editar</button> ' +
-                '<button type="button" class="icc-link-btn" style="color:var(--red)" data-borrar-tarifa-id="' + t.id + '">Borrar</button></td>' +
-                "</tr>"
-              );
-            })
-            .join("") +
-          "</tbody></table>"
-        : '<p class="icc-empty">Sin tarifas en ' + C.CATALOGOS_TARIFA[catalogoActivo] + " todavia.</p>") +
-      "</div>";
-
-    document.getElementById("btn-nueva-tarifa").addEventListener("click", function () {
-      modalTarifa(catalogoActivo, null);
-    });
-    main().querySelectorAll("[data-editar-tarifa-id]").forEach(function (btn) {
-      btn.addEventListener("click", function () {
-        var t = tarifas.filter(function (x) { return String(x.id) === btn.getAttribute("data-editar-tarifa-id"); })[0];
-        if (t) modalTarifa(catalogoActivo, t);
-      });
-    });
-    main().querySelectorAll("[data-borrar-tarifa-id]").forEach(function (btn) {
-      btn.addEventListener("click", async function () {
-        if (!confirm("¿Borrar esta tarifa? No se puede deshacer.")) return;
-        try {
-          await D.borrarTarifa(catalogoActivo, btn.getAttribute("data-borrar-tarifa-id"));
-          U.toast("Tarifa borrada", "success");
-          viewTarifas(catalogoActivo);
-        } catch (err) {
-          U.toast(err.message || "No se pudo borrar", "error");
-        }
-      });
-    });
-    main().querySelectorAll("[data-toggle-activo], [data-toggle-destacada]").forEach(function (chk) {
-      chk.addEventListener("change", async function () {
-        var id = chk.getAttribute("data-toggle-activo") || chk.getAttribute("data-toggle-destacada");
-        var campo = chk.hasAttribute("data-toggle-activo") ? "activo" : campoDestacada;
-        var payload = {};
-        payload[campo] = chk.checked;
-        try {
-          await D.actualizarTarifa(catalogoActivo, id, payload);
-          U.toast("Tarifa actualizada", "success");
-        } catch (err) {
-          U.toast(err.message || "No se pudo actualizar", "error");
-          chk.checked = !chk.checked;
-        }
-      });
-    });
-  }
-
-  function modalTarifa(catalogo, tarifa) {
-    var esNueva = !tarifa;
-    tarifa = tarifa || {};
-    var camposEspecificos = "";
-
-    if (catalogo === "mercado") {
-      U.openModal(
-        "<h2>" + (esNueva ? "Nueva operadora" : "Editar operadora") + " · Mercado</h2>" +
-        '<form id="form-tarifa" class="icc-form">' +
-        campoTexto("operador", "Operadora / oferta", true, "text", tarifa.operador) +
-        campoNum("cuota_mensual", "Cuota mensual (€, IVA incluido)", tarifa.cuota_mensual) +
-        campoTexto("promocion", "Promocion (ej. 79,28 € × 3 meses)", false, "text", tarifa.promocion) +
-        campoTexto("valoracion", "Valoracion breve (aparece en el informe)", false, "text", tarifa.valoracion) +
-        '<div class="icc-field"><label>Caracteristicas (una por linea; se usan si es la recomendada)</label>' +
-        '<textarea class="icc-textarea" name="caracteristicas">' + U.escapeHtml(tarifa.caracteristicas || "") + "</textarea></div>" +
-        campoCheck("recomendada", "Recomendada por defecto en la auditoria", tarifa.recomendada) +
-        campoCheck("activo", "Activa (se compara en los informes)", tarifa.activo !== false) +
-        '<div class="icc-modal-actions">' +
-        '<button type="button" class="icc-btn icc-btn-ghost" data-close-btn>Cancelar</button>' +
-        '<button type="submit" class="icc-btn icc-btn-primary">' + (esNueva ? "Añadir" : "Guardar cambios") + "</button>" +
-        "</div></form>"
-      );
-      document.getElementById("form-tarifa").addEventListener("submit", async function (e) {
-        e.preventDefault();
-        var fd = new FormData(e.target);
-        var payload = {
-          operador: fd.get("operador"),
-          cuota_mensual: fd.get("cuota_mensual") || 0,
-          promocion: fd.get("promocion") || null,
-          valoracion: fd.get("valoracion") || null,
-          caracteristicas: fd.get("caracteristicas") || null,
-          recomendada: e.target.querySelector('[name="recomendada"]').checked,
-          activo: e.target.querySelector('[name="activo"]').checked,
-        };
-        try {
-          if (esNueva) await D.crearTarifa("mercado", payload);
-          else await D.actualizarTarifa("mercado", tarifa.id, payload);
-          U.toast(esNueva ? "Operadora añadida" : "Operadora actualizada", "success");
-          U.closeModal();
-          viewTarifas("mercado");
-        } catch (err) {
-          U.toast(err.message || "No se pudo guardar", "error");
-        }
-      });
-      return;
-    }
-
-    if (catalogo === "energia") {
-      camposEspecificos =
-        campoSelect("tipo", "Tipo", [{ value: "luz", label: "Luz" }, { value: "gas", label: "Gas" }], tarifa.tipo || "luz") +
-        campoTexto("segmento", "Segmento (2.0TD, 3.0TD, RL.1, RL.2…)", true, "text", tarifa.segmento) +
-        campoNum("precio_potencia_p1", "Precio potencia P1 (€/kW/dia)", tarifa.precio_potencia_p1, { step: "0.000001" }) +
-        campoNum("precio_potencia_p2", "Precio potencia P2 (€/kW/dia)", tarifa.precio_potencia_p2, { step: "0.000001" }) +
-        campoNum("precio_potencia_p3", "Precio potencia P3 (€/kW/dia)", tarifa.precio_potencia_p3, { step: "0.000001" }) +
-        campoNum("precio_energia_p1", "Precio energia P1 (€/kWh)", tarifa.precio_energia_p1, { step: "0.000001" }) +
-        campoNum("precio_energia_p2", "Precio energia P2 (€/kWh)", tarifa.precio_energia_p2, { step: "0.000001" }) +
-        campoNum("precio_energia_p3", "Precio energia P3 (€/kWh)", tarifa.precio_energia_p3, { step: "0.000001" }) +
-        campoNum("termino_fijo_mensual", "Termino fijo (€/mes)", tarifa.termino_fijo_mensual) +
-        campoNum("alquiler_equipo_dia", "Alquiler equipo (€/dia)", tarifa.alquiler_equipo_dia, { step: "0.000001" }) +
-        campoNum("comision_captacion", "Comision captacion (€)", tarifa.comision_captacion) +
-        campoNum("permanencia_meses", "Permanencia (meses)", tarifa.permanencia_meses, { step: "1", def: 0 });
-    } else if (catalogo === "telefonia") {
-      camposEspecificos =
-        campoSelect("tipo", "Tipo", [
-          { value: "movil", label: "Movil" },
-          { value: "fibra", label: "Fibra" },
-          { value: "fijo", label: "Fijo" },
-          { value: "convergente", label: "Convergente" },
-          { value: "centralita", label: "Centralita" },
-        ], tarifa.tipo || "movil") +
-        campoNum("gb_datos", "GB de datos (vacio si no aplica)", tarifa.gb_datos, { step: "1" }) +
-        campoCheck("datos_ilimitados", "Datos ilimitados", tarifa.datos_ilimitados) +
-        campoCheck("llamadas_ilimitadas", "Llamadas ilimitadas", tarifa.llamadas_ilimitadas !== false) +
-        campoNum("velocidad_fibra_mb", "Velocidad fibra (Mb)", tarifa.velocidad_fibra_mb, { step: "1" }) +
-        campoNum("lineas_moviles_incluidas", "Lineas moviles incluidas", tarifa.lineas_moviles_incluidas, { step: "1", def: 0 }) +
-        campoNum("lineas_fijas_incluidas", "Lineas fijas incluidas", tarifa.lineas_fijas_incluidas, { step: "1", def: 0 }) +
-        campoTexto("extras", "Extras (separados por coma)", false, "text", (tarifa.extras || []).join(", ")) +
-        campoNum("precio_mensual", "Precio mensual (€)", tarifa.precio_mensual) +
-        campoNum("comision_captacion", "Comision captacion (€)", tarifa.comision_captacion) +
-        campoNum("permanencia_meses", "Permanencia (meses)", tarifa.permanencia_meses, { step: "1", def: 0 });
-    } else {
-      camposEspecificos =
-        campoSelect("tipo_kit", "Tipo de kit", [
-          { value: "basica", label: "Basica" },
-          { value: "camaras", label: "Con camaras" },
-          { value: "gama_alta", label: "Gama alta" },
-          { value: "comercial", label: "Comercial" },
-        ], tarifa.tipo_kit || "basica") +
-        campoTexto("equipamiento", "Equipamiento (separado por coma)", false, "text", (tarifa.equipamiento || []).join(", ")) +
-        campoNum("num_camaras", "Numero de camaras", tarifa.num_camaras, { step: "1", def: 0 }) +
-        campoNum("num_sensores", "Numero de sensores", tarifa.num_sensores, { step: "1", def: 0 }) +
-        campoNum("num_mandos", "Numero de mandos", tarifa.num_mandos, { step: "1", def: 0 }) +
-        campoCheck("conexion_movil", "Conexion movil", tarifa.conexion_movil !== false) +
-        campoCheck("central_receptora", "Central receptora 24h", tarifa.central_receptora !== false) +
-        campoNum("cuota_mensual", "Cuota mensual (€)", tarifa.cuota_mensual) +
-        campoNum("coste_instalacion", "Coste instalacion (€)", tarifa.coste_instalacion, { def: 0 }) +
-        campoNum("comision_captacion", "Comision captacion (€)", tarifa.comision_captacion) +
-        campoNum("permanencia_meses", "Permanencia (meses)", tarifa.permanencia_meses, { step: "1", def: 0 });
-    }
-
-    U.openModal(
-      "<h2>" + (esNueva ? "Nueva tarifa" : "Editar tarifa") + " · " + C.COMPARADOR_SECTORES[catalogo] + "</h2>" +
-      '<form id="form-tarifa" class="icc-form">' +
-      campoTexto(catalogo === "alarmas" ? "nombre_kit" : "nombre_tarifa", catalogo === "alarmas" ? "Nombre del kit" : "Nombre de la tarifa", true, "text", catalogo === "alarmas" ? tarifa.nombre_kit : tarifa.nombre_tarifa) +
-      '<div class="icc-field"><label>Descripcion</label><textarea class="icc-textarea" name="descripcion">' + U.escapeHtml(tarifa.descripcion || "") + "</textarea></div>" +
-      camposEspecificos +
-      campoCheck("activo", "Tarifa activa (visible en el comparador)", tarifa.activo !== false) +
-      campoCheck("destacada", "Destacada", tarifa.destacada) +
-      '<div class="icc-modal-actions">' +
-      '<button type="button" class="icc-btn icc-btn-ghost" data-close-btn>Cancelar</button>' +
-      '<button type="submit" class="icc-btn icc-btn-primary">' + (esNueva ? "Añadir" : "Guardar cambios") + "</button>" +
-      "</div></form>"
-    );
-
-    document.getElementById("form-tarifa").addEventListener("submit", async function (e) {
-      e.preventDefault();
-      var fd = new FormData(e.target);
-      var payload = {};
-      fd.forEach(function (valor, key) {
-        payload[key] = valor;
-      });
-      ["activo", "destacada", "datos_ilimitados", "llamadas_ilimitadas", "conexion_movil", "central_receptora"].forEach(function (k) {
-        if (e.target.querySelector('[name="' + k + '"]')) payload[k] = !!e.target.querySelector('[name="' + k + '"]').checked;
-      });
-      if (payload.extras != null) payload.extras = payload.extras ? payload.extras.split(",").map(function (s) { return s.trim(); }).filter(Boolean) : [];
-      if (payload.equipamiento != null) payload.equipamiento = payload.equipamiento ? payload.equipamiento.split(",").map(function (s) { return s.trim(); }).filter(Boolean) : [];
-
-      try {
-        if (esNueva) {
-          await D.crearTarifa(catalogo, payload);
-          U.toast("Tarifa añadida", "success");
-        } else {
-          await D.actualizarTarifa(catalogo, tarifa.id, payload);
-          U.toast("Tarifa actualizada", "success");
-        }
-        U.closeModal();
-        viewTarifas(catalogo);
-      } catch (err) {
-        U.toast(err.message || "No se pudo guardar la tarifa", "error");
-      }
-    });
-  }
-
-  // ---------------------------------------------------------- Comparador · wizard
-  // El comparador vive ahora en js/comparador.js. Esta ruta antigua
-  // (#/comparador/nueva/:cliente/:sector) redirige al asistente nuevo.
-  function viewComparadorWizard(clienteId, sector) {
-    location.hash = "#/comparador/nueva?cliente=" + encodeURIComponent(clienteId) + (sector ? "&sector=" + encodeURIComponent(sector) : "");
-  }
-
   // ------------------------------------------------------------ Presupuestos
   async function viewPresupuestos() {
     var params = new URLSearchParams(location.hash.split("?")[1] || "");
@@ -3710,8 +3406,8 @@ window.icc.views = (function () {
           var accionExtra = "";
           if (z.tipo === "estudio") {
             var sectorComparador = presupuesto.sector === "telecomunicaciones" ? "telefonia" : presupuesto.sector;
-            if (["energia", "telefonia", "alarmas"].indexOf(sectorComparador) !== -1) {
-              accionExtra = '<a class="icc-btn icc-btn-ghost" href="#/comparador/nueva/' + presupuesto.cliente_id + "/" + sectorComparador + '">Ejecutar Comparador</a>';
+            if ((sectorComparador === "energia" || sectorComparador === "telefonia") && window.icc.auth.puede("comparador.usar")) {
+              accionExtra = '<a class="icc-btn icc-btn-ghost" href="' + window.icc.comparador.urlHerramienta(sectorComparador, { cliente: presupuesto.cliente_id }) + '">Ejecutar Comparador</a>';
             }
           } else if (z.tipo === "contrato_firmado") {
             accionExtra = '<a class="icc-btn icc-btn-ghost" href="firmar.html?cliente=' + presupuesto.cliente_id + '">Iniciar firma digital</a>';
@@ -3919,8 +3615,6 @@ window.icc.views = (function () {
     viewDiagnosticoStorage: viewDiagnosticoStorage,
     viewCopiasSeguridad: viewCopiasSeguridad,
     viewProformas: viewProformas,
-    viewTarifas: viewTarifas,
-    viewComparadorWizard: viewComparadorWizard,
     viewPresupuestos: viewPresupuestos,
     viewPresupuestoDetalle: viewPresupuestoDetalle,
     viewInformes: viewInformes,

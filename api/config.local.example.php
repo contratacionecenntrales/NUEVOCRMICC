@@ -10,3 +10,10 @@ define('ICC_DB_PASS', 'TU_CONTRASENA');
 
 // Cadena larga y aleatoria (p. ej. `openssl rand -hex 32`), ver api/backup.php.
 define('ICC_BACKUP_TOKEN', 'CAMBIA_ESTE_TOKEN_POR_UNO_LARGO_Y_SECRETO');
+
+// Comparador de Energia (opcional): lectura de facturas con IA y consulta SIPS.
+// define('ICC_ANTHROPIC_API_KEY', 'sk-ant-...');
+// define('ICC_ANTHROPIC_MODEL', 'claude-sonnet-5-5');
+// define('ICC_SIPS_URL', 'https://proveedor.example/api/sips?cups={cups}');
+// define('ICC_SIPS_TOKEN', '...');
+// define('ICC_SIPS_HEADER', 'Authorization: Bearer');

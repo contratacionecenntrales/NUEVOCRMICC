@@ -875,7 +875,7 @@ window.icc.agenda = (function () {
         ? '<section class="icc-ag-bloque-ficha"><h3>Acciones</h3><div class="icc-ag-botones">' +
           (agendaV2 ? '<button type="button" class="icc-btn icc-btn-primary" id="ficha-presupuesto">' + (c.presupuesto_id ? "📄 Ver presupuesto" : "📄 Pasar a presupuesto") + "</button>" : "") +
           '<button type="button" class="icc-btn icc-btn-secondary" id="ficha-seguimiento">🔁 Programar seguimiento</button>' +
-          (cliente && window.icc.auth.puede("comparador.usar") ? '<a class="icc-btn icc-btn-ghost" data-cerrar href="#/comparador/nueva?cliente=' + cliente.id + '">💡 Auditar factura</a>' : "") +
+          (cliente && window.icc.auth.puede("comparador.usar") ? '<a class="icc-btn icc-btn-ghost" data-cerrar href="' + window.icc.comparador.urlHerramienta("energia", { cliente: cliente.id }) + '">💡 Auditar factura</a>' : "") +
           '<button type="button" class="icc-btn icc-btn-ghost" id="ficha-editar">✏️ Editar / reprogramar</button>' +
           '<button type="button" class="icc-btn icc-btn-ghost" id="ficha-duplicar">⧉ Duplicar</button>' +
           '<button type="button" class="icc-btn icc-btn-ghost" style="color:var(--red)" id="ficha-borrar">Borrar</button>' +

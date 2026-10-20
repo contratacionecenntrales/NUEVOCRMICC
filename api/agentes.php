@@ -253,9 +253,18 @@ if ($metodo === 'DELETE' && $id !== null) {
     'contratos' => 'SELECT COUNT(*) AS total FROM contratos WHERE comercial_id = ?',
     'presupuestos' => 'SELECT COUNT(*) AS total FROM presupuestos WHERE comercial_id = ?',
     'proformas' => 'SELECT COUNT(*) AS total FROM proformas WHERE comercial_id = ?',
-    'comparativas' => 'SELECT COUNT(*) AS total FROM comparador_auditorias WHERE gestor_id = ?',
     'equipo' => 'SELECT COUNT(*) AS total FROM usuarios WHERE supervisor_id = ?',
   ];
+  // Informes de los comparadores (si la migracion esta importada): al borrar
+  // la cuenta se perderian, asi que tambien bloquean el borrado.
+  foreach (['cmp_ene_informes' => 'informes de energia', 'cmp_tel_informes' => 'informes de telefonia'] as $tabla => $motivo) {
+    try {
+      $db->query("SELECT 1 FROM $tabla LIMIT 0");
+      $conteos[$motivo] = "SELECT COUNT(*) AS total FROM $tabla WHERE usuario_id = ?";
+    } catch (PDOException $e) {
+      // Migracion de comparadores aun no importada.
+    }
+  }
   try {
     foreach ($conteos as $motivo => $sql) {
       $stmt = $db->prepare($sql);

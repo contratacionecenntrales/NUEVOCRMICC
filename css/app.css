@@ -714,3 +714,14 @@ a.icc-ag-kpi:hover{border-color:var(--stat-color)}
 .icc-ag-bandeja-accion,.icc-ag-asignar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .icc-ag-bandeja-accion .icc-select,.icc-ag-asignar .icc-select{width:auto;min-width:200px}
 .icc-ag-bloque.is-sin-asignar,.icc-ag-tarjeta.is-sin-asignar,.icc-ag-chip.is-sin-asignar{outline:2px dashed #f59e0b;outline-offset:-2px}
+
+/* ---------- Comparador (panel de Energia y Telefonia) ---------- */
+.icc-cmp-herramientas{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-bottom:14px}
+.icc-cmp-herramienta{display:flex;gap:16px;align-items:flex-start;text-decoration:none;color:inherit;transition:border-color .15s,transform .15s}
+.icc-cmp-herramienta:hover{border-color:var(--esmeralda);transform:translateY(-1px)}
+.icc-cmp-herramienta h2{margin:0 0 6px}
+.icc-cmp-herramienta p{margin:0 0 12px;color:var(--txt-2);font-size:13px;line-height:1.5}
+.icc-cmp-herramienta-icono{font-size:30px;line-height:1;flex:0 0 auto}
+.icc-cmp-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
+.icc-cmp-acciones{white-space:nowrap}
+@media (max-width:640px){.icc-cmp-kpis{grid-template-columns:1fr}}

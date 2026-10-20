@@ -284,9 +284,8 @@ CREATE INDEX idx_proformas_facturado_por ON proformas(facturado_por);
 CREATE INDEX idx_proformas_fecha ON proformas(fecha);
 
 -- -----------------------------------------------------------------------------
--- Comparador — tarifas propias (energia/telefonia/alarmas) + historico de
--- comparativas generadas desde la ficha de un cliente. Ver tambien
--- sql/seed_tarifas_comparador.sql para cargar unos precios iniciales.
+-- Comparador antiguo (tarifas propias + historico de comparativas): ya no lo
+-- usa el CRM. Los comparadores actuales estan en sql/migracion_comparadores.sql.
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS tarifa_energia (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -627,3 +626,8 @@ CREATE TABLE IF NOT EXISTS backoffice_comerciales (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 SET FOREIGN_KEY_CHECKS = 1;
+
+-- -----------------------------------------------------------------------------
+-- Comparadores de Energia y Telefonia: importa despues sql/migracion_comparadores.sql
+-- (crea sus tablas cmp_* y carga el catalogo y las comisiones iniciales).
+-- -----------------------------------------------------------------------------

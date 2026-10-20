@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Informes de auditoría | Integral Connection Consulting</title>
+<link rel="icon" type="image/png" href="icono.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="app.css?v=3">
+</head>
+<body>
+<div class="login" id="login" hidden>
+  <form id="loginForm" autocomplete="on">
+    <img src="logo.png" alt="Integral Connection Consulting">
+    <h1>Informes de auditoría</h1>
+    <p>Entra con tu usuario del CRM.</p>
+    <label class="f" for="lg-email">Email<input type="email" id="lg-email" autocomplete="username" required></label>
+    <label class="f" for="lg-pass">Contraseña<input type="password" id="lg-pass" autocomplete="current-password" required></label>
+    <div class="note err" id="lg-msg" role="alert"></div>
+    <button class="btn gold" type="submit">Entrar</button>
+  </form>
+</div>
+<div id="app" hidden>
+<header class="topbar">
+  <div class="brand">
+    <img src="icono.png" alt="" width="34" height="34">
+    <div><b>Comparador de telecomunicaciones</b><br><span>Integral Connection Consulting · informes de auditoría</span></div>
+  </div>
+  <div class="actions">
+    <button class="btn menu-t" id="btnMenu" type="button" aria-expanded="false" aria-controls="menuMas" aria-label="Más opciones">☰ Menú</button>
+    <div class="mas" id="menuMas">
+      <span class="user">Sesión: <b id="userName"></b></span>
+      <a class="btn" href="../energia/index.html">Energía</a>
+      <a class="btn" href="../../index.html#/comparador">Volver al CRM</a>
+      <button class="btn" id="btnNew" type="button">Nuevo informe</button>
+      <button class="btn" id="btnSave" type="button">Guardar</button>
+      <button class="btn" id="btnSalir" type="button">Salir</button>
+    </div>
+    <button class="btn gold" id="btnPdf" type="button">Descargar PDF</button>
+  </div>
+</header>
+
+<nav class="flow" aria-label="Pasos del informe">
+  <div class="flow-step"><div class="lbl"><button type="button" class="lnk" id="wzBack" aria-label="Paso anterior">←</button><b id="wzLabel">Paso 1 de 5 — Cliente</b></div><div class="flow-bar"><i id="wzBar" style="width:20%"></i></div></div>
+  <ol class="pills"><li><button type="button" data-fase="factura"><b>1</b>Factura</button></li><li><button type="button" data-fase="comparativa"><b>2</b>Comparativa</button></li><li><button type="button" data-fase="exportar"><b>3</b>Exportar</button></li></ol>
+</nav>
+<section class="wizard" id="wizard" aria-live="polite"></section>
+<div class="export-wrap"><section class="export-bar" id="exportBar"></section></div>
+<div class="mtabs" role="tablist" aria-label="Vista">
+  <button type="button" role="tab" id="tabDatos" aria-selected="true" data-vista="datos">Datos y ranking</button>
+  <button type="button" role="tab" id="tabPrev" aria-selected="false" data-vista="previa">Vista previa</button>
+</div>
+<main class="main">
+  <div class="panel" id="form"></div>
+  <section class="preview" aria-label="Vista previa del informe">
+    <div class="pv-head">
+      <h2>Vista previa · 3 páginas A4</h2>
+      <div class="summary-chips" id="chips"></div>
+    </div>
+    <div class="scaler" id="scaler"><div class="pages" id="pages"></div></div>
+  </section>
+</main>
+<div class="next-bar"><button type="button" class="btn light" id="wzBackDatos">← Volver</button><button type="button" class="btn navy" id="wzToComp">Ver la comparativa →</button></div>
+<div class="toast" id="toast" hidden></div>
+</div>
+
+<script src="app.js?v=crm2" defer></script>
+</body>
+</html>
