@@ -981,3 +981,68 @@ a.icc-ag-kpi:hover{transform:translateY(-2px);box-shadow:0 14px 30px -16px var(-
   .icc-pl-form{grid-template-columns:1fr}
   .icc-pl-ficha-datos{grid-template-columns:1fr}
 }
+
+/* =============================================================================
+   Inicio (panel general) · mismo estilo que Agenda y Pipeline
+   ============================================================================= */
+.icc-dash-hero{background:
+    radial-gradient(120% 140% at 0% 0%,rgba(212,166,42,.18) 0%,transparent 45%),
+    radial-gradient(90% 120% at 100% 0%,rgba(34,211,238,.22) 0%,transparent 50%),
+    radial-gradient(80% 120% at 55% 130%,rgba(129,140,248,.2) 0%,transparent 55%),
+    linear-gradient(135deg,#0F1A2E 0%,#121A2B 55%,#0E1424 100%);border-color:rgba(212,166,42,.22)}
+.icc-dash-hero .icc-ag-hero-kicker{color:var(--oro);background:rgba(212,166,42,.1);border-color:rgba(212,166,42,.3)}
+.icc-ag-hero-res b.mal{color:#FCA5A5}
+.icc-dash-acciones{display:flex;gap:10px;flex-wrap:wrap}
+.icc-dash-progreso{display:block;height:6px;margin-top:10px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden}
+.icc-dash-progreso i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#10B981,#22D3EE);box-shadow:0 0 10px rgba(16,185,129,.6)}
+
+.icc-dash-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:14px;margin-bottom:14px}
+.icc-dash-grid > .icc-card{margin:0}
+.icc-dash-tit{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.icc-dash-tit h2{margin:0}
+
+/* Embudo */
+.icc-dash-embudo{display:flex;flex-direction:column;gap:8px}
+.icc-dash-fase{display:grid;grid-template-columns:30px minmax(150px,1.1fr) minmax(60px,1fr) 40px;align-items:center;gap:10px;padding:9px 12px;border-radius:12px;
+  text-decoration:none;color:var(--txt);background:rgba(255,255,255,.025);border:1px solid color-mix(in srgb,var(--c) 22%,transparent);transition:transform .12s,background .12s}
+.icc-dash-fase:hover{transform:translateX(3px);background:color-mix(in srgb,var(--c) 10%,transparent)}
+.icc-dash-fase-ico{font-size:17px;text-align:center}
+.icc-dash-fase-txt{font-weight:600;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.icc-dash-fase-barra{height:10px;border-radius:999px;background:rgba(255,255,255,.06);overflow:hidden}
+.icc-dash-fase-barra i{display:block;width:var(--w);height:100%;border-radius:999px;background:linear-gradient(90deg,var(--c),color-mix(in srgb,var(--c) 55%,#fff));box-shadow:0 0 10px color-mix(in srgb,var(--c) 60%,transparent)}
+.icc-dash-fase b{font-size:18px;color:#fff;text-align:right}
+.icc-dash-nota{margin:6px 2px 0;font-size:12.5px}
+
+/* Agenda de hoy */
+.icc-dash-citas{display:flex;flex-direction:column;gap:7px}
+.icc-dash-cita{display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:12px;text-decoration:none;color:var(--txt);
+  background:linear-gradient(135deg,rgba(34,211,238,.07),rgba(255,255,255,.02));border:1px solid var(--line);transition:border-color .12s,transform .12s}
+.icc-dash-cita:hover{border-color:var(--cian);transform:translateX(3px)}
+.icc-dash-cita.is-hecha{opacity:.6}
+.icc-dash-cita-hora{flex:0 0 auto;font-weight:800;font-size:15px;color:#fff;font-variant-numeric:tabular-nums;padding:4px 9px;border-radius:8px;background:rgba(34,211,238,.12)}
+.icc-dash-cita-txt{flex:1;min-width:0;display:flex;flex-direction:column}
+.icc-dash-cita-txt strong{font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.icc-dash-cita-txt small{font-size:12px;color:var(--txt-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.icc-dash-cita-est{flex:0 0 auto;width:10px;height:10px;border-radius:50%;background:var(--e);box-shadow:0 0 8px var(--e)}
+.icc-dash-proxima{margin-top:12px;padding:10px 12px;border-radius:12px;background:rgba(212,166,42,.1);border:1px solid rgba(212,166,42,.3);font-size:13px}
+
+/* Contratos */
+.icc-dash-contratos{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px}
+.icc-dash-contrato{display:flex;flex-direction:column;gap:2px;padding:12px;border-radius:12px;text-decoration:none;color:var(--txt);
+  background:linear-gradient(160deg,color-mix(in srgb,var(--c) 14%,var(--card)),var(--card));border:1px solid color-mix(in srgb,var(--c) 28%,transparent);transition:transform .12s}
+.icc-dash-contrato:hover{transform:translateY(-2px)}
+.icc-dash-contrato b{font-size:24px;color:#fff}
+.icc-dash-contrato span{font-size:12px;color:var(--c);font-weight:700}
+
+/* Accesos rapidos */
+.icc-dash-accesos{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px}
+.icc-dash-acceso{display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:12px;text-decoration:none;color:var(--txt);
+  background:rgba(255,255,255,.025);border:1px solid var(--line);transition:border-color .12s,transform .12s}
+.icc-dash-acceso:hover{border-color:var(--c);transform:translateY(-2px)}
+.icc-dash-acceso-ico{flex:0 0 auto;width:38px;height:38px;display:grid;place-items:center;border-radius:11px;font-size:19px;
+  background:color-mix(in srgb,var(--c) 18%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--c) 35%,transparent)}
+.icc-dash-acceso strong{display:block;font-size:13.5px;color:#fff}
+.icc-dash-acceso small{font-size:12px;color:var(--txt-2)}
+
+@media (max-width:980px){.icc-dash-grid{grid-template-columns:1fr}}
+@media (max-width:520px){.icc-dash-fase{grid-template-columns:26px 1fr 34px}.icc-dash-fase-barra{display:none}}

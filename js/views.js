@@ -15,139 +15,182 @@ window.icc.views = (function () {
   // --------------------------------------------------------------- Dashboard
   async function viewDashboard() {
     var st = window.icc.auth.state;
+    var auth = window.icc.auth;
+    var gestor = auth.esBackofficeOAdmin();
     main().innerHTML = '<div class="icc-loading">Cargando panel…</div>';
-    var [clientes, contratos, citasProximas] = await Promise.all([
+    var hoy = hoyIso();
+    var [clientes, contratos, citasHoyLista, citasProximas, pipeline] = await Promise.all([
       D.listarClientes(),
-      D.listarContratos({}).catch(function () { return []; }),
-      D.listarCitas({ comercial_id: st.user.id, desde: hoyIso() }).catch(function () { return []; }),
+      auth.puede("contratos.ver") ? D.listarContratos({}).catch(function () { return []; }) : Promise.resolve([]),
+      // Jefes, backoffice y admin ven el dia de su equipo; el comercial, el suyo.
+      auth.puede("agenda.ver") ? D.listarCitas(gestor ? { fecha: hoy } : { comercial_id: st.user.id, fecha: hoy }).catch(function () { return []; }) : Promise.resolve([]),
+      auth.puede("agenda.ver") ? D.listarCitas({ comercial_id: st.user.id, desde: hoy }).catch(function () { return []; }) : Promise.resolve([]),
+      window.icc.api.get("api/pipeline.php").catch(function () { return null; }),
     ]);
 
-    var citasHoy = citasProximas.filter(function (c) {
-      return c.fecha === hoyIso() && (c.estado === "programada" || c.estado === "confirmada" || c.estado === "reprogramada");
-    });
-    var proximaCita = citasProximas
-      .filter(function (c) { return c.estado === 'programada' || c.estado === 'confirmada' || c.estado === 'reprogramada'; })
-      .filter(function (c) { return citaEsFutura(c); })
+    var abiertas = ["programada", "confirmada", "reprogramada"];
+    var citasHoy = (citasHoyLista || []).filter(function (c) { return c.estado !== "ko"; })
+      .sort(function (a, b) { return String(a.hora_inicio).localeCompare(String(b.hora_inicio)); });
+    var pendientesHoy = citasHoy.filter(function (c) { return abiertas.indexOf(c.estado) !== -1; });
+    var proximaCita = (citasProximas || [])
+      .filter(function (c) { return abiertas.indexOf(c.estado) !== -1 && citaEsFutura(c); })
       .sort(function (a, b) { return (a.fecha + a.hora_inicio).localeCompare(b.fecha + b.hora_inicio); })[0];
 
     var conteos = {};
-    C.ESTADOS_ORDEN.forEach(function (e) {
-      conteos[e] = 0;
-    });
-    clientes.forEach(function (c) {
-      conteos[c.estado] = (conteos[c.estado] || 0) + 1;
-    });
+    C.ESTADOS_ORDEN.forEach(function (e) { conteos[e] = 0; });
+    clientes.forEach(function (c) { conteos[c.estado] = (conteos[c.estado] || 0) + 1; });
 
+    // Objetivo y puntos del MES en curso (antes se contaban todos los contratos de la historia).
+    var mes = hoy.slice(0, 7);
+    var delMes = function (c) { return String(c.fecha_activacion || c.fecha_alta || "").slice(0, 7) === mes; };
     var conteosContrato = {};
-    C.ESTADOS_CONTRATO_ORDEN.forEach(function (e) {
-      conteosContrato[e] = 0;
-    });
-    contratos.forEach(function (c) {
-      conteosContrato[c.estado] = (conteosContrato[c.estado] || 0) + 1;
-    });
-    var contratosOk = conteosContrato.ok || 0;
+    C.ESTADOS_CONTRATO_ORDEN.forEach(function (e) { conteosContrato[e] = 0; });
+    contratos.forEach(function (c) { conteosContrato[c.estado] = (conteosContrato[c.estado] || 0) + 1; });
+    var okMes = contratos.filter(function (c) { return c.estado === "ok" && delMes(c); }).length;
+    var verificadosMes = contratos.filter(function (c) { return c.estado === "verificado" && delMes(c); }).length;
+    var altasMes = contratos.filter(function (c) { return String(c.fecha_alta || "").slice(0, 7) === mes; }).length;
     var objetivoMensual = 20;
-    var puntos = contratosOk * 10 + (conteosContrato.verificado || 0) * 5;
+    var puntos = okMes * 10 + verificadosMes * 5;
+    var pctObjetivo = Math.min(100, Math.round((okMes / objetivoMensual) * 100));
 
-    var propios = clientes.filter(function (c) {
-      return c.comercial_id === st.user.id;
-    });
-    var enCurso = clientes.filter(function (c) {
-      return c.estado !== "cliente_activo" && c.estado !== "perdido";
-    }).length;
+    var propios = clientes.filter(function (c) { return c.comercial_id === st.user.id; });
+    var enCurso = clientes.filter(function (c) { return c.estado !== "cliente_activo" && c.estado !== "perdido"; }).length;
 
-    var accesos = [{ href: "#/clientes", label: "Ver leads y clientes", icon: "👥" }];
-    if (window.icc.auth.esBackofficeOAdmin()) {
-      accesos.push({ href: "#/clientes?estado=estudio_backoffice", label: "Cola de backoffice", icon: "🧮" });
-      accesos.push({ href: "#/agentes", label: "Gestion de agentes", icon: "🛡️" });
+    // Datos del pipeline (si la seccion esta disponible).
+    var pl = null;
+    if (pipeline && pipeline.oportunidades) {
+      var probs = { lead_captado: 10, estudio_backoffice: 25, oferta_presentada: 50, en_cierre: 75 };
+      var alertas = { lead_captado: 7, estudio_backoffice: 5, oferta_presentada: 10, en_cierre: 14 };
+      var ab = pipeline.oportunidades.filter(function (o) { return probs[o.estado] != null; });
+      pl = {
+        valor: ab.reduce(function (s, o) { return s + (o.valor_estimado || 0); }, 0),
+        prevision: ab.reduce(function (s, o) { return s + (o.valor_estimado || 0) * probs[o.estado] / 100; }, 0),
+        estancadas: ab.filter(function (o) { return o.dias_en_fase >= alertas[o.estado]; }).length,
+        sinAccion: pipeline.con_citas ? ab.filter(function (o) { return !o.proxima_cita; }).length : null,
+        tasa: pipeline.metricas ? pipeline.metricas.tasa_cierre : null,
+        conValor: pipeline.con_valor,
+      };
     }
-    accesos.push({ href: "#/contratos", label: "Ver contratos", icon: "📄" });
-    accesos.push({ href: "firmar.html", label: "Firma digital de contratos", icon: "✍️" });
+
+    var h = new Date().getHours();
+    var saludo = h < 14 ? "Buenos días" : h < 21 ? "Buenas tardes" : "Buenas noches";
+    var nombre = U.escapeHtml((st.user.nombre || "").split(" ")[0] || "equipo");
+    var fechaHoy = new Date().toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+    var eur = function (n) { return Number(n || 0).toLocaleString("es-ES", { maximumFractionDigits: 0 }) + " €"; };
+    var esc = U.escapeHtml;
+
+    var kpi = function (valor, label, color, icono, href, extra) {
+      var inner = '<span class="icc-ag-kpi-ico">' + icono + '</span><span class="icc-stat-value">' + valor + '</span><span class="icc-stat-label">' + label + "</span>" + (extra || "");
+      return href
+        ? '<a class="icc-stat-card icc-ag-kpi" style="--stat-color:' + color + '" href="' + href + '">' + inner + "</a>"
+        : '<div class="icc-stat-card icc-ag-kpi" style="--stat-color:' + color + '">' + inner + "</div>";
+    };
+
+    // Embudo visual (mismo estilo que el Pipeline).
+    var fases = C.ESTADOS_ORDEN.filter(function (e) { return e !== "perdido"; });
+    var maxFase = Math.max(1, Math.max.apply(null, fases.map(function (e) { return conteos[e] || 0; })));
+    var iconosFase = { lead_captado: "🎯", estudio_backoffice: "🔎", oferta_presentada: "📄", en_cierre: "🤝", cliente_activo: "🏆" };
+
+    var accesos = [];
+    if (auth.puede("clientes.ver")) accesos.push({ href: "#/pipeline", label: "Pipeline", desc: "Oportunidades por fase", icon: "📈", c: "#34d399" });
+    if (auth.puede("clientes.ver")) accesos.push({ href: "#/clientes", label: "Leads y clientes", desc: "Fichas y documentación", icon: "👥", c: "#818cf8" });
+    if (auth.puede("agenda.ver")) accesos.push({ href: "#/agenda", label: "Agenda", desc: gestor ? "Citas del equipo" : "Tus citas", icon: "📅", c: "#22d3ee" });
+    if (auth.puede("comparador.usar")) accesos.push({ href: "#/comparador", label: "Comparador", desc: "Energía y telefonía", icon: "⚡", c: "#fbbf24" });
+    if (gestor) accesos.push({ href: "#/clientes?estado=estudio_backoffice", label: "Cola de backoffice", desc: (conteos.estudio_backoffice || 0) + " pendientes de estudio", icon: "🧮", c: "#f472b6" });
+    if (auth.puede("contratos.ver")) accesos.push({ href: "#/contratos", label: "Contratos", desc: contratos.length + " en total", icon: "📄", c: "#60a5fa" });
+    if (gestor) accesos.push({ href: "#/agentes", label: "Agentes", desc: "Equipo y permisos", icon: "🛡️", c: "#a78bfa" });
+    accesos.push({ href: "firmar.html", label: "Firma digital", desc: "Firma de contratos", icon: "✍️", c: "#fb923c" });
 
     main().innerHTML =
-      '<div class="icc-page-head">' +
-      '<h1>Hola, ' +
-      U.escapeHtml((st.user.nombre || "").split(" ")[0] || "equipo") +
-      "</h1>" +
-      '<p class="icc-muted">' +
-      C.ROLES[st.rolPrincipal] +
-      " · Integral Connection Consulting</p>" +
+      // --- Cabecera
+      '<header class="icc-ag-hero icc-dash-hero">' +
+      '<div class="icc-ag-hero-txt"><span class="icc-ag-hero-kicker">' + esc(C.ROLES[st.rolPrincipal] || "") + " · Integral Connection Consulting</span>" +
+      "<h1>" + saludo + ", " + nombre + "</h1>" +
+      '<p class="icc-ag-hero-res">' + esc(fechaHoy.charAt(0).toUpperCase() + fechaHoy.slice(1)) +
+      (auth.puede("agenda.ver") ? " · <b>" + pendientesHoy.length + "</b> " + (pendientesHoy.length === 1 ? "cita pendiente hoy" : "citas pendientes hoy") : "") +
+      (pl && pl.estancadas ? ' · <b class="mal">' + pl.estancadas + "</b> oportunidades estancadas" : "") +
+      "</p></div>" +
+      '<div class="icc-ag-hero-acc icc-dash-acciones">' +
+      (auth.puede("clientes.crear") ? '<button type="button" class="icc-btn icc-btn-ghost" id="btn-dashboard-nuevo-cliente">+ Cliente</button>' : "") +
+      (auth.puede("agenda.gestionar") ? '<button type="button" class="icc-btn icc-btn-primary icc-ag-btn-nueva" id="btn-dashboard-nueva-cita">+ Nueva cita</button>' : "") +
+      "</div></header>" +
+
+      // --- Indicadores
+      '<div class="icc-ag-kpis">' +
+      kpi(okMes + " / " + objetivoMensual, "Contratos OK este mes", "#34d399", "🎯", "#/contratos?estado=ok",
+        '<span class="icc-dash-progreso"><i style="width:' + pctObjetivo + '%"></i></span>') +
+      kpi(puntos, "Puntos del mes", "#d4a62a", "⭐", null) +
+      kpi(enCurso, "Expedientes en curso", "#22d3ee", "📂", "#/pipeline") +
+      kpi(st.rolPrincipal === "comercial" ? propios.length : clientes.length, st.rolPrincipal === "comercial" ? "Mis leads" : "Total clientes", "#818cf8", "👥", "#/clientes") +
+      (pl && pl.conValor ? kpi(eur(pl.prevision), "Previsión ponderada", "#10b981", "💶", "#/pipeline") : "") +
+      (pl && pl.tasa != null ? kpi(pl.tasa + "%", "Tasa de cierre (90 días)", "#a78bfa", "🏆", "#/pipeline") : "") +
+      (auth.puede("contratos.ver") ? kpi(altasMes, "Contratos dados de alta este mes", "#60a5fa", "📝", "#/contratos") : "") +
       "</div>" +
-      '<div class="icc-stat-grid">' +
-      statCard("Puntos obtenidos", puntos, "#d4a62a") +
-      statCard("Objetivo mensual (contratos OK)", contratosOk + " / " + objetivoMensual, "#34d399") +
-      statCard("Expedientes en curso", enCurso, "#22d3ee") +
-      statCard(st.rolPrincipal === "comercial" ? "Mis leads" : "Total clientes", st.rolPrincipal === "comercial" ? propios.length : clientes.length, "#818cf8") +
-      "</div>" +
-      '<div class="icc-grid-2">' +
-      '<section class="icc-card">' +
-      '<h2>Embudo comercial <a class="icc-link-btn" style="font-size:13px;margin-left:8px" href="#/pipeline">Ver pipeline →</a></h2>' +
-      '<div class="icc-funnel">' +
-      C.ESTADOS_ORDEN.filter(function (e) {
-        return e !== "perdido";
-      })
-        .map(function (e) {
-          return (
-            '<a class="icc-funnel-step" href="#/clientes?estado=' +
-            e +
-            '"><span class="icc-funnel-count">' +
-            (conteos[e] || 0) +
-            "</span><span>" +
-            C.ESTADOS[e].label +
-            "</span></a>"
-          );
-        })
-        .join("") +
-      "</div>" +
-      "<h3>Estadisticas de logros</h3>" +
-      '<div class="icc-funnel">' +
-      C.ESTADOS_CONTRATO_ORDEN.map(function (e) {
+
+      // --- Embudo + agenda de hoy
+      '<div class="icc-dash-grid">' +
+      '<section class="icc-card icc-dash-embudo">' +
+      '<div class="icc-dash-tit"><h2>Embudo comercial</h2><a class="icc-link-btn" href="#/pipeline">Abrir pipeline →</a></div>' +
+      fases.map(function (e) {
+        var n = conteos[e] || 0;
         return (
-          '<a class="icc-funnel-step" href="#/contratos?estado=' +
-          e +
-          '"><span class="icc-funnel-count">' +
-          (conteosContrato[e] || 0) +
-          "</span><span>" +
-          C.ESTADOS_CONTRATO[e].label +
-          "</span></a>"
+          '<a class="icc-dash-fase" style="--c:' + C.ESTADOS[e].color + ";--w:" + Math.max(6, Math.round((n / maxFase) * 100)) + '%" href="#/pipeline">' +
+          '<span class="icc-dash-fase-ico">' + (iconosFase[e] || "•") + "</span>" +
+          '<span class="icc-dash-fase-txt">' + esc(C.ESTADOS[e].label) + "</span>" +
+          '<span class="icc-dash-fase-barra"><i></i></span><b>' + n + "</b></a>"
         );
       }).join("") +
-      "</div>" +
+      (conteos.perdido ? '<p class="icc-muted icc-dash-nota">✖ ' + conteos.perdido + " perdidas en total" + (pl && pl.sinAccion ? " · ⚠ " + pl.sinAccion + " oportunidades sin próxima acción en la agenda" : "") + "</p>"
+        : pl && pl.sinAccion ? '<p class="icc-muted icc-dash-nota">⚠ ' + pl.sinAccion + " oportunidades sin próxima acción en la agenda</p>" : "") +
       "</section>" +
-      '<section class="icc-card">' +
-      "<h2>Accesos rapidos</h2>" +
-      '<div class="icc-quick-links">' +
-      accesos
-        .map(function (a) {
-          return (
-            '<a class="icc-quick-link" href="' + a.href + '"><span>' + a.icon + "</span>" + a.label + "</a>"
-          );
-        })
-        .join("") +
-      "</div>" +
+
+      '<section class="icc-card icc-dash-hoy">' +
+      '<div class="icc-dash-tit"><h2>📅 ' + (gestor ? "Hoy en el equipo" : "Mi agenda de hoy") + '</h2><a class="icc-link-btn" href="#/agenda?vista=' + (gestor ? "equipo" : "dia") + '">Ver agenda →</a></div>' +
+      (citasHoy.length
+        ? '<div class="icc-dash-citas">' + citasHoy.slice(0, 7).map(function (c) {
+            var est = (C.ESTADOS_CITA || {})[c.estado] || { color: "#94a3b8", label: c.estado };
+            var tipo = (C.TIPOS_CITA || {})[c.tipo] || { icono: "📌" };
+            return (
+              '<a class="icc-dash-cita' + (c.estado === "realizada" ? " is-hecha" : "") + '" href="#/agenda?vista=dia&fecha=' + c.fecha + "&cita=" + c.id + '" style="--e:' + est.color + '">' +
+              '<span class="icc-dash-cita-hora">' + String(c.hora_inicio).slice(0, 5) + "</span>" +
+              '<span class="icc-dash-cita-txt"><strong>' + tipo.icono + " " + esc(c.cliente_nombre) + "</strong>" +
+              "<small>" + esc([gestor ? c.comercial_nombre || (c.comercial_id ? "" : "📥 Por asignar") : "", c.direccion].filter(Boolean).join(" · ")) + "</small></span>" +
+              '<span class="icc-dash-cita-est" title="' + esc(est.label) + '"></span></a>'
+            );
+          }).join("") +
+          (citasHoy.length > 7 ? '<a class="icc-link-btn" href="#/agenda?vista=dia">+' + (citasHoy.length - 7) + " citas más</a>" : "") + "</div>"
+        : '<p class="icc-empty">Hoy no hay citas.</p>') +
+      (proximaCita && !gestor
+        ? '<div class="icc-dash-proxima">⏰ Próxima: <strong>' + esc(proximaCita.cliente_nombre) + "</strong> · " + esc(formatearCuentaAtras(proximaCita)) + "</div>"
+        : "") +
       "</section>" +
       "</div>" +
-      '<div class="icc-grid-2" style="margin-top:16px">' +
-      '<section class="icc-card">' +
-      "<h2>📅 Mi Agenda de Hoy</h2>" +
-      '<p class="icc-stat-value" style="font-size:30px;display:block">' + citasHoy.length + "</p>" +
-      '<p class="icc-muted">cita' + (citasHoy.length === 1 ? "" : "s") + " programada" + (citasHoy.length === 1 ? "" : "s") + " para hoy</p>" +
-      '<div class="icc-doc-actions" style="margin-top:10px">' +
-      '<a class="icc-btn icc-btn-secondary" href="#/agenda">Ver agenda</a>' +
-      '<button type="button" class="icc-btn icc-btn-primary" id="btn-dashboard-nueva-cita">+ Nueva cita</button>' +
+
+      // --- Contratos + accesos
+      '<div class="icc-dash-grid">' +
+      (auth.puede("contratos.ver")
+        ? '<section class="icc-card"><div class="icc-dash-tit"><h2>📄 Estado de los contratos</h2><a class="icc-link-btn" href="#/contratos">Ver contratos →</a></div>' +
+          '<div class="icc-dash-contratos">' +
+          C.ESTADOS_CONTRATO_ORDEN.map(function (e) {
+            return (
+              '<a class="icc-dash-contrato" style="--c:' + C.ESTADOS_CONTRATO[e].color + '" href="#/contratos?estado=' + e + '">' +
+              "<b>" + (conteosContrato[e] || 0) + "</b><span>" + esc(C.ESTADOS_CONTRATO[e].label) + "</span></a>"
+            );
+          }).join("") +
+          "</div></section>"
+        : "") +
+      '<section class="icc-card"><div class="icc-dash-tit"><h2>🚀 Accesos rápidos</h2></div>' +
+      '<div class="icc-dash-accesos">' +
+      accesos.map(function (a) {
+        return '<a class="icc-dash-acceso" style="--c:' + a.c + '" href="' + a.href + '"><span class="icc-dash-acceso-ico">' + a.icon + "</span><span><strong>" + esc(a.label) + "</strong><small>" + esc(a.desc) + "</small></span></a>";
+      }).join("") +
       "</div></section>" +
-      '<section class="icc-card">' +
-      "<h2>⏰ Próxima cita</h2>" +
-      (proximaCita
-        ? '<p class="icc-cita-cliente" style="font-size:16px;margin:6px 0">' + U.escapeHtml(proximaCita.cliente_nombre) + "</p>" +
-          '<p class="icc-muted">' + formatearCuentaAtras(proximaCita) + "</p>" +
-          '<a class="icc-link-btn" href="#/agenda?fecha=' + proximaCita.fecha + '">Ver en la agenda</a>'
-        : '<p class="icc-empty">No tienes ninguna cita proxima.</p>') +
-      "</section>" +
       "</div>";
 
     var btnDashboardNuevaCita = document.getElementById("btn-dashboard-nueva-cita");
     if (btnDashboardNuevaCita) btnDashboardNuevaCita.addEventListener("click", abrirModalCitaRapida);
+    var btnDashboardNuevoCliente = document.getElementById("btn-dashboard-nuevo-cliente");
+    if (btnDashboardNuevoCliente) btnDashboardNuevoCliente.addEventListener("click", function () { modalNuevoCliente(null); });
   }
 
   function statCard(label, value, color) {
