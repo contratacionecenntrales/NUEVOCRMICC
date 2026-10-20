@@ -100,7 +100,7 @@ if ($metodo === 'POST' && $accion === 'login') {
 
   if (!$user || !password_verify($password, $user['password_hash'])) {
     if ($user) icc_auditar((int)$user['id'], null, 'login_fallido', 'Contrasena incorrecta');
-    icc_json(['error' => 'Email o contrasena incorrectos'], 401);
+    icc_json(['error' => 'Email o contraseña incorrectos'], 401);
   }
   if ((int)$user['bloqueado'] === 1) {
     icc_json(['error' => 'Tu cuenta esta bloqueada. Contacta con administracion.'], 403);

@@ -11,48 +11,99 @@
 
   // ------------------------------------------------------------ Pantalla login
   function renderAuth() {
+    var hora = new Date().getHours();
+    var saludo = hora < 6 ? "Buenas noches" : hora < 14 ? "Buenos días" : hora < 21 ? "Buenas tardes" : "Buenas noches";
+    var palabras = ["energía", "telefonía", "alarmas", "seguros"];
+
     root().innerHTML =
-      '<div class="icc-auth-wrap"><div class="icc-auth-shell">' +
-      '<div class="icc-auth-hero">' +
-      '<div class="icc-auth-hero-top icc-brand">' +
-      '<img src="assets/logo.svg" alt="ICC" class="icc-brand-logo">' +
-      '<div><strong>Integral Connection</strong><span>Consulting</span></div>' +
+      '<div class="icc-login">' +
+      // Fondo animado (solo decorativo)
+      '<div class="icc-login-fondo" aria-hidden="true">' +
+      '<span class="icc-login-blob b1"></span><span class="icc-login-blob b2"></span><span class="icc-login-blob b3"></span><span class="icc-login-blob b4"></span>' +
+      '<span class="icc-login-rejilla"></span><span class="icc-login-estrellas"></span><span class="icc-login-estrellas e2"></span>' +
       "</div>" +
-      "<div>" +
-      "<h1>El CRM comercial de Integral Connection Consulting</h1>" +
-      '<p class="icc-auth-tagline">Leads, contratos, agentes, ficheros, proformas e informes — todo en un mismo lugar, alojado en tu propio servidor.</p>' +
-      '<ul class="icc-auth-features">' +
-      '<li><span class="ico">👥</span> Embudo comercial de Lead a Cliente Activo</li>' +
-      '<li><span class="ico">📄</span> Contratos, proformas y biblioteca de ficheros</li>' +
-      '<li><span class="ico">✍️</span> Firma digital con validez legal</li>' +
+
+      '<main class="icc-login-marco">' +
+      // ---- Lado izquierdo: marca y escena
+      '<section class="icc-login-hero">' +
+      '<div class="icc-login-marca">' +
+      '<span class="icc-login-logo"><span class="icc-login-logo-aro" aria-hidden="true"></span><img src="assets/logo.svg" alt="ICC"></span>' +
+      "<div><strong>Integral Connection</strong><span>Consulting</span></div></div>" +
+      '<span class="icc-login-kicker"><i aria-hidden="true"></i>CRM comercial · acceso del equipo</span>' +
+      '<h1>Vende más <span class="icc-login-rota" id="login-rota">' + palabras[0] + "</span><br>con todo tu negocio<br>en un solo lugar.</h1>" +
+      '<p class="icc-login-tagline">Clientes, pipeline, agenda, comparadores, contratos y ficheros, siempre sincronizados para todo el equipo.</p>' +
+
+      '<div class="icc-login-escena" aria-hidden="true">' +
+      '<div class="icc-login-mini m1"><header><span>📈</span>Pipeline</header>' +
+      '<div class="icc-login-embudo"><i style="--w:100%;--c:#22D3EE"></i><i style="--w:78%;--c:#A78BFA"></i><i style="--w:56%;--c:#FBBF24"></i><i style="--w:38%;--c:#34D399"></i></div></div>' +
+      '<div class="icc-login-mini m2"><header><span>📅</span>Agenda de hoy</header>' +
+      '<div class="icc-login-citas"><p><b style="--c:#22D3EE"></b><em></em></p><p><b style="--c:#F472B6"></b><em style="width:62%"></em></p><p><b style="--c:#34D399"></b><em style="width:74%"></em></p></div></div>' +
+      '<div class="icc-login-mini m3"><header><span>⚡</span>Comparador</header>' +
+      '<div class="icc-login-barras"><i style="--h:82%"></i><i style="--h:58%"></i><i style="--h:70%"></i><i style="--h:44%" class="mejor"></i></div>' +
+      '<small>✓ Mejor oferta encontrada</small></div>' +
+      "</div>" +
+
+      '<ul class="icc-login-chips">' +
+      "<li>👥 Pipeline</li><li>📅 Agenda</li><li>⚡ Energía</li><li>📶 Telefonía</li><li>✍️ Firma digital</li><li>🗂️ Ficheros</li>" +
       "</ul>" +
-      "</div>" +
-      '<p class="icc-auth-hero-foot">© ' +
-      new Date().getFullYear() +
-      " Integral Connection Consulting. Acceso exclusivo para el equipo.</p>" +
-      "</div>" +
-      '<div class="icc-auth-panel"><div class="icc-auth-card">' +
-      '<div class="icc-brand"><img src="assets/logo.svg" alt="ICC" class="icc-brand-logo">' +
-      '<div><strong>Integral Connection</strong><span>Consulting · CRM</span></div></div>' +
+      '<p class="icc-login-pie">© ' + new Date().getFullYear() + " Integral Connection Consulting · Acceso exclusivo para el equipo</p>" +
+      "</section>" +
+
+      // ---- Lado derecho: formulario
+      '<section class="icc-login-panel">' +
+      '<div class="icc-login-card" id="login-card">' +
+      '<div class="icc-login-marca icc-login-marca-movil"><span class="icc-login-logo"><span class="icc-login-logo-aro" aria-hidden="true"></span><img src="assets/logo.svg" alt="ICC"></span>' +
+      "<div><strong>Integral Connection</strong><span>Consulting · CRM</span></div></div>" +
+      '<p class="icc-login-saludo">👋 ' + saludo + "</p>" +
+      "<h2>Accede a tu CRM</h2>" +
+      '<p class="icc-login-sub">Entra con el email y la contraseña de tu cuenta del equipo.</p>' +
       // Formulario de acceso "de verdad" (method, name, id y autocomplete) para
       // que Chrome, Edge, Firefox y Safari ofrezcan guardar la contraseña.
-      '<form id="form-auth" name="login" class="icc-form" method="post" action="#" autocomplete="on">' +
-      '<div class="icc-field"><label for="login-email">Email</label>' +
-      '<input class="icc-input" id="login-email" name="email" type="email" autocomplete="username" autocapitalize="none" spellcheck="false" inputmode="email" required></div>' +
-      '<div class="icc-field"><label for="login-password">Contraseña</label>' +
-      '<div class="icc-pass-wrap"><input class="icc-input" id="login-password" name="password" type="password" autocomplete="current-password" minlength="6" required>' +
-      '<button type="button" class="icc-pass-ver" id="btn-ver-password" aria-label="Mostrar contraseña" aria-pressed="false" title="Mostrar contraseña">👁</button></div></div>' +
+      '<form id="form-auth" name="login" class="icc-login-form" method="post" action="#" autocomplete="on">' +
+      '<div class="icc-login-campo"><label for="login-email">Email</label>' +
+      '<div class="icc-login-input"><span aria-hidden="true">✉️</span>' +
+      '<input id="login-email" name="email" type="email" autocomplete="username" autocapitalize="none" spellcheck="false" inputmode="email" placeholder="nombre@empresa.es" required></div></div>' +
+      '<div class="icc-login-campo"><label for="login-password">Contraseña</label>' +
+      '<div class="icc-login-input"><span aria-hidden="true">🔒</span>' +
+      '<input id="login-password" name="password" type="password" autocomplete="current-password" minlength="6" placeholder="••••••••" required>' +
+      '<button type="button" class="icc-pass-ver" id="btn-ver-password" aria-label="Mostrar contraseña" aria-pressed="false" title="Mostrar contraseña">👁</button></div>' +
+      '<p class="icc-login-mayus" id="login-mayus" hidden>⇪ Bloq Mayús está activado</p></div>' +
       '<label class="icc-recordar"><input type="checkbox" name="recordar" id="login-recordar"> Recordar mi email en este equipo</label>' +
-      '<button type="submit" class="icc-btn icc-btn-primary icc-btn-block" id="btn-submit-auth">Entrar</button>' +
+      '<button type="submit" class="icc-login-btn" id="btn-submit-auth"><span class="icc-login-btn-txt">Entrar</span><span class="icc-login-btn-flecha" aria-hidden="true">→</span></button>' +
       "</form>" +
-      '<p class="icc-muted icc-auth-guardar">🔑 Al entrar, tu navegador te ofrecerá <b>guardar la contraseña</b> para la próxima vez.</p>' +
-      '<p class="icc-muted icc-auth-foot">Acceso exclusivo para el equipo de Integral Connection Consulting. Las cuentas nuevas las crea un administrador desde "Agentes".</p>' +
-      "</div></div></div></div>";
+      '<p class="icc-login-nota">🔑 Al entrar, tu navegador te ofrecerá <b>guardar la contraseña</b>.</p>' +
+      '<p class="icc-login-nota icc-login-nota-2">Las cuentas nuevas las crea un administrador desde «Agentes».</p>' +
+      "</div></section>" +
+      "</main></div>";
 
     var formAuth = document.getElementById("form-auth");
     var campoEmail = document.getElementById("login-email");
     var campoPass = document.getElementById("login-password");
     var casillaRecordar = document.getElementById("login-recordar");
+    var tarjeta = document.getElementById("login-card");
+    var reducido = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    // Palabra que va rotando en el titular.
+    var rota = document.getElementById("login-rota");
+    if (!reducido) {
+      var i = 0;
+      var temporizador = setInterval(function () {
+        if (!document.body.contains(rota)) { clearInterval(temporizador); return; }
+        rota.classList.add("is-saliendo");
+        setTimeout(function () {
+          i = (i + 1) % palabras.length;
+          rota.textContent = palabras[i];
+          rota.classList.remove("is-saliendo");
+        }, 380);
+      }, 2600);
+    }
+
+    // Brillo que sigue al raton sobre la tarjeta.
+    tarjeta.addEventListener("pointermove", function (e) {
+      var r = tarjeta.getBoundingClientRect();
+      tarjeta.style.setProperty("--mx", ((e.clientX - r.left) / r.width) * 100 + "%");
+      tarjeta.style.setProperty("--my", ((e.clientY - r.top) / r.height) * 100 + "%");
+    });
 
     // Email recordado (solo el email: la contraseña la guarda el navegador).
     var emailGuardado = "";
@@ -76,13 +127,23 @@
       campoPass.focus();
     });
 
+    // Aviso de Bloq Mayus.
+    var avisoMayus = document.getElementById("login-mayus");
+    ["keydown", "keyup"].forEach(function (ev) {
+      campoPass.addEventListener(ev, function (e) {
+        if (e.getModifierState) avisoMayus.hidden = !e.getModifierState("CapsLock");
+      });
+    });
+
+    var btn = document.getElementById("btn-submit-auth");
+    var txtBtn = btn.querySelector(".icc-login-btn-txt");
     formAuth.addEventListener("submit", async function (e) {
       e.preventDefault();
       var email = campoEmail.value.trim();
       var password = campoPass.value;
-      var btn = document.getElementById("btn-submit-auth");
       btn.disabled = true;
-      btn.textContent = "Entrando…";
+      btn.classList.add("is-cargando");
+      txtBtn.textContent = "Entrando…";
       // Antes de enviar se vuelve a "password" para que el navegador lo reconozca.
       if (campoPass.type !== "password") btnVer.click();
       try {
@@ -102,7 +163,11 @@
       } catch (err) {
         U.toast(err.message || "No se pudo iniciar sesion", "error");
         btn.disabled = false;
-        btn.textContent = "Entrar";
+        btn.classList.remove("is-cargando");
+        txtBtn.textContent = "Entrar";
+        tarjeta.classList.remove("is-error");
+        void tarjeta.offsetWidth;
+        tarjeta.classList.add("is-error");
         campoPass.select();
       }
     });
