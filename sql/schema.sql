@@ -599,6 +599,17 @@ ALTER TABLE citas ADD CONSTRAINT fk_cita_presupuesto FOREIGN KEY (presupuesto_id
 ALTER TABLE citas ADD CONSTRAINT fk_cita_creado_por FOREIGN KEY (creado_por) REFERENCES usuarios(id) ON DELETE SET NULL;
 CREATE INDEX idx_citas_cliente ON citas(cliente_id, fecha);
 
+-- -----------------------------------------------------------------------------
+-- Visitas concertadas por Backoffice y asignadas al equipo de un Jefe de equipo.
+-- -----------------------------------------------------------------------------
+ALTER TABLE citas MODIFY comercial_id INT UNSIGNED NULL;
+ALTER TABLE citas ADD COLUMN equipo_id INT UNSIGNED NULL AFTER comercial_id;
+ALTER TABLE citas ADD COLUMN asignada_por INT UNSIGNED NULL AFTER creado_por;
+ALTER TABLE citas ADD COLUMN asignada_en DATETIME NULL AFTER asignada_por;
+ALTER TABLE citas ADD CONSTRAINT fk_cita_equipo FOREIGN KEY (equipo_id) REFERENCES usuarios(id) ON DELETE SET NULL;
+ALTER TABLE citas ADD CONSTRAINT fk_cita_asignada_por FOREIGN KEY (asignada_por) REFERENCES usuarios(id) ON DELETE SET NULL;
+CREATE INDEX idx_citas_equipo ON citas(equipo_id, comercial_id);
+
 
 -- -----------------------------------------------------------------------------
 -- Comerciales asignados a cada usuario de Backoffice (vacio = ve toda la empresa).

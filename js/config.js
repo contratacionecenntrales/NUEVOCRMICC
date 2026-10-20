@@ -34,6 +34,7 @@ window.ICC_CONST = {
   AVISOS_USUARIO: [
     ["ficha_agente", "Seguimiento de la ficha", "Cuando alguien anota una reunion, objetivo o incidencia en tu ficha (o en la de alguien de tu equipo)"],
     ["oferta_presentada", "Estudios de ahorro listos", "Cuando backoffice publica el estudio comparativo de uno de tus clientes"],
+    ["agenda", "Visitas de la agenda", "Cuando te asignan una visita, cuando entra una visita por asignar en tu equipo o cuando se cierra una visita que concertaste"],
     ["cuenta", "Avisos de la cuenta", "Cambios en tus permisos y otros avisos de seguridad"],
   ],
 

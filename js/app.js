@@ -288,6 +288,7 @@
         panel.hidden = true;
         if (clienteId) location.hash = "#/clientes/" + clienteId;
         else if (tipoNotif.indexOf("ficha_agente:") === 0) location.hash = "#/agentes/" + tipoNotif.split(":")[1];
+        else if (tipoNotif.indexOf("cita:") === 0) location.hash = "#/agenda?cita=" + tipoNotif.split(":")[1];
         actualizarBadgeNotif();
       });
     });

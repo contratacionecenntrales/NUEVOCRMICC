@@ -23,7 +23,7 @@ $db = icc_db();
 
 const USU_DIAS = ['lun', 'mar', 'mie', 'jue', 'vie', 'sab', 'dom'];
 const USU_ESTADOS_DISPONIBILIDAD = ['disponible', 'ocupado', 'ausente', 'vacaciones', 'baja'];
-const USU_CATEGORIAS_AVISO = ['ficha_agente', 'oferta_presentada', 'cuenta'];
+const USU_CATEGORIAS_AVISO = ['ficha_agente', 'oferta_presentada', 'agenda', 'cuenta'];
 
 if (!$id) icc_json(['error' => 'Falta id'], 400);
 

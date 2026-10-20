@@ -21,6 +21,8 @@ window.icc.agenda = (function () {
   var VISTAS = [["dia", "Día"], ["semana", "Semana"], ["mes", "Mes"], ["anio", "Año"], ["lista", "Lista"]];
   var ESTADOS_ABIERTOS = ["programada", "confirmada", "reprogramada"];
   var agendaV2 = true;
+  var agendaV3 = false; // visitas asignadas a equipos (sql/migracion_citas_equipos.sql)
+  var equiposCache = null;
 
   function main() {
     return document.getElementById("icc-main");
@@ -94,6 +96,132 @@ window.icc.agenda = (function () {
     return window.icc.auth.puede("agenda.gestionar");
   }
 
+  // ------------------------------------------------- Visitas por equipo
+  // Equipos (Jefe de equipo + comerciales) donde quien entra puede dejar visitas.
+  async function cargarEquipos(forzar) {
+    if (!esGestor()) return [];
+    if (equiposCache && !forzar) return equiposCache;
+    try {
+      var r = await D.equiposAgenda();
+      agendaV3 = !!r.agenda_v3;
+      equiposCache = r.equipos || [];
+    } catch (err) {
+      equiposCache = [];
+    }
+    return equiposCache;
+  }
+  function sinAsignar(c) {
+    return agendaV3 && (c.comercial_id === null || c.comercial_id === undefined || c.comercial_id === "");
+  }
+  function nombreCompleto(x) {
+    return (x.nombre + " " + (x.apellidos || "")).trim();
+  }
+  function textoAsignado(c) {
+    return sinAsignar(c) ? "📥 Por asignar" + (c.equipo_nombre ? " · equipo de " + c.equipo_nombre : "") : c.comercial_nombre ? "👤 " + c.comercial_nombre : "";
+  }
+  function textoConcertada(c) {
+    return c.creado_por_nombre && String(c.creado_por) !== String(c.comercial_id) ? "📞 Concertada por " + c.creado_por_nombre : "";
+  }
+  function equipoDe(equipos, id) {
+    return equipos.filter(function (e) { return String(e.id) === String(id); })[0] || null;
+  }
+
+  /**
+   * <option> de "Asignar a": yo, y por cada equipo la bandeja "por asignar"
+   * (la reparte el Jefe de equipo) y sus comerciales. Valores "c:<id>" (comercial)
+   * o "eq:<id>" (bandeja del equipo).
+   */
+  function opcionesAsignacion(equipos, agentes, base) {
+    var miId = String(window.icc.auth.state.user.id);
+    var actual = base && base.comercial_id ? "c:" + base.comercial_id : base && base.equipo_id ? "eq:" + base.equipo_id : "c:" + miId;
+    var vistos = {};
+    var opts = [];
+    var grupo = function (label, items) { if (items.length) opts.push({ grupo: label, items: items }); };
+    vistos[miId] = true;
+    grupo("", [{ v: "c:" + miId, t: "Yo (mi agenda)" }]);
+    equipos.forEach(function (eq) {
+      var items = [];
+      if (String(eq.id) !== miId) items.push({ v: "eq:" + eq.id, t: "📥 Por asignar — que la reparta " + eq.nombre });
+      eq.comerciales.forEach(function (x) {
+        vistos[x.id] = true;
+        items.push({ v: "c:" + x.id, t: nombreCompleto(x) });
+      });
+      grupo("Equipo de " + nombreCompleto(eq), items);
+    });
+    grupo("Otros", (agentes || []).filter(function (a) {
+      return !vistos[a.id] && (a.rol === "comercial" || a.rol === "jefe_de_equipo") && !Number(a.bloqueado);
+    }).map(function (a) { vistos[a.id] = true; return { v: "c:" + a.id, t: nombreCompleto(a) }; }));
+    var hay = opts.some(function (g) { return g.items.some(function (i) { return i.v === actual; }); });
+    if (!hay && base && (base.comercial_id || base.equipo_id)) {
+      grupo("Asignación actual", [{ v: actual, t: base.comercial_nombre || (base.equipo_nombre ? "📥 Por asignar · equipo de " + base.equipo_nombre : "Asignación actual") }]);
+    }
+    return opts.map(function (g) {
+      var html = g.items.map(function (i) {
+        return '<option value="' + esc(i.v) + '"' + (i.v === actual ? " selected" : "") + ">" + esc(i.t) + "</option>";
+      }).join("");
+      return g.grupo ? '<optgroup label="' + esc(g.grupo) + '">' + html + "</optgroup>" : html;
+    }).join("");
+  }
+
+  function payloadAsignacion(valor) {
+    if (!valor) return {};
+    var p = valor.split(":");
+    return p[0] === "eq" ? { comercial_id: null, equipo_id: p[1] } : { comercial_id: p[1] };
+  }
+
+  // Bandeja del Jefe de equipo / Backoffice con las visitas sin comercial.
+  function bandejaHtml(pendientes, equipos) {
+    if (!pendientes.length) return "";
+    return (
+      '<section class="icc-card icc-ag-bandeja"><h3>📥 Visitas por asignar <span class="icc-muted">(' + pendientes.length + ")</span></h3>" +
+      '<p class="icc-muted">Visitas concertadas que todavía no tienen comercial. Elige quién va y pulsa Asignar: le llegará un aviso.</p>' +
+      pendientes.map(function (c) {
+        var eq = equipoDe(equipos, c.equipo_id);
+        var atrasada = c.fecha < hoy();
+        return (
+          '<div class="icc-ag-bandeja-fila' + (atrasada ? " is-atrasada" : "") + '">' +
+          '<div class="icc-ag-bandeja-info" data-abrir-cita="' + c.id + '">' +
+          "<strong>" + esc(mayuscula(aFecha(c.fecha).toLocaleDateString("es-ES", { weekday: "short", day: "numeric", month: "short" }))) + " · " + hm(c.hora_inicio) + "–" + hm(c.hora_fin) + "</strong> " +
+          iconoTipo(c) + esc(c.cliente_nombre) +
+          '<span class="icc-muted">' + esc([c.direccion, c.equipo_nombre ? "Equipo de " + c.equipo_nombre : "", textoConcertada(c)].filter(Boolean).join(" · ")) + "</span>" +
+          (atrasada ? '<span class="icc-ag-bandeja-alerta">⚠️ La fecha ya ha pasado</span>' : "") +
+          "</div>" +
+          (eq && eq.comerciales.length && puedeGestionar()
+            ? '<div class="icc-ag-bandeja-accion"><select class="icc-select" data-bandeja-sel="' + c.id + '"><option value="">Elegir comercial…</option>' +
+              eq.comerciales.map(function (x) { return '<option value="' + x.id + '">' + esc(nombreCompleto(x)) + "</option>"; }).join("") +
+              '</select><button type="button" class="icc-btn icc-btn-primary" data-bandeja-ok="' + c.id + '">Asignar</button></div>'
+            : '<span class="icc-muted">Pendiente de que la asigne ' + esc(c.equipo_nombre || "el jefe de equipo") + "</span>") +
+          "</div>"
+        );
+      }).join("") +
+      "</section>"
+    );
+  }
+
+  function enlazarBandeja(cont, ctx) {
+    cont.querySelectorAll("[data-bandeja-ok]").forEach(function (b) {
+      b.addEventListener("click", async function () {
+        var id = b.getAttribute("data-bandeja-ok");
+        var sel = cont.querySelector('[data-bandeja-sel="' + id + '"]');
+        if (!sel.value) {
+          U.toast("Elige el comercial que irá a la visita", "error");
+          sel.focus();
+          return;
+        }
+        b.disabled = true;
+        try {
+          var res = await D.actualizarCita(id, { comercial_id: sel.value });
+          U.toast("Visita asignada a " + sel.options[sel.selectedIndex].text, "success");
+          if (res && res.aviso) U.toast(res.aviso, "info");
+          ctx.recargar();
+        } catch (err) {
+          U.toast(err.message || "No se pudo asignar la visita", "error");
+          b.disabled = false;
+        }
+      });
+    });
+  }
+
   // ------------------------------------------------------------- Estado / URL
   function leerParams() {
     var p = new URLSearchParams(location.hash.split("?")[1] || "");
@@ -106,13 +234,15 @@ window.icc.agenda = (function () {
       sector: p.get("sector") || "",
       tipo: p.get("tipo") || "",
       q: p.get("q") || "",
+      sin_asignar: p.get("sin_asignar") ? "1" : "",
+      cita: p.get("cita") || "",
     };
   }
 
   function href(st, cambios) {
     var x = Object.assign({}, st, cambios || {});
     var p = new URLSearchParams();
-    ["vista", "fecha", "comercial_id", "estado", "sector", "tipo", "q"].forEach(function (k) {
+    ["vista", "fecha", "comercial_id", "sin_asignar", "estado", "sector", "tipo", "q"].forEach(function (k) {
       if (x[k]) p.set(k, x[k]);
     });
     return "#/agenda?" + p.toString();
@@ -151,7 +281,7 @@ window.icc.agenda = (function () {
 
   function filtrosApi(st) {
     var f = {};
-    ["comercial_id", "estado", "sector", "tipo", "q"].forEach(function (k) {
+    ["comercial_id", "sin_asignar", "estado", "sector", "tipo", "q"].forEach(function (k) {
       if (st[k]) f[k] = st[k];
     });
     return f;
@@ -163,23 +293,29 @@ window.icc.agenda = (function () {
     main().innerHTML = '<div class="icc-loading">Cargando agenda…</div>';
     var r = rango(st);
     var filtros = Object.assign({ desde: r[0], hasta: r[1] }, filtrosApi(st));
-    var datos, kpis, agentes, resumenAnio;
+    var datos, kpis, agentes, resumenAnio, equipos, pendientes;
     try {
+      equipos = await cargarEquipos(true);
       var res = await Promise.all([
         st.vista === "anio" ? Promise.resolve({ citas: [] }) : D.listarCitasRango(filtros),
         D.kpisAgenda(hoy(), st.comercial_id ? { comercial_id: st.comercial_id } : {}).catch(function () { return null; }),
         esGestor() ? D.listarAgentes({}).catch(function () { return []; }) : Promise.resolve([]),
         st.vista === "anio" ? D.resumenAnualCitas(aFecha(st.fecha).getFullYear(), filtrosApi(st)) : Promise.resolve(null),
+        agendaV3 && esGestor()
+          ? D.listarCitasRango({ sin_asignar: 1, desde: iso(mas(new Date(), -30)) }).catch(function () { return { citas: [] }; })
+          : Promise.resolve({ citas: [] }),
       ]);
       datos = res[0];
       kpis = res[1];
       agentes = res[2];
       resumenAnio = res[3];
+      pendientes = (res[4].citas || []).filter(function (c) { return c.estado !== "ko" && c.estado !== "realizada"; });
     } catch (err) {
       main().innerHTML = '<p class="icc-empty">' + esc(err.message || "No se pudo cargar la agenda") + "</p>";
       return;
     }
     if (datos.agenda_v2 === false || (kpis && kpis.agenda_v2 === false)) agendaV2 = false;
+    if (datos.agenda_v3) agendaV3 = true;
     var citas = datos.citas || [];
     var anioActual = aFecha(st.fecha).getFullYear();
 
@@ -192,6 +328,7 @@ window.icc.agenda = (function () {
         ? '<div class="icc-aviso icc-aviso-oro">⚠️ Importa <code>sql/migracion_agenda_avanzada.sql</code> para vincular citas a clientes, tipos de cita, resúmenes y pasar a presupuesto.</div>'
         : "") +
       (kpis ? kpisHtml(kpis.kpis) : "") +
+      '<div id="ag-bandeja">' + bandejaHtml(pendientes, equipos) + "</div>" +
       '<section class="icc-card icc-ag-barra">' +
       '<div class="icc-ag-fila">' +
       '<div class="icc-tabs icc-ag-vistas">' +
@@ -214,6 +351,7 @@ window.icc.agenda = (function () {
       '<input class="icc-input" name="q" placeholder="🔎 Buscar cliente, contacto, teléfono o resumen" value="' + esc(st.q) + '">' +
       (esGestor()
         ? '<select class="icc-select" name="comercial_id"><option value="">Todo el equipo</option>' +
+          (agendaV3 ? '<option value="__sin"' + (st.sin_asignar ? " selected" : "") + ">📥 Por asignar</option>" : "") +
           agentes.map(function (a) {
             return '<option value="' + a.id + '"' + (String(a.id) === st.comercial_id ? " selected" : "") + ">" + esc(a.nombre + " " + (a.apellidos || "")) + "</option>";
           }).join("") + "</select>"
@@ -238,6 +376,9 @@ window.icc.agenda = (function () {
 
     var cuerpo = document.getElementById("ag-cuerpo");
     var ctx = { st: st, citas: citas, agentes: agentes, recargar: view };
+    var bandeja = document.getElementById("ag-bandeja");
+    enlazarBandeja(bandeja, ctx);
+    enlazarCitas(bandeja, ctx);
     if (st.vista === "dia") pintarRejilla(cuerpo, ctx, [aFecha(st.fecha)]);
     else if (st.vista === "semana") pintarRejilla(cuerpo, ctx, [0, 1, 2, 3, 4, 5, 6].map(function (i) { return mas(lunes(aFecha(st.fecha)), i); }));
     else if (st.vista === "mes") pintarMes(cuerpo, ctx);
@@ -253,9 +394,11 @@ window.icc.agenda = (function () {
     document.getElementById("ag-filtros").addEventListener("submit", function (e) {
       e.preventDefault();
       var fd = new FormData(e.target);
+      var com = fd.get("comercial_id") || "";
       location.hash = href(st, {
         q: (fd.get("q") || "").trim(),
-        comercial_id: fd.get("comercial_id") || "",
+        comercial_id: com === "__sin" ? "" : com,
+        sin_asignar: com === "__sin" ? "1" : "",
         tipo: fd.get("tipo") || "",
         estado: fd.get("estado") || "",
         sector: fd.get("sector") || "",
@@ -268,6 +411,11 @@ window.icc.agenda = (function () {
     document.getElementById("ag-ir").addEventListener("change", function (e) {
       if (e.target.value) location.hash = href(st, { fecha: e.target.value, vista: st.vista === "anio" ? "dia" : st.vista });
     });
+    // Enlace directo a una cita (p. ej. desde un aviso de la campana).
+    if (st.cita) {
+      history.replaceState(null, "", href(st));
+      abrirFicha(st.cita, { agentes: agentes, onCambio: view });
+    }
   }
 
   function kpisHtml(k) {
@@ -287,13 +435,14 @@ window.icc.agenda = (function () {
       tarjeta(exito + "%", "Éxito del mes (" + (k.mes_realizadas || 0) + " realizadas / " + (k.mes_ko || 0) + " KO)", "var(--esmeralda)") +
       tarjeta(k.sin_cerrar || 0, "Pasadas sin cerrar", (k.sin_cerrar ? "#f87171" : "#94a3b8"), "#/agenda?vista=lista&estado=programada") +
       (agendaV2 ? tarjeta(k.sin_resumen || 0, "Realizadas sin resumen", (k.sin_resumen ? "#fbbf24" : "#94a3b8"), "#/agenda?vista=lista&estado=realizada") : "") +
+      (agendaV3 && esGestor() && k.por_asignar !== undefined ? tarjeta(k.por_asignar || 0, "Visitas por asignar", (k.por_asignar ? "#f59e0b" : "#94a3b8"), "#/agenda?vista=lista&sin_asignar=1") : "") +
       "</div>"
     );
   }
 
   // ------------------------------------------------------ Bloque de cita
   function claseEstado(c) {
-    return c.estado === "ko" ? " is-ko" : c.estado === "realizada" ? " is-hecha" : "";
+    return (c.estado === "ko" ? " is-ko" : c.estado === "realizada" ? " is-hecha" : "") + (sinAsignar(c) ? " is-sin-asignar" : "");
   }
 
   function iconoTipo(c) {
@@ -306,7 +455,7 @@ window.icc.agenda = (function () {
       '<button type="button" class="icc-ag-chip' + claseEstado(c) + '" style="--c:' + s.color + '" data-abrir-cita="' + c.id + '"' +
       (puedeGestionar() ? ' draggable="true" data-drag-cita="' + c.id + '"' : "") + ">" +
       '<span class="icc-ag-chip-hora">' + hm(c.hora_inicio) + "</span> " + iconoTipo(c) + esc(c.cliente_nombre) +
-      (mostrarComercial && c.comercial_nombre ? ' <span class="icc-muted">· ' + esc(c.comercial_nombre) + "</span>" : "") +
+      (sinAsignar(c) ? ' <span class="icc-muted">· 📥 por asignar</span>' : mostrarComercial && c.comercial_nombre ? ' <span class="icc-muted">· ' + esc(c.comercial_nombre) + "</span>" : "") +
       "</button>"
     );
   }
@@ -386,9 +535,9 @@ window.icc.agenda = (function () {
           ' data-abrir-cita="' + c.id + '"' + (puedeGestionar() ? ' draggable="true" data-drag-cita="' + c.id + '"' : "") +
           ' title="' + esc(hm(c.hora_inicio) + "–" + hm(c.hora_fin) + " · " + c.cliente_nombre) + '">' +
           '<span class="icc-ag-bloque-hora">' + hm(c.hora_inicio) + "–" + hm(c.hora_fin) + ' <i style="background:' + e.color + '"></i></span>' +
-          '<strong>' + iconoTipo(c) + esc(c.cliente_nombre) + "</strong>" +
+          '<strong>' + (sinAsignar(c) ? "📥 " : "") + iconoTipo(c) + esc(c.cliente_nombre) + "</strong>" +
           (h > 50 && (c.contacto_nombre || c.telefono) ? "<span>" + esc([c.contacto_nombre, c.telefono].filter(Boolean).join(" · ")) + "</span>" : "") +
-          (h > 70 && mostrarComercial && c.comercial_nombre ? "<span>👤 " + esc(c.comercial_nombre) + "</span>" : "") +
+          (h > 70 && (mostrarComercial || sinAsignar(c)) && textoAsignado(c) ? "<span>" + esc(textoAsignado(c)) + "</span>" : "") +
           (h > 90 && c.direccion ? "<span>📍 " + esc(c.direccion) + "</span>" : "") +
           "</div>"
         );
@@ -527,7 +676,8 @@ window.icc.agenda = (function () {
       '<p class="icc-ag-tarjeta-cliente">' + iconoTipo(c) + esc(c.cliente_nombre) +
       (c.cliente_id ? ' <span class="icc-badge" style="--badge-color:#22d3ee">CRM</span>' : "") + "</p>" +
       (c.contacto_nombre || c.telefono ? '<p class="icc-muted">' + esc([c.contacto_nombre, c.telefono].filter(Boolean).join(" · ")) + "</p>" : "") +
-      (mostrarComercial && c.comercial_nombre ? '<p class="icc-muted">👤 ' + esc(c.comercial_nombre) + "</p>" : "") +
+      ((mostrarComercial || sinAsignar(c)) && textoAsignado(c) ? '<p class="icc-muted">' + esc(textoAsignado(c)) + "</p>" : "") +
+      (textoConcertada(c) ? '<p class="icc-muted">' + esc(textoConcertada(c)) + "</p>" : "") +
       (c.resumen ? '<p class="icc-ag-resumen">📝 ' + esc(String(c.resumen).slice(0, 160)) + (String(c.resumen).length > 160 ? "…" : "") + "</p>" : "") +
       (c.proximos_pasos ? '<p class="icc-muted">➡️ ' + esc(c.proximos_pasos) + "</p>" : "") +
       '<div class="icc-ag-tarjeta-acciones">' +
@@ -669,6 +819,8 @@ window.icc.agenda = (function () {
       return;
     }
     if (datos.agenda_v2 === false) agendaV2 = false;
+    if (datos.agenda_v3) agendaV3 = true;
+    var equipos = await cargarEquipos();
     var c = datos.cita;
     var cliente = datos.cliente;
     var s = meta("SECTORES_CITA", c.sector);
@@ -683,7 +835,8 @@ window.icc.agenda = (function () {
       "<div><p class=\"icc-cmp-kicker\">" + t.icono + " " + esc(t.label) + " · " + esc(s.label) + "</p>" +
       "<h2>" + esc(c.cliente_nombre) + "</h2>" +
       '<p class="icc-muted">' + esc(mayuscula(fechaLarga(c.fecha))) + " · " + hm(c.hora_inicio) + "–" + hm(c.hora_fin) +
-      (c.comercial_nombre ? " · 👤 " + esc(c.comercial_nombre) : "") + "</p></div>" +
+      (textoAsignado(c) ? " · " + esc(textoAsignado(c)) : "") + "</p>" +
+      (textoConcertada(c) ? '<p class="icc-muted">' + esc(textoConcertada(c)) + "</p>" : "") + "</div>" +
       '<button type="button" class="icc-btn icc-btn-ghost" data-close-btn>✕</button></div>' +
       '<div class="icc-ag-estados">' +
       estados().map(function (e) {
@@ -712,6 +865,12 @@ window.icc.agenda = (function () {
               '<button type="button" class="icc-btn icc-btn-ghost" id="ficha-vincular-cliente">🔗 Vincular a un cliente existente</button></div>' : "")
           : '<p class="icc-muted">Disponible al importar la migración de la agenda.</p>') +
       "</section>" +
+      (gestiona && esGestor() && agendaV3
+        ? '<section class="icc-ag-bloque-ficha"><h3>' + (sinAsignar(c) ? "📥 Asignar la visita" : "Comercial asignado") + "</h3>" +
+          '<div class="icc-ag-asignar"><select class="icc-select" id="ficha-asignar">' + opcionesAsignacion(equipos, opts.agentes, c) + "</select>" +
+          '<button type="button" class="icc-btn icc-btn-primary" id="ficha-asignar-ok">' + (sinAsignar(c) ? "Asignar" : "Reasignar") + "</button></div>" +
+          '<p class="icc-muted">Al asignarla, el comercial recibe un aviso en la campana.</p></section>'
+        : "") +
       (gestiona
         ? '<section class="icc-ag-bloque-ficha"><h3>Acciones</h3><div class="icc-ag-botones">' +
           (agendaV2 ? '<button type="button" class="icc-btn icc-btn-primary" id="ficha-presupuesto">' + (c.presupuesto_id ? "📄 Ver presupuesto" : "📄 Pasar a presupuesto") + "</button>" : "") +
@@ -784,6 +943,23 @@ window.icc.agenda = (function () {
       });
     });
 
+    var btnAsignar = document.getElementById("ficha-asignar-ok");
+    if (btnAsignar) {
+      btnAsignar.addEventListener("click", async function () {
+        var sel = document.getElementById("ficha-asignar");
+        btnAsignar.disabled = true;
+        try {
+          var res = await D.actualizarCita(c.id, payloadAsignacion(sel.value));
+          U.toast(sel.value.indexOf("eq:") === 0 ? "Visita enviada a la bandeja del equipo" : "Visita asignada a " + sel.options[sel.selectedIndex].text, "success");
+          if (res && res.aviso) U.toast(res.aviso, "info");
+          reabrir();
+        } catch (err) {
+          U.toast(err.message || "No se pudo asignar la visita", "error");
+          btnAsignar.disabled = false;
+        }
+      });
+    }
+
     var btnResumen = document.getElementById("ficha-guardar-resumen");
     if (btnResumen) {
       btnResumen.addEventListener("click", async function () {
@@ -836,7 +1012,8 @@ window.icc.agenda = (function () {
           horaFin: deMin(aMin(c.hora_inicio) + 30),
           plantilla: {
             cliente_id: c.cliente_id, cliente_nombre: c.cliente_nombre, contacto_nombre: c.contacto_nombre, telefono: c.telefono,
-            email: c.email, direccion: c.direccion, sector: c.sector, tipo: "seguimiento", comercial_id: c.comercial_id,
+            email: c.email, direccion: c.direccion, sector: c.sector, tipo: "seguimiento", comercial_id: c.comercial_id, equipo_id: c.equipo_id,
+            comercial_nombre: c.comercial_nombre, equipo_nombre: c.equipo_nombre,
             notas: c.proximos_pasos ? "Seguimiento: " + c.proximos_pasos : "Seguimiento de la cita del " + aFecha(c.fecha).toLocaleDateString("es-ES"),
           },
           titulo: "Programar seguimiento",
@@ -993,6 +1170,8 @@ window.icc.agenda = (function () {
     var ini = opts.horaInicio || hm(base.hora_inicio) || "10:00";
     var fin = opts.horaFin || hm(base.hora_fin) || deMin(aMin(ini) + 60);
     var agentes = opts.agentes || (gestor ? await D.listarAgentes({}).catch(function () { return []; }) : []);
+    var equipos = gestor ? await cargarEquipos() : [];
+    var conEquipos = gestor && agendaV3 && equipos.length > 0;
     var clientes = agendaV2 ? await D.listarClientes({}).catch(function () { return []; }) : [];
 
     U.openModal(
@@ -1009,7 +1188,10 @@ window.icc.agenda = (function () {
       '<input type="hidden" name="cliente_id" value="' + esc(base.cliente_id || "") + '">' +
       '<div class="icc-ag-sugerencias" hidden></div>' +
       '<span class="icc-ayuda" id="cita-vinculo">' + (base.cliente_id ? "🔗 Vinculada a un cliente del CRM" : (agendaV2 ? "Sin vincular: puedes crear el cliente después desde la cita." : "")) + "</span></div>" +
-      (gestor
+      (conEquipos
+        ? '<div class="icc-field"><label>Asignar a</label><select class="icc-select" name="asignacion">' + opcionesAsignacion(equipos, agentes, base) + "</select>" +
+          '<span class="icc-ayuda">«Por asignar»: va a la bandeja del jefe de equipo para que la reparta.</span></div>'
+        : gestor
         ? '<div class="icc-field"><label>Comercial</label><select class="icc-select" name="comercial_id">' +
           agentes.map(function (a) {
             return '<option value="' + a.id + '"' + (String(a.id) === String(base.comercial_id) ? " selected" : "") + ">" + esc(a.nombre + " " + (a.apellidos || "")) + "</option>";
@@ -1125,7 +1307,8 @@ window.icc.agenda = (function () {
         payload.tipo = fd.get("tipo") || "visita";
         payload.cliente_id = fd.get("cliente_id") || null;
       }
-      if (gestor && fd.get("comercial_id")) payload.comercial_id = fd.get("comercial_id");
+      if (conEquipos) Object.assign(payload, payloadAsignacion(fd.get("asignacion")));
+      else if (gestor && fd.get("comercial_id")) payload.comercial_id = fd.get("comercial_id");
       if (!esNueva) payload.estado = fd.get("estado");
       if (aMin(payload.hora_fin) <= aMin(payload.hora_inicio)) {
         U.toast("La hora de fin debe ser posterior a la de inicio", "error");
@@ -1136,7 +1319,10 @@ window.icc.agenda = (function () {
       try {
         var res = esNueva ? await D.crearCita(payload) : await D.actualizarCita(cita.id, payload);
         U.closeModal();
-        U.toast(esNueva ? "Cita agendada el " + aFecha(payload.fecha).toLocaleDateString("es-ES", { day: "numeric", month: "short" }) + " a las " + payload.hora_inicio : "Cita actualizada", "success");
+        U.toast(esNueva
+          ? (payload.equipo_id && !payload.comercial_id ? "Visita enviada a la bandeja del equipo para el " : "Cita agendada el ") +
+            aFecha(payload.fecha).toLocaleDateString("es-ES", { day: "numeric", month: "short" }) + " a las " + payload.hora_inicio
+          : "Cita actualizada", "success");
         if (res && res.aviso) U.toast(res.aviso, "info");
         if (opts.onGuardado) opts.onGuardado();
       } catch (err) {

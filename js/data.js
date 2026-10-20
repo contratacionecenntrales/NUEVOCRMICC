@@ -339,6 +339,11 @@ window.icc.data = (function () {
     return API.get("api/citas.php" + (qs ? "?" + qs : ""));
   }
 
+  // Equipos (Jefe de equipo + comerciales) a los que se pueden asignar visitas.
+  function equiposAgenda() {
+    return API.get("api/citas.php?equipos=1");
+  }
+
   function obtenerCita(id) {
     return API.get("api/citas.php?id=" + encodeURIComponent(id));
   }
@@ -443,6 +448,7 @@ window.icc.data = (function () {
     listarCitas: listarCitas,
     listarCitasRango: listarCitasRango,
     obtenerCita: obtenerCita,
+    equiposAgenda: equiposAgenda,
     resumenAnualCitas: resumenAnualCitas,
     kpisAgenda: kpisAgenda,
     crearCita: crearCita,

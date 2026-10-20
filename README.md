@@ -259,6 +259,10 @@ propio CRM — ya no hace falta volver a tocar la base de datos a mano.
    `sql/migracion_backoffice_asignaciones.sql`. Después, en Agentes, el Admin
    pulsa el botón "👥" de ese usuario de Backoffice y marca sus comerciales.
    Un Backoffice sin ninguno marcado sigue viendo toda la empresa.
+   Para que Backoffice pueda concertar visitas y dejarlas en la bandeja
+   "Visitas por asignar" del Jefe de equipo (que luego las reparte entre
+   sus comerciales), importa también `sql/migracion_citas_equipos.sql`
+   (requiere haber importado antes `sql/migracion_agenda_avanzada.sql`).
 3. **Configurar la conexión**: copia `api/config.local.example.php` como
    `api/config.local.php` y rellena `ICC_DB_HOST`, `ICC_DB_NAME`,
    `ICC_DB_USER`, `ICC_DB_PASS` con los datos del paso 1 (ese archivo no

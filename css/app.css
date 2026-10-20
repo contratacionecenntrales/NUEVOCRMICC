@@ -544,7 +544,7 @@ button{cursor:pointer}
 /* ---------- Agenda avanzada ---------- */
 .icc-ag-head h1{margin:0}
 .icc-ag-titulo{margin:4px 0 0;font-size:14px;color:var(--txt)}
-.icc-ag-kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.icc-ag-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:14px}
 .icc-ag-kpi{text-decoration:none;color:inherit;padding:12px 14px}
 .icc-ag-kpi .icc-stat-value{font-size:22px}
 a.icc-ag-kpi:hover{border-color:var(--stat-color)}
@@ -701,3 +701,16 @@ a.icc-ag-kpi:hover{border-color:var(--stat-color)}
 .icc-uficha-vercomo{margin-left:auto}
 .icc-credenciales{background:var(--bg-soft,rgba(148,163,184,.12));border:1px solid var(--line);border-radius:10px;padding:14px 16px;
   font-size:13px;line-height:1.6;white-space:pre-wrap;word-break:break-word;user-select:all}
+
+/* ---------- Agenda: visitas por asignar (bandeja del equipo) ---------- */
+.icc-ag-bandeja{border-color:rgba(245,158,11,.45)}
+.icc-ag-bandeja h3{margin:0 0 4px}
+.icc-ag-bandeja > p{margin:0 0 10px}
+.icc-ag-bandeja-fila{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:10px 0;border-top:1px solid var(--line)}
+.icc-ag-bandeja-info{display:flex;flex-direction:column;gap:2px;cursor:pointer;min-width:0;flex:1 1 280px}
+.icc-ag-bandeja-info strong{color:#fff}
+.icc-ag-bandeja-fila.is-atrasada .icc-ag-bandeja-info strong{color:#f87171}
+.icc-ag-bandeja-alerta{color:#f87171;font-size:12px}
+.icc-ag-bandeja-accion,.icc-ag-asignar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.icc-ag-bandeja-accion .icc-select,.icc-ag-asignar .icc-select{width:auto;min-width:200px}
+.icc-ag-bloque.is-sin-asignar,.icc-ag-tarjeta.is-sin-asignar,.icc-ag-chip.is-sin-asignar{outline:2px dashed #f59e0b;outline-offset:-2px}

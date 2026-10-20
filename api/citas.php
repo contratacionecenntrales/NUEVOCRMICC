@@ -10,9 +10,14 @@
  * PUT  ?id=X                  editar / mover / resumen / estado
  * DELETE ?id=X                borrar
  *
- * Visibilidad: comercial = las suyas; jefe de equipo = su equipo;
- * backoffice/admin = todas. Las funciones nuevas (cliente vinculado, tipo,
- * resumen, proximos pasos, presupuesto) requieren sql/migracion_agenda_avanzada.sql.
+ * GET  ?equipos=1             equipos (Jefe de equipo + comerciales) a los que se pueden asignar visitas
+ *
+ * Visibilidad: comercial = las suyas; jefe de equipo = su equipo y las visitas
+ * "por asignar" de su equipo; backoffice = las de sus comerciales asignados (o
+ * todas si no tiene ninguno) y siempre las que el mismo concerto; admin = todas.
+ * Las funciones nuevas (cliente vinculado, tipo, resumen, proximos pasos,
+ * presupuesto) requieren sql/migracion_agenda_avanzada.sql, y las visitas
+ * asignadas a un equipo, sql/migracion_citas_equipos.sql.
  */
 require __DIR__ . '/config.php';
 
@@ -36,7 +41,162 @@ function agenda_v2(PDO $db): bool {
   return $ok;
 }
 
+/** true si ya se importo sql/migracion_citas_equipos.sql (visitas por equipo). */
+function agenda_v3(PDO $db): bool {
+  static $ok = null;
+  if ($ok === null) {
+    try {
+      $db->query('SELECT equipo_id, asignada_por, creado_por FROM citas LIMIT 0');
+      $ok = true;
+    } catch (PDOException $e) {
+      $ok = false;
+    }
+  }
+  return $ok;
+}
+
+/**
+ * Equipos en los que $user puede dejar visitas (Jefe de equipo + los
+ * comerciales de ese equipo que $user ve):
+ *  - Admin y Backoffice sin comerciales asignados: todos los equipos.
+ *  - Backoffice con comerciales asignados: los equipos de esos comerciales.
+ *  - Jefe de equipo: solo el suyo.
+ *  - Comercial: ninguno.
+ */
+function agenda_equipos(PDO $db, array $user): array {
+  static $cache = [];
+  if (isset($cache[$user['id']])) return $cache[$user['id']];
+  $equipos = [];
+  if ($user['rol'] !== 'comercial') {
+    $jefes = $db->query(
+      "SELECT j.id, j.nombre, j.apellidos FROM usuarios j
+       WHERE j.bloqueado = 0 AND (j.rol = 'jefe_de_equipo'
+         OR (j.rol IN ('admin', 'super_admin') AND EXISTS (SELECT 1 FROM usuarios x WHERE x.supervisor_id = j.id AND x.rol = 'comercial')))
+       ORDER BY j.nombre"
+    )->fetchAll();
+    $stmt = $db->prepare("SELECT id, nombre, apellidos FROM usuarios WHERE supervisor_id = ? AND rol = 'comercial' AND bloqueado = 0 ORDER BY nombre");
+    foreach ($jefes as $j) {
+      if ($user['rol'] === 'jefe_de_equipo' && (int)$j['id'] !== (int)$user['id']) continue;
+      $stmt->execute([$j['id']]);
+      $comerciales = array_values(array_filter($stmt->fetchAll(), function ($c) use ($user) {
+        return icc_puede_ver_comercial($user, (int)$c['id']);
+      }));
+      $restringido = icc_equipo_comercial_ids($user) !== null && $user['rol'] === 'backoffice';
+      if ($restringido && !$comerciales) continue;
+      $equipos[] = ['id' => (int)$j['id'], 'nombre' => $j['nombre'], 'apellidos' => $j['apellidos'], 'comerciales' => array_map(function ($c) {
+        return ['id' => (int)$c['id'], 'nombre' => $c['nombre'], 'apellidos' => $c['apellidos']];
+      }, $comerciales)];
+    }
+  }
+  return $cache[$user['id']] = $equipos;
+}
+
+function agenda_equipo_ids(PDO $db, array $user): array {
+  return array_map(function ($e) { return $e['id']; }, agenda_equipos($db, $user));
+}
+
+/** Puede $user ver (y por tanto gestionar) esta cita. */
+function agenda_cita_visible(PDO $db, array $user, array $cita): bool {
+  $comercialId = $cita['comercial_id'] ?? null;
+  if ($comercialId !== null && icc_puede_ver_comercial($user, $comercialId)) return true;
+  if (!agenda_v3($db)) return false;
+  if ($comercialId === null && icc_equipo_comercial_ids($user) === null) return true;
+  if ($user['rol'] === 'backoffice' && (int)($cita['creado_por'] ?? 0) === (int)$user['id']) return true;
+  return $comercialId === null && $cita['equipo_id'] !== null
+    && in_array((int)$cita['equipo_id'], agenda_equipo_ids($db, $user), true);
+}
+
+function agenda_nombre_usuario(PDO $db, ?int $id): string {
+  if (!$id) return '';
+  $stmt = $db->prepare('SELECT nombre, apellidos FROM usuarios WHERE id = ?');
+  $stmt->execute([$id]);
+  $u = $stmt->fetch();
+  return $u ? trim($u['nombre'] . ' ' . $u['apellidos']) : '';
+}
+
+function agenda_texto_cita(array $c): string {
+  return $c['cliente_nombre'] . ' el ' . date('d/m/Y', strtotime($c['fecha'])) . ' a las ' . substr($c['hora_inicio'], 0, 5);
+}
+
+/**
+ * Avisos de la campana tras crear o cambiar una cita ($antes = null al crearla):
+ *  - al comercial cuando le asignan una visita (si no se la asigna el mismo),
+ *  - al Jefe de equipo cuando entra una visita "por asignar" en su equipo,
+ *  - a quien la concerto cuando se marca como realizada o KO.
+ */
+function agenda_notificar_cambios(PDO $db, array $user, ?array $antes, array $despues): void {
+  $yo = (int)$user['id'];
+  $quien = trim($user['nombre'] . ' ' . ($user['apellidos'] ?? ''));
+  $tipo = 'cita:' . $despues['id'];
+  $comercialNuevo = $despues['comercial_id'] !== null ? (int)$despues['comercial_id'] : null;
+  $comercialAntes = $antes && $antes['comercial_id'] !== null ? (int)$antes['comercial_id'] : null;
+  $equipoNuevo = isset($despues['equipo_id']) && $despues['equipo_id'] !== null ? (int)$despues['equipo_id'] : null;
+
+  if ($comercialNuevo !== null && $comercialNuevo !== $yo && ($antes === null || $comercialAntes !== $comercialNuevo)) {
+    icc_notificar($comercialNuevo, 'agenda', $tipo, '📅 ' . $quien . ' te ha asignado una visita: ' . agenda_texto_cita($despues));
+  }
+  $antesEnBandeja = $antes && $comercialAntes === null ? (int)($antes['equipo_id'] ?? 0) : null;
+  if ($comercialNuevo === null && $equipoNuevo !== null && $equipoNuevo !== $yo && $antesEnBandeja !== $equipoNuevo) {
+    icc_notificar($equipoNuevo, 'agenda', $tipo, '📥 Visita por asignar en tu equipo (concertada por ' . $quien . '): ' . agenda_texto_cita($despues));
+  }
+  $creador = isset($despues['creado_por']) && $despues['creado_por'] !== null ? (int)$despues['creado_por'] : null;
+  if ($antes && $creador !== null && $creador !== $yo && $creador !== $comercialNuevo
+      && $antes['estado'] !== $despues['estado'] && in_array($despues['estado'], ['realizada', 'ko'], true)) {
+    $resultado = $despues['estado'] === 'realizada' ? 'realizada ✅' : 'KO ❌';
+    icc_notificar($creador, 'agenda', $tipo, 'Resultado de la visita que concertaste: ' . agenda_texto_cita($despues) . ' — ' . $resultado . ' (' . $quien . ')');
+  }
+}
+
+/**
+ * Comercial y equipo de la cita segun lo pedido en $body. Devuelve null si
+ * en una edicion ($actual) no se pide cambiar la asignacion.
+ */
+function agenda_resolver_asignacion(PDO $db, array $user, array $body, ?array $actual, bool $v3): ?array {
+  $pideComercial = array_key_exists('comercial_id', $body);
+  $pideEquipo = $v3 && array_key_exists('equipo_id', $body) && $body['equipo_id'] !== null && $body['equipo_id'] !== '';
+  $supervisorDe = function (int $id) use ($db): ?int {
+    $stmt = $db->prepare("SELECT supervisor_id FROM usuarios WHERE id = ?");
+    $stmt->execute([$id]);
+    $s = $stmt->fetch();
+    return $s && $s['supervisor_id'] !== null ? (int)$s['supervisor_id'] : null;
+  };
+
+  // Un comercial solo agenda para si mismo y nunca reasigna.
+  if ($user['rol'] === 'comercial') {
+    return $actual === null ? ['comercial_id' => (int)$user['id'], 'equipo_id' => $supervisorDe((int)$user['id'])] : null;
+  }
+  if ($actual !== null && !$pideComercial && !$pideEquipo) return null;
+
+  $comercialId = $pideComercial && $body['comercial_id'] !== null && $body['comercial_id'] !== '' ? (int)$body['comercial_id'] : null;
+  $equipoId = $pideEquipo ? (int)$body['equipo_id'] : null;
+
+  if ($comercialId !== null) {
+    if (!icc_puede_ver_comercial($user, $comercialId)) icc_json(['error' => 'No puedes asignar citas a ese comercial'], 403);
+    $equipoComercial = $comercialId === (int)$user['id'] && $user['rol'] === 'jefe_de_equipo' ? (int)$user['id'] : $supervisorDe($comercialId);
+    if ($equipoId !== null && $equipoComercial !== $equipoId && $comercialId !== $equipoId) {
+      icc_json(['error' => 'Ese comercial no pertenece al equipo elegido'], 400);
+    }
+    return ['comercial_id' => $comercialId, 'equipo_id' => $equipoId ?? $equipoComercial];
+  }
+
+  // Sin comercial: queda "por asignar" en la bandeja de un equipo.
+  if (!$v3) {
+    // Sin la migracion no existe la bandeja: se mantiene el comportamiento anterior.
+    return $actual === null ? ['comercial_id' => (int)$user['id']] : null;
+  }
+  if ($equipoId === null && $actual !== null && $pideComercial) $equipoId = $actual['equipo_id'] !== null ? (int)$actual['equipo_id'] : null;
+  if ($equipoId === null) {
+    if ($actual === null && !$pideComercial) return ['comercial_id' => (int)$user['id'], 'equipo_id' => $supervisorDe((int)$user['id'])];
+    icc_json(['error' => 'Elige el equipo al que se asigna la visita'], 400);
+  }
+  if (!in_array($equipoId, agenda_equipo_ids($db, $user), true)) {
+    icc_json(['error' => 'No puedes asignar visitas a ese equipo'], 403);
+  }
+  return ['comercial_id' => null, 'equipo_id' => $equipoId];
+}
+
 $v2 = agenda_v2($db);
+$v3 = $v2 && agenda_v3($db);
 $sectoresValidos = $v2
   ? ['energia', 'telecomunicaciones', 'alarmas', 'multisectorial', 'seguros', 'financiero']
   : ['energia', 'telecomunicaciones', 'alarmas', 'multisectorial'];
@@ -77,14 +237,33 @@ function agenda_fecha_valida($f): bool {
 
 /** Condicion de visibilidad (alias "c" = citas). */
 function agenda_where_base(array $user, array &$where, array &$params): void {
+  $db = icc_db();
+  $v3 = agenda_v3($db);
   $ids = icc_equipo_comercial_ids($user);
   if ($ids !== null) {
-    $where[] = 'c.comercial_id IN (' . implode(',', array_fill(0, count($ids), '?')) . ')';
+    $o = ['c.comercial_id IN (' . implode(',', array_fill(0, count($ids), '?')) . ')'];
     array_push($params, ...$ids);
+    if ($v3) {
+      if ($user['rol'] === 'backoffice') {
+        $o[] = 'c.creado_por = ?';
+        $params[] = (int)$user['id'];
+      }
+      $equipos = agenda_equipo_ids($db, $user);
+      if ($equipos) {
+        $o[] = '(c.comercial_id IS NULL AND c.equipo_id IN (' . implode(',', array_fill(0, count($equipos), '?')) . '))';
+        array_push($params, ...$equipos);
+      }
+    }
+    $where[] = '(' . implode(' OR ', $o) . ')';
   }
   if (!empty($_GET['comercial_id']) && icc_puede_ver_comercial($user, (int)$_GET['comercial_id'])) {
     $where[] = 'c.comercial_id = ?';
     $params[] = (int)$_GET['comercial_id'];
+  }
+  if ($v3 && !empty($_GET['sin_asignar'])) $where[] = 'c.comercial_id IS NULL';
+  if ($v3 && !empty($_GET['equipo_id'])) {
+    $where[] = 'c.equipo_id = ?';
+    $params[] = (int)$_GET['equipo_id'];
   }
 }
 
@@ -99,6 +278,14 @@ function agenda_cliente_visible(PDO $db, array $user, int $clienteId): ?array {
 if ($metodo === 'GET') {
   $joinCliente = $v2 ? ' LEFT JOIN clientes cl ON cl.id = c.cliente_id' : '';
   $colsCliente = $v2 ? ', cl.razon_social AS cliente_razon_social, cl.estado AS cliente_estado' : '';
+  if ($v3) {
+    $joinCliente .= ' LEFT JOIN usuarios eq ON eq.id = c.equipo_id LEFT JOIN usuarios cr ON cr.id = c.creado_por';
+    $colsCliente .= ', eq.nombre AS equipo_nombre, cr.nombre AS creado_por_nombre, cr.rol AS creado_por_rol';
+  }
+
+  if (!empty($_GET['equipos'])) {
+    icc_json(['equipos' => $v3 ? agenda_equipos($db, $user) : [], 'agenda_v3' => $v3]);
+  }
 
   try {
     // --- Una cita con su cliente e historial
@@ -106,7 +293,7 @@ if ($metodo === 'GET') {
       $stmt = $db->prepare("SELECT c.*, u.nombre AS comercial_nombre$colsCliente FROM citas c LEFT JOIN usuarios u ON u.id = c.comercial_id$joinCliente WHERE c.id = ?");
       $stmt->execute([$id]);
       $cita = $stmt->fetch();
-      if (!$cita || !icc_puede_ver_comercial($user, $cita['comercial_id'])) icc_json(['error' => 'Cita no encontrada'], 404);
+      if (!$cita || !agenda_cita_visible($db, $user, $cita)) icc_json(['error' => 'Cita no encontrada'], 404);
 
       $cliente = null;
       $historial = [];
@@ -135,7 +322,7 @@ if ($metodo === 'GET') {
         $stmt->execute($params);
         $historial = $stmt->fetchAll();
       }
-      icc_json(['cita' => $cita, 'cliente' => $cliente, 'historial' => $historial, 'presupuestos' => $presupuestos, 'agenda_v2' => $v2]);
+      icc_json(['cita' => $cita, 'cliente' => $cliente, 'historial' => $historial, 'presupuestos' => $presupuestos, 'agenda_v2' => $v2, 'agenda_v3' => $v3]);
     }
 
     // --- Recuento por dia de todo un año (vista Año)
@@ -167,14 +354,15 @@ if ($metodo === 'GET') {
           SUM(c.fecha BETWEEN DATE_FORMAT(?, '%Y-%m-01') AND LAST_DAY(?) AND c.estado = 'realizada') AS mes_realizadas,
           SUM(c.fecha BETWEEN DATE_FORMAT(?, '%Y-%m-01') AND LAST_DAY(?) AND c.estado = 'ko') AS mes_ko,
           SUM(c.fecha < ? AND c.estado IN ('programada', 'confirmada', 'reprogramada')) AS sin_cerrar,
-          $sinResumen AS sin_resumen
+          $sinResumen AS sin_resumen" . ($v3 ? ",
+          SUM(c.comercial_id IS NULL AND c.estado <> 'ko') AS por_asignar" : '') . "
         FROM citas c WHERE 1 = 1$w";
       $p = [$ref, $ref, $ref, $ref, $ref, $ref, $ref, $ref, $ref, $ref, $ref, $ref];
       if ($v2) $p[] = $ref;
       $stmt = $db->prepare($sql);
       $stmt->execute(array_merge($p, $params));
       $k = array_map('intval', $stmt->fetch());
-      icc_json(['kpis' => $k, 'agenda_v2' => $v2]);
+      icc_json(['kpis' => $k, 'agenda_v2' => $v2, 'agenda_v3' => $v3]);
     }
 
     // --- Listado del rango
@@ -221,7 +409,7 @@ if ($metodo === 'GET') {
     $sql .= ' ORDER BY c.fecha ASC, c.hora_inicio ASC LIMIT 3000';
     $stmt = $db->prepare($sql);
     $stmt->execute($params);
-    icc_json(['citas' => $stmt->fetchAll(), 'agenda_v2' => $v2]);
+    icc_json(['citas' => $stmt->fetchAll(), 'agenda_v2' => $v2, 'agenda_v3' => $v3]);
   } catch (Exception $e) {
     icc_json(['error' => icc_mensaje_error('No se pudo cargar la agenda (¿falta importar sql/migracion_agenda.sql?)', $e, $user)], 500);
   }
@@ -301,10 +489,16 @@ if ($metodo === 'POST' && $id === null) {
   icc_require_csrf();
   $body = icc_body();
   $campos = agenda_leer_campos($db, $user, $body, false, $v2, $sectoresValidos, $estadosValidos, $tiposValidos);
-  $comercialId = !empty($body['comercial_id']) && icc_puede_ver_comercial($user, (int)$body['comercial_id'])
-    ? (int)$body['comercial_id']
-    : (int)$user['id'];
+  $asignacion = agenda_resolver_asignacion($db, $user, $body, null, $v3);
+  $comercialId = $asignacion['comercial_id'];
   $campos['comercial_id'] = $comercialId;
+  if ($v3) {
+    $campos['equipo_id'] = $asignacion['equipo_id'] ?? null;
+    if ($comercialId !== null && $comercialId !== (int)$user['id']) {
+      $campos['asignada_por'] = (int)$user['id'];
+      $campos['asignada_en'] = date('Y-m-d H:i:s');
+    }
+  }
   if (!isset($campos['sector'])) $campos['sector'] = 'energia';
   if ($v2) $campos['creado_por'] = (int)$user['id'];
 
@@ -313,9 +507,10 @@ if ($metodo === 'POST' && $id === null) {
     $db->prepare('INSERT INTO citas (' . implode(', ', $cols) . ') VALUES (' . implode(', ', array_fill(0, count($cols), '?')) . ')')
       ->execute(array_values($campos));
     $nuevoId = (int)$db->lastInsertId();
+    if ($v3) agenda_notificar_cambios($db, $user, null, $campos + ['id' => $nuevoId, 'estado' => $campos['estado'] ?? 'programada']);
     icc_json([
       'id' => $nuevoId,
-      'aviso' => icc_aviso_solape_cita($db, $comercialId, $campos['fecha'], $campos['hora_inicio'], $campos['hora_fin'], $nuevoId),
+      'aviso' => $comercialId !== null ? icc_aviso_solape_cita($db, $comercialId, $campos['fecha'], $campos['hora_inicio'], $campos['hora_fin'], $nuevoId) : null,
     ], 201);
   } catch (Exception $e) {
     icc_json(['error' => icc_mensaje_error('No se pudo guardar la cita', $e, $user)], 500);
@@ -329,14 +524,23 @@ if ($metodo === 'PUT' && $id !== null) {
     $stmt = $db->prepare('SELECT * FROM citas WHERE id = ?');
     $stmt->execute([$id]);
     $cita = $stmt->fetch();
-    if (!$cita || !icc_puede_ver_comercial($user, $cita['comercial_id'])) icc_json(['error' => 'No encontrado'], 404);
+    if (!$cita || !agenda_cita_visible($db, $user, $cita)) icc_json(['error' => 'No encontrado'], 404);
 
     $body = icc_body();
     $campos = agenda_leer_campos($db, $user, $body, true, $v2, $sectoresValidos, $estadosValidos, $tiposValidos, $cita);
-    // Reasignar a otro comercial: solo quien gestiona equipo, y siempre a alguien que ya pueda ver.
-    if (array_key_exists('comercial_id', $body) && $user['rol'] !== 'comercial' && !empty($body['comercial_id'])
-        && icc_puede_ver_comercial($user, (int)$body['comercial_id'])) {
-      $campos['comercial_id'] = (int)$body['comercial_id'];
+    // Reasignar (a un comercial o a la bandeja de un equipo): solo quien
+    // gestiona equipo, y siempre a alguien/un equipo que ya pueda ver.
+    $asignacion = agenda_resolver_asignacion($db, $user, $body, $cita, $v3);
+    if ($asignacion !== null) {
+      $cambiaComercial = $asignacion['comercial_id'] !== ($cita['comercial_id'] !== null ? (int)$cita['comercial_id'] : null);
+      $campos['comercial_id'] = $asignacion['comercial_id'];
+      if ($v3) {
+        $campos['equipo_id'] = $asignacion['equipo_id'] ?? null;
+        if ($cambiaComercial) {
+          $campos['asignada_por'] = (int)$user['id'];
+          $campos['asignada_en'] = date('Y-m-d H:i:s');
+        }
+      }
     }
     if (!$campos) icc_json(['ok' => true]);
 
@@ -348,9 +552,10 @@ if ($metodo === 'PUT' && $id !== null) {
     $stmt = $db->prepare('SELECT * FROM citas WHERE id = ?');
     $stmt->execute([$id]);
     $a = $stmt->fetch();
+    if ($v3 && $a) agenda_notificar_cambios($db, $user, $cita, $a);
     icc_json([
       'ok' => true,
-      'aviso' => $a && $a['estado'] !== 'ko' && (isset($campos['fecha']) || isset($campos['hora_inicio']) || isset($campos['hora_fin']))
+      'aviso' => $a && $a['estado'] !== 'ko' && $a['comercial_id'] !== null && (isset($campos['fecha']) || isset($campos['hora_inicio']) || isset($campos['hora_fin']) || !empty($campos['comercial_id']))
         ? icc_aviso_solape_cita($db, (int)$a['comercial_id'], $a['fecha'], $a['hora_inicio'], $a['hora_fin'], $id)
         : null,
     ]);
@@ -363,10 +568,10 @@ if ($metodo === 'PUT' && $id !== null) {
 if ($metodo === 'DELETE' && $id !== null) {
   icc_require_csrf();
   try {
-    $stmt = $db->prepare('SELECT comercial_id FROM citas WHERE id = ?');
+    $stmt = $db->prepare('SELECT * FROM citas WHERE id = ?');
     $stmt->execute([$id]);
     $cita = $stmt->fetch();
-    if (!$cita || !icc_puede_ver_comercial($user, $cita['comercial_id'])) icc_json(['error' => 'No encontrado'], 404);
+    if (!$cita || !agenda_cita_visible($db, $user, $cita)) icc_json(['error' => 'No encontrado'], 404);
     $db->prepare('DELETE FROM citas WHERE id = ?')->execute([$id]);
     icc_json(['ok' => true]);
   } catch (Exception $e) {
