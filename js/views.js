@@ -1008,112 +1008,204 @@ window.icc.views = (function () {
     ["estado", "sector", "comercializadora", "tarifa", "desde", "hasta", "q", "comercial_id"].forEach(function (k) {
       if (params.get(k)) filtros[k] = params.get(k);
     });
-
-    var puedeFiltrarComercial = window.icc.auth.esBackofficeOAdmin();
+    var vista = params.get("vista") === "tablero" ? "tablero" : "lista";
+    var esc = U.escapeHtml;
+    var auth = window.icc.auth;
+    var puedeFiltrarComercial = auth.esBackofficeOAdmin();
+    var puedeEditar = auth.puede("contratos.crear");
 
     main().innerHTML = '<div class="icc-loading">Cargando contratos…</div>';
-    var contratos = await D.listarContratos(filtros);
-    var agentes = puedeFiltrarComercial ? await D.listarAgentes({}) : [];
+    // El estado se filtra en el navegador para poder contar todas las fases.
+    var filtrosServidor = Object.assign({}, filtros);
+    delete filtrosServidor.estado;
+    var [todos, agentes] = await Promise.all([
+      D.listarContratos(filtrosServidor),
+      puedeFiltrarComercial ? D.listarAgentes({}).catch(function () { return []; }) : Promise.resolve([]),
+    ]);
+    var contratos = filtros.estado ? todos.filter(function (c) { return c.estado === filtros.estado; }) : todos;
+
+    var hoy = hoyIso();
+    var mes = hoy.slice(0, 7);
+    var dias = function (f) { return f ? Math.floor((new Date(hoy + "T12:00:00") - new Date(String(f).slice(0, 10) + "T12:00:00")) / 86400000) : 0; };
+    var num = function (v) { return String(Math.round(Number(v || 0) * 100) / 100).replace(".", ","); };
+    var cuenta = {};
+    C.ESTADOS_CONTRATO_ORDEN.forEach(function (e) { cuenta[e] = 0; });
+    todos.forEach(function (c) { cuenta[c.estado] = (cuenta[c.estado] || 0) + 1; });
+    var okMes = todos.filter(function (c) { return c.estado === "ok" && String(c.fecha_activacion || c.fecha_alta || "").slice(0, 7) === mes; }).length;
+    var altasMes = todos.filter(function (c) { return String(c.fecha_alta || "").slice(0, 7) === mes; }).length;
+    var kwTotal = todos.reduce(function (s, c) { return s + (c.estado !== "ko" && c.estado !== "decomisionado" ? Number(c.kw || 0) : 0); }, 0);
+    // Tramitado y sin activar desde hace mas de 30 dias: hay que empujarlo.
+    var atascado = function (c) { return c.estado === "tramitado" && dias(c.fecha_alta) > 30; };
+    var nAtascados = todos.filter(atascado).length;
+    var nProblemas = (cuenta.incidencias || 0) + (cuenta.ko || 0);
+
+    var iconoSector = { energia: "⚡", telecomunicaciones: "📶", alarmas: "🚨", seguros: "🛡️", financiero: "💳" };
+    var colorSector = { energia: "#60a5fa", telecomunicaciones: "#34d399", alarmas: "#f87171", seguros: "#a78bfa", financiero: "#fbbf24" };
+    var paleta = ["#22D3EE", "#A78BFA", "#F472B6", "#34D399", "#FBBF24", "#60A5FA", "#FB923C", "#4ADE80", "#E879F9", "#2DD4BF", "#F87171", "#93C5FD", "#FDE047", "#C084FC"];
+    var ids = {};
+    agentes.forEach(function (a) { ids[a.id] = 1; });
+    todos.forEach(function (c) { if (c.comercial_id) ids[c.comercial_id] = 1; });
+    var colorCom = {};
+    Object.keys(ids).map(Number).sort(function (a, b) { return a - b; }).forEach(function (id, i) { colorCom[id] = paleta[i % paleta.length]; });
+    var avatarC = function (c, t) {
+      var n = c.comercial_nombre || "Sin asignar";
+      var ini = n.split(/\s+/).filter(Boolean).slice(0, 2).map(function (x) { return x.charAt(0).toUpperCase(); }).join("");
+      return '<span class="icc-ag-ava" style="--c:' + (c.comercial_id ? colorCom[c.comercial_id] || "#64748B" : "#64748B") + ";--t:" + (t || 26) + 'px" title="' + esc(n) + '">' + esc(ini || "?") + "</span>";
+    };
+    var linkQs = function (cambios) {
+      var x = Object.assign({}, filtros, { vista: vista === "tablero" ? "tablero" : "" }, cambios || {});
+      var p = new URLSearchParams();
+      Object.keys(x).forEach(function (k) { if (x[k]) p.set(k, x[k]); });
+      return "#/contratos" + (p.toString() ? "?" + p.toString() : "");
+    };
+    var hayMasFiltros = !!(filtros.comercializadora || filtros.tarifa || filtros.desde || filtros.hasta);
+    var hayFiltros = Object.keys(filtros).length > 0;
+    var tituloSector = filtros.sector ? (iconoSector[filtros.sector] || "") + " " + (C.SECTORES[filtros.sector] || filtros.sector) : "";
+
+    var selectorEstado = function (c) {
+      return '<select class="icc-select icc-ct-estado-sel" data-estado-contrato="' + c.id + '" aria-label="Estado del contrato de ' + esc(c.titular) + '">' +
+        C.ESTADOS_CONTRATO_ORDEN.map(function (e) { return '<option value="' + e + '"' + (c.estado === e ? " selected" : "") + ">" + esc(C.ESTADOS_CONTRATO[e].label) + "</option>"; }).join("") +
+        "</select>";
+    };
+
+    var fila = function (c) {
+      var meta = C.ESTADOS_CONTRATO[c.estado] || { label: c.estado, color: "#94a3b8" };
+      var producto = [c.comercializadora, c.tarifa].filter(Boolean).join(" · ");
+      return (
+        '<article class="icc-ct-fila' + (atascado(c) ? " is-atascado" : "") + '" style="--e:' + meta.color + ";--s:" + (colorSector[c.sector] || "#94a3b8") + '">' +
+        '<div class="icc-ct-titular"><span class="icc-ct-sector" title="' + esc(C.SECTORES[c.sector] || c.sector || "") + '">' + (iconoSector[c.sector] || "📄") + "</span>" +
+        '<div><button type="button" class="icc-ct-abrir" data-contrato-id="' + c.id + '"><strong>' + esc(c.titular) + "</strong></button>" +
+        "<small>" + esc([c.cif_titular, c.numero_contrato ? "Nº " + c.numero_contrato : ""].filter(Boolean).join(" · ") || "Sin número de contrato") + "</small>" +
+        (atascado(c) ? '<span class="icc-ct-alerta">⏳ ' + dias(c.fecha_alta) + " d tramitado sin activar</span>" : "") +
+        "</div></div>" +
+        '<div class="icc-ct-producto"><b>' + esc(producto || "—") + "</b><small>" + (c.kw ? num(c.kw) + " kW" : "Sin kW") + "</small></div>" +
+        '<div class="icc-ct-estado">' + (puedeEditar ? selectorEstado(c) : '<span class="icc-badge" style="--badge-color:' + meta.color + '">' + esc(meta.label) + "</span>") + "</div>" +
+        '<div class="icc-ct-comercial">' + avatarC(c, 26) + "<span>" + esc(c.comercial_nombre || "Sin asignar") + "</span></div>" +
+        '<div class="icc-ct-fecha"><b>' + esc(U.formatFecha(c.fecha_alta)) + "</b><small>" + (c.fecha_activacion ? "Activo " + esc(U.formatFecha(c.fecha_activacion)) : "Sin activar") + "</small></div>" +
+        '<div class="icc-ct-acciones">' +
+        (c.cliente_id ? '<a class="icc-btn icc-btn-ghost icc-ct-btn" href="#/clientes/' + c.cliente_id + '" title="Abrir la ficha del cliente">👤 Cliente</a>' : "") +
+        '<button type="button" class="icc-btn icc-btn-secondary icc-ct-btn" data-contrato-id="' + c.id + '">' + (puedeEditar ? "✏️ Editar" : "Ver") + "</button>" +
+        "</div></article>"
+      );
+    };
+
+    var tarjeta = function (c) {
+      var producto = [c.comercializadora, c.tarifa].filter(Boolean).join(" · ");
+      return (
+        '<button type="button" class="icc-ct-card' + (atascado(c) ? " is-atascado" : "") + '" data-contrato-id="' + c.id + '" style="--c:' + (c.comercial_id ? colorCom[c.comercial_id] || "#64748B" : "#64748B") + '">' +
+        "<header><strong>" + esc(c.titular) + "</strong><span>" + (iconoSector[c.sector] || "📄") + "</span></header>" +
+        "<small>" + esc(producto || C.SECTORES[c.sector] || "") + "</small>" +
+        (c.kw ? '<small class="icc-ct-card-kw">' + num(c.kw) + " kW</small>" : "") +
+        (atascado(c) ? '<span class="icc-ct-alerta">⏳ ' + dias(c.fecha_alta) + " d sin activar</span>" : "") +
+        "<footer>" + avatarC(c, 22) + "<span>" + esc(c.comercial_nombre || "Sin asignar") + "</span><em>" + esc(U.formatFecha(c.fecha_alta)) + "</em></footer></button>"
+      );
+    };
 
     main().innerHTML =
-      '<div class="icc-page-head"><h1>Contratos</h1>' +
-      '<div><button class="icc-btn icc-btn-ghost" id="btn-exportar-contratos-csv">⬇ Exportar CSV</button> ' +
-      '<button class="icc-btn icc-btn-ghost" id="btn-exportar-contratos-xlsx">⬇ Exportar Excel</button> ' +
-      '<button class="icc-btn icc-btn-primary" id="btn-nuevo-contrato">+ Nuevo contrato</button></div></div>' +
-      '<div class="icc-card">' +
-      '<form id="form-filtros-contrato" class="icc-filtros-row">' +
-      '<input class="icc-input" name="q" placeholder="Buscar por numero, titular o CIF" value="' + U.escapeHtml(filtros.q || "") + '">' +
-      '<select class="icc-select" name="sector"><option value="">Todos los sectores</option>' +
-      Object.keys(C.SECTORES)
-        .map(function (s) {
-          return '<option value="' + s + '"' + (filtros.sector === s ? " selected" : "") + ">" + C.SECTORES[s] + "</option>";
-        })
-        .join("") +
-      "</select>" +
-      '<select class="icc-select" name="estado"><option value="">Todos los estados</option>' +
+      '<header class="icc-ag-hero icc-ct-hero">' +
+      '<div class="icc-ag-hero-txt"><span class="icc-ag-hero-kicker">📑 Contratos' + (tituloSector ? " · " + esc(tituloSector) : "") + "</span>" +
+      "<h1>" + todos.length + (todos.length === 1 ? " contrato" : " contratos") + (hayFiltros && !filtros.estado ? " con este filtro" : "") + "</h1>" +
+      '<p class="icc-ag-hero-res"><b class="ok">' + okMes + "</b> OK este mes · <b>" + altasMes + "</b> altas este mes · <b>" + num(kwTotal) + "</b> kW vivos" +
+      (nProblemas ? ' · <b class="mal">' + nProblemas + "</b> con KO o incidencias" : "") + "</p></div>" +
+      '<div class="icc-ag-hero-acc icc-ct-hero-acc">' +
+      '<button class="icc-btn icc-btn-ghost" id="btn-exportar-contratos-csv">⬇ CSV</button>' +
+      '<button class="icc-btn icc-btn-ghost" id="btn-exportar-contratos-xlsx">⬇ Excel</button>' +
+      (puedeEditar ? '<button class="icc-btn icc-btn-primary icc-ag-btn-nueva" id="btn-nuevo-contrato">+ Nuevo contrato</button>' : "") +
+      "</div></header>" +
+
+      '<nav class="icc-ct-fases" aria-label="Filtrar por estado">' +
+      '<a class="icc-ct-fase' + (!filtros.estado ? " is-activa" : "") + '" style="--c:#e2e8f0" href="' + linkQs({ estado: "" }) + '"><b>' + todos.length + "</b><span>Todos</span></a>" +
       C.ESTADOS_CONTRATO_ORDEN.map(function (e) {
-        return '<option value="' + e + '"' + (filtros.estado === e ? " selected" : "") + ">" + C.ESTADOS_CONTRATO[e].label + "</option>";
+        return '<a class="icc-ct-fase' + (filtros.estado === e ? " is-activa" : "") + '" style="--c:' + C.ESTADOS_CONTRATO[e].color + '" href="' + linkQs({ estado: filtros.estado === e ? "" : e }) + '">' +
+          "<b>" + (cuenta[e] || 0) + "</b><span>" + esc(C.ESTADOS_CONTRATO[e].label) + "</span></a>";
       }).join("") +
-      "</select>" +
-      (puedeFiltrarComercial
-        ? '<select class="icc-select" name="comercial_id"><option value="">Todos los comerciales</option>' +
-          agentes
-            .map(function (a) { return '<option value="' + a.id + '"' + (filtros.comercial_id === String(a.id) ? " selected" : "") + ">" + U.escapeHtml(a.nombre) + "</option>"; })
-            .join("") +
-          "</select>"
+      "</nav>" +
+      (nAtascados
+        ? '<a class="icc-aviso icc-ct-aviso" href="' + linkQs({ estado: "tramitado" }) + '">⏳ <b>' + nAtascados + "</b> " + (nAtascados === 1 ? "contrato lleva" : "contratos llevan") + " más de 30 días tramitado sin activar. Revísalos →</a>"
         : "") +
-      '<input class="icc-input" name="comercializadora" placeholder="Compañia" value="' + U.escapeHtml(filtros.comercializadora || "") + '">' +
-      '<input class="icc-input" name="tarifa" placeholder="Tarifa" value="' + U.escapeHtml(filtros.tarifa || "") + '">' +
-      '<input class="icc-input" type="date" name="desde" value="' + U.escapeHtml(filtros.desde || "") + '">' +
-      '<input class="icc-input" type="date" name="hasta" value="' + U.escapeHtml(filtros.hasta || "") + '">' +
-      '<button class="icc-btn icc-btn-secondary" type="submit">Filtrar</button>' +
-      "</form></div>" +
-      '<div class="icc-card icc-table-wrap">' +
-      (contratos.length ? tablaContratos(contratos) : '<p class="icc-empty">No hay contratos con estos filtros.</p>') +
-      "</div>";
+      ((cuenta.incidencias || 0) && filtros.estado !== "incidencias"
+        ? '<a class="icc-aviso icc-ct-aviso is-alerta" href="' + linkQs({ estado: "incidencias" }) + '">⚠️ <b>' + cuenta.incidencias + "</b> " + (cuenta.incidencias === 1 ? "contrato tiene" : "contratos tienen") + " incidencias pendientes →</a>"
+        : "") +
+
+      '<section class="icc-card icc-ct-barra">' +
+      '<form id="form-filtros-contrato" class="icc-ct-filtros">' +
+      '<input class="icc-input" name="q" placeholder="🔎 Buscar por número, titular o CIF" value="' + esc(filtros.q || "") + '">' +
+      '<select class="icc-select" name="sector"><option value="">Todos los sectores</option>' +
+      Object.keys(C.SECTORES).map(function (s) { return '<option value="' + s + '"' + (filtros.sector === s ? " selected" : "") + ">" + (iconoSector[s] || "") + " " + C.SECTORES[s] + "</option>"; }).join("") + "</select>" +
+      (puedeFiltrarComercial
+        ? '<select class="icc-select" name="comercial_id"><option value="">Todo el equipo</option>' +
+          agentes.map(function (a) { return '<option value="' + a.id + '"' + (filtros.comercial_id === String(a.id) ? " selected" : "") + ">" + esc(a.nombre + " " + (a.apellidos || "")) + "</option>"; }).join("") + "</select>"
+        : "") +
+      (filtros.estado ? '<input type="hidden" name="estado" value="' + esc(filtros.estado) + '">' : "") +
+      (vista === "tablero" ? '<input type="hidden" name="vista" value="tablero">' : "") +
+      '<details class="icc-ct-mas"' + (hayMasFiltros ? " open" : "") + "><summary>Más filtros" + (hayMasFiltros ? " •" : "") + "</summary>" +
+      '<div class="icc-ct-mas-campos">' +
+      '<label><span>Compañía</span><input class="icc-input" name="comercializadora" placeholder="Exacta, p. ej. Iberdrola" value="' + esc(filtros.comercializadora || "") + '"></label>' +
+      '<label><span>Tarifa</span><input class="icc-input" name="tarifa" placeholder="Exacta, p. ej. 2.0TD" value="' + esc(filtros.tarifa || "") + '"></label>' +
+      '<label><span>Alta desde</span><input class="icc-input" type="date" name="desde" value="' + esc(filtros.desde || "") + '"></label>' +
+      '<label><span>Alta hasta</span><input class="icc-input" type="date" name="hasta" value="' + esc(filtros.hasta || "") + '"></label>' +
+      "</div></details>" +
+      '<div class="icc-ct-filtros-acc"><button class="icc-btn icc-btn-secondary" type="submit">Filtrar</button>' +
+      (hayFiltros ? '<a class="icc-btn icc-btn-ghost" href="#/contratos' + (vista === "tablero" ? "?vista=tablero" : "") + '">Limpiar</a>' : "") +
+      '<div class="icc-tabs icc-ct-vistas"><a class="icc-tab' + (vista === "lista" ? " is-active" : "") + '" href="' + linkQs({ vista: "" }) + '">☰ Lista</a>' +
+      '<a class="icc-tab' + (vista === "tablero" ? " is-active" : "") + '" href="' + linkQs({ vista: "tablero" }) + '">▦ Tablero</a></div></div>' +
+      "</form></section>" +
+
+      (vista === "tablero"
+        ? '<section class="icc-ct-tablero">' +
+          C.ESTADOS_CONTRATO_ORDEN.filter(function (e) { return !filtros.estado || filtros.estado === e; }).map(function (e) {
+            var lista = contratos.filter(function (c) { return c.estado === e; });
+            return '<div class="icc-ct-col" style="--f:' + C.ESTADOS_CONTRATO[e].color + '"><div class="icc-pl-col-head"><div class="icc-pl-col-tit"><strong>' + esc(C.ESTADOS_CONTRATO[e].label) + "</strong><b>" + lista.length + "</b></div></div>" +
+              '<div class="icc-pl-col-body">' + (lista.length ? lista.map(tarjeta).join("") : '<p class="icc-pl-vacio">Ninguno</p>') + "</div></div>";
+          }).join("") +
+          "</section>"
+        : '<section class="icc-ct-lista">' +
+          (contratos.length
+            ? '<div class="icc-ct-cab"><span>Titular</span><span>Compañía · tarifa</span><span>Estado</span><span>Comercial</span><span>Alta</span><span></span></div>' + contratos.map(fila).join("")
+            : '<p class="icc-empty">' + (todos.length ? "Ningún contrato en este estado." : "No hay contratos con estos filtros.") + "</p>") +
+          (todos.length >= 500 ? '<p class="icc-muted icc-ct-limite">Se muestran los 500 más recientes. Usa los filtros para acotar.</p>' : "") +
+          "</section>");
 
     document.getElementById("form-filtros-contrato").addEventListener("submit", function (e) {
       e.preventDefault();
       var fd = new FormData(e.target);
       var qs = new URLSearchParams();
       fd.forEach(function (v, k) {
-        if (v) qs.set(k, v);
+        if (String(v).trim()) qs.set(k, String(v).trim());
       });
       location.hash = "#/contratos" + (qs.toString() ? "?" + qs.toString() : "");
     });
-    document.getElementById("btn-nuevo-contrato").addEventListener("click", function () {
-      modalContrato(null);
-    });
+    var btnNuevo = document.getElementById("btn-nuevo-contrato");
+    if (btnNuevo) btnNuevo.addEventListener("click", function () { modalContrato(null); });
     function exportarContratos(formato) {
-      var fd = new FormData(document.getElementById("form-filtros-contrato"));
-      var filtrosActuales = { formato: formato };
-      fd.forEach(function (v, k) {
-        if (v) filtrosActuales[k] = v;
-      });
+      // Se exporta exactamente lo que se ve (filtros aplicados en la URL).
+      var filtrosActuales = Object.assign({ formato: formato }, filtros);
       window.open(D.urlExportarContratos(filtrosActuales), "_blank");
     }
-    document.getElementById("btn-exportar-contratos-csv").addEventListener("click", function () {
-      exportarContratos("csv");
-    });
-    document.getElementById("btn-exportar-contratos-xlsx").addEventListener("click", function () {
-      exportarContratos("xlsx");
-    });
+    document.getElementById("btn-exportar-contratos-csv").addEventListener("click", function () { exportarContratos("csv"); });
+    document.getElementById("btn-exportar-contratos-xlsx").addEventListener("click", function () { exportarContratos("xlsx"); });
     main()
       .querySelectorAll("[data-contrato-id]")
-      .forEach(function (row) {
-        row.addEventListener("click", function () {
-          var c = contratos.filter(function (x) {
-            return String(x.id) === row.getAttribute("data-contrato-id");
-          })[0];
+      .forEach(function (el) {
+        el.addEventListener("click", function () {
+          var c = todos.filter(function (x) { return String(x.id) === el.getAttribute("data-contrato-id"); })[0];
           if (c) modalContrato(c);
         });
       });
-  }
-
-  function tablaContratos(contratos) {
-    return (
-      '<table class="icc-table"><thead><tr>' +
-      "<th>Numero</th><th>Titular</th><th>Sector</th><th>Compañia</th><th>Tarifa</th><th>kW</th><th>Estado</th><th>Alta</th>" +
-      "</tr></thead><tbody>" +
-      contratos
-        .map(function (c) {
-          var meta = C.ESTADOS_CONTRATO[c.estado] || { label: c.estado, color: "#94a3b8" };
-          return (
-            '<tr data-contrato-id="' + c.id + '">' +
-            "<td>" + U.escapeHtml(c.numero_contrato || "-") + "</td>" +
-            "<td><strong>" + U.escapeHtml(c.titular) + "</strong><br><span class=\"icc-muted\">" + U.escapeHtml(c.cif_titular || "") + "</span></td>" +
-            "<td>" + U.escapeHtml(C.SECTORES[c.sector] || c.sector || "-") + "</td>" +
-            "<td>" + U.escapeHtml(c.comercializadora || "-") + "</td>" +
-            "<td>" + U.escapeHtml(c.tarifa || "-") + "</td>" +
-            "<td>" + (c.kw || "-") + "</td>" +
-            '<td><span class="icc-badge" style="--badge-color:' + meta.color + '">' + U.escapeHtml(meta.label) + "</span></td>" +
-            "<td>" + U.formatFecha(c.fecha_alta) + "</td>" +
-            "</tr>"
-          );
-        })
-        .join("") +
-      "</tbody></table>"
-    );
+    main()
+      .querySelectorAll("[data-estado-contrato]")
+      .forEach(function (sel) {
+        sel.addEventListener("change", async function () {
+          sel.disabled = true;
+          try {
+            await D.actualizarContrato(sel.getAttribute("data-estado-contrato"), { estado: sel.value });
+            U.toast("Estado actualizado: " + C.ESTADOS_CONTRATO[sel.value].label, "success");
+          } catch (err) {
+            U.toast(err.message || "No se pudo cambiar el estado", "error");
+          }
+          viewContratos();
+        });
+      });
   }
 
   function modalContrato(contrato) {
@@ -1144,7 +1236,7 @@ window.icc.views = (function () {
       "</select></div>" +
       '<div class="icc-field"><label>Notas</label><textarea class="icc-textarea" name="notas">' + U.escapeHtml(contrato.notas || "") + "</textarea></div>" +
       '<div class="icc-modal-actions">' +
-      (esNuevo ? "" : '<button type="button" class="icc-btn icc-btn-ghost" id="btn-borrar-contrato" style="margin-right:auto;color:var(--red)">Borrar</button>') +
+      (esNuevo || !window.icc.auth.puede("contratos.borrar") ? "" : '<button type="button" class="icc-btn icc-btn-ghost" id="btn-borrar-contrato" style="margin-right:auto;color:var(--red)">Borrar</button>') +
       '<button type="button" class="icc-btn icc-btn-ghost" data-close-btn>Cancelar</button>' +
       '<button type="submit" class="icc-btn icc-btn-primary">' + (esNuevo ? "Crear contrato" : "Guardar cambios") + "</button>" +
       "</div></form>"
