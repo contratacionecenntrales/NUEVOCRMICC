@@ -57,7 +57,7 @@ window.icc.comparador = (function () {
   // ----------------------------------------------------------------- Panel
   async function viewPanel() {
     var params = new URLSearchParams(location.hash.split("?")[1] || "");
-    var filtro = { tipo: params.get("tipo") || "", q: (params.get("q") || "").trim(), comercial: params.get("comercial") || "" };
+    var filtro = { tipo: params.get("tipo") || "", q: (params.get("q") || "").trim(), comercial: params.get("comercial") || "", mes: params.get("mes") === "1" ? "1" : "" };
     main().innerHTML = '<div class="icc-loading">Cargando comparador…</div>';
 
     var errores = [];
@@ -72,42 +72,73 @@ window.icc.comparador = (function () {
     var verComercial = Object.keys(comerciales).length > 1 || !window.icc.auth.tieneRol("comercial");
 
     var q = filtro.q.toLowerCase();
+    var inicioMes = new Date();
+    inicioMes = inicioMes.getFullYear() + "-" + String(inicioMes.getMonth() + 1).padStart(2, "0");
     var lista = todos.filter(function (i) {
+      if (filtro.mes && String(i.created_at).slice(0, 7) !== inicioMes) return false;
       if (filtro.tipo && i.sector !== filtro.tipo) return false;
       if (filtro.comercial && String(i.usuario_id) !== filtro.comercial) return false;
       if (q && [i.numero, i.cliente_nombre, i.cups, i.comercializadora_actual, i.operador_actual].join(" ").toLowerCase().indexOf(q) === -1) return false;
       return true;
     });
 
-    var inicioMes = new Date();
-    inicioMes = inicioMes.getFullYear() + "-" + String(inicioMes.getMonth() + 1).padStart(2, "0");
     var delMes = todos.filter(function (i) { return String(i.created_at).slice(0, 7) === inicioMes; });
     var ahorroMes = delMes.reduce(function (s, i) { return s + (Number(i.ahorro_anual) || 0); }, 0);
 
+    var nEnergia = todos.filter(function (i) { return i.sector === "energia"; }).length;
+    var nTelefonia = todos.length - nEnergia;
+    var ahorroTotal = todos.reduce(function (s, i) { return s + (Number(i.ahorro_anual) || 0); }, 0);
+    // Enlace a este mismo panel con otros filtros.
+    var linkPanel = function (cambios) {
+      var x = Object.assign({}, filtro, cambios || {});
+      var p = new URLSearchParams();
+      ["q", "tipo", "comercial", "mes"].forEach(function (k) { if (x[k]) p.set(k, x[k]); });
+      return "#/comparador" + (p.toString() ? "?" + p.toString() : "");
+    };
+    var kpi = function (href, icono, valor, label, color, activo) {
+      return '<a class="icc-cp-kpi' + (activo ? " is-activo" : "") + '" href="' + href + '" style="--c:' + color + '">' +
+        '<span class="icc-cp-kpi-ico" aria-hidden="true">' + icono + "</span><b>" + valor + "</b><span>" + label + "</span>" +
+        '<em aria-hidden="true">Ver →</em></a>';
+    };
+    var filtrando = filtro.tipo || filtro.q || filtro.comercial || filtro.mes;
+
     main().innerHTML =
-      '<div class="icc-page-head"><div><h1>Comparador</h1><p class="icc-muted">Auditorías de factura de energía y telefonía con informe en PDF para el cliente.</p></div></div>' +
+      '<header class="icc-ag-hero icc-cp-hero">' +
+      '<div class="icc-ag-hero-txt"><span class="icc-ag-hero-kicker">🧮 Comparador</span>' +
+      "<h1>Auditorías de energía y telefonía</h1>" +
+      '<p class="icc-ag-hero-res"><b>' + todos.length + "</b> " + (todos.length === 1 ? "informe guardado" : "informes guardados") +
+      " · <b>" + delMes.length + "</b> este mes · <b class=\"ok\">" + esc(U.formatEur(ahorroMes)) + "</b> de ahorro anual propuesto este mes</p></div>" +
+      '<div class="icc-ag-hero-acc icc-cp-hero-acc">' +
+      '<a class="icc-btn icc-btn-primary icc-ag-btn-nueva" href="' + urlHerramienta("energia") + '">⚡ Nuevo estudio de energía</a>' +
+      '<a class="icc-btn icc-btn-secondary" href="' + urlHerramienta("telefonia") + '">📶 Nuevo de telefonía</a>' +
+      "</div></header>" +
       (sinInstalar
         ? '<div class="icc-aviso icc-aviso-oro">⚠️ Falta importar <code>sql/migracion_comparadores.sql</code> en la base de datos para usar los comparadores.</div>'
         : errores.length ? '<div class="icc-aviso">' + esc(errores[0].message) + "</div>" : "") +
-      '<div class="icc-cmp-herramientas">' +
+
+      '<div class="icc-cp-herramientas">' +
       Object.keys(HERRAMIENTAS).map(function (t) {
         var h = HERRAMIENTAS[t];
+        var n = t === "energia" ? nEnergia : nTelefonia;
         return (
-          '<a class="icc-card icc-cmp-herramienta" href="' + urlHerramienta(t) + '">' +
-          '<span class="icc-cmp-herramienta-icono">' + h.icono + "</span>" +
-          "<div><h2>" + esc(h.titulo) + "</h2><p>" + esc(h.desc) + "</p>" +
-          '<span class="icc-btn icc-btn-primary">Nuevo estudio →</span></div></a>'
+          '<a class="icc-cp-herramienta is-' + t + '" href="' + urlHerramienta(t) + '">' +
+          '<span class="icc-cp-herramienta-ico" aria-hidden="true">' + h.icono + "</span>" +
+          '<div class="icc-cp-herramienta-txt"><h2>' + esc(h.titulo) + "</h2><p>" + esc(h.desc) + "</p>" +
+          '<span class="icc-cp-herramienta-pie"><span class="icc-cp-herramienta-btn">Nuevo estudio →</span><small>' + n + (n === 1 ? " informe" : " informes") + "</small></span></div></a>"
         );
       }).join("") +
       "</div>" +
-      '<div class="icc-stat-grid icc-cmp-kpis">' +
-      '<div class="icc-stat-card" style="--stat-color:var(--cian)"><span class="icc-stat-value">' + todos.length + '</span><span class="icc-stat-label">Informes guardados</span></div>' +
-      '<div class="icc-stat-card" style="--stat-color:var(--oro)"><span class="icc-stat-value">' + delMes.length + '</span><span class="icc-stat-label">Este mes</span></div>' +
-      '<div class="icc-stat-card" style="--stat-color:var(--esmeralda)"><span class="icc-stat-value">' + esc(U.formatEur(ahorroMes)) + '</span><span class="icc-stat-label">Ahorro anual propuesto este mes</span></div>' +
+
+      '<div class="icc-cp-kpis">' +
+      kpi(linkPanel({ tipo: "", mes: "", q: "", comercial: "" }), "🗂️", todos.length, "Informes guardados", "#22D3EE", !filtrando) +
+      kpi(linkPanel({ mes: filtro.mes ? "" : "1" }), "📅", delMes.length, "Este mes", "#FBBF24", !!filtro.mes) +
+      kpi(linkPanel({ tipo: filtro.tipo === "energia" ? "" : "energia" }), "⚡", nEnergia, "De energía", "#60A5FA", filtro.tipo === "energia") +
+      kpi(linkPanel({ tipo: filtro.tipo === "telefonia" ? "" : "telefonia" }), "📶", nTelefonia, "De telefonía", "#34D399", filtro.tipo === "telefonia") +
+      kpi(linkPanel({ mes: "1" }), "💶", esc(U.formatEur(ahorroMes)), "Ahorro propuesto este mes", "#4ADE80", false) +
       "</div>" +
-      '<section class="icc-card">' +
-      "<h2>Histórico de auditorías</h2>" +
-      '<form id="cmp-filtros" class="icc-filtros-row">' +
+
+      '<section class="icc-card icc-cp-barra">' +
+      '<form id="cmp-filtros" class="icc-cp-filtros">' +
       '<input class="icc-input" name="q" placeholder="🔎 Cliente, nº de presupuesto, CUPS u operador" value="' + esc(filtro.q) + '">' +
       '<select class="icc-select" name="tipo"><option value="">Energía y telefonía</option>' +
       '<option value="energia"' + (filtro.tipo === "energia" ? " selected" : "") + ">⚡ Energía</option>" +
@@ -118,26 +149,34 @@ window.icc.comparador = (function () {
             return '<option value="' + esc(id) + '"' + (id === filtro.comercial ? " selected" : "") + ">" + esc(comerciales[id]) + "</option>";
           }).join("") + "</select>"
         : "") +
-      '<button class="icc-btn icc-btn-secondary" type="submit">Filtrar</button></form></section>' +
-      '<section class="icc-card icc-table-wrap">' +
+      (filtro.mes ? '<input type="hidden" name="mes" value="1">' : "") +
+      '<button class="icc-btn icc-btn-secondary" type="submit">Filtrar</button>' +
+      (filtrando ? '<a class="icc-link-btn" href="#/comparador">Quitar filtros</a>' : "") +
+      "</form></section>" +
+
+      '<section class="icc-cp-historico"><h2>Histórico de auditorías <span>' + lista.length + "</span>" + (filtro.mes ? ' <small>· solo este mes</small>' : "") + "</h2>" +
       (lista.length
-        ? '<table class="icc-table"><thead><tr><th>Fecha</th><th>Nº</th><th>Tipo</th><th>Cliente</th><th>Actual → propuesta</th><th>Ahorro anual</th>' +
-          (verComercial ? "<th>Comercial</th>" : "") + "<th></th></tr></thead><tbody>" +
+        ? '<div class="icc-cp-lista">' +
           lista.map(function (i) {
+            var ahorro = Number(i.ahorro_anual);
+            var esEnergia = i.sector === "energia";
             return (
-              "<tr><td>" + esc(U.formatFecha(i.updated_at)) + "</td>" +
-              "<td>" + esc(i.numero) + "</td>" +
-              "<td>" + (i.sector === "energia" ? "⚡ Energía" : "📶 Telefonía") + "</td>" +
-              "<td>" + (i.cliente_id ? '<a class="icc-link-btn" href="#/clientes/' + i.cliente_id + '">' + esc(i.cliente_nombre || "Cliente") + "</a>" : esc(i.cliente_nombre || "—")) + "</td>" +
-              '<td class="icc-muted">' + esc(resumenInforme(i)) + "</td>" +
-              '<td><strong style="color:' + (Number(i.ahorro_anual) < 0 ? "var(--red)" : "var(--esmeralda)") + '">' + esc(eur(i.ahorro_anual)) + "</strong></td>" +
-              (verComercial ? "<td>" + esc(i.usuario_nombre || "") + "</td>" : "") +
-              '<td class="icc-cmp-celda-acciones"><a class="icc-link-btn" href="' + urlHerramienta(i.sector, { informe: i.id }) + '">Abrir</a>' +
-              (i.tiene_pdf ? ' <a class="icc-link-btn" href="' + urlPdf(i) + '" download>PDF</a>' : "") +
-              ' <button type="button" class="icc-link-btn" style="color:var(--red)" data-borrar-informe="' + esc(i.sector + ":" + i.id) + '">Borrar</button></td></tr>'
+              '<article class="icc-cp-fila is-' + esc(i.sector) + '">' +
+              '<span class="icc-cp-fila-ico" aria-hidden="true">' + (esEnergia ? "⚡" : "📶") + "</span>" +
+              '<div class="icc-cp-fila-txt">' +
+              '<a href="' + urlHerramienta(i.sector, { informe: i.id }) + '"><strong>' + esc(i.cliente_nombre || "Sin cliente") + "</strong></a>" +
+              "<small>" + esc(["Nº " + (i.numero || "—"), U.formatFecha(i.updated_at), verComercial && i.usuario_nombre ? i.usuario_nombre : ""].filter(Boolean).join(" · ")) + "</small>" +
+              '<small class="icc-cp-fila-res">' + esc(resumenInforme(i)) + "</small></div>" +
+              '<div class="icc-cp-fila-ahorro' + (ahorro < 0 ? " is-neg" : "") + '"><b>' + esc(eur(i.ahorro_anual)) + "</b><span>ahorro anual</span></div>" +
+              '<div class="icc-cp-fila-acc">' +
+              (i.cliente_id ? '<a class="icc-btn icc-btn-ghost icc-cp-btn" href="#/clientes/' + i.cliente_id + '" title="Ficha del cliente">👤 Cliente</a>' : "") +
+              (i.tiene_pdf ? '<a class="icc-btn icc-btn-ghost icc-cp-btn" href="' + urlPdf(i) + '" download>⬇ PDF</a>' : "") +
+              '<a class="icc-btn icc-btn-secondary icc-cp-btn" href="' + urlHerramienta(i.sector, { informe: i.id }) + '">Abrir →</a>' +
+              '<button type="button" class="icc-cp-borrar" title="Borrar informe" aria-label="Borrar informe ' + esc(i.numero || "") + '" data-borrar-informe="' + esc(i.sector + ":" + i.id) + '">🗑</button>' +
+              "</div></article>"
             );
           }).join("") +
-          "</tbody></table>"
+          "</div>"
         : '<p class="icc-empty">' + (todos.length ? "Ningún informe coincide con el filtro." : "Aún no hay auditorías. Empieza un estudio de energía o de telefonía.") + "</p>") +
       "</section>";
 
@@ -145,7 +184,7 @@ window.icc.comparador = (function () {
       e.preventDefault();
       var fd = new FormData(e.target);
       var p = new URLSearchParams();
-      ["q", "tipo", "comercial"].forEach(function (k) { if (fd.get(k)) p.set(k, String(fd.get(k)).trim()); });
+      ["q", "tipo", "comercial", "mes"].forEach(function (k) { if (fd.get(k)) p.set(k, String(fd.get(k)).trim()); });
       location.hash = "#/comparador" + (p.toString() ? "?" + p.toString() : "");
     });
     main().querySelectorAll("[data-borrar-informe]").forEach(function (b) {
