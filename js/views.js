@@ -1797,26 +1797,23 @@ window.icc.views = (function () {
   // Area privada de cada agente: la ven el propio agente, su Jefe de equipo
   // y Admin/Super Admin. Todos ven la misma ficha (datos, objetivos,
   // seguimiento y su actividad real en el CRM), siempre sincronizada.
-  function barraObjetivo(valor, objetivo, formato) {
+  // Recuadro de la ficha que lleva a su listado al pulsarlo.
+  function kpiFicha(href, icono, label, valor, objetivo, formato, color) {
     var v = Number(valor || 0);
     var o = Number(objetivo || 0);
-    var texto = formato(v) + (o ? " / " + formato(o) : "");
-    if (!o) return '<span class="icc-stat-value">' + texto + "</span>";
-    var pct = Math.min(100, Math.round((v / o) * 100));
-    var color = pct >= 100 ? "var(--esmeralda)" : pct >= 60 ? "var(--cian)" : "var(--oro)";
-    return (
-      '<span class="icc-stat-value">' + texto + "</span>" +
-      '<div class="icc-progress"><div class="icc-progress-fill" style="width:' + pct + "%;background:" + color + '"></div></div>' +
-      '<span class="icc-muted" style="font-size:11px">' + pct + "% del objetivo</span>"
-    );
-  }
-
-  function tarjetaFicha(label, contenidoHtml, color) {
-    return (
-      '<div class="icc-stat-card" style="--stat-color:' + (color || "var(--esmeralda)") + '">' +
-      contenidoHtml +
-      '<span class="icc-stat-label">' + label + "</span></div>"
-    );
+    var pct = o ? Math.min(100, Math.round((v / o) * 100)) : null;
+    var colBarra = pct === null ? "" : pct >= 100 ? "var(--esmeralda)" : pct >= 60 ? "var(--cian)" : "var(--oro)";
+    var dentro =
+      '<span class="icc-uf-kpi-ico" aria-hidden="true">' + icono + "</span>" +
+      '<b class="icc-uf-kpi-val">' + formato(v) + (o ? '<small> / ' + formato(o) + "</small>" : "") + "</b>" +
+      '<span class="icc-uf-kpi-lab">' + label + "</span>" +
+      (pct !== null
+        ? '<span class="icc-uf-kpi-barra"><i style="width:' + pct + "%;background:" + colBarra + '"></i></span><small class="icc-uf-kpi-pct">' + pct + "% del objetivo</small>"
+        : "") +
+      (href ? '<em class="icc-uf-kpi-ir" aria-hidden="true">Ver →</em>' : "");
+    return href
+      ? '<a class="icc-uf-kpi" href="' + href + '" style="--c:' + color + '">' + dentro + "</a>"
+      : '<div class="icc-uf-kpi" style="--c:' + color + '">' + dentro + "</div>";
   }
 
   async function renderResumenFicha(id, cont) {
@@ -1849,26 +1846,30 @@ window.icc.views = (function () {
     var seguimiento = (datos.seguimiento || []).filter(function (s) { return !filtroTipo || s.tipo === filtroTipo; });
     var rutaFicha = esPropia && location.hash.indexOf("#/mi-ficha") === 0 ? "#/mi-ficha" : "#/agentes/" + a.id;
 
+    var auth = window.icc.auth;
+    var mesIni = hoyIso().slice(0, 8) + "01";
+    var qCom = "comercial_id=" + a.id;
     cont.innerHTML =
-      '<div class="icc-ficha-toolbar">' +
-      '<p class="icc-ficha-privada">🔒 Resumen privado: solo lo ven ' + (esPropia ? "tú" : U.escapeHtml(a.nombre)) +
+      '<div class="icc-uf-toolbar">' +
+      '<p class="icc-uf-privada">🔒 Resumen privado: solo lo ven ' + (esPropia ? "tú" : U.escapeHtml(a.nombre)) +
       ", su jefe de equipo y dirección.</p>" +
-      '<div class="icc-head-actions icc-ficha-acciones">' +
-      '<a class="icc-btn icc-btn-ghost" href="#/clientes?comercial_id=' + a.id + '">Clientes</a>' +
-      '<a class="icc-btn icc-btn-ghost" href="#/contratos?comercial_id=' + a.id + '">Contratos</a>' +
-      '<a class="icc-btn icc-btn-ghost" href="#/agenda?comercial_id=' + a.id + '">Agenda</a>' +
-      (datos.carpeta_personal_id ? '<a class="icc-btn icc-btn-ghost" href="#/ficheros/' + datos.carpeta_personal_id + '">Carpeta personal</a>' : "") +
+      '<div class="icc-uf-atajos">' +
+      (auth.puede("clientes.ver") ? '<a class="icc-uf-atajo" href="#/clientes?' + qCom + '">👥 Clientes</a>' : "") +
+      (auth.puede("clientes.ver") ? '<a class="icc-uf-atajo" href="#/pipeline?' + qCom + '">📈 Pipeline</a>' : "") +
+      (auth.puede("contratos.ver") ? '<a class="icc-uf-atajo" href="#/contratos?' + qCom + '">📄 Contratos</a>' : "") +
+      (auth.puede("agenda.ver") ? '<a class="icc-uf-atajo" href="#/agenda?' + qCom + '">📅 Agenda</a>' : "") +
+      (datos.carpeta_personal_id ? '<a class="icc-uf-atajo" href="#/ficheros/' + datos.carpeta_personal_id + '">🗂️ Carpeta personal</a>' : "") +
       "</div></div>" +
 
-      '<div class="icc-stat-grid">' +
-      tarjetaFicha("Contratos este mes", barraObjetivo(r.contratos.mes, f.objetivo_contratos_mes, num), "var(--esmeralda)") +
-      tarjetaFicha("kW este mes", barraObjetivo(r.contratos.kw_mes, f.objetivo_kw_mes, num), "var(--cian)") +
-      tarjetaFicha("Facturado este mes", barraObjetivo(r.proformas.facturado_mes, f.objetivo_facturacion_mes, U.formatEur), "var(--oro)") +
-      tarjetaFicha("Pendiente de cobro", '<span class="icc-stat-value">' + U.formatEur(r.proformas.pendiente_cobro) + "</span>", "#f87171") +
-      tarjetaFicha("Clientes activos", '<span class="icc-stat-value">' + (clientesPorEstado.cliente_activo || 0) + "</span>", "#34d399") +
-      tarjetaFicha("Clientes en curso", '<span class="icc-stat-value">' + enCurso + "</span>", "#60a5fa") +
-      tarjetaFicha("Presupuestos abiertos", '<span class="icc-stat-value">' + Number(r.presupuestos.abiertos || 0) + "</span>", "#a78bfa") +
-      tarjetaFicha("Próximas citas", '<span class="icc-stat-value">' + Number(r.citas.proximas || 0) + "</span>", "#fbbf24") +
+      '<div class="icc-uf-kpis">' +
+      kpiFicha(auth.puede("contratos.ver") ? "#/contratos?" + qCom + "&desde=" + mesIni : "", "📄", "Contratos este mes", r.contratos.mes, f.objetivo_contratos_mes, num, "#34D399") +
+      kpiFicha(auth.puede("contratos.ver") ? "#/contratos?" + qCom + "&desde=" + mesIni : "", "⚡", "kW este mes", r.contratos.kw_mes, f.objetivo_kw_mes, num, "#22D3EE") +
+      kpiFicha(auth.puede("proformas.ver") ? "#/proformas" : "", "💶", "Facturado este mes", r.proformas.facturado_mes, f.objetivo_facturacion_mes, U.formatEur, "#FBBF24") +
+      kpiFicha(auth.puede("proformas.ver") ? "#/proformas?estado_pago=pendiente" : "", "⏳", "Pendiente de cobro", r.proformas.pendiente_cobro, 0, U.formatEur, "#F87171") +
+      kpiFicha(auth.puede("clientes.ver") ? "#/clientes?estado=cliente_activo&" + qCom : "", "✅", "Clientes activos", clientesPorEstado.cliente_activo || 0, 0, num, "#4ADE80") +
+      kpiFicha(auth.puede("clientes.ver") ? "#/pipeline?" + qCom : "", "🔄", "Clientes en curso", enCurso, 0, num, "#60A5FA") +
+      kpiFicha(auth.puede("presupuestos.ver") ? "#/presupuestos?" + qCom : "", "🧾", "Presupuestos abiertos", r.presupuestos.abiertos, 0, num, "#A78BFA") +
+      kpiFicha(auth.puede("agenda.ver") ? "#/agenda?" + qCom : "", "📅", "Próximas citas", r.citas.proximas, 0, num, "#F472B6") +
       "</div>" +
 
       '<div class="icc-grid-2">' +
@@ -1952,7 +1953,8 @@ window.icc.views = (function () {
             .map(function (c) {
               var est = C.ESTADOS_CONTRATO[c.estado] || { label: c.estado, color: "#94a3b8" };
               return (
-                "<tr><td>" + U.escapeHtml(c.titular) + "</td><td>" + U.escapeHtml(C.SECTORES[c.sector] || c.sector) + "</td><td>" +
+                "<tr><td>" + (auth.puede("contratos.ver") ? '<a class="icc-link-btn" style="margin-left:0" href="#/contratos?' + qCom + "&q=" + encodeURIComponent(c.titular || "") + '">' + U.escapeHtml(c.titular) + "</a>" : U.escapeHtml(c.titular)) +
+                "</td><td>" + U.escapeHtml(C.SECTORES[c.sector] || c.sector) + "</td><td>" +
                 (c.kw != null ? num(c.kw) : "-") + '</td><td><span class="icc-badge" style="--badge-color:' + est.color + '">' +
                 est.label + "</span></td><td>" + U.formatFecha(c.fecha_alta) + "</td></tr>"
               );
@@ -1966,8 +1968,8 @@ window.icc.views = (function () {
         ? r.proximas_citas
             .map(function (c) {
               return (
-                '<div class="icc-data-row"><span>' + U.escapeHtml(c.cliente_nombre) + "</span>" +
-                '<span class="icc-muted">' + U.formatFecha(c.fecha) + " · " + String(c.hora_inicio || "").slice(0, 5) + "</span></div>"
+                '<a class="icc-data-row icc-uf-cita" href="#/agenda?vista=dia&fecha=' + encodeURIComponent(String(c.fecha).slice(0, 10)) + "&" + qCom + '"><span>' + U.escapeHtml(c.cliente_nombre) + "</span>" +
+                '<span class="icc-muted">' + U.formatFecha(c.fecha) + " · " + String(c.hora_inicio || "").slice(0, 5) + " →</span></a>"
               );
             })
             .join("")
@@ -2081,37 +2083,50 @@ window.icc.views = (function () {
     var disp = C.ESTADOS_DISPONIBILIDAD[pref.estado_disponibilidad] || C.ESTADOS_DISPONIBILIDAD.disponible;
     var nombreCompleto = (u.nombre + " " + (u.apellidos || "")).trim();
 
+    var colorRolFicha = { comercial: "#22D3EE", jefe_de_equipo: "#A78BFA", backoffice: "#FBBF24", admin: "#34D399", super_admin: "#F472B6" };
+    var iconoRolFicha = { comercial: "💼", jefe_de_equipo: "🧭", backoffice: "🗂️", admin: "🏛️", super_admin: "👑" };
+    var colorFicha = colorRolFicha[u.rol] || "#94A3B8";
+    var esMiFicha = base === "#/mi-ficha";
+
     main().innerHTML =
-      (window.icc.auth.esBackofficeOAdmin() ? '<a href="#/agentes" class="icc-back">← Volver a Agentes</a>' : "") +
-      '<div class="icc-uficha">' +
-      '<header class="icc-uficha-head">' +
-      U.avatar(u, 64) +
-      '<div class="icc-uficha-titulo">' +
-      "<h1>" + U.escapeHtml(nombreCompleto) + " " +
-      (Number(u.bloqueado) ? badgeColor("Bloqueado", "#f87171") : badgeColor("Activo", "#34d399")) +
-      (pref.estado_disponibilidad && pref.estado_disponibilidad !== "disponible" ? " " + badgeColor(disp.label, disp.color) : "") +
-      "</h1>" +
-      '<p class="icc-muted">' + U.escapeHtml(u.email) + " · " + U.escapeHtml(C.ROLES[u.rol] || u.rol) +
-      (u.numero_relacion ? ' · relación <code>' + U.escapeHtml(u.numero_relacion) + "</code>" : "") +
-      (datos.supervisor ? " · Depende de " + U.escapeHtml(datos.supervisor.nombre) : "") +
-      "</p></div>" +
-      (puede.ver_como ? '<button type="button" class="icc-btn icc-btn-ghost icc-uficha-vercomo" id="btn-ficha-ver-como">👁️ Ver como</button>' : "") +
-      "</header>" +
-      '<div class="icc-uficha-body">' +
-      '<nav class="icc-uficha-menu">' +
+      '<div class="icc-uficha icc-uf">' +
+      '<header class="icc-ag-hero icc-uf-hero" style="--c:' + colorFicha + '">' +
+      '<div class="icc-ag-hero-txt icc-uf-id">' +
+      '<span class="icc-uf-ava">' + U.avatar(u, 76) + "</span>" +
+      "<div>" +
+      '<span class="icc-ag-hero-kicker">' + (esMiFicha ? "👤 Mi ficha" : "👤 Ficha de agente") + "</span>" +
+      "<h1>" + U.escapeHtml(nombreCompleto) + "</h1>" +
+      '<div class="icc-uf-badges">' +
+      '<span class="icc-uf-rol">' + (iconoRolFicha[u.rol] || "") + " " + U.escapeHtml(C.ROLES[u.rol] || u.rol) + "</span>" +
+      (Number(u.bloqueado) ? badgeColor("🔒 Bloqueado", "#f87171") : badgeColor("Activo", "#34d399")) +
+      (pref.estado_disponibilidad && pref.estado_disponibilidad !== "disponible" ? badgeColor(disp.label, disp.color) : "") +
+      "</div>" +
+      '<p class="icc-uf-meta">' +
+      '<a href="mailto:' + U.escapeHtml(u.email) + '">✉️ ' + U.escapeHtml(u.email) + "</a>" +
+      (u.telefono ? ' <a href="tel:' + U.escapeHtml(String(u.telefono).replace(/\s+/g, "")) + '">📞 ' + U.escapeHtml(u.telefono) + "</a>" : "") +
+      (datos.supervisor ? " <span>🧭 Depende de " + U.escapeHtml(datos.supervisor.nombre) + "</span>" : "") +
+      (u.numero_relacion ? " <span>#️⃣ Relación <code>" + U.escapeHtml(u.numero_relacion) + "</code></span>" : "") +
+      "</p>" +
+      '<p class="icc-uf-alta">Alta ' + U.formatFecha(u.created_at) +
+      (u.ultimo_acceso !== undefined ? " · último acceso " + U.haceCuanto(u.ultimo_acceso) : "") + "</p>" +
+      "</div></div>" +
+      '<div class="icc-ag-hero-acc icc-uf-hero-acc">' +
+      (window.icc.auth.esBackofficeOAdmin() ? '<a href="#/agentes" class="icc-btn icc-btn-ghost">← Agentes</a>' : "") +
+      (puede.ver_como ? '<button type="button" class="icc-btn icc-btn-secondary" id="btn-ficha-ver-como">👁️ Ver como</button>' : "") +
+      "</div></header>" +
+      '<nav class="icc-uf-tabs" aria-label="Secciones de la ficha">' +
       secciones
         .map(function (s) {
+          var activa = s.clave === fichaActual.seccion;
           return (
-            '<a class="icc-uficha-menu-item' + (s.clave === fichaActual.seccion ? " is-active" : "") + '" href="' + base + "/" + s.clave + '">' +
-            '<span class="ico">' + s.icono + "</span>" + s.label + "</a>"
+            '<a class="icc-uf-tab' + (activa ? " is-active" : "") + '" href="' + base + "/" + s.clave + '"' + (activa ? ' aria-current="page"' : "") + ">" +
+            '<span class="ico" aria-hidden="true">' + s.icono + "</span>" + s.label + "</a>"
           );
         })
         .join("") +
-      '<p class="icc-uficha-pie">Alta ' + U.formatFecha(u.created_at) +
-      (u.ultimo_acceso !== undefined ? " · último acceso " + U.haceCuanto(u.ultimo_acceso) : "") + "</p>" +
       "</nav>" +
-      '<section class="icc-uficha-panel" id="ficha-panel"></section>' +
-      "</div></div>";
+      '<section class="icc-uficha-panel icc-uf-panel" id="ficha-panel"></section>' +
+      "</div>";
 
     var btnVerComo = document.getElementById("btn-ficha-ver-como");
     if (btnVerComo) btnVerComo.addEventListener("click", function () { entrarComo(u.id, u.nombre); });
