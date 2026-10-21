@@ -4090,6 +4090,11 @@ window.icc.views = (function () {
 
   // ---------------------------------------------------------------- Informes
   async function viewInformes() {
+    var params = new URLSearchParams(location.hash.split("?")[1] || "");
+    var VISTAS = ["cartera", "kw", "sector", "tarifa", "compania"];
+    var ver = VISTAS.indexOf(params.get("ver")) !== -1 ? params.get("ver") : "";
+    var esc = U.escapeHtml;
+
     main().innerHTML = '<div class="icc-loading">Cargando informes…</div>';
     var [cartera, kw, porTarifa, porComercializadora, porSector] = await Promise.all([
       D.informe("clientes_cartera"),
@@ -4098,42 +4103,163 @@ window.icc.views = (function () {
       D.informe("por_comercializadora"),
       D.informe("por_sector"),
     ]);
-    porSector.datos.forEach(function (f) {
-      f.sector = C.SECTORES[f.sector] || f.sector;
-    });
+
+    var num = function (v, dec) {
+      var n = Number(v || 0);
+      return n.toLocaleString("es-ES", { maximumFractionDigits: dec === undefined ? 2 : dec });
+    };
+    var totalKw = Number(kw.total.total_kw || 0);
+    var totalContratos = Number(kw.total.total_contratos || 0);
+    var clientes = cartera.clientes || [];
+    var nCompanias = (porComercializadora.datos || []).filter(function (f) { return f.comercializadora; }).length;
+    var kwMedio = totalContratos ? totalKw / totalContratos : 0;
+    var hrefInf = function (v) { return "#/informes" + (v ? "?ver=" + v : ""); };
+    var hrefContratos = function (k, v) { return v ? "#/contratos?" + k + "=" + encodeURIComponent(v) : "#/contratos"; };
+
+    // Lista de barras horizontales: cada fila lleva a los contratos filtrados.
+    var barras = function (filas, campo, valor, opciones) {
+      opciones = opciones || {};
+      if (!filas || !filas.length) return '<p class="icc-empty">Sin datos todavía.</p>';
+      // Los contratos sin dato van al final (no compiten con las categorias reales).
+      filas = filas.filter(function (f) { return f[campo]; }).concat(filas.filter(function (f) { return !f[campo]; }));
+      var total = filas.reduce(function (s, f) { return s + Number(f[valor] || 0); }, 0) || 1;
+      var max = Math.max.apply(null, filas.map(function (f) { return Number(f[valor] || 0); })) || 1;
+      var lista = opciones.limite ? filas.slice(0, opciones.limite) : filas;
+      return (
+        '<ol class="icc-inf-barras">' +
+        lista.map(function (f, i) {
+          var raw = f[campo];
+          var etiqueta = opciones.etiqueta ? opciones.etiqueta(raw) : raw || "Sin indicar";
+          var v = Number(f[valor] || 0);
+          var pct = Math.round((v / total) * 100);
+          var href = raw ? hrefContratos(opciones.filtro, raw) : "#/contratos";
+          return (
+            '<li' + (raw ? "" : ' class="is-sin-dato"') + '><a href="' + href + '" title="' + (raw ? "Ver los contratos de " + esc(etiqueta) : "Ver todos los contratos") + '">' +
+            '<span class="icc-inf-pos">' + (i + 1) + "</span>" +
+            '<span class="icc-inf-nombre">' + esc(etiqueta) + "</span>" +
+            '<span class="icc-inf-valor">' + num(v) + (opciones.sufijo || "") + "<small>" + pct + "%</small></span>" +
+            '<span class="icc-inf-pista"><i style="width:' + Math.max(2, Math.round((v / max) * 100)) + '%"></i></span>' +
+            "</a></li>"
+          );
+        }).join("") +
+        "</ol>" +
+        (opciones.limite && filas.length > opciones.limite
+          ? '<a class="icc-inf-mas" href="' + hrefInf(opciones.vista) + '">Ver las ' + filas.length + " →</a>"
+          : "")
+      );
+    };
+
+    var seccion = function (clave, icono, titulo, subtitulo, cuerpo) {
+      return (
+        '<section class="icc-card icc-inf-seccion' + (ver === clave ? " is-abierta" : "") + '" id="inf-' + clave + '">' +
+        '<header class="icc-inf-sec-cab"><div><h2>' + icono + " " + titulo + "</h2><small>" + subtitulo + "</small></div>" +
+        (ver !== clave ? '<a class="icc-btn icc-btn-ghost icc-inf-abrir" href="' + hrefInf(clave) + '">Abrir →</a>' : "") +
+        "</header>" + cuerpo + "</section>"
+      );
+    };
+
+    var limite = ver ? 0 : 6;
+    var secSector = seccion("sector", "🧩", "Contratos por sector", num(totalContratos, 0) + " contratos",
+      barras(porSector.datos, "sector", "total", { filtro: "sector", vista: "sector", limite: limite, etiqueta: function (s) { return C.SECTORES[s] || s || "Sin indicar"; } }));
+    var secTarifa = seccion("tarifa", "🏷️", "Contratos por tarifa", (porTarifa.datos || []).length + " tarifas distintas",
+      barras(porTarifa.datos, "tarifa", "total", { filtro: "tarifa", vista: "tarifa", limite: limite }));
+    var secCompania = seccion("compania", "🏢", "Contratos por compañía", nCompanias + (nCompanias === 1 ? " compañía" : " compañías"),
+      barras(porComercializadora.datos, "comercializadora", "total", { filtro: "comercializadora", vista: "compania", limite: limite }));
+    var secKw = seccion("kw", "⚡", "kW por compañía", num(totalKw) + " kW en total",
+      barras(kw.por_comercializadora, "comercializadora", "total_kw", { filtro: "comercializadora", vista: "kw", limite: limite, sufijo: " kW" }));
+
+    var listaCartera = function (filas) {
+      if (!filas.length) return '<p class="icc-empty">Sin clientes activos todavía.</p>';
+      return (
+        '<div class="icc-inf-cartera">' +
+        filas.map(function (c) {
+          return (
+            '<a class="icc-inf-cliente" href="#/clientes/' + c.id + '" data-buscar="' + esc([c.razon_social, c.cif, C.SECTORES[c.sector] || c.sector].join(" ").toLowerCase()) + '">' +
+            '<span class="icc-inf-cliente-ini">' + esc(String(c.razon_social || "?").trim().charAt(0).toUpperCase()) + "</span>" +
+            '<span class="icc-inf-cliente-txt"><strong>' + esc(c.razon_social) + "</strong><small>" + esc([c.cif, C.SECTORES[c.sector] || c.sector].filter(Boolean).join(" · ")) + "</small></span>" +
+            '<span class="icc-inf-cliente-fecha">' + (c.created_at ? esc(U.formatFecha(c.created_at)) : "") + "</span></a>"
+          );
+        }).join("") +
+        "</div>"
+      );
+    };
+    var secCartera = seccion("cartera", "👥", "Clientes en cartera", clientes.length + (clientes.length === 1 ? " cliente activo" : " clientes activos"),
+      (ver === "cartera"
+        ? '<div class="icc-inf-herr"><input class="icc-input" id="inf-buscar" type="search" placeholder="🔎 Buscar por empresa, CIF o sector">' +
+          (clientes.length ? '<button type="button" class="icc-btn icc-btn-secondary" id="inf-csv">⬇ Exportar CSV</button>' : "") + "</div>" +
+          listaCartera(clientes) + '<p class="icc-empty" id="inf-sin" hidden>Ningún cliente coincide.</p>'
+        : listaCartera(clientes.slice(0, 6)) +
+          (clientes.length > 6 ? '<a class="icc-inf-mas" href="' + hrefInf("cartera") + '">Ver los ' + clientes.length + " →</a>" : "")));
+
+    var kpi = function (href, icono, valor, etiqueta, color, detalle) {
+      return (
+        '<a class="icc-stat-card icc-ag-kpi icc-inf-kpi" href="' + href + '" style="--stat-color:' + color + '">' +
+        '<span class="icc-ag-kpi-ico">' + icono + '</span><span class="icc-stat-value">' + valor + "</span>" +
+        '<span class="icc-stat-label">' + etiqueta + "</span>" + (detalle ? '<small class="icc-inf-kpi-det">' + detalle + "</small>" : "") + "</a>"
+      );
+    };
+
+    var pestanas = [["", "📊 Resumen"], ["cartera", "👥 Cartera"], ["kw", "⚡ kW"], ["sector", "🧩 Sector"], ["tarifa", "🏷️ Tarifa"], ["compania", "🏢 Compañía"]];
+    var cuerpo = { cartera: secCartera, kw: secKw, sector: secSector, tarifa: secTarifa, compania: secCompania };
 
     main().innerHTML =
-      '<div class="icc-page-head"><h1>Informes / Reportes</h1></div>' +
-      '<div class="icc-stat-grid">' +
-      statCard("Clientes en cartera", cartera.clientes.length, "#34d399") +
-      statCard("Total kW en cartera", (kw.total.total_kw || 0), "#22d3ee") +
-      statCard("Total contratos", (kw.total.total_contratos || 0), "#d4a62a") +
+      '<header class="icc-ag-hero icc-inf-hero">' +
+      '<div class="icc-ag-hero-txt"><span class="icc-ag-hero-kicker">📈 Informes y reportes</span>' +
+      "<h1>" + num(totalKw) + " kW en cartera</h1>" +
+      '<p class="icc-ag-hero-res"><b class="ok">' + clientes.length + "</b> " + (clientes.length === 1 ? "cliente activo" : "clientes activos") +
+      " · <b>" + num(totalContratos, 0) + "</b> " + (totalContratos === 1 ? "contrato" : "contratos") + " · <b>" + nCompanias + "</b> " + (nCompanias === 1 ? "compañía" : "compañías") + "</p></div>" +
+      '<div class="icc-ag-hero-acc"><a class="icc-btn icc-btn-ghost" href="#/contratos">📄 Ver contratos</a></div></header>' +
+
+      '<div class="icc-stat-grid icc-inf-kpis">' +
+      kpi("#/clientes?estado=cliente_activo", "👥", clientes.length, "Clientes en cartera", "#34d399", "Ver clientes activos") +
+      kpi(hrefInf("kw"), "⚡", num(totalKw), "Total kW en cartera", "#22d3ee", "Reparto por compañía") +
+      kpi("#/contratos", "📄", num(totalContratos, 0), "Total contratos", "#d4a62a", "Ver listado") +
+      kpi(hrefInf("compania"), "🏢", nCompanias, "Compañías", "#a78bfa", num(kwMedio) + " kW de media por contrato") +
       "</div>" +
-      '<div class="icc-grid-2">' +
-      '<section class="icc-card"><h2>Contratos por sector</h2>' +
-      tablaSimple(porSector.datos, "sector", "total") +
-      "</section>" +
-      '<section class="icc-card"><h2>Contratos por tarifa</h2>' +
-      tablaSimple(porTarifa.datos, "tarifa", "total") +
-      "</section>" +
-      '<section class="icc-card"><h2>Contratos por compañia</h2>' +
-      tablaSimple(porComercializadora.datos, "comercializadora", "total") +
-      "</section>" +
-      "</div>" +
-      '<section class="icc-card"><h2>kW por compañia</h2>' +
-      tablaSimple(kw.por_comercializadora, "comercializadora", "total_kw") +
-      "</section>" +
-      '<section class="icc-card"><h2>Listado de clientes en cartera</h2>' +
-      (cartera.clientes.length
-        ? '<table class="icc-table"><thead><tr><th>Empresa</th><th>CIF</th><th>Sector</th></tr></thead><tbody>' +
-          cartera.clientes
-            .map(function (c) {
-              return "<tr><td>" + U.escapeHtml(c.razon_social) + "</td><td>" + U.escapeHtml(c.cif) + "</td><td>" + U.escapeHtml(c.sector || "-") + "</td></tr>";
-            })
-            .join("") +
-          "</tbody></table>"
-        : '<p class="icc-empty">Sin clientes activos todavia.</p>') +
-      "</section>";
+
+      '<nav class="icc-tabs icc-inf-tabs" aria-label="Informes">' +
+      pestanas.map(function (p) {
+        return '<a class="icc-tab' + (ver === p[0] ? " is-active" : "") + '" href="' + hrefInf(p[0]) + '">' + p[1] + "</a>";
+      }).join("") + "</nav>" +
+
+      (ver
+        ? cuerpo[ver]
+        : '<div class="icc-inf-grid">' + secSector + secTarifa + secCompania + secKw + "</div>" + secCartera);
+
+    if (ver) {
+      var abierta = document.getElementById("inf-" + ver);
+      if (abierta && abierta.scrollIntoView) abierta.scrollIntoView({ block: "start", behavior: "smooth" });
+    }
+
+    var buscar = document.getElementById("inf-buscar");
+    if (buscar) {
+      buscar.addEventListener("input", function () {
+        var t = buscar.value.trim().toLowerCase();
+        var n = 0;
+        main().querySelectorAll(".icc-inf-cliente").forEach(function (el) {
+          var ok = !t || el.getAttribute("data-buscar").indexOf(t) !== -1;
+          el.hidden = !ok;
+          if (ok) n++;
+        });
+        document.getElementById("inf-sin").hidden = n > 0;
+      });
+    }
+    var btnCsv = document.getElementById("inf-csv");
+    if (btnCsv) {
+      btnCsv.addEventListener("click", function () {
+        var celda = function (v) { v = v == null ? "" : String(v); return /[";\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+        var filas = [["Empresa", "CIF", "Sector", "Alta"]].concat(clientes.map(function (c) {
+          return [c.razon_social, c.cif, C.SECTORES[c.sector] || c.sector || "", c.created_at ? String(c.created_at).slice(0, 10) : ""];
+        }));
+        var csv = "﻿" + filas.map(function (r) { return r.map(celda).join(";"); }).join("\r\n");
+        var a = document.createElement("a");
+        a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+        a.download = "clientes-en-cartera-" + new Date().toISOString().slice(0, 10) + ".csv";
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+      });
+    }
   }
 
   function tablaSimple(filas, campoNombre, campoValor) {
