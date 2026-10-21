@@ -3456,92 +3456,233 @@ window.icc.views = (function () {
   // --------------------------------------------------------------- Proformas
   async function viewProformas() {
     var params = new URLSearchParams(location.hash.split("?")[1] || "");
-    var filtros = {};
-    ["facturado_por", "estado_pago", "desde", "hasta", "numero", "email"].forEach(function (k) {
-      if (params.get(k)) filtros[k] = params.get(k);
-    });
+    var esc = U.escapeHtml;
+    // Compatibilidad con enlaces antiguos (?numero=, ?email=).
+    var q = (params.get("q") || params.get("numero") || params.get("email") || "").trim();
+    var estado = params.get("estado_pago") || params.get("estado") || "";
+    if (estado !== "pagada" && estado !== "pendiente") estado = "";
+    var empresa = params.get("facturado_por") || "";
+    if (!C.FACTURADO_POR[empresa]) empresa = "";
+    var antiguas = params.get("antiguas") === "1";
+    var desde = params.get("desde") || "";
+    var hasta = params.get("hasta") || "";
 
     main().innerHTML = '<div class="icc-loading">Cargando proformas…</div>';
-    var proformas = await D.listarProformas(filtros);
-    var esAdmin = window.icc.auth.esAdminOSuperior();
+    // Las fechas se filtran en el servidor; estado, empresa y texto en el navegador
+    // para poder enseñar los contadores de cada filtro.
+    var filtrosServidor = {};
+    if (desde) filtrosServidor.desde = desde;
+    if (hasta) filtrosServidor.hasta = hasta;
+    var todas = await D.listarProformas(filtrosServidor);
+    // Marcar pagada / pendiente usa el mismo permiso que crear (api/proformas.php).
+    var puedeCrear = window.icc.auth.puede("proformas.crear");
+    var puedeBorrar = window.icc.auth.puede("proformas.borrar");
+
+    var hoy = hoyIso();
+    var mes = hoy.slice(0, 7);
+    var dias = function (f) { return Math.floor((new Date(hoy + "T12:00:00") - new Date(String(f).slice(0, 10) + "T12:00:00")) / 86400000); };
+    var esAntigua = function (p) { return p.estado_pago === "pendiente" && dias(p.fecha) > 30; };
+    var suma = function (l) { return l.reduce(function (s, p) { return s + Number(p.importe || 0); }, 0); };
+    var plural = function (n, s, pl) { return n + " " + (n === 1 ? s : pl); };
+
+    var lista = todas.filter(function (p) {
+      if (empresa && p.facturado_por !== empresa) return false;
+      if (estado && p.estado_pago !== estado) return false;
+      if (antiguas && !esAntigua(p)) return false;
+      return true;
+    });
+
+    var pagadas = todas.filter(function (p) { return p.estado_pago === "pagada"; });
+    var pendientes = todas.filter(function (p) { return p.estado_pago === "pendiente"; });
+    var viejas = todas.filter(esAntigua);
+    var delMes = todas.filter(function (p) { return String(p.fecha).slice(0, 7) === mes; });
+
+    // Colores de comercial (mismo criterio que el resto del CRM).
+    var paleta = ["#22D3EE", "#A78BFA", "#F472B6", "#34D399", "#FBBF24", "#60A5FA", "#FB923C", "#4ADE80", "#E879F9", "#2DD4BF", "#F87171", "#93C5FD", "#FDE047", "#C084FC"];
+    var colorCom = {};
+    Array.from(new Set(todas.map(function (p) { return Number(p.comercial_id); }).filter(Boolean)))
+      .sort(function (a, b) { return a - b; })
+      .forEach(function (id, i) { colorCom[id] = paleta[i % paleta.length]; });
+    var colorEmpresa = { ICC: "#E8C15A", ELITE_ENERGY: "#22D3EE", EVOLVIX_GLOBAL: "#A78BFA" };
+
+    var linkQs = function (cambios) {
+      var x = Object.assign({ estado_pago: estado, facturado_por: empresa, antiguas: antiguas ? "1" : "", desde: desde, hasta: hasta, q: q }, cambios || {});
+      var p = new URLSearchParams();
+      Object.keys(x).forEach(function (k) { if (x[k]) p.set(k, x[k]); });
+      return "#/proformas" + (p.toString() ? "?" + p.toString() : "");
+    };
+    var inicioMes = mes + "-01";
+    var d = new Date(hoy + "T12:00:00");
+    var periodos = [
+      { label: "Todo", desde: "", hasta: "" },
+      { label: "Este mes", desde: inicioMes, hasta: "" },
+      { label: "Mes pasado", desde: isoDate(new Date(d.getFullYear(), d.getMonth() - 1, 1)), hasta: isoDate(new Date(d.getFullYear(), d.getMonth(), 0)) },
+      { label: "Este año", desde: hoy.slice(0, 4) + "-01-01", hasta: "" },
+    ];
+    var periodoActivo = periodos.filter(function (x) { return x.desde === desde && x.hasta === hasta; })[0];
+
+    var kpi = function (href, icono, label, valor, detalle, color, activo) {
+      return '<a class="icc-pf-kpi' + (activo ? " is-activo" : "") + '" href="' + href + '" style="--c:' + color + '">' +
+        '<span class="icc-pf-kpi-ico" aria-hidden="true">' + icono + "</span>" +
+        "<b>" + valor + "</b><span>" + label + "</span><small>" + detalle + "</small></a>";
+    };
+
+    var avatar = function (p) {
+      var n = p.comercial_nombre || "Sin comercial";
+      var ini = n.split(/\s+/).filter(Boolean).slice(0, 2).map(function (x) { return x.charAt(0).toUpperCase(); }).join("") || "?";
+      return '<span class="icc-ag-ava" style="--c:' + (p.comercial_id ? colorCom[Number(p.comercial_id)] || "#64748B" : "#64748B") + ';--t:26px" title="' + esc(n) + '">' + esc(ini) + "</span>";
+    };
+
+    var fila = function (p) {
+      var pagada = p.estado_pago === "pagada";
+      var vieja = esAntigua(p);
+      var color = pagada ? "#34D399" : vieja ? "#F87171" : "#FBBF24";
+      var buscar = [p.numero, p.cliente_email, p.comercial_nombre, C.FACTURADO_POR[p.facturado_por], p.notas].join(" ").toLowerCase();
+      return (
+        '<article class="icc-pf-fila' + (vieja ? " is-vieja" : "") + '" style="--e:' + color + '" data-buscar="' + esc(buscar) + '">' +
+        '<div class="icc-pf-doc"><span class="icc-pf-doc-ico" aria-hidden="true">' + (pagada ? "✅" : vieja ? "⏰" : "🧾") + "</span>" +
+        "<div><strong>Nº " + esc(p.numero) + "</strong>" +
+        '<a class="icc-pf-empresa" style="--c:' + (colorEmpresa[p.facturado_por] || "#94A3B8") + '" href="' + linkQs({ facturado_por: p.facturado_por }) + '" title="Ver solo las de esta empresa">' +
+        esc(C.FACTURADO_POR[p.facturado_por] || p.facturado_por) + "</a>" +
+        (p.notas ? '<small class="icc-pf-notas">' + esc(p.notas) + "</small>" : "") + "</div></div>" +
+        '<div class="icc-pf-cliente">' +
+        (p.cliente_email ? '<a href="mailto:' + esc(p.cliente_email) + '" title="Escribir al cliente">✉️ ' + esc(p.cliente_email) + "</a>" : '<span class="icc-muted">Sin email de cliente</span>') +
+        '<span class="icc-pf-com">' + avatar(p) + "<span>" + esc(p.comercial_nombre || "Sin comercial") + "</span></span></div>" +
+        '<div class="icc-pf-fecha"><b>' + esc(U.formatFecha(p.fecha)) + "</b><small>" + (dias(p.fecha) <= 0 ? "hoy" : "hace " + dias(p.fecha) + " d") + "</small></div>" +
+        '<div class="icc-pf-importe"><b>' + U.formatEur(p.importe) + '</b><span class="icc-pf-estado" style="--c:' + color + '">' +
+        (pagada ? "Pagada" : vieja ? "Pendiente · +30 d" : "Pendiente") + "</span></div>" +
+        '<div class="icc-pf-acc">' +
+        (p.ruta_archivo ? '<a class="icc-btn icc-btn-ghost icc-pf-btn" target="_blank" rel="noopener" href="' + D.urlDescarga("proformas", p.ruta_archivo) + '">📄 Ver</a>' : "") +
+        (!pagada && puedeCrear ? '<button type="button" class="icc-btn icc-btn-secondary icc-pf-btn" data-pagar-id="' + p.id + '">✓ Marcar pagada</button>' : "") +
+        (pagada && puedeCrear ? '<button type="button" class="icc-pf-icono" data-pendiente-id="' + p.id + '" title="Volver a pendiente" aria-label="Volver a pendiente la proforma ' + esc(p.numero) + '">↩</button>' : "") +
+        (puedeBorrar ? '<button type="button" class="icc-pf-icono is-borrar" data-borrar-proforma-id="' + p.id + '" title="Borrar" aria-label="Borrar la proforma ' + esc(p.numero) + '">🗑</button>' : "") +
+        "</div></article>"
+      );
+    };
 
     main().innerHTML =
-      '<div class="icc-page-head"><h1>Proformas / Facturas</h1>' +
-      '<button class="icc-btn icc-btn-primary" id="btn-nueva-proforma">+ Nueva proforma</button></div>' +
-      '<div class="icc-card">' +
-      '<form id="form-filtros-proforma" class="icc-filtros-row">' +
-      '<input class="icc-input" name="numero" placeholder="Numero" value="' + U.escapeHtml(filtros.numero || "") + '">' +
-      '<input class="icc-input" name="email" placeholder="Email cliente" value="' + U.escapeHtml(filtros.email || "") + '">' +
-      '<select class="icc-select" name="facturado_por"><option value="">Facturado por: todos</option>' +
-      Object.keys(C.FACTURADO_POR)
-        .map(function (k) { return '<option value="' + k + '"' + (filtros.facturado_por === k ? " selected" : "") + ">" + C.FACTURADO_POR[k] + "</option>"; })
-        .join("") +
-      "</select>" +
-      '<select class="icc-select" name="estado_pago"><option value="">Estado de pago: todos</option>' +
-      Object.keys(C.ESTADO_PAGO)
-        .map(function (k) { return '<option value="' + k + '"' + (filtros.estado_pago === k ? " selected" : "") + ">" + C.ESTADO_PAGO[k] + "</option>"; })
-        .join("") +
-      "</select>" +
-      '<input class="icc-input" type="date" name="desde" value="' + U.escapeHtml(filtros.desde || "") + '">' +
-      '<input class="icc-input" type="date" name="hasta" value="' + U.escapeHtml(filtros.hasta || "") + '">' +
-      '<button class="icc-btn icc-btn-secondary" type="submit">Filtrar</button>' +
-      "</form></div>" +
-      '<div class="icc-card icc-table-wrap">' +
-      (proformas.length
-        ? '<table class="icc-table"><thead><tr><th>Numero</th><th>Facturado por</th><th>Cliente</th><th>Importe</th><th>Estado</th><th>Fecha</th><th></th></tr></thead><tbody>' +
-          proformas
-            .map(function (p) {
-              return (
-                "<tr><td>" + U.escapeHtml(p.numero) + "</td><td>" + U.escapeHtml(C.FACTURADO_POR[p.facturado_por] || p.facturado_por) + "</td>" +
-                "<td>" + U.escapeHtml(p.cliente_email || "-") + "</td><td>" + U.formatEur(p.importe) + "</td>" +
-                '<td><span class="icc-badge" style="--badge-color:' + (p.estado_pago === "pagada" ? "#34d399" : "#fbbf24") + '">' +
-                C.ESTADO_PAGO[p.estado_pago] + "</span></td><td>" + U.formatFecha(p.fecha) + "</td>" +
-                "<td>" +
-                (p.estado_pago === "pendiente"
-                  ? '<button class="icc-link-btn" data-pagar-id="' + p.id + '">Marcar pagada</button>'
-                  : "") +
-                (p.ruta_archivo
-                  ? ' <a class="icc-link-btn" target="_blank" href="' + D.urlDescarga("proformas", p.ruta_archivo) + '">Ver</a>'
-                  : "") +
-                (window.icc.auth.puede("proformas.borrar")
-                  ? ' <button type="button" class="icc-link-btn" style="color:var(--red)" data-borrar-proforma-id="' + p.id + '">Borrar</button>'
-                  : "") +
-                "</td></tr>"
-              );
-            })
-            .join("") +
-          "</tbody></table>"
-        : '<p class="icc-empty">No hay proformas con estos filtros.</p>') +
-      "</div>";
+      '<header class="icc-ag-hero icc-pf-hero">' +
+      '<div class="icc-ag-hero-txt"><span class="icc-ag-hero-kicker">🧾 Proformas y facturas</span>' +
+      "<h1>" + U.formatEur(suma(todas)) + " facturados</h1>" +
+      '<p class="icc-ag-hero-res"><b class="ok">' + U.formatEur(suma(pagadas)) + "</b> cobrados · <b" + (pendientes.length ? ' class="mal"' : "") + ">" + U.formatEur(suma(pendientes)) + "</b> pendientes · " +
+      "<b>" + todas.length + "</b> " + (todas.length === 1 ? "proforma" : "proformas") +
+      (periodoActivo && periodoActivo.label !== "Todo" ? " · " + esc(periodoActivo.label.toLowerCase()) : desde || hasta ? " · periodo elegido" : "") + "</p></div>" +
+      '<div class="icc-ag-hero-acc icc-pf-hero-acc">' +
+      '<button type="button" class="icc-btn icc-btn-ghost" id="btn-exportar-proformas">⬇ Exportar CSV</button>' +
+      '<button class="icc-btn icc-btn-primary icc-ag-btn-nueva" id="btn-nueva-proforma">+ Nueva proforma</button>' +
+      "</div></header>" +
+
+      '<section class="icc-pf-kpis">' +
+      kpi(linkQs({ desde: inicioMes, hasta: "", estado_pago: "", antiguas: "" }), "📅", "Facturado este mes", U.formatEur(suma(delMes)), plural(delMes.length, "proforma", "proformas"), "#60A5FA", desde === inicioMes && !hasta && !estado && !antiguas) +
+      kpi(linkQs({ estado_pago: "pagada", antiguas: "" }), "✅", "Cobrado", U.formatEur(suma(pagadas)), plural(pagadas.length, "proforma", "proformas"), "#34D399", estado === "pagada") +
+      kpi(linkQs({ estado_pago: "pendiente", antiguas: "" }), "⏳", "Pendiente de cobro", U.formatEur(suma(pendientes)), plural(pendientes.length, "proforma", "proformas"), "#FBBF24", estado === "pendiente" && !antiguas) +
+      kpi(linkQs({ estado_pago: "pendiente", antiguas: "1" }), "⏰", "Pendientes +30 días", U.formatEur(suma(viejas)), plural(viejas.length, "proforma", "proformas"), "#F87171", antiguas) +
+      "</section>" +
+
+      (viejas.length && !antiguas
+        ? '<div class="icc-aviso icc-pf-aviso">⏰ <b>' + plural(viejas.length, "proforma lleva", "proformas llevan") + "</b> más de 30 días sin cobrar (" + U.formatEur(suma(viejas)) + "). " +
+          '<a href="' + linkQs({ estado_pago: "pendiente", antiguas: "1" }) + '">Ver cuáles</a></div>'
+        : "") +
+
+      '<nav class="icc-pf-chips" aria-label="Filtrar por empresa que factura">' +
+      '<a class="icc-pf-chip' + (!empresa ? " is-activo" : "") + '" style="--c:#E2E8F0" href="' + linkQs({ facturado_por: "" }) + '"><span>Todas las empresas</span><b>' + todas.length + "</b><small>" + U.formatEur(suma(todas)) + "</small></a>" +
+      Object.keys(C.FACTURADO_POR).map(function (k) {
+        var deEmpresa = todas.filter(function (p) { return p.facturado_por === k; });
+        return '<a class="icc-pf-chip' + (empresa === k ? " is-activo" : "") + '" style="--c:' + (colorEmpresa[k] || "#94A3B8") + '" href="' + linkQs({ facturado_por: empresa === k ? "" : k }) + '">' +
+          "<span>" + esc(C.FACTURADO_POR[k]) + "</span><b>" + deEmpresa.length + "</b><small>" + U.formatEur(suma(deEmpresa)) + "</small></a>";
+      }).join("") +
+      "</nav>" +
+
+      '<section class="icc-card icc-pf-barra">' +
+      '<div class="icc-pf-fila-barra">' +
+      '<input class="icc-input" id="pf-buscar" type="search" placeholder="🔎 Buscar por número, email del cliente o comercial" value="' + esc(q) + '">' +
+      '<div class="icc-tabs icc-pf-estados">' +
+      [["", "Todas"], ["pendiente", "⏳ Pendientes"], ["pagada", "✅ Pagadas"]].map(function (x) {
+        return '<a class="icc-tab' + (estado === x[0] && !antiguas ? " is-active" : "") + '" href="' + linkQs({ estado_pago: x[0], antiguas: "" }) + '">' + x[1] + "</a>";
+      }).join("") + "</div></div>" +
+      '<div class="icc-pf-periodo"><div class="icc-pf-periodos" role="group" aria-label="Periodo">' +
+      periodos.map(function (x) {
+        return '<a class="icc-pf-per' + (periodoActivo === x ? " is-activo" : "") + '" href="' + linkQs({ desde: x.desde, hasta: x.hasta }) + '">' + x.label + "</a>";
+      }).join("") + "</div>" +
+      '<form id="form-filtros-proforma" class="icc-pf-fechas">' +
+      '<label><span>Desde</span><input class="icc-input" type="date" name="desde" value="' + esc(desde) + '"></label>' +
+      '<label><span>Hasta</span><input class="icc-input" type="date" name="hasta" value="' + esc(hasta) + '"></label>' +
+      '<button class="icc-btn icc-btn-secondary" type="submit">Aplicar</button></form></div>' +
+      "</section>" +
+
+      (lista.length
+        ? '<section class="icc-pf-lista">' + lista.map(fila).join("") + "</section>" + '<p class="icc-pf-total" id="pf-total"></p>'
+        : '<p class="icc-empty">' + (todas.length ? "No hay proformas con estos filtros." : "Todavía no hay proformas. Crea la primera con «+ Nueva proforma».") + "</p>") +
+      '<p class="icc-empty icc-pf-sin-resultados" hidden>Ninguna proforma coincide con la búsqueda.</p>';
+
+    // ---- Busqueda al instante + total de lo que se ve
+    var buscar = document.getElementById("pf-buscar");
+    var visibles = lista.slice();
+    var porId = {};
+    lista.forEach(function (p) { porId[p.id] = p; });
+    var aplicarBusqueda = function () {
+      var txt = buscar.value.trim().toLowerCase();
+      visibles = [];
+      main().querySelectorAll(".icc-pf-fila").forEach(function (el, i) {
+        var ok = !txt || el.getAttribute("data-buscar").indexOf(txt) !== -1;
+        el.hidden = !ok;
+        if (ok) visibles.push(lista[i]);
+      });
+      var total = document.getElementById("pf-total");
+      if (total) total.innerHTML = plural(visibles.length, "proforma", "proformas") + " · <b>" + U.formatEur(suma(visibles)) + "</b>";
+      main().querySelector(".icc-pf-sin-resultados").hidden = !(lista.length && !visibles.length);
+    };
+    buscar.addEventListener("input", aplicarBusqueda);
+    aplicarBusqueda();
 
     document.getElementById("form-filtros-proforma").addEventListener("submit", function (e) {
       e.preventDefault();
-      var fd = new FormData(e.target);
-      var qs = new URLSearchParams();
-      fd.forEach(function (v, k) {
-        if (v) qs.set(k, v);
-      });
-      location.hash = "#/proformas" + (qs.toString() ? "?" + qs.toString() : "");
+      location.hash = linkQs({ desde: e.target.desde.value, hasta: e.target.hasta.value, q: buscar.value.trim() });
     });
     document.getElementById("btn-nueva-proforma").addEventListener("click", modalProforma);
-    main()
-      .querySelectorAll("[data-pagar-id]")
-      .forEach(function (btn) {
+
+    document.getElementById("btn-exportar-proformas").addEventListener("click", function () {
+      if (!visibles.length) { U.toast("No hay proformas que exportar", "error"); return; }
+      var celda = function (v) { v = v == null ? "" : String(v); return /[";\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+      var filas = [["Número", "Facturado por", "Cliente (email)", "Comercial", "Importe (€)", "Estado", "Fecha", "Notas"]];
+      visibles.forEach(function (p) {
+        filas.push([p.numero, C.FACTURADO_POR[p.facturado_por] || p.facturado_por, p.cliente_email, p.comercial_nombre || "",
+          Number(p.importe || 0).toFixed(2).replace(".", ","), C.ESTADO_PAGO[p.estado_pago] || p.estado_pago, String(p.fecha).slice(0, 10), p.notas || ""]);
+      });
+      var csv = "﻿" + filas.map(function (r) { return r.map(celda).join(";"); }).join("\r\n");
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+      a.download = "proformas-" + hoy + ".csv";
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+      U.toast(plural(visibles.length, "proforma exportada", "proformas exportadas"), "success");
+    });
+
+    var cambiarEstado = function (atributo, nuevo, mensaje) {
+      main().querySelectorAll("[" + atributo + "]").forEach(function (btn) {
         btn.addEventListener("click", async function () {
+          btn.disabled = true;
           try {
-            await D.actualizarProforma(btn.getAttribute("data-pagar-id"), { estado_pago: "pagada" });
-            U.toast("Marcada como pagada", "success");
+            await D.actualizarProforma(btn.getAttribute(atributo), { estado_pago: nuevo });
+            U.toast(mensaje, "success");
             viewProformas();
           } catch (err) {
             U.toast(err.message || "No se pudo actualizar", "error");
+            btn.disabled = false;
           }
         });
       });
+    };
+    cambiarEstado("data-pagar-id", "pagada", "Marcada como pagada");
+    cambiarEstado("data-pendiente-id", "pendiente", "Vuelve a estar pendiente");
+
     main()
       .querySelectorAll("[data-borrar-proforma-id]")
       .forEach(function (btn) {
         btn.addEventListener("click", async function () {
-          if (!confirm("¿Borrar esta proforma? No se puede deshacer.")) return;
+          var p = porId[btn.getAttribute("data-borrar-proforma-id")];
+          if (!confirm("¿Borrar la proforma" + (p ? " Nº " + p.numero : "") + "? No se puede deshacer.")) return;
           try {
             await D.borrarProforma(btn.getAttribute("data-borrar-proforma-id"));
             U.toast("Proforma borrada", "success");
@@ -3555,25 +3696,34 @@ window.icc.views = (function () {
 
   function modalProforma() {
     U.openModal(
-      "<h2>Nueva proforma</h2>" +
+      "<h2>🧾 Nueva proforma</h2>" +
       '<form id="form-proforma" class="icc-form">' +
-      campoTexto("numero", "Numero", true) +
-      '<div class="icc-field"><label>Facturado por</label><select class="icc-select" name="facturado_por" required>' +
-      Object.keys(C.FACTURADO_POR).map(function (k) { return '<option value="' + k + '">' + C.FACTURADO_POR[k] + "</option>"; }).join("") +
-      "</select></div>" +
+      '<div class="icc-pf-modal-grid">' +
+      campoTexto("numero", "Número", true) +
+      campoTexto("fecha", "Fecha", true, "date", hoyIso()) +
+      "</div>" +
+      '<div class="icc-field"><label>Facturado por *</label><div class="icc-pf-elige">' +
+      Object.keys(C.FACTURADO_POR).map(function (k, i) {
+        return '<label class="icc-pf-opcion"><input type="radio" name="facturado_por" value="' + k + '"' + (i === 0 ? " checked" : "") + " required><span>" + U.escapeHtml(C.FACTURADO_POR[k]) + "</span></label>";
+      }).join("") + "</div></div>" +
+      '<div class="icc-pf-modal-grid">' +
       campoTexto("cliente_email", "Email del cliente", false, "email") +
-      campoTexto("importe", "Importe (€)", false, "number") +
-      campoTexto("fecha", "Fecha", true, "date") +
-      '<div class="icc-field"><label>Adjuntar PDF (opcional)</label><input class="icc-input" type="file" name="archivo" accept="application/pdf"></div>' +
+      '<div class="icc-field"><label>Importe (€)</label><input class="icc-input" name="importe" type="number" step="0.01" min="0" inputmode="decimal" placeholder="0,00"></div>' +
+      "</div>" +
+      '<div class="icc-field"><label>Notas (opcional)</label><input class="icc-input" name="notas" maxlength="500" placeholder="Concepto, periodo, observaciones…"></div>' +
+      '<div class="icc-field"><label>Adjuntar documento (opcional)</label><input class="icc-input" type="file" name="archivo" accept="application/pdf,.doc,.docx,.xls,.xlsx,image/png,image/jpeg">' +
+      '<span class="icc-ayuda">PDF, Word, Excel o imagen · máximo 15 MB</span></div>' +
       '<div class="icc-modal-actions">' +
       '<button type="button" class="icc-btn icc-btn-ghost" data-close-btn>Cancelar</button>' +
-      '<button type="submit" class="icc-btn icc-btn-primary">Crear</button>' +
+      '<button type="submit" class="icc-btn icc-btn-primary">Crear proforma</button>' +
       "</div></form>"
     );
 
     document.getElementById("form-proforma").addEventListener("submit", async function (e) {
       e.preventDefault();
       var fd = new FormData(e.target);
+      var btn = e.target.querySelector('button[type="submit"]');
+      btn.disabled = true;
       try {
         await D.crearProforma(fd);
         U.closeModal();
@@ -3581,6 +3731,7 @@ window.icc.views = (function () {
         viewProformas();
       } catch (err) {
         U.toast(err.message || "No se pudo crear la proforma", "error");
+        btn.disabled = false;
       }
     });
   }

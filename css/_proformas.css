@@ -1,0 +1,122 @@
+/* =============================================================================
+   Proformas / Facturas · rediseño: totales, filtros por estado y empresa,
+   filas con importe y acciones claras
+   ============================================================================= */
+.icc-pf-hero{background:
+    radial-gradient(120% 140% at 0% 0%,rgba(52,211,153,.20) 0%,transparent 45%),
+    radial-gradient(90% 120% at 100% 0%,rgba(232,193,90,.20) 0%,transparent 50%),
+    radial-gradient(80% 120% at 60% 120%,rgba(96,165,250,.14) 0%,transparent 55%),
+    linear-gradient(135deg,#0F1A2E 0%,#121A2B 55%,#0E1424 100%);border-color:rgba(232,193,90,.24)}
+.icc-pf-hero .icc-ag-hero-kicker{color:#F5D27A;background:rgba(232,193,90,.1);border-color:rgba(232,193,90,.32)}
+.icc-pf-hero-acc{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.icc-ag-hero-res b.mal{color:#FCA5A5}
+
+/* KPIs (todos enlazan a su filtro) */
+.icc-pf-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:14px}
+.icc-pf-kpi{position:relative;display:flex;flex-direction:column;gap:2px;padding:14px 16px;border-radius:16px;text-decoration:none;overflow:hidden;
+  background:linear-gradient(160deg,color-mix(in srgb,var(--c) 14%,var(--card)) 0%,var(--card) 72%);
+  border:1px solid color-mix(in srgb,var(--c) 30%,var(--line));transition:transform .15s,box-shadow .15s,border-color .15s}
+.icc-pf-kpi::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--c);opacity:.5}
+.icc-pf-kpi:hover{transform:translateY(-2px);box-shadow:0 14px 30px -16px var(--c)}
+.icc-pf-kpi.is-activo{border-color:var(--c);box-shadow:0 0 0 2px color-mix(in srgb,var(--c) 45%,transparent),0 14px 30px -16px var(--c)}
+.icc-pf-kpi.is-activo::after{opacity:1}
+.icc-pf-kpi-ico{position:absolute;right:12px;top:10px;font-size:20px;opacity:.85}
+.icc-pf-kpi b{font-size:24px;font-weight:800;color:#fff;line-height:1.15;padding-right:28px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.icc-pf-kpi span:not(.icc-pf-kpi-ico){font-size:13px;font-weight:700;color:var(--txt)}
+.icc-pf-kpi small{font-size:11.5px;color:var(--txt-3)}
+.icc-pf-aviso{margin-bottom:12px}
+.icc-pf-aviso a{color:var(--cian);font-weight:700}
+
+/* Chips por empresa */
+.icc-pf-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.icc-pf-chip{display:inline-flex;align-items:baseline;gap:8px;padding:8px 14px;border-radius:999px;text-decoration:none;
+  background:color-mix(in srgb,var(--c) 8%,var(--card));border:1px solid color-mix(in srgb,var(--c) 28%,var(--line));transition:border-color .15s,box-shadow .15s}
+.icc-pf-chip span{font-size:13px;font-weight:700;color:var(--txt)}
+.icc-pf-chip b{font-size:13px;color:var(--c)}
+.icc-pf-chip small{font-size:12px;color:var(--txt-3)}
+.icc-pf-chip:hover{border-color:var(--c)}
+.icc-pf-chip.is-activo{border-color:var(--c);box-shadow:0 0 0 2px color-mix(in srgb,var(--c) 40%,transparent)}
+
+/* Barra de busqueda y periodo */
+.icc-pf-barra{display:flex;flex-direction:column;gap:12px;margin-bottom:16px}
+.icc-pf-fila-barra{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.icc-pf-fila-barra .icc-input{flex:1 1 280px;min-width:0}
+.icc-pf-estados{margin:0}
+.icc-pf-periodo{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:10px}
+.icc-pf-periodos{display:flex;flex-wrap:wrap;gap:6px}
+.icc-pf-per{padding:6px 12px;border-radius:999px;font-size:12.5px;font-weight:600;text-decoration:none;color:var(--txt-2);border:1px solid var(--line)}
+.icc-pf-per:hover{color:#fff;border-color:rgba(34,211,238,.45)}
+.icc-pf-per.is-activo{color:#fff;background:rgba(34,211,238,.12);border-color:rgba(34,211,238,.45)}
+.icc-pf-fechas{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px}
+.icc-pf-fechas label{display:flex;flex-direction:column;gap:3px}
+.icc-pf-fechas label span{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--txt-3)}
+.icc-pf-fechas .icc-input{padding:7px 10px;min-width:0}
+
+/* Lista */
+.icc-pf-lista{display:flex;flex-direction:column;gap:8px}
+.icc-pf-fila{position:relative;display:grid;grid-template-columns:minmax(190px,1.3fr) minmax(200px,1.5fr) 100px 150px 230px;align-items:center;gap:14px;
+  padding:12px 16px 12px 20px;border-radius:14px;background:linear-gradient(90deg,color-mix(in srgb,var(--e) 8%,var(--card)) 0%,var(--card) 40%);
+  border:1px solid var(--line);transition:border-color .15s,box-shadow .15s}
+.icc-pf-fila::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:4px;border-radius:0 4px 4px 0;background:var(--e);box-shadow:0 0 12px var(--e)}
+.icc-pf-fila:hover{border-color:color-mix(in srgb,var(--e) 55%,var(--line));box-shadow:0 14px 28px -18px var(--e)}
+.icc-pf-fila.is-vieja{border-color:rgba(248,113,113,.35)}
+.icc-pf-fila[hidden],.icc-pf-sin-resultados[hidden]{display:none !important}
+.icc-pf-doc{display:flex;align-items:flex-start;gap:12px;min-width:0}
+.icc-pf-doc>div{min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+.icc-pf-doc-ico{flex:0 0 auto;display:grid;place-items:center;width:38px;height:38px;border-radius:11px;font-size:18px;
+  background:color-mix(in srgb,var(--e) 14%,transparent);border:1px solid color-mix(in srgb,var(--e) 38%,transparent)}
+.icc-pf-doc strong{font-size:14.5px;color:#fff;word-break:break-word}
+.icc-pf-empresa{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;text-decoration:none;color:var(--c);
+  background:color-mix(in srgb,var(--c) 13%,transparent);border:1px solid color-mix(in srgb,var(--c) 32%,transparent)}
+.icc-pf-empresa:hover{border-color:var(--c)}
+.icc-pf-notas{font-size:12px;color:var(--txt-3);max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.icc-pf-cliente{display:flex;flex-direction:column;gap:6px;min-width:0;font-size:13px}
+.icc-pf-cliente a{color:var(--txt);text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.icc-pf-cliente a:hover{color:var(--cian);text-decoration:underline}
+.icc-pf-com{display:flex;align-items:center;gap:7px;min-width:0;font-weight:600;color:var(--txt-2)}
+.icc-pf-com span:not(.icc-ag-ava){white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.icc-pf-fecha b{display:block;font-size:13px;color:var(--txt)}
+.icc-pf-fecha small{font-size:11.5px;color:var(--txt-3)}
+.icc-pf-importe{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.icc-pf-importe b{font-size:18px;font-weight:800;color:#fff;white-space:nowrap}
+.icc-pf-estado{font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;color:var(--c);background:color-mix(in srgb,var(--c) 15%,transparent);white-space:nowrap}
+.icc-pf-acc{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:wrap}
+.icc-pf-btn{padding:7px 12px;font-size:12.5px}
+.icc-pf-icono{display:grid;place-items:center;width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:transparent;cursor:pointer;font-size:14px;color:var(--txt-2);
+  transition:background .15s,border-color .15s,color .15s}
+.icc-pf-icono:hover{background:rgba(34,211,238,.12);border-color:rgba(34,211,238,.45);color:#fff}
+.icc-pf-icono.is-borrar:hover{background:rgba(248,113,113,.14);border-color:rgba(248,113,113,.45)}
+.icc-pf-total{margin:12px 4px 0;text-align:right;font-size:13px;color:var(--txt-2)}
+.icc-pf-total b{color:#fff;font-size:15px}
+
+/* Modal nueva proforma */
+.icc-pf-modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.icc-pf-elige{display:flex;flex-wrap:wrap;gap:8px}
+.icc-pf-opcion{position:relative;cursor:pointer}
+.icc-pf-opcion input{position:absolute;opacity:0;pointer-events:none}
+.icc-pf-opcion span{display:inline-block;padding:8px 14px;border-radius:999px;border:1px solid var(--line);font-size:13px;font-weight:600;color:var(--txt-2);
+  text-transform:none;letter-spacing:0}
+.icc-pf-opcion input:checked+span{color:#fff;background:rgba(16,185,129,.16);border-color:var(--esmeralda)}
+.icc-pf-opcion input:focus-visible+span{outline:2px solid var(--cian);outline-offset:2px}
+
+@media (max-width:1180px){
+  .icc-pf-fila{grid-template-columns:1fr auto;grid-template-areas:"doc imp" "cli fec" "acc acc";row-gap:10px}
+  .icc-pf-doc{grid-area:doc}.icc-pf-importe{grid-area:imp}.icc-pf-cliente{grid-area:cli}
+  .icc-pf-fecha{grid-area:fec;text-align:right}.icc-pf-acc{grid-area:acc;justify-content:flex-start}
+}
+@media (max-width:900px){.icc-pf-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:640px){
+  .icc-pf-hero-acc{width:100%}
+  .icc-pf-hero-acc .icc-btn{flex:1 1 auto;text-align:center}
+  .icc-pf-kpi{padding:12px}
+  .icc-pf-kpi b{font-size:19px}
+  .icc-pf-fila{grid-template-columns:1fr;grid-template-areas:"doc" "imp" "cli" "fec" "acc";padding:12px 14px 12px 18px}
+  .icc-pf-importe{flex-direction:row;align-items:center;justify-content:space-between}
+  .icc-pf-fecha{text-align:left}
+  .icc-pf-fecha b,.icc-pf-fecha small{display:inline;margin-right:6px}
+  .icc-pf-acc .icc-pf-btn{flex:1 1 auto;text-align:center}
+  .icc-pf-fechas{width:100%}
+  .icc-pf-fechas label{flex:1 1 120px}
+  .icc-pf-modal-grid{grid-template-columns:1fr}
+}
+.icc-field label.icc-pf-opcion{text-transform:none;letter-spacing:0;font-size:inherit;color:inherit}
