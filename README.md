@@ -217,6 +217,13 @@ administrador puede crear el resto de cuentas del equipo (con el rol que
 corresponda) y bloquear/desbloquear usuarios, todo desde "Agentes" en el
 propio CRM — ya no hace falta volver a tocar la base de datos a mano.
 
+## Base de datos en un solo paso
+
+`sql/base-de-datos-completa-v68.sql` deja cualquier base de datos al día para la v68 importándolo una sola vez en phpMyAdmin:
+- Con datos (v55 en adelante): no borra nada; crea solo las tablas, columnas, índices y relaciones que falten y amplía los roles.
+- Vacía: crea el CRM completo y un Super Administrador inicial (juan@integralconnectionconsulting.es, contraseña provisional `CambiaEsta-2026`, que el CRM obliga a cambiar).
+- Se puede ejecutar varias veces sin errores ni duplicados. Los datos de ejemplo de los comparadores solo se cargan si esas tablas están vacías.
+
 ## Despliegue en Hostalia (hosting con PHP + MySQL)
 
 1. **Crear la base de datos**: panel de Hostalia → *Bases de datos MySQL* →
