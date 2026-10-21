@@ -1700,7 +1700,9 @@ window.icc.views = (function () {
       var puedeRol = puedeGestionarFila && !esYoMismo;
       // Nadie se bloquea a si mismo (se quedaria fuera del CRM).
       var puedeBloquear = !esYoMismo && (puedeGestionarFila || (jefeGestiona && esDeMiEquipo(a)));
-      var puedeVerComo = (esAdmin && puedeGestionarFila && !esYoMismo) || (jefeVerComo && esDeMiEquipo(a) && !bloqueado(a));
+      // Backoffice: "Ver como" en los comerciales que lleva (el servidor lo vuelve a comprobar).
+      var boVerComo = miUsuario.rol === "backoffice" && window.icc.auth.puede("usuarios.ver_como") && a.rol === "comercial" && !Number(a.solo_agenda);
+      var puedeVerComo = (esAdmin && puedeGestionarFila && !esYoMismo) || (jefeVerComo && esDeMiEquipo(a) && !bloqueado(a)) || (boVerComo && !esYoMismo && !bloqueado(a));
       var puedeBorrar = esAdmin && puedeGestionarFila && !esYoMismo;
 
       return (

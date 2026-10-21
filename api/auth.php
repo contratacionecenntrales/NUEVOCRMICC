@@ -10,11 +10,13 @@ if ($metodo === 'GET' && $accion === 'me') {
 }
 
 if ($metodo === 'POST' && $accion === 'ver_como') {
-  $admin = icc_require_role(ICC_ROLES_EQUIPO);
+  // Quien entra: Admin y superiores, Jefe de equipo y Backoffice (estos dos
+  // solo en sus comerciales). Si ya se esta en "Ver como", los permisos son
+  // los de la cuenta en la que se esta (p. ej. Juan viendo como Daniela puede
+  // pasar a un comercial de Daniela) y el registro queda a nombre de quien
+  // empezo ("Volver a mi cuenta" devuelve siempre a su cuenta).
+  $admin = icc_require_role(ICC_ROLES_INTERNOS);
   icc_require_csrf();
-  if (!empty($_SESSION['impersonador_id'])) {
-    icc_json(['error' => 'Ya estas viendo el CRM como otro usuario. Vuelve a tu cuenta antes de entrar en otra.'], 409);
-  }
   $body = icc_body();
   $objetivoId = (int)($body['id'] ?? 0);
   if ($objetivoId === (int)$admin['id']) {
@@ -33,16 +35,30 @@ if ($metodo === 'POST' && $accion === 'ver_como') {
   if ($admin['rol'] === 'jefe_de_equipo' && !icc_jefe_gestiona($admin, $objetivo, 'usuarios.ver_como')) {
     icc_json(['error' => 'Solo puedes entrar como los comerciales de tu equipo'], 403);
   }
+  // Backoffice: solo en los comerciales que lleva (nunca jefes ni direccion).
+  if ($admin['rol'] === 'backoffice'
+      && (!icc_tiene_permiso($admin, 'usuarios.ver_como') || $objetivo['rol'] !== 'comercial' || !icc_puede_ver_comercial($admin, (int)$objetivo['id']))) {
+    icc_json(['error' => 'Solo puedes entrar como los comerciales que tienes asignados'], 403);
+  }
+  $impersonadorOriginal = !empty($_SESSION['impersonador_id']) ? (int)$_SESSION['impersonador_id'] : (int)$admin['id'];
+  if ($objetivoId === $impersonadorOriginal) {
+    icc_json(['error' => 'Para volver a tu cuenta pulsa «Volver a mi cuenta»'], 400);
+  }
   if (in_array($objetivo['rol'], ICC_ROLES_ADMIN, true) && !icc_es_super_admin($admin)) {
     icc_json(['error' => 'Solo un Super Administrador puede entrar en una cuenta de Administrador, Gerente, Coordinador o Super Admin'], 403);
   }
 
+  // Si ya se estaba en "Ver como", se cierra ese tramo antes de abrir el nuevo.
+  if (!empty($_SESSION['impersonacion_log_id'])) {
+    $db->prepare('UPDATE logs_impersonacion SET finalizado_en = NOW() WHERE id = ?')->execute([$_SESSION['impersonacion_log_id']]);
+  }
   $db->prepare('INSERT INTO logs_impersonacion (admin_id, usuario_objetivo_id, ip) VALUES (?, ?, ?)')
-    ->execute([$admin['id'], $objetivoId, $_SERVER['REMOTE_ADDR'] ?? null]);
+    ->execute([$impersonadorOriginal, $objetivoId, $_SERVER['REMOTE_ADDR'] ?? null]);
   $_SESSION['impersonacion_log_id'] = (int)$db->lastInsertId();
-  $_SESSION['impersonador_id'] = (int)$admin['id'];
+  $_SESSION['impersonador_id'] = $impersonadorOriginal;
   $_SESSION['user_id'] = $objetivoId;
-  icc_auditar($objetivoId, (int)$admin['id'], 'ver_como', $admin['nombre'] . ' ha entrado en la cuenta con "Ver como"');
+  $detalle = $impersonadorOriginal !== (int)$admin['id'] ? ' (desde la cuenta de ' . $admin['nombre'] . ')' : '';
+  icc_auditar($objetivoId, $impersonadorOriginal, 'ver_como', 'Ha entrado en la cuenta con "Ver como"' . $detalle);
 
   $nuevoUsuario = icc_current_user(true);
   icc_json(['user' => $nuevoUsuario, 'csrf' => icc_ensure_csrf(), 'impersonando' => icc_info_impersonacion()]);
