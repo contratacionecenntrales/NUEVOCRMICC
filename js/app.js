@@ -226,11 +226,12 @@
       label: "Informes / Reportes",
       href: "#/informes",
       submenu: [
-        { href: "#/informes", label: "Listado de clientes en cartera" },
-        { href: "#/informes", label: "Total de kW en cartera" },
-        { href: "#/informes", label: "Contratos por sector" },
-        { href: "#/informes", label: "Contratos por tarifa" },
-        { href: "#/informes", label: "Contratos por compañia" },
+        { href: "#/informes", label: "Resumen de informes" },
+        { href: "#/informes?ver=cartera", label: "Listado de clientes en cartera" },
+        { href: "#/informes?ver=kw", label: "Total de kW en cartera" },
+        { href: "#/informes?ver=sector", label: "Contratos por sector" },
+        { href: "#/informes?ver=tarifa", label: "Contratos por tarifa" },
+        { href: "#/informes?ver=compania", label: "Contratos por compañía" },
       ],
     });
 
