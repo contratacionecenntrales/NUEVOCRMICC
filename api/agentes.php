@@ -11,6 +11,9 @@ if ($metodo === 'GET' && $id === null) {
   $params = [];
 
   $idsEquipo = icc_equipo_comercial_ids($user);
+  // Backoffice: tambien ve a las personas cuya agenda gestiona (solo agenda).
+  $soloAgenda = icc_agendas_compartidas($user);
+  if ($idsEquipo !== null && $soloAgenda) $idsEquipo = array_values(array_unique(array_merge($idsEquipo, $soloAgenda)));
   if ($idsEquipo !== null) {
     // Jefe de equipo: solo se ve a si mismo y a su equipo, nunca a otros equipos ni a su superior.
     $where[] = 'id IN (' . implode(',', array_fill(0, count($idsEquipo), '?')) . ')';
@@ -46,7 +49,19 @@ if ($metodo === 'GET' && $id === null) {
 
   $stmt = $db->prepare($sql);
   $stmt->execute($params);
-  icc_json(['agentes' => $stmt->fetchAll()]);
+  $agentes = $stmt->fetchAll();
+  if ($soloAgenda) {
+    foreach ($agentes as &$a) {
+      if (in_array((int)$a['id'], $soloAgenda, true)) {
+        // De sus superiores solo comparte la agenda: nada de su actividad.
+        $a['solo_agenda'] = 1;
+        $a['n_clientes'] = null;
+        $a['contratos_mes'] = null;
+      }
+    }
+    unset($a);
+  }
+  icc_json(['agentes' => $agentes]);
 }
 
 if ($metodo === 'POST' && $id === null) {

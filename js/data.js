@@ -141,8 +141,15 @@ window.icc.data = (function () {
     return data.asignaciones || {};
   }
 
-  async function guardarAsignacionesBackoffice(backofficeId, comercialIds) {
-    await API.put("api/backoffice_asignaciones.php?id=" + encodeURIComponent(backofficeId), { comercial_ids: comercialIds });
+  // Todo: asignaciones, agendas compartidas (solo agenda) y si existe la migracion.
+  async function obtenerAsignacionesBackoffice() {
+    return API.get("api/backoffice_asignaciones.php");
+  }
+
+  async function guardarAsignacionesBackoffice(backofficeId, comercialIds, agendaIds) {
+    var body = { comercial_ids: comercialIds };
+    if (Array.isArray(agendaIds)) body.agenda_ids = agendaIds;
+    await API.put("api/backoffice_asignaciones.php?id=" + encodeURIComponent(backofficeId), body);
   }
 
   // ---------------------------------------------------------- Ficha de agente
@@ -411,6 +418,7 @@ window.icc.data = (function () {
     borrarContrato: borrarContrato,
     listarAgentes: listarAgentes,
     listarAsignacionesBackoffice: listarAsignacionesBackoffice,
+    obtenerAsignacionesBackoffice: obtenerAsignacionesBackoffice,
     guardarAsignacionesBackoffice: guardarAsignacionesBackoffice,
     crearAgente: crearAgente,
     actualizarAgente: actualizarAgente,

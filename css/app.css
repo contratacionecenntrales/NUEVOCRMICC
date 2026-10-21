@@ -1550,3 +1550,5 @@ a.icc-dash-proxima{display:block;color:inherit;text-decoration:none}
 a.icc-dash-proxima:hover{border-color:var(--cian)}
 a.icc-dash-nota{display:block;text-decoration:none}
 a.icc-dash-nota:hover{color:var(--txt)}
+/* Casillas dentro de un campo: texto normal (no como el título del campo) */
+.icc-field .icc-check{text-transform:none;letter-spacing:0;font-size:13.5px;color:var(--txt)}

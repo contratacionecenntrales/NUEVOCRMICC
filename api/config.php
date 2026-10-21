@@ -488,6 +488,35 @@ function icc_backoffice_asignados(int $backofficeId): array {
   return array_map('intval', array_column($stmt->fetchAll(), 'comercial_id'));
 }
 
+/** true si existe la tabla de sql/migracion_backoffice_agendas.sql. */
+function icc_v_backoffice_agendas(): bool {
+  static $ok = null;
+  if ($ok === null) {
+    try {
+      icc_db()->query('SELECT 1 FROM backoffice_agendas LIMIT 0');
+      $ok = true;
+    } catch (PDOException $e) {
+      $ok = false;
+    }
+  }
+  return $ok;
+}
+
+/** Personas cuya agenda (y solo la agenda) gestiona este Backoffice. */
+function icc_backoffice_agendas(int $backofficeId): array {
+  if (!icc_v_backoffice_agendas()) return [];
+  static $cache = [];
+  if (isset($cache[$backofficeId])) return $cache[$backofficeId];
+  $stmt = icc_db()->prepare('SELECT usuario_id FROM backoffice_agendas WHERE backoffice_id = ?');
+  $stmt->execute([$backofficeId]);
+  return $cache[$backofficeId] = array_map('intval', array_column($stmt->fetchAll(), 'usuario_id'));
+}
+
+/** Agendas extra (solo agenda) que ve $user: hoy solo aplica a Backoffice. */
+function icc_agendas_compartidas(array $user): array {
+  return ($user['rol'] ?? '') === 'backoffice' ? icc_backoffice_agendas((int)$user['id']) : [];
+}
+
 /**
  * Ids de comercial_id que un usuario puede ver/gestionar.
  * null = sin restriccion (admin/super_admin, y backoffice sin comerciales asignados).
@@ -497,10 +526,22 @@ function icc_backoffice_asignados(int $backofficeId): array {
 function icc_equipo_comercial_ids(array $user): ?array {
   if (icc_es_admin_o_superior($user)) return null;
   if ($user['rol'] === 'backoffice') {
+    static $cacheBo = [];
+    if (array_key_exists($user['id'], $cacheBo)) return $cacheBo[$user['id']];
     $asignados = icc_backoffice_asignados((int)$user['id']);
-    if (!$asignados) return null;
+    // Personas de las que solo comparte la agenda: nunca ve el resto de lo suyo.
+    $soloAgenda = icc_backoffice_agendas((int)$user['id']);
+    if (!$asignados) {
+      if (!$soloAgenda) return $cacheBo[$user['id']] = null;
+      // "Toda la empresa" salvo lo de esas personas.
+      $marcas = implode(',', array_fill(0, count($soloAgenda), '?'));
+      $stmt = icc_db()->prepare("SELECT id FROM usuarios WHERE id NOT IN ($marcas)");
+      $stmt->execute($soloAgenda);
+      $asignados = array_map('intval', array_column($stmt->fetchAll(), 'id'));
+    }
+    $asignados = array_values(array_diff($asignados, $soloAgenda));
     $asignados[] = (int)$user['id'];
-    return array_values(array_unique($asignados));
+    return $cacheBo[$user['id']] = array_values(array_unique($asignados));
   }
   if ($user['rol'] === 'jefe_de_equipo') {
     static $cache = [];

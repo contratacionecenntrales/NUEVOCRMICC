@@ -5,8 +5,9 @@
  *
  * Solo Admin/Super Admin:
  *  GET                 -> { asignaciones: { backoffice_id: [comercial_id, ...] } }
- *  PUT ?id=<backoffice> -> body { comercial_ids: [...] } sustituye la lista
- *                          completa ([] = vuelve a ver toda la empresa).
+ *  PUT ?id=<backoffice> -> body { comercial_ids: [...], agenda_ids?: [...] }
+ *                          sustituye las listas ([] comerciales = toda la empresa;
+ *                          agenda_ids = jefes/direccion de los que SOLO ve la agenda).
  */
 require __DIR__ . '/config.php';
 
@@ -23,7 +24,13 @@ if ($metodo === 'GET') {
   foreach ($db->query('SELECT backoffice_id, comercial_id FROM backoffice_comerciales')->fetchAll() as $fila) {
     $out[(int)$fila['backoffice_id']][] = (int)$fila['comercial_id'];
   }
-  icc_json(['asignaciones' => (object)$out]);
+  $agendas = [];
+  if (icc_v_backoffice_agendas()) {
+    foreach ($db->query('SELECT backoffice_id, usuario_id FROM backoffice_agendas')->fetchAll() as $fila) {
+      $agendas[(int)$fila['backoffice_id']][] = (int)$fila['usuario_id'];
+    }
+  }
+  icc_json(['asignaciones' => (object)$out, 'agendas' => (object)$agendas, 'agendas_disponible' => icc_v_backoffice_agendas()]);
 }
 
 if ($metodo === 'PUT') {
@@ -50,11 +57,40 @@ if ($metodo === 'PUT') {
     }
   }
 
+  // Agendas compartidas (solo agenda): jefes de equipo y cargos de direccion.
+  $conAgendas = array_key_exists('agenda_ids', $body);
+  $agendaIds = [];
+  if ($conAgendas) {
+    if (!icc_v_backoffice_agendas()) {
+      icc_json(['error' => 'Para compartir agendas importa antes sql/migracion_backoffice_agendas.sql'], 409);
+    }
+    $agendaIds = is_array($body['agenda_ids']) ? $body['agenda_ids'] : [];
+    $agendaIds = array_values(array_unique(array_filter(array_map('intval', $agendaIds))));
+    if ($agendaIds) {
+      $marcas = implode(',', array_fill(0, count($agendaIds), '?'));
+      $rolesValidos = array_merge(['jefe_de_equipo'], ICC_ROLES_ADMIN);
+      $stmt = $db->prepare("SELECT rol FROM usuarios WHERE id IN ($marcas)");
+      $stmt->execute($agendaIds);
+      $filas = $stmt->fetchAll();
+      if (count($filas) !== count($agendaIds)) icc_json(['error' => 'Alguna de las personas elegidas no existe'], 400);
+      foreach ($filas as $f) {
+        if (!in_array($f['rol'], $rolesValidos, true)) {
+          icc_json(['error' => 'Solo se puede compartir la agenda de jefes de equipo y cargos de dirección'], 400);
+        }
+      }
+    }
+  }
+
   $db->beginTransaction();
   try {
     $db->prepare('DELETE FROM backoffice_comerciales WHERE backoffice_id = ?')->execute([$id]);
     $ins = $db->prepare('INSERT INTO backoffice_comerciales (backoffice_id, comercial_id, asignado_por) VALUES (?, ?, ?)');
     foreach ($ids as $comercialId) $ins->execute([$id, $comercialId, $user['id']]);
+    if ($conAgendas) {
+      $db->prepare('DELETE FROM backoffice_agendas WHERE backoffice_id = ?')->execute([$id]);
+      $insA = $db->prepare('INSERT INTO backoffice_agendas (backoffice_id, usuario_id, asignado_por) VALUES (?, ?, ?)');
+      foreach ($agendaIds as $uid) $insA->execute([$id, $uid, $user['id']]);
+    }
     $db->commit();
   } catch (Exception $e) {
     $db->rollBack();
@@ -64,7 +100,12 @@ if ($metodo === 'PUT') {
   icc_auditar($id, (int)$user['id'], 'comerciales_asignados', $ids
     ? 'Comerciales asignados: ' . count($ids) . ' (ids ' . implode(', ', $ids) . ')'
     : 'Sin comerciales asignados: ve toda la empresa');
-  icc_json(['ok' => true, 'comercial_ids' => $ids]);
+  if ($conAgendas) {
+    icc_auditar($id, (int)$user['id'], 'agendas_compartidas', $agendaIds
+      ? 'Agendas compartidas (solo agenda): ids ' . implode(', ', $agendaIds)
+      : 'Sin agendas compartidas');
+  }
+  icc_json(['ok' => true, 'comercial_ids' => $ids, 'agenda_ids' => $agendaIds]);
 }
 
 icc_json(['error' => 'Metodo no permitido'], 405);

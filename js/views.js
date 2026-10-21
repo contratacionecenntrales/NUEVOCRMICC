@@ -1338,8 +1338,12 @@ window.icc.views = (function () {
 
   // Backoffice: que comerciales concretos atiende (agrupados por Jefe de
   // equipo). Sin ninguno marcado sigue viendo toda la empresa.
-  function modalAsignarComerciales(backoffice, agentes, asignados, alGuardar) {
+  // agendas: ids con agenda compartida (solo agenda) o null si falta la migracion.
+  function modalAsignarComerciales(backoffice, agentes, asignados, alGuardar, agendas) {
     var marcados = (asignados || []).map(String);
+    var conAgendas = Array.isArray(agendas);
+    var agendasMarcadas = (agendas || []).map(String);
+    var superiores = agentes.filter(function (a) { return a.rol === "jefe_de_equipo" || esRolAdmin(a.rol); });
     var comerciales = agentes.filter(function (a) { return a.rol === "comercial"; });
     var grupos = {};
     var orden = [];
@@ -1381,6 +1385,20 @@ window.icc.views = (function () {
             })
             .join("")
         : '<p class="icc-muted">No hay comerciales dados de alta.</p>') +
+      // Agendas de jefes y direccion: solo agenda, nada mas de lo suyo.
+      '<div class="icc-field icc-bo-agendas"><label>📅 Agendas compartidas (solo agenda)</label>' +
+      (conAgendas
+        ? '<p class="icc-muted" style="margin:0 0 8px">Puede ver y concertar visitas en la agenda de estas personas, pero <b>no</b> verá sus clientes, contratos, presupuestos, proformas ni informes.</p>' +
+          '<div class="icc-checks">' +
+          (superiores.length
+            ? superiores.map(function (j) {
+                return '<label class="icc-check"><input type="checkbox" name="agenda" value="' + j.id + '"' + (agendasMarcadas.indexOf(String(j.id)) !== -1 ? " checked" : "") + "> " +
+                  U.escapeHtml(j.nombre + " " + (j.apellidos || "")) + ' <span class="icc-muted">· ' + U.escapeHtml(C.ROLES[j.rol] || j.rol) + "</span></label>";
+              }).join("")
+            : '<span class="icc-muted">No hay jefes de equipo ni cargos de dirección.</span>') +
+          "</div>"
+        : '<p class="icc-muted" style="margin:0">Para compartir agendas importa antes <code>sql/migracion_backoffice_agendas.sql</code>.</p>') +
+      "</div>" +
       '<div class="icc-modal-actions">' +
       '<button type="button" class="icc-btn icc-btn-ghost" data-close-btn>Cancelar</button>' +
       '<button type="submit" class="icc-btn icc-btn-primary">Guardar</button>' +
@@ -1401,8 +1419,9 @@ window.icc.views = (function () {
     form.addEventListener("submit", async function (e) {
       e.preventDefault();
       var ids = Array.prototype.map.call(form.querySelectorAll('input[name="comercial"]:checked'), function (i) { return Number(i.value); });
+      var agendaIds = conAgendas ? Array.prototype.map.call(form.querySelectorAll('input[name="agenda"]:checked'), function (i) { return Number(i.value); }) : null;
       try {
-        await D.guardarAsignacionesBackoffice(backoffice.id, ids);
+        await D.guardarAsignacionesBackoffice(backoffice.id, ids, agendaIds);
         U.toast(ids.length ? "Comerciales asignados guardados" : "Sin comerciales asignados: verá toda la empresa", "success");
         U.closeModal();
         if (alGuardar) alGuardar();
@@ -1560,7 +1579,9 @@ window.icc.views = (function () {
     var agentes = await D.listarAgentes({});
     var esAdmin = window.icc.auth.esAdminOSuperior();
     // null = falta la migracion de asignaciones de Backoffice (se oculta el boton).
-    var asignacionesBo = esAdmin ? await D.listarAsignacionesBackoffice().catch(function () { return null; }) : null;
+    var datosBo = esAdmin ? await D.obtenerAsignacionesBackoffice().catch(function () { return null; }) : null;
+    var asignacionesBo = datosBo ? datosBo.asignaciones || {} : null;
+    var agendasBo = datosBo && datosBo.agendas_disponible ? datosBo.agendas || {} : null;
     var miUsuario = window.icc.auth.state.user || {};
     var avisoBackoffice = miUsuario.rol === "backoffice" && Number(miUsuario.comerciales_asignados) > 0;
     var esSuperAdmin = window.icc.auth.esSuperAdmin();
@@ -1656,7 +1677,7 @@ window.icc.views = (function () {
       var disp = a.estado_disponibilidad && a.estado_disponibilidad !== "disponible" ? C.ESTADOS_DISPONIBILIDAD[a.estado_disponibilidad] : null;
       var color = colorRol[a.rol] || "#94A3B8";
       var equipo = agentes.filter(function (x) { return x.rol === "comercial" && String(x.supervisor_id) === String(a.id); });
-      var hrefNombre = puedeVerFicha(a) ? "#/agentes/" + a.id : esAdmin || esJefeDeEquipo ? "#/clientes?comercial_id=" + a.id : "";
+      var hrefNombre = Number(a.solo_agenda) ? "#/agenda?comercial_id=" + a.id : puedeVerFicha(a) ? "#/agentes/" + a.id : esAdmin || esJefeDeEquipo ? "#/clientes?comercial_id=" + a.id : "";
 
       var datos = [];
       // Cada dato lleva a su listado filtrado por esta persona.
@@ -1666,7 +1687,13 @@ window.icc.views = (function () {
       if (a.rol === "backoffice" && asignacionesBo) {
         var nBo = (asignacionesBo[a.id] || []).length;
         datos.push('<button type="button" data-asignar-bo-id="' + a.id + '" title="Elegir sus comerciales"><b>' + (nBo || "Todos") + "</b><span>" + (nBo ? "asignados" : "comerciales") + "</span></button>");
+        if (agendasBo) {
+          var nAg = (agendasBo[a.id] || []).length;
+          datos.push('<button type="button" data-asignar-bo-id="' + a.id + '" title="Agendas de jefes y dirección que gestiona (solo agenda)"><b>' + nAg + "</b><span>📅 " + (nAg === 1 ? "agenda" : "agendas") + "</span></button>");
+        }
       }
+      // Superior del que este Backoffice solo gestiona la agenda.
+      if (Number(a.solo_agenda)) datos = ['<a href="#/agenda?comercial_id=' + a.id + '" title="Concertar visitas en su agenda"><b>📅</b><span>Ver su agenda</span></a>'];
 
       var etiquetaEquipo = a.rol === "comercial" ? "Jefe de equipo" : a.rol === "jefe_de_equipo" ? "Responsable" : a.rol === "backoffice" ? "Comerciales" : "";
       var ctrl = controlEquipo(a, puedeGestionarFila);
@@ -1683,6 +1710,7 @@ window.icc.views = (function () {
         (hrefNombre ? '<a href="' + hrefNombre + '"><strong>' + esc(nombreDe(a)) + "</strong></a>" : "<strong>" + esc(nombreDe(a)) + "</strong>") +
         '<div class="icc-ap-badges"><span class="icc-ap-rol">' + (iconoRol[a.rol] || "") + " " + esc(C.ROLES[a.rol] || a.rol) + "</span>" +
         (esYoMismo ? '<span class="icc-ap-tag is-tu">Tú</span>' : "") +
+        (Number(a.solo_agenda) ? '<span class="icc-ap-tag" style="--t:#22D3EE" title="Solo puedes ver y concertar visitas en su agenda">📅 Solo agenda</span>' : "") +
         (bloqueado(a) ? '<span class="icc-ap-tag is-bloq">🔒 Bloqueado</span>' : "") +
         (disp ? '<span class="icc-ap-tag" style="--t:' + disp.color + '">' + esc(disp.label) + "</span>" : "") +
         "</div></div></header>" +
@@ -1772,7 +1800,10 @@ window.icc.views = (function () {
       (nBloqueados ? chip("bloqueados", "Bloqueados", nBloqueados, "#F87171", "🔒", true) : "") +
       "</nav>" +
       (avisoBackoffice
-        ? '<div class="icc-aviso icc-ap-aviso">Te aparecen solo los comerciales que te ha asignado un Admin; verás únicamente sus clientes, contratos, presupuestos, agenda e informes.</div>'
+        ? '<div class="icc-aviso icc-ap-aviso">Te aparecen solo los comerciales que te ha asignado un Admin; verás únicamente sus clientes, contratos, presupuestos, agenda e informes.' +
+          (agentes.some(function (a) { return Number(a.solo_agenda); })
+            ? " De " + agentes.filter(function (a) { return Number(a.solo_agenda); }).map(function (a) { return esc(a.nombre); }).join(" y ") + " solo ves su <b>agenda</b>, para concertarles visitas."
+            : "") + "</div>"
         : "") +
       (esAdmin && comercialesSinJefe
         ? '<div class="icc-aviso icc-ap-aviso">⚠️ <b>' + comercialesSinJefe + "</b> " + (comercialesSinJefe === 1 ? "comercial activo no tiene" : "comerciales activos no tienen") +
@@ -1830,7 +1861,7 @@ window.icc.views = (function () {
       .forEach(function (btn) {
         btn.addEventListener("click", function () {
           var boId = btn.getAttribute("data-asignar-bo-id");
-          modalAsignarComerciales(porId[boId], agentes, asignacionesBo[boId] || [], viewAgentes);
+          modalAsignarComerciales(porId[boId], agentes, asignacionesBo[boId] || [], viewAgentes, agendasBo ? agendasBo[boId] || [] : null);
         });
       });
     main()

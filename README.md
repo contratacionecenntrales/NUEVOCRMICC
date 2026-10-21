@@ -135,6 +135,9 @@ Todo cambio de estado queda auditado en la tabla `historial_estado`.
 
 ## Roles
 
+> **Agendas compartidas con Backoffice (v68):** desde Agentes → Backoffice → «comerciales asignados», un Admin puede marcar jefes de equipo o cargos de dirección cuya **agenda** gestiona ese backoffice (p. ej. Daniela agenda a Juan y a María). De esas personas solo ve y edita su agenda —concierta, mueve y edita citas—; no ve sus clientes, contratos, presupuestos, proformas ni informes, y al abrir sus citas no aparece la ficha del cliente. Con sus comerciales asignados lo sigue viendo todo. Requiere `sql/migracion_backoffice_agendas.sql` (deja ya a Daniela con las agendas de Juan y María).
+
+
 > **Gerente** y **Coordinador** (desde la v67) tienen exactamente los mismos poderes que **Administrador**: ven y gestionan todo el negocio, pueden ser responsables de jefes de equipo y, como cualquier Admin, solo un **Super Administrador** puede asignar estos roles o gestionar sus cuentas. Requieren importar `sql/migracion_gerente_coordinador.sql`, que además deja a Juan (juan@integralconnectionconsulting.es) como responsable de María y su equipo.
 
 

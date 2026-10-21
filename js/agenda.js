@@ -102,6 +102,8 @@ window.icc.agenda = (function () {
 
   // ------------------------------------------------- Visitas por equipo
   // Equipos (Jefe de equipo + comerciales) donde quien entra puede dejar visitas.
+  // Jefes / direccion de los que un Backoffice gestiona solo la agenda.
+  var agendasCompartidas = [];
   async function cargarEquipos(forzar) {
     if (!esGestor()) return [];
     if (equiposCache && !forzar) return equiposCache;
@@ -109,8 +111,10 @@ window.icc.agenda = (function () {
       var r = await D.equiposAgenda();
       agendaV3 = !!r.agenda_v3;
       equiposCache = r.equipos || [];
+      agendasCompartidas = r.agendas_compartidas || [];
     } catch (err) {
       equiposCache = [];
+      agendasCompartidas = [];
     }
     return equiposCache;
   }
@@ -152,6 +156,10 @@ window.icc.agenda = (function () {
       });
       grupo("Equipo de " + nombreCompleto(eq), items);
     });
+    grupo("📅 Agendas de jefes y dirección", agendasCompartidas.filter(function (a) { return !vistos[a.id]; }).map(function (a) {
+      vistos[a.id] = true;
+      return { v: "c:" + a.id, t: nombreCompleto(a) + " (" + ((C.ROLES || {})[a.rol] || a.rol) + ")" };
+    }));
     grupo("Otros", (agentes || []).filter(function (a) {
       return !vistos[a.id] && (a.rol === "comercial" || a.rol === "jefe_de_equipo") && !Number(a.bloqueado);
     }).map(function (a) { vistos[a.id] = true; return { v: "c:" + a.id, t: nombreCompleto(a) }; }));

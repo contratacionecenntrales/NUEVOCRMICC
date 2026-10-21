@@ -99,6 +99,8 @@ function agenda_equipo_ids(PDO $db, array $user): array {
 function agenda_cita_visible(PDO $db, array $user, array $cita): bool {
   $comercialId = $cita['comercial_id'] ?? null;
   if ($comercialId !== null && icc_puede_ver_comercial($user, $comercialId)) return true;
+  // Agendas compartidas (solo agenda) con un Backoffice.
+  if ($comercialId !== null && in_array((int)$comercialId, icc_agendas_compartidas($user), true)) return true;
   if (!agenda_v3($db)) return false;
   if ($comercialId === null && icc_equipo_comercial_ids($user) === null) return true;
   if ($user['rol'] === 'backoffice' && (int)($cita['creado_por'] ?? 0) === (int)$user['id']) return true;
@@ -171,7 +173,8 @@ function agenda_resolver_asignacion(PDO $db, array $user, array $body, ?array $a
   $equipoId = $pideEquipo ? (int)$body['equipo_id'] : null;
 
   if ($comercialId !== null) {
-    if (!icc_puede_ver_comercial($user, $comercialId)) icc_json(['error' => 'No puedes asignar citas a ese comercial'], 403);
+    $esAgendaCompartida = in_array($comercialId, icc_agendas_compartidas($user), true);
+    if (!icc_puede_ver_comercial($user, $comercialId) && !$esAgendaCompartida) icc_json(['error' => 'No puedes asignar citas a ese comercial'], 403);
     $equipoComercial = $comercialId === (int)$user['id'] && $user['rol'] === 'jefe_de_equipo' ? (int)$user['id'] : $supervisorDe($comercialId);
     if ($equipoId !== null && $equipoComercial !== $equipoId && $comercialId !== $equipoId) {
       icc_json(['error' => 'Ese comercial no pertenece al equipo elegido'], 400);
@@ -248,6 +251,13 @@ function agenda_where_base(array $user, array &$where, array &$params): void {
         $o[] = 'c.creado_por = ?';
         $params[] = (int)$user['id'];
       }
+    }
+    $compartidas = icc_agendas_compartidas($user);
+    if ($compartidas) {
+      $o[] = 'c.comercial_id IN (' . implode(',', array_fill(0, count($compartidas), '?')) . ')';
+      array_push($params, ...$compartidas);
+    }
+    if ($v3) {
       $equipos = agenda_equipo_ids($db, $user);
       if ($equipos) {
         $o[] = '(c.comercial_id IS NULL AND c.equipo_id IN (' . implode(',', array_fill(0, count($equipos), '?')) . '))';
@@ -256,7 +266,8 @@ function agenda_where_base(array $user, array &$where, array &$params): void {
     }
     $where[] = '(' . implode(' OR ', $o) . ')';
   }
-  if (!empty($_GET['comercial_id']) && icc_puede_ver_comercial($user, (int)$_GET['comercial_id'])) {
+  if (!empty($_GET['comercial_id']) && (icc_puede_ver_comercial($user, (int)$_GET['comercial_id'])
+      || in_array((int)$_GET['comercial_id'], icc_agendas_compartidas($user), true))) {
     $where[] = 'c.comercial_id = ?';
     $params[] = (int)$_GET['comercial_id'];
   }
@@ -284,7 +295,16 @@ if ($metodo === 'GET') {
   }
 
   if (!empty($_GET['equipos'])) {
-    icc_json(['equipos' => $v3 ? agenda_equipos($db, $user) : [], 'agenda_v3' => $v3]);
+    $compartidas = [];
+    $idsCompartidas = icc_agendas_compartidas($user);
+    if ($idsCompartidas) {
+      $stmt = $db->prepare('SELECT id, nombre, apellidos, rol FROM usuarios WHERE bloqueado = 0 AND id IN (' . implode(',', array_fill(0, count($idsCompartidas), '?')) . ') ORDER BY nombre');
+      $stmt->execute($idsCompartidas);
+      $compartidas = array_map(function ($u) {
+        return ['id' => (int)$u['id'], 'nombre' => $u['nombre'], 'apellidos' => $u['apellidos'], 'rol' => $u['rol']];
+      }, $stmt->fetchAll());
+    }
+    icc_json(['equipos' => $v3 ? agenda_equipos($db, $user) : [], 'agenda_v3' => $v3, 'agendas_compartidas' => $compartidas]);
   }
 
   try {
