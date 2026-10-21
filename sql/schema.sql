@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
   empresa VARCHAR(150) NOT NULL DEFAULT '',
   cif VARCHAR(20) NOT NULL DEFAULT '',
   tipo VARCHAR(60) NOT NULL DEFAULT '',
-  rol ENUM('comercial','backoffice','jefe_de_equipo','admin','super_admin') NOT NULL DEFAULT 'comercial',
+  rol ENUM('comercial','backoffice','jefe_de_equipo','coordinador','gerente','admin','super_admin') NOT NULL DEFAULT 'comercial', -- migracion_gerente_coordinador.sql
   supervisor_id INT UNSIGNED NULL,
   bloqueado TINYINT(1) NOT NULL DEFAULT 0,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,

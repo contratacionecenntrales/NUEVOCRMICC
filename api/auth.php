@@ -10,7 +10,7 @@ if ($metodo === 'GET' && $accion === 'me') {
 }
 
 if ($metodo === 'POST' && $accion === 'ver_como') {
-  $admin = icc_require_role(['jefe_de_equipo', 'admin', 'super_admin']);
+  $admin = icc_require_role(ICC_ROLES_EQUIPO);
   icc_require_csrf();
   if (!empty($_SESSION['impersonador_id'])) {
     icc_json(['error' => 'Ya estas viendo el CRM como otro usuario. Vuelve a tu cuenta antes de entrar en otra.'], 409);
@@ -33,8 +33,8 @@ if ($metodo === 'POST' && $accion === 'ver_como') {
   if ($admin['rol'] === 'jefe_de_equipo' && !icc_jefe_gestiona($admin, $objetivo, 'usuarios.ver_como')) {
     icc_json(['error' => 'Solo puedes entrar como los comerciales de tu equipo'], 403);
   }
-  if (in_array($objetivo['rol'], ['admin', 'super_admin'], true) && !icc_es_super_admin($admin)) {
-    icc_json(['error' => 'Solo un Super Administrador puede entrar en una cuenta de Admin o Super Admin'], 403);
+  if (in_array($objetivo['rol'], ICC_ROLES_ADMIN, true) && !icc_es_super_admin($admin)) {
+    icc_json(['error' => 'Solo un Super Administrador puede entrar en una cuenta de Administrador, Gerente, Coordinador o Super Admin'], 403);
   }
 
   $db->prepare('INSERT INTO logs_impersonacion (admin_id, usuario_objetivo_id, ip) VALUES (?, ?, ?)')
@@ -60,7 +60,7 @@ if ($metodo === 'POST' && $accion === 'detener_impersonacion') {
 }
 
 if ($metodo === 'GET' && $accion === 'historial_impersonacion') {
-  icc_require_role(['admin', 'super_admin']);
+  icc_require_role(ICC_ROLES_ADMIN);
   $stmt = icc_db()->query(
     "SELECT l.*, a.nombre AS admin_nombre, o.nombre AS objetivo_nombre, o.rol AS objetivo_rol
      FROM logs_impersonacion l

@@ -6,14 +6,21 @@ window.ICC_CONST = {
     comercial: "Comercial / Agente",
     backoffice: "Backoffice",
     jefe_de_equipo: "Jefe de equipo",
+    coordinador: "Coordinador",
+    gerente: "Gerente",
     admin: "Administrador",
     super_admin: "Super Administrador",
   },
+
+  // Roles con poderes de Administrador (Gerente y Coordinador valen lo mismo).
+  ROLES_ADMIN: ["coordinador", "gerente", "admin", "super_admin"],
 
   ROLES_DESC: {
     comercial: "Gestiona su propia cartera: clientes, presupuestos, contratos y agenda",
     backoffice: "Estudios de ahorro, tarifas y soporte a toda la red comercial",
     jefe_de_equipo: "Supervision comercial de su equipo asignado",
+    coordinador: "Mismos poderes que Administrador; coordina jefes de equipo y sus comerciales",
+    gerente: "Mismos poderes que Administrador: ve y gestiona todo el negocio",
     admin: "Direccion: ve y gestiona todo el negocio y las cuentas del equipo",
     super_admin: "Control total, incluidas las cuentas de Administrador",
   },

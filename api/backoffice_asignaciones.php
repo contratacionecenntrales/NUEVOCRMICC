@@ -10,7 +10,7 @@
  */
 require __DIR__ . '/config.php';
 
-$user = icc_require_role(['admin', 'super_admin']);
+$user = icc_require_role(ICC_ROLES_ADMIN);
 $metodo = $_SERVER['REQUEST_METHOD'];
 $db = icc_db();
 

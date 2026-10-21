@@ -73,11 +73,12 @@ window.icc.auth = (function () {
   }
 
   function esBackofficeOAdmin() {
-    return tieneRol("backoffice") || tieneRol("jefe_de_equipo") || tieneRol("admin") || tieneRol("super_admin");
+    return tieneRol("backoffice") || tieneRol("jefe_de_equipo") || esAdminOSuperior();
   }
 
   function esAdminOSuperior() {
-    return tieneRol("admin") || tieneRol("super_admin");
+    // Administrador, Gerente, Coordinador y Super Admin: mismo nivel.
+    return !!state.user && window.ICC_CONST.ROLES_ADMIN.indexOf(state.user.rol) !== -1;
   }
 
   function esSuperAdmin() {

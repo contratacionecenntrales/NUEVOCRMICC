@@ -262,10 +262,11 @@ function icc_auditar(int $usuarioId, ?int $autorId, string $accion, string $deta
 // La visibilidad por equipo (que datos ve cada uno) y la gestion de cuentas
 // siguen ligadas al rol y no se pueden delegar.
 // -----------------------------------------------------------------------------
-const ICC_TODOS_ROLES = ['comercial', 'backoffice', 'jefe_de_equipo', 'admin', 'super_admin'];
-const ICC_ROLES_INTERNOS = ['backoffice', 'jefe_de_equipo', 'admin', 'super_admin'];
-const ICC_ROLES_ADMIN = ['admin', 'super_admin'];
-const ICC_ROLES_EQUIPO = ['jefe_de_equipo', 'admin', 'super_admin'];
+const ICC_TODOS_ROLES = ['comercial', 'backoffice', 'jefe_de_equipo', 'coordinador', 'gerente', 'admin', 'super_admin'];
+const ICC_ROLES_INTERNOS = ['backoffice', 'jefe_de_equipo', 'coordinador', 'gerente', 'admin', 'super_admin'];
+// Gerente y Coordinador tienen exactamente los mismos poderes que Administrador.
+const ICC_ROLES_ADMIN = ['coordinador', 'gerente', 'admin', 'super_admin'];
+const ICC_ROLES_EQUIPO = ['jefe_de_equipo', 'coordinador', 'gerente', 'admin', 'super_admin'];
 
 function icc_catalogo_permisos(): array {
   return [
@@ -453,7 +454,12 @@ function icc_require_role(array $roles): array {
  * sobre las propias cuentas de Admin/Super Admin (ver api/agentes.php).
  */
 function icc_es_admin_o_superior(array $user): bool {
-  return in_array($user['rol'], ['admin', 'super_admin'], true);
+  return icc_es_rol_admin((string)($user['rol'] ?? ''));
+}
+
+/** true para Administrador, Gerente, Coordinador y Super Admin (mismo nivel). */
+function icc_es_rol_admin(string $rol): bool {
+  return in_array($rol, ICC_ROLES_ADMIN, true);
 }
 
 function icc_es_super_admin(array $user): bool {

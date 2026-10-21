@@ -1,7 +1,7 @@
 <?php
 require __DIR__ . '/config.php';
 
-$user = icc_require_role(['backoffice', 'jefe_de_equipo', 'admin', 'super_admin']);
+$user = icc_require_role(ICC_ROLES_INTERNOS);
 $metodo = $_SERVER['REQUEST_METHOD'];
 $id = isset($_GET['id']) ? (int)$_GET['id'] : null;
 
@@ -50,7 +50,7 @@ if ($metodo === 'GET' && $id === null) {
 }
 
 if ($metodo === 'POST' && $id === null) {
-  icc_require_role(['admin', 'super_admin', 'jefe_de_equipo']);
+  icc_require_role(ICC_ROLES_EQUIPO);
   icc_require_csrf();
   $body = icc_body();
   $email = trim($body['email'] ?? '');
@@ -71,12 +71,12 @@ if ($metodo === 'POST' && $id === null) {
   if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     icc_json(['error' => 'Email no valido'], 400);
   }
-  if (!in_array($rol, ['comercial', 'backoffice', 'jefe_de_equipo', 'admin', 'super_admin'], true)) {
+  if (!in_array($rol, ICC_TODOS_ROLES, true)) {
     icc_json(['error' => 'Rol no valido'], 400);
   }
   // Solo un Super Administrador puede crear otra cuenta de Admin o Super Admin.
-  if (in_array($rol, ['admin', 'super_admin'], true) && !icc_es_super_admin($user)) {
-    icc_json(['error' => 'Solo un Super Administrador puede crear cuentas de Admin o Super Admin'], 403);
+  if (in_array($rol, ICC_ROLES_ADMIN, true) && !icc_es_super_admin($user)) {
+    icc_json(['error' => 'Solo un Super Administrador puede crear cuentas de Administrador, Gerente, Coordinador o Super Admin'], 403);
   }
 
   $db = icc_db();
@@ -152,7 +152,7 @@ if ($metodo === 'PUT' && $id !== null) {
   // Un Admin normal no puede tocar ninguna cuenta de Admin o Super Admin (ni la
   // suya, salvo que sea la propia, para poder seguir editando su propio perfil):
   // eso es exclusivo de Super Admin.
-  if (in_array($rolObjetivo, ['admin', 'super_admin'], true) && $id !== (int)$user['id'] && !icc_es_super_admin($user)) {
+  if (in_array($rolObjetivo, ICC_ROLES_ADMIN, true) && $id !== (int)$user['id'] && !icc_es_super_admin($user)) {
     icc_json(['error' => 'No tienes permiso para gestionar esta cuenta'], 403);
   }
 
@@ -183,12 +183,12 @@ if ($metodo === 'PUT' && $id !== null) {
         $sets[] = 'rol = ?';
         $valores[] = $nuevoRol;
         $rolFinal = $nuevoRol;
-      } elseif (in_array($nuevoRol, ['admin', 'super_admin'], true)) {
+      } elseif (in_array($nuevoRol, ICC_ROLES_ADMIN, true)) {
         // El guard de mas arriba ya garantiza que, si $rolObjetivo ya era
         // admin/super_admin, solo un Super Admin ha llegado hasta aqui; falta
         // cubrir el caso de PROMOCIONAR a alguien que hoy es un rol menor.
         if (!icc_es_super_admin($user)) {
-          icc_json(['error' => 'Solo un Super Administrador puede asignar el rol de Admin o Super Admin'], 403);
+          icc_json(['error' => 'Solo un Super Administrador puede asignar los roles de Administrador, Gerente, Coordinador o Super Admin'], 403);
         }
         $sets[] = 'rol = ?';
         $valores[] = $nuevoRol;
@@ -235,7 +235,7 @@ if ($metodo === 'PUT' && $id !== null) {
 }
 
 if ($metodo === 'DELETE' && $id !== null) {
-  icc_require_role(['admin', 'super_admin']);
+  icc_require_role(ICC_ROLES_ADMIN);
   icc_require_csrf();
   $db = icc_db();
 
@@ -247,8 +247,8 @@ if ($metodo === 'DELETE' && $id !== null) {
   $stmt->execute([$id]);
   $objetivo = $stmt->fetch();
   if (!$objetivo) icc_json(['error' => 'Usuario no encontrado'], 404);
-  if (in_array($objetivo['rol'], ['admin', 'super_admin'], true) && !icc_es_super_admin($user)) {
-    icc_json(['error' => 'Solo un Super Administrador puede eliminar una cuenta de Admin o Super Admin'], 403);
+  if (in_array($objetivo['rol'], ICC_ROLES_ADMIN, true) && !icc_es_super_admin($user)) {
+    icc_json(['error' => 'Solo un Super Administrador puede eliminar una cuenta de Administrador, Gerente, Coordinador o Super Admin'], 403);
   }
 
   $conteos = [
@@ -328,9 +328,9 @@ function icc_registrar_cambios_cuenta(PDO $db, array $autor, int $id, array $bod
  */
 function icc_supervisor_valido(PDO $db, int $supervisorId, string $rolSubordinado): bool {
   if ($rolSubordinado === 'comercial') {
-    $roles = ['jefe_de_equipo', 'admin', 'super_admin'];
+    $roles = ICC_ROLES_EQUIPO;
   } elseif ($rolSubordinado === 'jefe_de_equipo') {
-    $roles = ['admin', 'super_admin'];
+    $roles = ICC_ROLES_ADMIN;
   } else {
     return false;
   }
@@ -343,7 +343,7 @@ function icc_supervisor_valido(PDO $db, int $supervisorId, string $rolSubordinad
 function icc_validar_supervisor(PDO $db, int $supervisorId, string $rolSubordinado): int {
   if (!icc_supervisor_valido($db, $supervisorId, $rolSubordinado)) {
     $mensaje = $rolSubordinado === 'jefe_de_equipo'
-      ? 'El responsable de un Jefe de equipo debe ser un Admin o Super Admin'
+      ? 'El responsable de un Jefe de equipo debe ser Administrador, Gerente, Coordinador o Super Admin'
       : ($rolSubordinado === 'comercial'
         ? 'El supervisor indicado no existe o no es Jefe de equipo'
         : 'Solo los comerciales y los jefes de equipo tienen responsable asignado');

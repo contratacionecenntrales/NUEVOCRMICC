@@ -29,7 +29,7 @@ const FICHA_TIPOS_SEGUIMIENTO = ['nota', 'reunion', 'objetivo', 'formacion', 'in
  */
 function icc_ficha_acceso(array $user, array $objetivo): ?string {
   $esPropia = (int)$user['id'] === (int)$objetivo['id'];
-  $objetivoAdminTier = in_array($objetivo['rol'], ['admin', 'super_admin'], true);
+  $objetivoAdminTier = in_array($objetivo['rol'], ICC_ROLES_ADMIN, true);
 
   if (icc_es_super_admin($user)) return 'gestor';
   if (icc_es_admin_o_superior($user)) {

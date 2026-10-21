@@ -35,7 +35,7 @@ unset($objetivo['password_hash']);
 
 $esPropia = (int)$user['id'] === $id;
 $enVerComo = !empty($_SESSION['impersonador_id']);
-$objetivoAdminTier = in_array($objetivo['rol'], ['admin', 'super_admin'], true);
+$objetivoAdminTier = in_array($objetivo['rol'], ICC_ROLES_ADMIN, true);
 $administra = !$esPropia && (icc_es_super_admin($user) || (icc_es_admin_o_superior($user) && !$objetivoAdminTier));
 $esSuJefe = $user['rol'] === 'jefe_de_equipo' && (int)$objetivo['supervisor_id'] === (int)$user['id'];
 $gestionaEquipo = !$esPropia && icc_jefe_gestiona($user, $objetivo);

@@ -135,6 +135,9 @@ Todo cambio de estado queda auditado en la tabla `historial_estado`.
 
 ## Roles
 
+> **Gerente** y **Coordinador** (desde la v67) tienen exactamente los mismos poderes que **Administrador**: ven y gestionan todo el negocio, pueden ser responsables de jefes de equipo y, como cualquier Admin, solo un **Super Administrador** puede asignar estos roles o gestionar sus cuentas. Requieren importar `sql/migracion_gerente_coordinador.sql`, que además deja a Juan (juan@integralconnectionconsulting.es) como responsable de María y su equipo.
+
+
 - **Comercial / Agente** (por defecto al registrarse): ve y gestiona solo sus
   propios clientes, contratos y proformas.
 - **Backoffice**: ve todo, sube estudios comparativos y gestiona agentes/ficheros.

@@ -71,7 +71,7 @@ function agenda_equipos(PDO $db, array $user): array {
     $jefes = $db->query(
       "SELECT j.id, j.nombre, j.apellidos FROM usuarios j
        WHERE j.bloqueado = 0 AND (j.rol = 'jefe_de_equipo'
-         OR (j.rol IN ('admin', 'super_admin') AND EXISTS (SELECT 1 FROM usuarios x WHERE x.supervisor_id = j.id AND x.rol = 'comercial')))
+         OR (j.rol IN ('admin', 'super_admin', 'gerente', 'coordinador') AND EXISTS (SELECT 1 FROM usuarios x WHERE x.supervisor_id = j.id AND x.rol = 'comercial')))
        ORDER BY j.nombre"
     )->fetchAll();
     $stmt = $db->prepare("SELECT id, nombre, apellidos FROM usuarios WHERE supervisor_id = ? AND rol = 'comercial' AND bloqueado = 0 ORDER BY nombre");

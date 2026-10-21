@@ -206,6 +206,11 @@ window.icc.views = (function () {
   }
 
   // ------------------------------------------------------------------- Agenda
+  // Administrador, Gerente, Coordinador y Super Admin tienen el mismo nivel.
+  function esRolAdmin(rol) {
+    return C.ROLES_ADMIN.indexOf(rol) !== -1;
+  }
+
   function hoyIso() {
     return isoDate(new Date());
   }
@@ -1289,7 +1294,7 @@ window.icc.views = (function () {
     // desplegable lo "perderia" de la lista y parece que el equipo
     // desaparecio, aunque los datos siguen intactos).
     var jefes = agentes.filter(function (a) {
-      return a.rol === "jefe_de_equipo" || a.rol === "admin" || a.rol === "super_admin";
+      return a.rol === "jefe_de_equipo" || esRolAdmin(a.rol);
     });
     return (
       '<option value="">Sin jefe de equipo asignado</option>' +
@@ -1312,7 +1317,7 @@ window.icc.views = (function () {
   // (jerarquia Admin -> Jefe de equipo -> Comerciales).
   function opcionesResponsablesJefe(agentes, supervisorActual) {
     var admins = agentes.filter(function (a) {
-      return a.rol === "admin" || a.rol === "super_admin";
+      return esRolAdmin(a.rol);
     });
     return (
       '<option value="">Sin responsable asignado</option>' +
@@ -1474,7 +1479,7 @@ window.icc.views = (function () {
     var esSuperAdmin = window.icc.auth.esSuperAdmin();
     var rolesDisponibles = esSuperAdmin
       ? Object.keys(C.ROLES)
-      : Object.keys(C.ROLES).filter(function (r) { return r !== "admin" && r !== "super_admin"; });
+      : Object.keys(C.ROLES).filter(function (r) { return !esRolAdmin(r); });
 
     U.openModal(
       "<h2>Nuevo usuario</h2>" +
@@ -1570,18 +1575,18 @@ window.icc.views = (function () {
     }
     var rolesParaAdmin = esSuperAdmin
       ? Object.keys(C.ROLES)
-      : Object.keys(C.ROLES).filter(function (r) { return r !== "admin" && r !== "super_admin"; });
+      : Object.keys(C.ROLES).filter(function (r) { return !esRolAdmin(r); });
     // Misma regla que api/ficha_agente.php: la ficha la abren el propio
     // agente, su Jefe de equipo y Admin/Super Admin (Admin no abre la de otro Admin).
     function puedeVerFicha(a) {
       if (String(a.id) === String(miId) || esSuperAdmin) return true;
-      if (esAdmin) return a.rol !== "admin" && a.rol !== "super_admin";
+      if (esAdmin) return !esRolAdmin(a.rol);
       return esJefeDeEquipo && String(a.supervisor_id) === String(miId);
     }
 
-    var colorRol = { comercial: "#22D3EE", jefe_de_equipo: "#A78BFA", backoffice: "#FBBF24", admin: "#34D399", super_admin: "#F472B6" };
-    var iconoRol = { comercial: "💼", jefe_de_equipo: "🧭", backoffice: "🗂️", admin: "🏛️", super_admin: "👑" };
-    var grupoRol = function (r) { return r === "admin" || r === "super_admin" ? "direccion" : r; };
+    var colorRol = { comercial: "#22D3EE", jefe_de_equipo: "#A78BFA", backoffice: "#FBBF24", coordinador: "#60A5FA", gerente: "#FB923C", admin: "#34D399", super_admin: "#F472B6" };
+    var iconoRol = { comercial: "💼", jefe_de_equipo: "🧭", backoffice: "🗂️", coordinador: "🎯", gerente: "📊", admin: "🏛️", super_admin: "👑" };
+    var grupoRol = function (r) { return esRolAdmin(r) ? "direccion" : r; };
     var bloqueado = function (a) { return Number(a.bloqueado) === 1; };
     var nombreDe = function (a) { return (a.nombre + " " + (a.apellidos || "")).trim(); };
     var porId = {};
@@ -1644,7 +1649,7 @@ window.icc.views = (function () {
     };
 
     var tarjeta = function (a) {
-      var esObjetivoAdminTier = a.rol === "admin" || a.rol === "super_admin";
+      var esObjetivoAdminTier = esRolAdmin(a.rol);
       var esYoMismo = String(a.id) === String(miId);
       // Un Admin normal no gestiona cuentas de Admin/Super Admin (solo Super Admin).
       var puedeGestionarFila = esSuperAdmin || (esAdmin && (!esObjetivoAdminTier || esYoMismo));
@@ -1714,7 +1719,7 @@ window.icc.views = (function () {
       var html = "";
       var usados = {};
       var lideres = visibles.filter(function (a) {
-        return a.rol === "jefe_de_equipo" || ((a.rol === "admin" || a.rol === "super_admin") && agentes.some(function (x) { return x.rol === "comercial" && String(x.supervisor_id) === String(a.id); }));
+        return a.rol === "jefe_de_equipo" || (esRolAdmin(a.rol) && agentes.some(function (x) { return x.rol === "comercial" && String(x.supervisor_id) === String(a.id); }));
       });
       lideres.forEach(function (j) {
         var miembros = visibles.filter(function (x) { return x.rol === "comercial" && String(x.supervisor_id) === String(j.id); });
@@ -1723,13 +1728,14 @@ window.icc.views = (function () {
         var cm = miembros.reduce(function (s, m) { return s + Number(m.contratos_mes || 0); }, 0);
         html += '<section class="icc-ap-equipo" style="--c:' + (colorRol[j.rol] || "#A78BFA") + '">' +
           '<header class="icc-ap-equipo-cab">' + avatarRol(j, 40) + "<div><h2>Equipo de " + esc(nombreDe(j)) + "</h2>" +
-          "<small>" + miembros.length + (miembros.length === 1 ? " comercial" : " comerciales") + " · " + cm + " contratos este mes</small></div></header>" +
+          "<small>" + miembros.length + (miembros.length === 1 ? " comercial" : " comerciales") + " · " + cm + " contratos este mes" +
+          (j.rol === "jefe_de_equipo" && porId[j.supervisor_id] ? " · 🎯 Coordina: <b>" + esc(nombreDe(porId[j.supervisor_id])) + "</b>" : "") + "</small></div></header>" +
           '<div class="icc-ap-grid">' + tarjeta(j) + miembros.map(tarjeta).join("") + "</div></section>";
       });
       var grupos = [
         { titulo: "Comerciales sin jefe de equipo", icono: "⚠️", lista: visibles.filter(function (a) { return !usados[a.id] && a.rol === "comercial"; }) },
         { titulo: "Backoffice", icono: "🗂️", lista: visibles.filter(function (a) { return !usados[a.id] && a.rol === "backoffice"; }) },
-        { titulo: "Dirección", icono: "🏛️", lista: visibles.filter(function (a) { return !usados[a.id] && (a.rol === "admin" || a.rol === "super_admin"); }) },
+        { titulo: "Dirección", icono: "🏛️", lista: visibles.filter(function (a) { return !usados[a.id] && esRolAdmin(a.rol); }) },
       ];
       grupos.forEach(function (g) {
         if (!g.lista.length) return;
@@ -2176,8 +2182,8 @@ window.icc.views = (function () {
     var disp = C.ESTADOS_DISPONIBILIDAD[pref.estado_disponibilidad] || C.ESTADOS_DISPONIBILIDAD.disponible;
     var nombreCompleto = (u.nombre + " " + (u.apellidos || "")).trim();
 
-    var colorRolFicha = { comercial: "#22D3EE", jefe_de_equipo: "#A78BFA", backoffice: "#FBBF24", admin: "#34D399", super_admin: "#F472B6" };
-    var iconoRolFicha = { comercial: "💼", jefe_de_equipo: "🧭", backoffice: "🗂️", admin: "🏛️", super_admin: "👑" };
+    var colorRolFicha = { comercial: "#22D3EE", jefe_de_equipo: "#A78BFA", backoffice: "#FBBF24", coordinador: "#60A5FA", gerente: "#FB923C", admin: "#34D399", super_admin: "#F472B6" };
+    var iconoRolFicha = { comercial: "💼", jefe_de_equipo: "🧭", backoffice: "🗂️", coordinador: "🎯", gerente: "📊", admin: "🏛️", super_admin: "👑" };
     var colorFicha = colorRolFicha[u.rol] || "#94A3B8";
     var esMiFicha = base === "#/mi-ficha";
 
@@ -2392,7 +2398,7 @@ window.icc.views = (function () {
     var numExcepciones = Object.keys(excepciones).length;
     var esSuperAdmin = window.icc.auth.esSuperAdmin();
     var rolesAsignables = Object.keys(C.ROLES).filter(function (r) {
-      return esSuperAdmin || (r !== "admin" && r !== "super_admin");
+      return esSuperAdmin || !esRolAdmin(r);
     });
 
     cont.innerHTML =
