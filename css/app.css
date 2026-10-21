@@ -1341,7 +1341,8 @@ a.icc-ag-kpi:hover{transform:translateY(-2px);box-shadow:0 14px 30px -16px var(-
 .icc-ap-contacto a:hover{color:var(--cian);text-decoration:underline}
 
 .icc-ap-datos{display:grid;grid-template-columns:repeat(auto-fit,minmax(70px,1fr));gap:8px}
-.icc-ap-datos div{padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid var(--line);text-align:center}
+.icc-ap-datos>*{display:block;padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid var(--line);text-align:center;text-decoration:none;color:inherit;font:inherit;cursor:pointer;transition:border-color .15s,background .15s}
+.icc-ap-datos>*:hover{border-color:color-mix(in srgb,var(--c) 55%,var(--line));background:color-mix(in srgb,var(--c) 10%,transparent)}
 .icc-ap-datos b{display:block;font-size:18px;font-weight:800;color:#fff}
 .icc-ap-datos b.ok{color:var(--esmeralda)}
 .icc-ap-datos span{font-size:11px;color:var(--txt-3)}
@@ -1533,3 +1534,19 @@ a.icc-ag-kpi:hover{transform:translateY(-2px);box-shadow:0 14px 30px -16px var(-
 @media (prefers-reduced-motion:reduce){
   .icc-login *,.icc-login *::before,.icc-login *::after{animation:none !important;transition:none !important}
 }
+
+/* Recuadros que llevan a un bloque (data-ir) y resaltado del destino */
+.icc-kpi-boton{display:flex;flex-direction:column;align-items:flex-start;width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer}
+button.icc-ag-kpi:hover{transform:translateY(-2px);box-shadow:0 14px 30px -16px var(--stat-color)}
+button.icc-ag-kpi:focus-visible,a.icc-ag-kpi:focus-visible{outline:2px solid var(--cian);outline-offset:2px}
+button.icc-pl-embudo-paso{padding:0;border:0;background:transparent;font:inherit;color:inherit;text-align:left;cursor:pointer;border-radius:12px;transition:transform .15s}
+button.icc-pl-embudo-paso:hover{transform:translateY(-2px)}
+button.icc-pl-embudo-paso:focus-visible{outline:2px solid var(--cian);outline-offset:3px}
+.icc-pl-filtro-activo{margin-bottom:12px}
+.icc-pl-filtro-activo a{color:var(--cian);font-weight:700;margin-left:6px}
+.icc-resaltado{animation:icc-resalta 1.6s ease}
+@keyframes icc-resalta{0%,40%{box-shadow:0 0 0 3px var(--cian),0 0 40px -6px var(--cian)}100%{box-shadow:0 0 0 0 transparent}}
+a.icc-dash-proxima{display:block;color:inherit;text-decoration:none}
+a.icc-dash-proxima:hover{border-color:var(--cian)}
+a.icc-dash-nota{display:block;text-decoration:none}
+a.icc-dash-nota:hover{color:var(--txt)}

@@ -4,3 +4,4 @@ api/config.local.php
 # Archivos subidos por los usuarios
 storage/*
 !storage/.htaccess
+.claude/worktrees/

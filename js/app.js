@@ -644,6 +644,13 @@
     }
 
     window.icc.auth.onChange(pintarSegunEstado);
+    // Cualquier recuadro con data-ir="selector" lleva hasta ese bloque.
+    document.addEventListener("click", function (e) {
+      var destino = e.target.closest && e.target.closest("[data-ir]");
+      if (!destino) return;
+      e.preventDefault();
+      if (!U.irA(destino.getAttribute("data-ir"))) U.toast("No hay nada que mostrar aquí todavía", "info");
+    });
     pintarSegunEstado(window.icc.auth.state);
   });
 })();

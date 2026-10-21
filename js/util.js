@@ -154,7 +154,23 @@ window.icc.util = (function () {
     return params ? url.get(params) : url;
   }
 
+  // Lleva la pantalla hasta un bloque y lo resalta un momento (lo usan los
+  // recuadros con data-ir="selector", p. ej. un KPI que explica un panel).
+  function irA(selector) {
+    var el = null;
+    try { el = document.querySelector(selector); } catch (e) { el = null; }
+    if (!el) return false;
+    var reducido = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    el.scrollIntoView({ behavior: reducido ? "auto" : "smooth", block: "center", inline: "center" });
+    el.classList.remove("icc-resaltado");
+    void el.offsetWidth;
+    el.classList.add("icc-resaltado");
+    setTimeout(function () { el.classList.remove("icc-resaltado"); }, 1800);
+    return true;
+  }
+
   return {
+    irA: irA,
     escapeHtml: escapeHtml,
     formatFecha: formatFecha,
     formatFechaHora: formatFechaHora,

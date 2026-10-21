@@ -85,6 +85,8 @@ window.icc.pipeline = (function () {
       tipo_cliente: p.get("tipo_cliente") || "",
       cerrados_dias: p.get("cerrados_dias") || "90",
       estancadas: p.get("estancadas") === "1",
+      sin_accion: p.get("sin_accion") === "1",
+      fase: p.get("fase") || "",
     };
   }
   function href(f, cambios) {
@@ -93,6 +95,7 @@ window.icc.pipeline = (function () {
     ["q", "comercial_id", "servicio", "tipo_cliente"].forEach(function (k) { if (x[k]) p.set(k, x[k]); });
     if (x.cerrados_dias && x.cerrados_dias !== "90") p.set("cerrados_dias", x.cerrados_dias);
     if (x.estancadas) p.set("estancadas", "1");
+    if (x.sin_accion) p.set("sin_accion", "1");
     return "#/pipeline" + (p.toString() ? "?" + p.toString() : "");
   }
 
@@ -119,7 +122,11 @@ window.icc.pipeline = (function () {
 
   function pintar(f) {
     var todas = datos.oportunidades;
-    var lista = f.estancadas ? todas.filter(estancada) : todas;
+    var lista = todas.filter(function (o) {
+      if (f.estancadas && !estancada(o)) return false;
+      if (f.sin_accion && (fase(o.estado).cerrada || o.proxima_cita)) return false;
+      return true;
+    });
     var abiertas = todas.filter(function (o) { return !fase(o.estado).cerrada; });
     var valorAbierto = abiertas.reduce(function (s, o) { return s + (o.valor_estimado || 0); }, 0);
     var prevision = abiertas.reduce(function (s, o) { return s + valorPonderado(o); }, 0);
@@ -140,7 +147,11 @@ window.icc.pipeline = (function () {
       (window.icc.auth.puede("clientes.crear") ? '<button class="icc-btn icc-btn-primary icc-ag-btn-nueva" id="pl-nueva">+ Nueva oportunidad</button>' : "") +
       "</div></header>" +
       (!conValor ? '<div class="icc-aviso icc-aviso-oro">⚠️ Importa <code>sql/migracion_pipeline_oportunidades.sql</code> para poner valor y fecha de cierre a cada oportunidad (previsión de ventas).</div>' : "") +
-      kpis(abiertas, m, nEstancadas, sinAccion, conValor, prevision) +
+      kpis(abiertas, m, nEstancadas, sinAccion, conValor, prevision, f) +
+      (f.estancadas || f.sin_accion
+        ? '<div class="icc-aviso icc-pl-filtro-activo">' + (f.estancadas ? "🧊 Mostrando solo las oportunidades <b>estancadas</b>." : "📅 Mostrando solo las oportunidades <b>sin próxima acción</b> en la agenda.") +
+          ' <a href="' + href(f, { estancadas: false, sin_accion: false }) + '">Ver todas</a></div>'
+        : "") +
       embudo(todas, m) +
       barra(f) +
       '<section class="icc-pl-tablero">' + FASES.map(function (fa) { return columna(fa, lista); }).join("") + "</section>" +
@@ -149,18 +160,22 @@ window.icc.pipeline = (function () {
     enlazar(f);
   }
 
-  function kpis(abiertas, m, nEstancadas, sinAccion, conValor, prevision) {
-    var t = function (valor, label, colorK, icono, extra) {
-      return '<div class="icc-stat-card icc-ag-kpi" style="--stat-color:' + colorK + '"><span class="icc-ag-kpi-ico">' + icono + '</span><span class="icc-stat-value">' + valor + '</span><span class="icc-stat-label">' + label + "</span>" + (extra || "") + "</div>";
+  // Cada indicador lleva a algo: un filtro (enlace) o el panel donde se explica (data-ir).
+  function kpis(abiertas, m, nEstancadas, sinAccion, conValor, prevision, f) {
+    var t = function (valor, label, colorK, icono, destino) {
+      var inner = '<span class="icc-ag-kpi-ico">' + icono + '</span><span class="icc-stat-value">' + valor + '</span><span class="icc-stat-label">' + label + "</span>";
+      return destino.href
+        ? '<a class="icc-stat-card icc-ag-kpi" style="--stat-color:' + colorK + '" href="' + destino.href + '">' + inner + "</a>"
+        : '<button type="button" class="icc-stat-card icc-ag-kpi icc-kpi-boton" style="--stat-color:' + colorK + '" data-ir="' + esc(destino.ir) + '">' + inner + "</button>";
     };
     return (
       '<div class="icc-ag-kpis">' +
-      t(abiertas.length, "Oportunidades abiertas", "var(--cian)", "🎯") +
-      (conValor ? t(eur(prevision), "Previsión ponderada", "var(--esmeralda)", "💶") : "") +
-      t(m.tasa_cierre == null ? "—" : m.tasa_cierre + "%", "Tasa de cierre (" + m.cerrados_dias + " días): " + m.ganados + " ganadas / " + m.perdidos + " perdidas", "#a78bfa", "🏆") +
-      t(m.ciclo_medio_dias == null ? "—" : m.ciclo_medio_dias + " días", "Ciclo medio de venta", "var(--oro)", "⏱️") +
-      t(nEstancadas, "Estancadas (sin avanzar)", nEstancadas ? "#f87171" : "#94a3b8", "🧊") +
-      (datos.con_citas ? t(sinAccion, "Sin próxima acción en agenda", sinAccion ? "#fbbf24" : "#94a3b8", "📅") : "") +
+      t(abiertas.length, "Oportunidades abiertas", "var(--cian)", "🎯", f.estancadas || f.sin_accion ? { href: href(f, { estancadas: false, sin_accion: false }) } : { ir: ".icc-pl-tablero" }) +
+      (conValor ? t(eur(prevision), "Previsión ponderada", "var(--esmeralda)", "💶", { ir: "#pl-panel-prevision" }) : "") +
+      t(m.tasa_cierre == null ? "—" : m.tasa_cierre + "%", "Tasa de cierre (" + m.cerrados_dias + " días): " + m.ganados + " ganadas / " + m.perdidos + " perdidas", "#a78bfa", "🏆", { ir: '.icc-pl-col[data-fase="cliente_activo"]' }) +
+      t(m.ciclo_medio_dias == null ? "—" : m.ciclo_medio_dias + " días", "Ciclo medio de venta", "var(--oro)", "⏱️", { ir: "#pl-panel-motivos" }) +
+      t(nEstancadas, "Estancadas (sin avanzar)", nEstancadas ? "#f87171" : "#94a3b8", "🧊", { href: href(f, { estancadas: !f.estancadas, sin_accion: false }) }) +
+      (datos.con_citas ? t(sinAccion, "Sin próxima acción en agenda", sinAccion ? "#fbbf24" : "#94a3b8", "📅", { href: href(f, { sin_accion: !f.sin_accion, estancadas: false }) }) : "") +
       "</div>"
     );
   }
@@ -184,10 +199,10 @@ window.icc.pipeline = (function () {
         var n = cuenta[fa.id] || 0;
         var conv = i < abiertas.length - 1 && acumulado[i] ? Math.round((acumulado[i + 1] / acumulado[i]) * 100) : acumulado[i] ? Math.round((m.ganados / acumulado[i]) * 100) : null;
         return (
-          '<div class="icc-pl-embudo-paso" style="--c:' + C.ESTADOS[fa.id].color + ";--w:" + Math.max(18, Math.round((acumulado[i] / max) * 100)) + '%">' +
+          '<button type="button" class="icc-pl-embudo-paso" data-ir=\'.icc-pl-col[data-fase="' + fa.id + '"]\' title="Ir a la columna ' + esc(fa.corto) + '" style="--c:' + C.ESTADOS[fa.id].color + ";--w:" + Math.max(18, Math.round((acumulado[i] / max) * 100)) + '%">' +
           '<div class="icc-pl-embudo-barra"><span>' + fa.icono + " " + esc(fa.corto) + "</span><b>" + n + "</b></div>" +
           (conv != null ? '<small>' + conv + "% pasa a " + (i < abiertas.length - 1 ? esc(abiertas[i + 1].corto) : "Ganado") + "</small>" : "<small>&nbsp;</small>") +
-          "</div>"
+          "</button>"
         );
       }).join("") +
       "</section>"
@@ -283,7 +298,7 @@ window.icc.pipeline = (function () {
     });
     var max = Math.max(1, Math.max.apply(null, meses.map(function (x) { return x.total; })));
     return (
-      '<section class="icc-card icc-pl-panel"><h3>💶 Previsión de cierre</h3>' +
+      '<section class="icc-card icc-pl-panel" id="pl-panel-prevision"><h3>💶 Previsión de cierre</h3>' +
       meses.map(function (x) {
         return (
           '<div class="icc-pl-prev"><span class="icc-pl-prev-mes">' + esc(x.label) + "</span>" +
@@ -299,7 +314,7 @@ window.icc.pipeline = (function () {
   function panelMotivos(m) {
     var max = Math.max(1, Math.max.apply(null, m.motivos_perdida.map(function (x) { return x.n; }).concat([0])));
     return (
-      '<section class="icc-card icc-pl-panel"><h3>✖ Por qué se pierden (' + m.cerrados_dias + " días)</h3>" +
+      '<section class="icc-card icc-pl-panel" id="pl-panel-motivos"><h3>✖ Por qué se pierden (' + m.cerrados_dias + " días)</h3>" +
       (m.motivos_perdida.length
         ? m.motivos_perdida.map(function (x) {
             return '<div class="icc-pl-motivo"><span>' + esc(x.motivo) + '</span><div class="icc-pl-prev-barra"><i class="is-perdida" style="width:' + (x.n / max) * 100 + '%"></i></div><b>' + x.n + "</b></div>";
@@ -336,6 +351,10 @@ window.icc.pipeline = (function () {
   // ------------------------------------------------------------- Acciones
   function enlazar(f) {
     var raiz = main();
+    if (f.fase && window.icc.util.irA) {
+      history.replaceState(null, "", href(f));
+      setTimeout(function () { window.icc.util.irA('.icc-pl-col[data-fase="' + f.fase + '"]'); }, 60);
+    }
     document.getElementById("pl-filtros").addEventListener("submit", function (e) {
       e.preventDefault();
       var fd = new FormData(e.target);

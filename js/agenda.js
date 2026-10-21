@@ -449,7 +449,7 @@ window.icc.agenda = (function () {
       tarjeta(k.hoy || 0, "Citas hoy", "var(--cian)", "#/agenda?vista=dia", "☀️") +
       tarjeta(k.semana || 0, "Esta semana", "#a78bfa", "#/agenda?vista=semana", "🗓️") +
       tarjeta(k.mes || 0, "Este mes", "var(--oro)", "#/agenda?vista=mes", "📆") +
-      tarjeta(exito + "%", "Éxito del mes (" + (k.mes_realizadas || 0) + " realizadas / " + (k.mes_ko || 0) + " KO)", "var(--esmeralda)", null, "🏆") +
+      tarjeta(exito + "%", "Éxito del mes (" + (k.mes_realizadas || 0) + " realizadas / " + (k.mes_ko || 0) + " KO)", "var(--esmeralda)", "#/agenda?vista=lista&estado=realizada", "🏆") +
       tarjeta(k.sin_cerrar || 0, "Pasadas sin cerrar", (k.sin_cerrar ? "#f87171" : "#94a3b8"), "#/agenda?vista=lista&estado=programada", "⏳") +
       (agendaV2 ? tarjeta(k.sin_resumen || 0, "Realizadas sin resumen", (k.sin_resumen ? "#fbbf24" : "#94a3b8"), "#/agenda?vista=lista&estado=realizada", "📝") : "") +
       (agendaV3 && esGestor() && k.por_asignar !== undefined ? tarjeta(k.por_asignar || 0, "Visitas por asignar", (k.por_asignar ? "#f59e0b" : "#94a3b8"), "#/agenda?vista=lista&sin_asignar=1", "📥") : "") +

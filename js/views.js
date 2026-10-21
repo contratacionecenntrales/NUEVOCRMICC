@@ -119,7 +119,7 @@ window.icc.views = (function () {
       '<div class="icc-ag-kpis">' +
       kpi(okMes + " / " + objetivoMensual, "Contratos OK este mes", "#34d399", "🎯", "#/contratos?estado=ok",
         '<span class="icc-dash-progreso"><i style="width:' + pctObjetivo + '%"></i></span>') +
-      kpi(puntos, "Puntos del mes", "#d4a62a", "⭐", null) +
+      kpi(puntos, "Puntos del mes (OK ×10 · verificados ×5)", "#d4a62a", "⭐", "#/contratos?estado=verificado") +
       kpi(enCurso, "Expedientes en curso", "#22d3ee", "📂", "#/pipeline") +
       kpi(st.rolPrincipal === "comercial" ? propios.length : clientes.length, st.rolPrincipal === "comercial" ? "Mis leads" : "Total clientes", "#818cf8", "👥", "#/clientes") +
       (pl && pl.conValor ? kpi(eur(pl.prevision), "Previsión ponderada", "#10b981", "💶", "#/pipeline") : "") +
@@ -134,14 +134,14 @@ window.icc.views = (function () {
       fases.map(function (e) {
         var n = conteos[e] || 0;
         return (
-          '<a class="icc-dash-fase" style="--c:' + C.ESTADOS[e].color + ";--w:" + Math.max(6, Math.round((n / maxFase) * 100)) + '%" href="#/pipeline">' +
+          '<a class="icc-dash-fase" style="--c:' + C.ESTADOS[e].color + ";--w:" + Math.max(6, Math.round((n / maxFase) * 100)) + '%" href="#/pipeline?fase=' + e + '" title="Ver ' + esc(C.ESTADOS[e].label) + ' en el pipeline">' +
           '<span class="icc-dash-fase-ico">' + (iconosFase[e] || "•") + "</span>" +
           '<span class="icc-dash-fase-txt">' + esc(C.ESTADOS[e].label) + "</span>" +
           '<span class="icc-dash-fase-barra"><i></i></span><b>' + n + "</b></a>"
         );
       }).join("") +
-      (conteos.perdido ? '<p class="icc-muted icc-dash-nota">✖ ' + conteos.perdido + " perdidas en total" + (pl && pl.sinAccion ? " · ⚠ " + pl.sinAccion + " oportunidades sin próxima acción en la agenda" : "") + "</p>"
-        : pl && pl.sinAccion ? '<p class="icc-muted icc-dash-nota">⚠ ' + pl.sinAccion + " oportunidades sin próxima acción en la agenda</p>" : "") +
+      (conteos.perdido ? '<a class="icc-muted icc-dash-nota" href="#/pipeline?cerrados_dias=365&fase=perdido">✖ ' + conteos.perdido + " perdidas en total →</a>" : "") +
+      (pl && pl.sinAccion ? '<a class="icc-muted icc-dash-nota" href="#/pipeline?sin_accion=1">⚠ ' + pl.sinAccion + " oportunidades sin próxima acción en la agenda →</a>" : "") +
       "</section>" +
 
       '<section class="icc-card icc-dash-hoy">' +
@@ -161,7 +161,7 @@ window.icc.views = (function () {
           (citasHoy.length > 7 ? '<a class="icc-link-btn" href="#/agenda?vista=dia">+' + (citasHoy.length - 7) + " citas más</a>" : "") + "</div>"
         : '<p class="icc-empty">Hoy no hay citas.</p>') +
       (proximaCita && !gestor
-        ? '<div class="icc-dash-proxima">⏰ Próxima: <strong>' + esc(proximaCita.cliente_nombre) + "</strong> · " + esc(formatearCuentaAtras(proximaCita)) + "</div>"
+        ? '<a class="icc-dash-proxima" href="#/agenda?vista=dia&fecha=' + proximaCita.fecha + "&cita=" + proximaCita.id + '">⏰ Próxima: <strong>' + esc(proximaCita.cliente_nombre) + "</strong> · " + esc(formatearCuentaAtras(proximaCita)) + "</a>"
         : "") +
       "</section>" +
       "</div>" +
@@ -1562,12 +1562,13 @@ window.icc.views = (function () {
       var hrefNombre = puedeVerFicha(a) ? "#/agentes/" + a.id : esAdmin || esJefeDeEquipo ? "#/clientes?comercial_id=" + a.id : "";
 
       var datos = [];
-      if (a.rol === "comercial" || Number(a.n_clientes)) datos.push("<div><b>" + Number(a.n_clientes || 0) + "</b><span>clientes</span></div>");
-      if (a.rol === "comercial" || Number(a.contratos_mes)) datos.push('<div><b class="' + (Number(a.contratos_mes) ? "ok" : "") + '">' + Number(a.contratos_mes || 0) + "</b><span>contratos mes</span></div>");
-      if (a.rol === "jefe_de_equipo" || equipo.length) datos.push("<div><b>" + equipo.length + "</b><span>" + (equipo.length === 1 ? "comercial" : "comerciales") + "</span></div>");
+      // Cada dato lleva a su listado filtrado por esta persona.
+      if (a.rol === "comercial" || Number(a.n_clientes)) datos.push('<a href="#/pipeline?comercial_id=' + a.id + '" title="Ver sus clientes en el pipeline"><b>' + Number(a.n_clientes || 0) + "</b><span>clientes</span></a>");
+      if (a.rol === "comercial" || Number(a.contratos_mes)) datos.push('<a href="#/contratos?comercial_id=' + a.id + '" title="Ver sus contratos"><b class="' + (Number(a.contratos_mes) ? "ok" : "") + '">' + Number(a.contratos_mes || 0) + "</b><span>contratos mes</span></a>");
+      if (a.rol === "jefe_de_equipo" || equipo.length) datos.push('<a href="' + linkQs({ vista: "equipos", rol: "", estado: "" }) + '" title="Ver su equipo"><b>' + equipo.length + "</b><span>" + (equipo.length === 1 ? "comercial" : "comerciales") + "</span></a>");
       if (a.rol === "backoffice" && asignacionesBo) {
         var nBo = (asignacionesBo[a.id] || []).length;
-        datos.push("<div><b>" + (nBo || "Todos") + "</b><span>" + (nBo ? "asignados" : "comerciales") + "</span></div>");
+        datos.push('<button type="button" data-asignar-bo-id="' + a.id + '" title="Elegir sus comerciales"><b>' + (nBo || "Todos") + "</b><span>" + (nBo ? "asignados" : "comerciales") + "</span></button>");
       }
 
       var etiquetaEquipo = a.rol === "comercial" ? "Jefe de equipo" : a.rol === "jefe_de_equipo" ? "Responsable" : a.rol === "backoffice" ? "Comerciales" : "";
