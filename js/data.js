@@ -146,9 +146,10 @@ window.icc.data = (function () {
     return API.get("api/backoffice_asignaciones.php");
   }
 
-  async function guardarAsignacionesBackoffice(backofficeId, comercialIds, agendaIds) {
+  async function guardarAsignacionesBackoffice(backofficeId, comercialIds, agendaIds, equipoIds) {
     var body = { comercial_ids: comercialIds };
     if (Array.isArray(agendaIds)) body.agenda_ids = agendaIds;
+    if (Array.isArray(equipoIds)) body.equipo_ids = equipoIds;
     await API.put("api/backoffice_asignaciones.php?id=" + encodeURIComponent(backofficeId), body);
   }
 

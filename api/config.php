@@ -485,7 +485,38 @@ function icc_backoffice_asignados(int $backofficeId): array {
   if (!icc_v_backoffice_asignaciones()) return [];
   $stmt = icc_db()->prepare('SELECT comercial_id FROM backoffice_comerciales WHERE backoffice_id = ?');
   $stmt->execute([$backofficeId]);
-  return array_map('intval', array_column($stmt->fetchAll(), 'comercial_id'));
+  $ids = array_map('intval', array_column($stmt->fetchAll(), 'comercial_id'));
+  // Equipos completos: todos los comerciales de esos jefes, tambien los nuevos.
+  $jefes = icc_backoffice_equipos($backofficeId);
+  if ($jefes) {
+    $marcas = implode(',', array_fill(0, count($jefes), '?'));
+    $stmt = icc_db()->prepare("SELECT id FROM usuarios WHERE rol = 'comercial' AND supervisor_id IN ($marcas)");
+    $stmt->execute($jefes);
+    $ids = array_merge($ids, array_map('intval', array_column($stmt->fetchAll(), 'id')));
+  }
+  return array_values(array_unique($ids));
+}
+
+/** true si existe la tabla de sql/migracion_backoffice_equipos.sql. */
+function icc_v_backoffice_equipos(): bool {
+  static $ok = null;
+  if ($ok === null) {
+    try {
+      icc_db()->query('SELECT 1 FROM backoffice_equipos LIMIT 0');
+      $ok = true;
+    } catch (PDOException $e) {
+      $ok = false;
+    }
+  }
+  return $ok;
+}
+
+/** Jefes cuyo equipo completo lleva este Backoffice. */
+function icc_backoffice_equipos(int $backofficeId): array {
+  if (!icc_v_backoffice_equipos()) return [];
+  $stmt = icc_db()->prepare('SELECT jefe_id FROM backoffice_equipos WHERE backoffice_id = ?');
+  $stmt->execute([$backofficeId]);
+  return array_map('intval', array_column($stmt->fetchAll(), 'jefe_id'));
 }
 
 /** true si existe la tabla de sql/migracion_backoffice_agendas.sql. */

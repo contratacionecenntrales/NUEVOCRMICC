@@ -1552,3 +1552,4 @@ a.icc-dash-nota{display:block;text-decoration:none}
 a.icc-dash-nota:hover{color:var(--txt)}
 /* Casillas dentro de un campo: texto normal (no como el título del campo) */
 .icc-field .icc-check{text-transform:none;letter-spacing:0;font-size:13.5px;color:var(--txt)}
+.icc-bo-equipo-completo{margin:4px 0 6px;padding:6px 10px;border-radius:10px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.3)}

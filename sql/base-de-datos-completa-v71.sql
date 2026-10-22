@@ -1,11 +1,11 @@
 -- =============================================================================
--- ICC CRM v68 · BASE DE DATOS COMPLETA (instalar o actualizar en un solo paso)
+-- ICC CRM v71 · BASE DE DATOS COMPLETA (instalar o actualizar en un solo paso)
 --
 -- Cómo usarlo: phpMyAdmin > tu base de datos > Importar > este archivo > Continuar.
 --
 -- - Si la base de datos YA TIENE datos (tu CRM actual): NO borra nada.
 --   Solo crea las tablas, columnas e índices que falten y amplía lo necesario
---   para la versión v68. Sirve vengas de la versión que vengas (v55 en adelante).
+--   para la versión v71. Sirve vengas de la versión que vengas (v55 en adelante).
 -- - Si la base de datos está VACÍA: crea el CRM completo y un usuario
 --   Super Administrador inicial (ver el final del archivo).
 -- - Se puede ejecutar MÁS DE UNA VEZ sin errores ni duplicados.
@@ -86,6 +86,19 @@ CREATE TABLE IF NOT EXISTS `backoffice_comerciales` (
   CONSTRAINT `fk_bo_com_asignado_por` FOREIGN KEY (`asignado_por`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_bo_com_backoffice` FOREIGN KEY (`backoffice_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_bo_com_comercial` FOREIGN KEY (`comercial_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `backoffice_equipos` (
+  `backoffice_id` int(10) unsigned NOT NULL,
+  `jefe_id` int(10) unsigned NOT NULL,
+  `asignado_por` int(10) unsigned DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`backoffice_id`,`jefe_id`),
+  KEY `fk_bo_eq_asignado_por` (`asignado_por`),
+  KEY `idx_bo_eq_jefe` (`jefe_id`),
+  CONSTRAINT `fk_bo_eq_asignado_por` FOREIGN KEY (`asignado_por`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `fk_bo_eq_backoffice` FOREIGN KEY (`backoffice_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_bo_eq_jefe` FOREIGN KEY (`jefe_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `citas` (
@@ -796,6 +809,15 @@ PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'backoffice_comerciales' AND column_name = 'asignado_por'), 'ALTER TABLE `backoffice_comerciales` ADD COLUMN `asignado_por` int(10) unsigned DEFAULT NULL', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'backoffice_comerciales' AND column_name = 'created_at'), 'ALTER TABLE `backoffice_comerciales` ADD COLUMN `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'backoffice_equipos' AND column_name = 'backoffice_id'), 'ALTER TABLE `backoffice_equipos` ADD COLUMN `backoffice_id` int(10) unsigned NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'backoffice_equipos' AND column_name = 'jefe_id'), 'ALTER TABLE `backoffice_equipos` ADD COLUMN `jefe_id` int(10) unsigned NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'backoffice_equipos' AND column_name = 'asignado_por'), 'ALTER TABLE `backoffice_equipos` ADD COLUMN `asignado_por` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'backoffice_equipos' AND column_name = 'created_at'), 'ALTER TABLE `backoffice_equipos` ADD COLUMN `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'citas' AND column_name = 'id'), 'ALTER TABLE `citas` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
@@ -1604,6 +1626,10 @@ SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHER
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'backoffice_comerciales' AND index_name = 'idx_bo_com_comercial'), 'CREATE INDEX `idx_bo_com_comercial` ON `backoffice_comerciales` (`comercial_id`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'backoffice_equipos' AND index_name = 'fk_bo_eq_asignado_por'), 'CREATE INDEX `fk_bo_eq_asignado_por` ON `backoffice_equipos` (`asignado_por`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'backoffice_equipos' AND index_name = 'idx_bo_eq_jefe'), 'CREATE INDEX `idx_bo_eq_jefe` ON `backoffice_equipos` (`jefe_id`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'citas' AND index_name = 'fk_cita_asignada_por'), 'CREATE INDEX `fk_cita_asignada_por` ON `citas` (`asignada_por`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'citas' AND index_name = 'fk_cita_creado_por'), 'CREATE INDEX `fk_cita_creado_por` ON `citas` (`creado_por`)', 'DO 0'));
@@ -1789,6 +1815,12 @@ PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'backoffice_comerciales' AND constraint_name = 'fk_bo_com_backoffice' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `backoffice_comerciales` ADD CONSTRAINT `fk_bo_com_backoffice` FOREIGN KEY (`backoffice_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'backoffice_comerciales' AND constraint_name = 'fk_bo_com_comercial' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `backoffice_comerciales` ADD CONSTRAINT `fk_bo_com_comercial` FOREIGN KEY (`comercial_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'backoffice_equipos' AND constraint_name = 'fk_bo_eq_asignado_por' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `backoffice_equipos` ADD CONSTRAINT `fk_bo_eq_asignado_por` FOREIGN KEY (`asignado_por`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'backoffice_equipos' AND constraint_name = 'fk_bo_eq_backoffice' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `backoffice_equipos` ADD CONSTRAINT `fk_bo_eq_backoffice` FOREIGN KEY (`backoffice_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'backoffice_equipos' AND constraint_name = 'fk_bo_eq_jefe' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `backoffice_equipos` ADD CONSTRAINT `fk_bo_eq_jefe` FOREIGN KEY (`jefe_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'citas' AND constraint_name = 'fk_cita_asignada_por' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `citas` ADD CONSTRAINT `fk_cita_asignada_por` FOREIGN KEY (`asignada_por`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
@@ -2077,15 +2109,23 @@ FROM usuarios bo
 JOIN usuarios u ON u.email IN ('juan@integralconnectionconsulting.es', 'maria.alvarez@integralconnectionconsulting.es')
 WHERE bo.rol = 'backoffice' AND bo.email LIKE 'daniela%@integralconnectionconsulting.es';
 
+-- Daniela (Backoffice) lleva todo el equipo de Maria, incluidos los comerciales nuevos.
+INSERT IGNORE INTO backoffice_equipos (backoffice_id, jefe_id)
+SELECT bo.id, j.id
+FROM usuarios bo
+JOIN usuarios j ON j.rol = 'jefe_de_equipo'
+  AND (j.email = 'maria.alvarez@integralconnectionconsulting.es' OR j.email LIKE 'maria%@integralconnectionconsulting.es')
+WHERE bo.rol = 'backoffice' AND bo.email LIKE 'daniela%@integralconnectionconsulting.es';
+
 -- Solo en una instalacion NUEVA (sin ningun usuario): Super Administrador inicial.
 --   Email: juan@integralconnectionconsulting.es
 --   Contrasena provisional: CambiaEsta-2026  (el CRM obliga a cambiarla al entrar)
 INSERT INTO usuarios (nombre, email, password_hash, rol, debe_cambiar_password)
-SELECT 'Juan', 'juan@integralconnectionconsulting.es', '$2y$10$3KwqT6Ca5fd71grxfcM4f.ve6SkNGLuf4Odmi1cejAIzdkY8jeliq', 'super_admin', 1 FROM DUAL
+SELECT 'Juan', 'juan@integralconnectionconsulting.es', '$2y$10$7WMr5tB3z4iCZ2EymGUkH.xZOsgQDW1SdF2e5TjYR.dbaPnZpypVi', 'super_admin', 1 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM usuarios);
 UPDATE usuarios SET numero_relacion = CONCAT('ICC-', LPAD(id, 5, '0')) WHERE numero_relacion IS NULL;
 
 SET FOREIGN_KEY_CHECKS = 1;
 SET SESSION sql_mode = @icc_modo_anterior;
 
--- Listo. Base de datos al dia para ICC CRM v68.
+-- Listo. Base de datos al dia para ICC CRM v71.

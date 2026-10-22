@@ -30,7 +30,14 @@ if ($metodo === 'GET') {
       $agendas[(int)$fila['backoffice_id']][] = (int)$fila['usuario_id'];
     }
   }
-  icc_json(['asignaciones' => (object)$out, 'agendas' => (object)$agendas, 'agendas_disponible' => icc_v_backoffice_agendas()]);
+  $equipos = [];
+  if (icc_v_backoffice_equipos()) {
+    foreach ($db->query('SELECT backoffice_id, jefe_id FROM backoffice_equipos')->fetchAll() as $fila) {
+      $equipos[(int)$fila['backoffice_id']][] = (int)$fila['jefe_id'];
+    }
+  }
+  icc_json(['asignaciones' => (object)$out, 'agendas' => (object)$agendas, 'agendas_disponible' => icc_v_backoffice_agendas(),
+    'equipos' => (object)$equipos, 'equipos_disponible' => icc_v_backoffice_equipos()]);
 }
 
 if ($metodo === 'PUT') {
@@ -81,11 +88,34 @@ if ($metodo === 'PUT') {
     }
   }
 
+  // Equipos completos (todos los comerciales del jefe, tambien los nuevos).
+  $conEquipos = array_key_exists('equipo_ids', $body) && icc_v_backoffice_equipos();
+  $equipoIds = [];
+  if ($conEquipos) {
+    $equipoIds = is_array($body['equipo_ids']) ? $body['equipo_ids'] : [];
+    $equipoIds = array_values(array_unique(array_filter(array_map('intval', $equipoIds))));
+    if ($equipoIds) {
+      $marcas = implode(',', array_fill(0, count($equipoIds), '?'));
+      $stmt = $db->prepare("SELECT rol FROM usuarios WHERE id IN ($marcas)");
+      $stmt->execute($equipoIds);
+      $filas = $stmt->fetchAll();
+      if (count($filas) !== count($equipoIds)) icc_json(['error' => 'Algún equipo elegido no existe'], 400);
+      foreach ($filas as $f) {
+        if ($f['rol'] !== 'jefe_de_equipo' && !icc_es_rol_admin($f['rol'])) icc_json(['error' => 'Solo se pueden asignar equipos de jefes de equipo'], 400);
+      }
+    }
+  }
+
   $db->beginTransaction();
   try {
     $db->prepare('DELETE FROM backoffice_comerciales WHERE backoffice_id = ?')->execute([$id]);
     $ins = $db->prepare('INSERT INTO backoffice_comerciales (backoffice_id, comercial_id, asignado_por) VALUES (?, ?, ?)');
     foreach ($ids as $comercialId) $ins->execute([$id, $comercialId, $user['id']]);
+    if ($conEquipos) {
+      $db->prepare('DELETE FROM backoffice_equipos WHERE backoffice_id = ?')->execute([$id]);
+      $insE = $db->prepare('INSERT INTO backoffice_equipos (backoffice_id, jefe_id, asignado_por) VALUES (?, ?, ?)');
+      foreach ($equipoIds as $jid) $insE->execute([$id, $jid, $user['id']]);
+    }
     if ($conAgendas) {
       $db->prepare('DELETE FROM backoffice_agendas WHERE backoffice_id = ?')->execute([$id]);
       $insA = $db->prepare('INSERT INTO backoffice_agendas (backoffice_id, usuario_id, asignado_por) VALUES (?, ?, ?)');
@@ -105,7 +135,10 @@ if ($metodo === 'PUT') {
       ? 'Agendas compartidas (solo agenda): ids ' . implode(', ', $agendaIds)
       : 'Sin agendas compartidas');
   }
-  icc_json(['ok' => true, 'comercial_ids' => $ids, 'agenda_ids' => $agendaIds]);
+  if ($conEquipos) {
+    icc_auditar($id, (int)$user['id'], 'equipos_asignados', $equipoIds ? 'Equipos completos: jefes ' . implode(', ', $equipoIds) : 'Sin equipos completos');
+  }
+  icc_json(['ok' => true, 'comercial_ids' => $ids, 'agenda_ids' => $agendaIds, 'equipo_ids' => $equipoIds]);
 }
 
 icc_json(['error' => 'Metodo no permitido'], 405);
