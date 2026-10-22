@@ -312,7 +312,7 @@ function icc_catalogo_permisos(): array {
     // Solo tienen efecto en un Jefe de equipo (y siempre sobre los comerciales
     // de su propio equipo): Admin/Super Admin gestionan cuentas por su rol.
     ['modulo' => 'Equipo (Jefe de equipo)', 'permisos' => [
-      ['clave' => 'usuarios.crear', 'label' => 'Crear usuarios en su equipo', 'desc' => 'Dar de alta comerciales que quedan asignados a su equipo', 'roles' => ICC_ROLES_EQUIPO],
+      ['clave' => 'usuarios.crear', 'label' => 'Crear usuarios en su equipo', 'desc' => 'Dar de alta comerciales en su equipo (Jefe de equipo) o que quedan asignados a él (Backoffice); solo con rol Comercial / Agente', 'roles' => array_merge(ICC_ROLES_EQUIPO, ['backoffice'])],
       ['clave' => 'usuarios.gestionar', 'label' => 'Gestionar las cuentas de su equipo', 'desc' => 'Datos, bloqueo, contrasenas, permisos y sesiones de sus comerciales', 'roles' => ICC_ROLES_EQUIPO],
       ['clave' => 'usuarios.ver_como', 'label' => '"Ver como" sus comerciales', 'desc' => 'Entrar en la cuenta de un comercial de su equipo o, en Backoffice, de sus comerciales asignados (queda registrado)', 'roles' => array_merge(ICC_ROLES_EQUIPO, ['backoffice'])],
     ]],

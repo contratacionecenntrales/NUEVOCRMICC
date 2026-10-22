@@ -65,7 +65,7 @@ if ($metodo === 'GET' && $id === null) {
 }
 
 if ($metodo === 'POST' && $id === null) {
-  icc_require_role(ICC_ROLES_EQUIPO);
+  icc_require_role(ICC_ROLES_INTERNOS);
   icc_require_csrf();
   $body = icc_body();
   $email = trim($body['email'] ?? '');
@@ -76,6 +76,11 @@ if ($metodo === 'POST' && $id === null) {
   // Un jefe de equipo solo puede dar de alta comerciales, y siempre en su propio
   // equipo (nunca backoffice/jefe_de_equipo/admin, ni asignar a otro jefe).
   if ($user['rol'] === 'jefe_de_equipo') {
+    icc_require_permiso($user, 'usuarios.crear');
+    $rol = 'comercial';
+  }
+  // Backoffice: solo da de alta Comerciales / Agentes, nunca otro rol.
+  if ($user['rol'] === 'backoffice') {
     icc_require_permiso($user, 'usuarios.crear');
     $rol = 'comercial';
   }
@@ -104,6 +109,15 @@ if ($metodo === 'POST' && $id === null) {
   $supervisorId = null;
   if ($rol === 'comercial' && $user['rol'] === 'jefe_de_equipo') {
     $supervisorId = icc_validar_supervisor($db, (int)$user['id'], $rol);
+  } elseif ($user['rol'] === 'backoffice') {
+    // Solo en los equipos con los que trabaja (o cualquiera si ve toda la empresa).
+    if (!empty($body['supervisor_id'])) {
+      $supervisorId = icc_validar_supervisor($db, (int)$body['supervisor_id'], 'comercial');
+      $permitidos = icc_backoffice_jefes_permitidos($db, $user);
+      if ($permitidos !== null && !in_array($supervisorId, $permitidos, true)) {
+        icc_json(['error' => 'Solo puedes dar de alta comerciales en los equipos con los que trabajas'], 403);
+      }
+    }
   } elseif (in_array($rol, ['comercial', 'jefe_de_equipo'], true) && !empty($body['supervisor_id'])) {
     $supervisorId = icc_validar_supervisor($db, (int)$body['supervisor_id'], $rol);
   }
@@ -131,6 +145,11 @@ if ($metodo === 'POST' && $id === null) {
 
   if ($rol === 'comercial') {
     icc_crear_carpeta_personal_fichero($db, $nuevoId, $nombre);
+  }
+  // Backoffice con comerciales asignados: el nuevo comercial queda asignado a el.
+  if ($user['rol'] === 'backoffice' && icc_v_backoffice_asignaciones() && icc_backoffice_asignados((int)$user['id'])) {
+    $db->prepare('INSERT IGNORE INTO backoffice_comerciales (backoffice_id, comercial_id, asignado_por) VALUES (?, ?, ?)')
+      ->execute([(int)$user['id'], $nuevoId, (int)$user['id']]);
   }
 
   icc_json(['id' => $nuevoId], 201);
@@ -341,6 +360,21 @@ function icc_registrar_cambios_cuenta(PDO $db, array $autor, int $id, array $bod
  * Sin limite de tamano de equipo: un Jefe de equipo puede tener tantos
  * comerciales como haga falta.
  */
+/**
+ * Jefes en cuyos equipos un Backoffice puede dar de alta comerciales:
+ * los jefes de sus comerciales asignados y las personas cuya agenda gestiona.
+ * null = sin limite (Backoffice que ve toda la empresa).
+ */
+function icc_backoffice_jefes_permitidos(PDO $db, array $user): ?array {
+  $asignados = icc_backoffice_asignados((int)$user['id']);
+  if (!$asignados) return null;
+  $marcas = implode(',', array_fill(0, count($asignados), '?'));
+  $stmt = $db->prepare("SELECT DISTINCT supervisor_id FROM usuarios WHERE id IN ($marcas) AND supervisor_id IS NOT NULL");
+  $stmt->execute($asignados);
+  $ids = array_map('intval', array_column($stmt->fetchAll(), 'supervisor_id'));
+  return array_values(array_unique(array_merge($ids, icc_backoffice_agendas((int)$user['id']))));
+}
+
 function icc_supervisor_valido(PDO $db, int $supervisorId, string $rolSubordinado): bool {
   if ($rolSubordinado === 'comercial') {
     $roles = ICC_ROLES_EQUIPO;

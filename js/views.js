@@ -1495,6 +1495,26 @@ window.icc.views = (function () {
 
   function modalNuevoAgente(agentes) {
     var esAdmin = window.icc.auth.esAdminOSuperior();
+    var esBackoffice = window.icc.auth.tieneRol("backoffice");
+    // Backoffice: jefes de los equipos con los que trabaja (los de sus comerciales y
+    // las agendas que gestiona). El servidor vuelve a comprobarlo.
+    var jefesBo = [];
+    if (esBackoffice) {
+      var vistos = {};
+      agentes.forEach(function (a) {
+        if (a.rol === "comercial" && a.supervisor_id && !vistos[a.supervisor_id]) {
+          vistos[a.supervisor_id] = true;
+          var j = agentes.filter(function (x) { return String(x.id) === String(a.supervisor_id); })[0];
+          jefesBo.push({ id: a.supervisor_id, nombre: j ? (j.nombre + " " + (j.apellidos || "")).trim() : a.supervisor_nombre || "Jefe #" + a.supervisor_id });
+        }
+      });
+      agentes.forEach(function (a) {
+        if (Number(a.solo_agenda) && (a.rol === "jefe_de_equipo" || esRolAdmin(a.rol)) && !vistos[a.id]) {
+          vistos[a.id] = true;
+          jefesBo.push({ id: a.id, nombre: (a.nombre + " " + (a.apellidos || "")).trim() });
+        }
+      });
+    }
     var esSuperAdmin = window.icc.auth.esSuperAdmin();
     var rolesDisponibles = esSuperAdmin
       ? Object.keys(C.ROLES)
@@ -1502,13 +1522,15 @@ window.icc.views = (function () {
 
     U.openModal(
       "<h2>Nuevo usuario</h2>" +
-      (!esAdmin ? '<p class="icc-muted">Se creará como Comercial / Agente dentro de tu equipo y podrás gestionar su cuenta y su ficha.</p>' : "") +
+      (esBackoffice
+        ? '<p class="icc-muted">Se creará como <b>Comercial / Agente</b> (es el único rol que puedes dar de alta) y quedará entre tus comerciales.</p>'
+        : !esAdmin ? '<p class="icc-muted">Se creará como Comercial / Agente dentro de tu equipo y podrás gestionar su cuenta y su ficha.</p>' : "") +
       '<form id="form-nuevo-agente" class="icc-form" autocomplete="off">' +
       campoTexto("nombre", "Nombre", true, "text") +
       campoTexto("apellidos", "Apellidos", false, "text") +
       campoTexto("email", "Email", true, "email") +
-      campoTexto("password", "Contrasena provisional", true, "text", passwordProvisional()) +
-      campoTexto("telefono", "Telefono", false, "text") +
+      campoTexto("password", "Contraseña provisional", true, "text", passwordProvisional()) +
+      campoTexto("telefono", "Teléfono", false, "text") +
       campoTexto("empresa", "Empresa", false, "text") +
       campoTexto("cif", "CIF", false, "text") +
       (esAdmin
@@ -1523,7 +1545,13 @@ window.icc.views = (function () {
           '<select class="icc-select" name="supervisor_id">' + opcionesJefesEquipo(agentes, "") + "</select></div>" +
           '<div class="icc-field" id="campo-responsable"><label>Admin responsable de este Jefe de equipo</label>' +
           '<select class="icc-select" name="responsable_id">' + opcionesResponsablesJefe(agentes, "") + "</select></div>"
-        : '<input type="hidden" name="rol" value="comercial">') +
+        : '<input type="hidden" name="rol" value="comercial">' +
+          (esBackoffice
+            ? '<div class="icc-field"><label>Rol</label><input class="icc-input" value="Comercial / Agente" disabled></div>' +
+              '<div class="icc-field"><label>Jefe de equipo</label><select class="icc-select" name="supervisor_id">' +
+              jefesBo.map(function (j, i) { return '<option value="' + j.id + '"' + (i === 0 ? " selected" : "") + ">Equipo de " + U.escapeHtml(j.nombre) + "</option>"; }).join("") +
+              '<option value="">Sin jefe de equipo</option></select></div>'
+            : "")) +
       '<div class="icc-modal-actions">' +
       '<button type="button" class="icc-btn icc-btn-ghost" data-close-btn>Cancelar</button>' +
       '<button type="submit" class="icc-btn icc-btn-primary">Crear usuario</button>' +
@@ -1549,7 +1577,7 @@ window.icc.views = (function () {
       ["nombre", "apellidos", "email", "password", "telefono", "empresa", "cif", "rol"].forEach(function (k) {
         payload[k] = fd.get(k) || "";
       });
-      if (esAdmin && payload.rol === "comercial" && fd.get("supervisor_id")) {
+      if ((esAdmin || esBackoffice) && payload.rol === "comercial" && fd.get("supervisor_id")) {
         payload.supervisor_id = fd.get("supervisor_id");
       }
       if (esAdmin && payload.rol === "jefe_de_equipo" && fd.get("responsable_id")) {
@@ -1586,7 +1614,7 @@ window.icc.views = (function () {
     var avisoBackoffice = miUsuario.rol === "backoffice" && Number(miUsuario.comerciales_asignados) > 0;
     var esSuperAdmin = window.icc.auth.esSuperAdmin();
     var esJefeDeEquipo = window.icc.auth.tieneRol("jefe_de_equipo");
-    var jefePuedeCrear = esJefeDeEquipo && window.icc.auth.puede("usuarios.crear");
+    var jefePuedeCrear = (esJefeDeEquipo || miUsuario.rol === "backoffice") && window.icc.auth.puede("usuarios.crear");
     var jefeGestiona = esJefeDeEquipo && window.icc.auth.puede("usuarios.gestionar");
     var jefeVerComo = esJefeDeEquipo && window.icc.auth.puede("usuarios.ver_como");
     var miId = miUsuario.id;
