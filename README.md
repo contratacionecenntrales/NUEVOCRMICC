@@ -219,7 +219,7 @@ propio CRM — ya no hace falta volver a tocar la base de datos a mano.
 
 ## Base de datos en un solo paso
 
-`sql/base-de-datos-completa-v71.sql` deja cualquier base de datos al día para la v71 importándolo una sola vez en phpMyAdmin:
+`sql/base-de-datos-completa-v73.sql` deja cualquier base de datos al día para la v73 importándolo una sola vez en phpMyAdmin:
 - Con datos (v55 en adelante): no borra nada; crea solo las tablas, columnas, índices y relaciones que falten y amplía los roles. Deja a Daniela con todo el equipo de María y las agendas de Juan y María.
 - Vacía: crea el CRM completo y un Super Administrador inicial (info@integralconnectionconsulting.es, contraseña provisional `CambiaEsta-2026`, que el CRM obliga a cambiar).
 - Se puede ejecutar varias veces sin errores ni duplicados. Los datos de ejemplo de los comparadores solo se cargan si esas tablas están vacías.
@@ -428,6 +428,14 @@ esa carpeta del servidor. Pasos a seguir, en este orden:
    sepas el alcance real y qué hay que volver a subir a mano si Hostalia
    no puede restaurarlos.
 
+## Sala de ventas, cinta en directo y anuncios
+
+- **Sala de ventas** (`#/sala-ventas`, modo TV con `?tv=1`): ranking, objetivo del mes, mapa por provincias, actividad y «Análisis en directo». Todo sale de los datos reales del CRM (`api/sala.php`) y se refresca cada 30 s; las cifras solo se mueven cuando entra un movimiento real.
+- **Privacidad**: dirección (Admin, Gerente, Coordinador, Super Admin) ve todos los nombres. El resto ve con nombre solo a su propio equipo; de los demás, «Comercial · Provincia», «Equipo · Provincia» u «Oficina · Provincia». Nunca se envían emails ni teléfonos.
+- **Cinta en directo**: franja bajo el menú en todas las pantallas con los anuncios y los últimos movimientos (anónimos fuera de tu equipo). Se puede pausar y respeta «reducir movimiento».
+- **Anuncios de dirección** (`api/anuncios.php`, tabla de `sql/migracion_anuncios.sql`): en la sala, botón «📣 Anuncios». Texto, ciudad y provincia (la provincia late en el mapa), y duración: solo hoy, una semana o hasta una fecha. Caducan solos.
+- **Novedades de tarifas** (`#/comparador/novedades`) y **Oficinas** (`#/oficinas`): ver `sql/migracion_tarifas_novedades.sql` y `sql/migracion_oficinas.sql` (las dos van incluidas en la base de datos completa).
+
 ## Enlace rápido de subida de facturas
 
 Cada cliente tiene un `upload_token` único (UUID). Desde su ficha en el CRM
@@ -451,7 +459,7 @@ Montarla (por ejemplo en `demo.crm.tudominio.es`):
 1. Crea el subdominio en Hostalia apuntando a una carpeta nueva y sube ahí el
    mismo zip del CRM.
 2. Crea una base de datos **nueva y vacía** e importa
-   `sql/base-de-datos-completa-v71.sql` (más las migraciones nuevas si las hay).
+   `sql/base-de-datos-completa-v73.sql` (más las migraciones nuevas si las hay).
 3. Crea `api/config.local.php` de esa carpeta con los datos de la BD nueva y
    añade `define('ICC_MODO_DEMO', true);`.
 4. Rellena la demo por SSH (el generador no se puede abrir desde el navegador):

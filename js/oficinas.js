@@ -82,8 +82,9 @@ window.icc.oficinas = (function () {
     var misProv = {};
     mias.forEach(function (o) { if (o.provincia) misProv[o.provincia] = true; });
     var kpi = function (valor, label, color, icono) {
-      return '<div class="icc-stat-card icc-ag-kpi" style="--stat-color:' + color + '"><span class="icc-ag-kpi-ico">' + icono + '</span><span class="icc-stat-value">' + valor +
-        '</span><span class="icc-stat-label">' + label + "</span></div>";
+      // Las cifras de la red llevan a la sala de ventas, donde se ven en directo.
+      return '<a class="icc-stat-card icc-ag-kpi icc-kpi-boton" href="#/sala-ventas" title="Ver la red en directo" style="--stat-color:' + color + '"><span class="icc-ag-kpi-ico">' + icono + '</span><span class="icc-stat-value">' + valor +
+        '</span><span class="icc-stat-label">' + label + "</span></a>";
     };
     var miOficina = function (o) {
       var m = o.metricas;

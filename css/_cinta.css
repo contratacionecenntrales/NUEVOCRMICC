@@ -1,0 +1,35 @@
+/* ICC CRM · Cinta en directo bajo el menú (js/cinta.js) */
+.icc-cinta { display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 12px; overflow: hidden;
+  background: linear-gradient(90deg, rgba(16, 185, 129, .10), rgba(34, 211, 238, .06) 40%, rgba(167, 139, 250, .06));
+  border-bottom: 1px solid rgba(148, 163, 184, .18); font-size: 13px; }
+.icc-cinta[hidden] { display: none; }
+.icc-cinta-tit { flex: none; display: inline-flex; align-items: center; gap: 6px; font-weight: 700; font-size: 11px; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--accent); text-decoration: none; }
+.icc-cinta-tit i { width: 7px; height: 7px; border-radius: 50%; background: var(--red, #F87171); animation: icc-cinta-latido 1.6s infinite; }
+.icc-cinta-vent { flex: 1; min-width: 0; overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 24px, #000 calc(100% - 24px), transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 24px, #000 calc(100% - 24px), transparent); }
+.icc-cinta-pista { display: inline-flex; white-space: nowrap; animation: icc-cinta-desliza var(--dur, 60s) linear infinite; }
+.icc-cinta:hover .icc-cinta-pista, .icc-cinta.is-pausa .icc-cinta-pista { animation-play-state: paused; }
+.icc-cinta-item { display: inline-flex; align-items: center; gap: 6px; color: var(--txt-2); }
+.icc-cinta-item i { font-style: normal; }
+.icc-cinta-item b { color: var(--txt); }
+.icc-cinta-item small { color: var(--txt-3); }
+.icc-cinta-item.is-anuncio { color: var(--txt); font-weight: 600; padding: 2px 10px; border-radius: 99px; background: rgba(251, 191, 36, .16); border: 1px solid rgba(251, 191, 36, .4); }
+.icc-cinta-copia { display: inline-flex; gap: 32px; padding-right: 32px; }
+.icc-cinta-pausa { flex: none; width: 26px; height: 26px; border-radius: 8px; border: 1px solid rgba(148, 163, 184, .3); background: transparent;
+  color: var(--txt-2); cursor: pointer; font-size: 11px; line-height: 1; }
+.icc-cinta-pausa:hover, .icc-cinta-pausa:focus-visible { color: var(--txt); border-color: var(--accent); }
+.icc-cinta.is-nuevo { animation: icc-cinta-flash 1.4s ease-out; }
+@keyframes icc-cinta-desliza { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@keyframes icc-cinta-latido { 0% { box-shadow: 0 0 0 0 rgba(248, 113, 113, .7); } 70% { box-shadow: 0 0 0 7px rgba(248, 113, 113, 0); } 100% { box-shadow: 0 0 0 0 rgba(248, 113, 113, 0); } }
+@keyframes icc-cinta-flash { 0% { background-color: rgba(16, 185, 129, .35); } 100% { background-color: transparent; } }
+@media (max-width: 560px) {
+  .icc-cinta { padding: 0 8px; gap: 8px; }
+  .icc-cinta-tit { font-size: 0; gap: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .icc-cinta-pista { animation: none; }
+  .icc-cinta-vent { overflow-x: auto; scrollbar-width: none; }
+  .icc-cinta-tit i, .icc-cinta.is-nuevo { animation: none; }
+}
+body.icc-sala-tv .icc-cinta { display: none; }

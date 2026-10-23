@@ -539,6 +539,7 @@
     if (!shellPintado) renderShell();
     pintarNav();
     if (window.icc.novedades) window.icc.novedades.alNavegar();
+    if (window.icc.cinta) window.icc.cinta.alNavegar();
 
     var hash = location.hash || "#/dashboard";
     var ruta = hash.split("?")[0];

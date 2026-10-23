@@ -110,7 +110,7 @@ a.icc-sala-kpi:hover { transform: translateY(-2px); border-color: var(--c); }
 .icc-sala-tabla { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
 .icc-sala-fila {
   --c: var(--accent); --w: 0%;
-  display: grid; grid-template-columns: 26px minmax(0, 1.5fr) minmax(0, 1.3fr) repeat(4, 46px); align-items: center; gap: 8px;
+  display: grid; grid-template-columns: 26px minmax(0, 2fr) minmax(0, 1fr) repeat(4, 46px); align-items: center; gap: 8px;
   padding: 7px 8px; border-radius: 8px; font-variant-numeric: tabular-nums;
 }
 .icc-sala-fila > span:nth-child(n+4) { text-align: right; color: var(--txt-2); }
@@ -118,7 +118,7 @@ a.icc-sala-kpi:hover { transform: translateY(-2px); border-color: var(--c); }
 .icc-sala-fila.is-cab { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--txt-3); padding-top: 0; padding-bottom: 2px; }
 .icc-sala-fila.is-yo { background: rgba(16, 185, 129, .1); box-shadow: inset 0 0 0 1px rgba(16, 185, 129, .45); }
 .icc-sala-pos { color: var(--txt-3); font-weight: 700; text-align: center; }
-.icc-sala-nom { display: flex; align-items: center; gap: 8px; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: var(--txt); }
+.icc-sala-nom { display: flex; align-items: center; gap: 8px; min-width: 0; overflow: hidden; line-height: 1.25; font-size: 13.5px; color: var(--txt); }
 .icc-sala-nom small { color: var(--txt-3); }
 .icc-sala-mini { flex: 0 0 auto; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; font-style: normal; font-size: 10px; font-weight: 800; color: #06121E; background: var(--c); }
 .icc-sala-barra { position: relative; display: flex; align-items: center; height: 20px; min-width: 0; border-radius: 6px; background: rgba(255, 255, 255, .04); overflow: hidden; }
@@ -237,7 +237,44 @@ body.icc-sala-tv main, body.icc-sala-tv #app { max-width: none !important; }
 @keyframes icc-sala-entra { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
 @keyframes icc-sala-aparece { from { opacity: 0; transform: translate(-50%, -24px) scale(.9); } to { opacity: 1; transform: translateX(-50%); } }
 
+/* ---- Conexión, anuncios, análisis en directo y pulsos del mapa ---- */
+.icc-sala-envivo.is-offline i { background: var(--txt-3); animation: none; box-shadow: none; }
+.icc-sala-envivo.is-offline { color: var(--txt-3); }
+.icc-sala-anuncios { display: grid; gap: 10px; margin-bottom: 14px; }
+.icc-sala-anuncio { display: flex; align-items: center; gap: 14px; padding: 14px 18px; border-radius: 14px; border: 1px solid rgba(251, 191, 36, .45);
+  background: linear-gradient(100deg, rgba(251, 191, 36, .16), rgba(244, 114, 182, .10) 60%, transparent); position: relative; overflow: hidden; }
+.icc-sala-anuncio::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, .14) 50%, transparent 70%);
+  transform: translateX(-100%); animation: icc-sala-brillo 4.5s ease-in-out infinite; pointer-events: none; }
+.icc-sala-anuncio-ico { font-size: 28px; line-height: 1; }
+.icc-sala-anuncio p { margin: 0; font-size: 16px; font-weight: 600; color: var(--txt); }
+.icc-sala-lugar { color: var(--txt-3); font-weight: 500; white-space: nowrap; }
+.icc-sala.is-tv .icc-sala-anuncio p { font-size: 22px; }
+@keyframes icc-sala-brillo { 0%, 55% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+.icc-sala-ia-chip { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 7px; font-size: 13px; color: #fff;
+  background: linear-gradient(135deg, #22D3EE, #A78BFA); margin-right: 4px; vertical-align: 2px; }
+.icc-sala-ia-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.icc-sala-ia-lista li { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 12px; background: rgba(167, 139, 250, .08);
+  border: 1px solid rgba(167, 139, 250, .22); opacity: 0; animation: icc-sala-ia-entra .5s ease-out forwards; animation-delay: calc(var(--i) * 140ms); }
+.icc-sala-ia-lista li span { font-size: 18px; line-height: 1.3; }
+.icc-sala-ia-lista li p { margin: 0; color: var(--txt-2); font-size: 14px; line-height: 1.45; }
+@keyframes icc-sala-ia-entra { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.icc-sala-burbuja.is-pulso circle { stroke: #FBBF24; stroke-width: 2.5; animation: icc-sala-late 1.4s ease-out infinite; }
+.icc-sala-burbuja.is-solo circle { fill: rgba(251, 191, 36, .45); }
+@keyframes icc-sala-late { 0% { transform: scale(1); stroke-opacity: 1; } 60% { transform: scale(1.35); stroke-opacity: .25; } 100% { transform: scale(1); stroke-opacity: 1; } }
+.icc-sala-kpi.is-sube { animation: icc-sala-sube 1.2s ease-out; }
+@keyframes icc-sala-sube { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--c) 60%, transparent); } 100% { box-shadow: 0 0 0 14px transparent; } }
+.icc-sala-fila.is-anonimo .icc-sala-nom { color: var(--txt-2); }
+.icc-sala-tu { font-style: normal; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 99px; background: var(--accent); color: #fff; margin-left: 4px; }
+.icc-sala-anuncios-lista { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 8px; }
+.icc-sala-anuncios-lista li { display: flex; gap: 10px; align-items: center; padding: 10px; border-radius: 10px; border: 1px solid var(--border, rgba(148,163,184,.25)); opacity: .65; }
+.icc-sala-anuncios-lista li.is-vigente { opacity: 1; }
+.icc-sala-anuncios-lista li div { flex: 1; min-width: 0; }
+.icc-sala-anuncios-lista li p { margin: 0; }
+.icc-sala-anuncios-lista li small { color: var(--txt-3); }
+
 @media (prefers-reduced-motion: reduce) {
+  .icc-sala-anuncio::after, .icc-sala-burbuja.is-pulso circle, .icc-sala-kpi.is-sube { animation: none; }
+  .icc-sala-ia-lista li { animation: none; opacity: 1; }
   .icc-sala *, .icc-sala *::before, .icc-sala *::after, .icc-sala-celebra { animation: none !important; transition: none !important; }
   .icc-sala-ticker-pista { flex-wrap: wrap; white-space: normal; }
   .icc-sala-ticker { overflow-x: auto; }

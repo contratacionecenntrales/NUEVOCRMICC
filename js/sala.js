@@ -84,11 +84,18 @@
         return { ico: "📄", c: "#FB923C", txt: "Presupuesto de " + esc(sectorTxt(e.sector) || "servicio") + " cerrado por " + q + (e.cliente ? " · " + clienteTxt(e) : "") };
       case "informe":
         return { ico: e.sector === "telefonia" ? "📶" : "⚡", c: "#2DD4BF", txt: q + " ha preparado un estudio de " + esc(sectorTxt(e.sector)) + (e.ahorro && e.ahorro > 0 ? " · ahorro de <b>" + num(e.ahorro) + " €/año</b>" : "") + (e.cliente ? " para " + clienteTxt(e) : "") };
+      case "anuncio":
+        return { ico: e.emoji || "📣", c: "#FBBF24", txt: "<b>Dirección:</b> " + esc(e.titulo || "") + lugarTxt(e) };
       case "tarifa":
         return { ico: "🔔", c: "#E879F9", txt: "Tramitación: " + esc(e.titulo || "tarifas actualizadas") + (e.quien ? " (" + esc(e.quien) + ")" : "") };
       default:
         return { ico: "•", c: "#94A3B8", txt: q };
     }
+  }
+  function lugarTxt(e) {
+    var l = [e.ciudad, e.provincia].filter(Boolean);
+    if (l.length === 2 && l[0].toLowerCase() === l[1].toLowerCase()) l = [l[0]];
+    return l.length ? ' <small class="icc-sala-lugar">📍 ' + esc(l.join(", ")) + "</small>" : "";
   }
   function esContrato(e) {
     return e.tipo === "contrato" || e.tipo === "contrato_ok" || (e.tipo === "fase" && e.estado === "cliente_activo");
@@ -118,6 +125,7 @@
     }
     st.ahora = st.datos.ahora;
     st.ultimoCompleto = Date.now();
+    st.recibido = Date.now();
     (st.datos.eventos || []).forEach(function (e) { st.vistos[e.id] = true; });
     if (st.pestana === "oficinas" && !(st.datos.ranking.oficinas || []).length) st.pestana = "comerciales";
     pintar();
@@ -141,7 +149,7 @@
       // Cabecera
       '<header class="icc-sala-hero">' +
       '<div class="icc-sala-hero-txt">' +
-      '<span class="icc-sala-envivo"><i aria-hidden="true"></i>En directo</span>' +
+      '<span class="icc-sala-envivo" id="sala-envivo" role="status"><i aria-hidden="true"></i><span>En directo</span></span>' +
       "<h1>Sala de ventas</h1>" +
       '<p class="icc-sala-hero-res"><b>' + num(k.contratos) + "</b> contratos y <b>" + num(k.citas) + "</b> visitas realizadas " + nombrePeriodo +
       " · <b>" + num(k.activos) + "</b> " + (k.activos === 1 ? "persona" : "personas") + " sumando puntos</p>" +
@@ -154,9 +162,11 @@
       }).join("") + "</nav>" +
       (st.tv
         ? '<button type="button" class="icc-btn icc-btn-ghost" id="sala-pantalla">⛶ Pantalla completa</button><a class="icc-btn icc-btn-secondary" href="' + href({ tv: "" }) + '">✕ Salir del modo TV</a>'
-        : '<a class="icc-btn icc-btn-primary icc-sala-btn-tv" href="' + href({ tv: "1" }) + '">📺 Modo TV</a>') +
+        : (window.icc.auth.esAdminOSuperior() ? '<button type="button" class="icc-btn icc-btn-secondary" id="sala-anunciar">📣 Anuncios</button>' : "") +
+          '<a class="icc-btn icc-btn-primary icc-sala-btn-tv" href="' + href({ tv: "1" }) + '">📺 Modo TV</a>') +
       "</div></header>" +
 
+      anunciosHtml() +
       // Ticker horizontal
       '<div class="icc-sala-ticker" aria-label="Últimos movimientos"><div class="icc-sala-ticker-pista" id="sala-ticker">' + tickerHtml(d.eventos) + "</div></div>" +
 
@@ -176,19 +186,40 @@
       // Objetivo + mapa
       '<div class="icc-sala-col">' +
       '<section class="icc-sala-bloque icc-sala-objetivo">' + objetivoHtml() + "</section>" +
+      '<section class="icc-sala-bloque icc-sala-ia" id="sala-ia">' + insightsHtml() + "</section>" +
       '<section class="icc-sala-bloque icc-sala-mapa">' + mapaHtml() + "</section>" +
       "</div>" +
       // Actividad
       '<section class="icc-sala-bloque icc-sala-feed"><div class="icc-sala-bloque-tit"><h2>Actividad en directo</h2><span class="icc-sala-act" id="sala-act">Actualizado ' + haceCuanto(st.ahora) + "</span></div>" +
       '<ol class="icc-sala-eventos" id="sala-eventos">' + (d.eventos.length ? d.eventos.map(eventoHtml).join("") : '<li class="icc-sala-vacio">Todavía no hay movimientos en los últimos 30 días. En cuanto alguien dé de alta un cliente, un contrato o una visita, aparecerá aquí.</li>') + "</ol></section>" +
       "</div>" +
-      '<p class="icc-sala-nota">Puntos: contrato OK 10 · contrato dado de alta 5 · visita realizada 2 · cliente nuevo 1. Todo sale de los datos reales del CRM.</p>' +
+      '<p class="icc-sala-nota">Puntos: contrato OK 10 · contrato dado de alta 5 · visita realizada 2 · cliente nuevo 1. Todo sale de los datos reales del CRM.' +
+      (d.anonimo ? " Por privacidad, de otros equipos solo ves la provincia." : "") + "</p>" +
       "</div>";
 
     enlazar();
     animarContadores();
     reloj();
     celebrarObjetivo();
+  }
+
+  function anunciosHtml() {
+    var a = st.datos.anuncios || [];
+    if (!a.length) return "";
+    return '<div class="icc-sala-anuncios" id="sala-anuncios">' + a.map(function (x) {
+      return '<div class="icc-sala-anuncio"><span class="icc-sala-anuncio-ico" aria-hidden="true">' + esc(x.emoji || "📣") + "</span><p>" + esc(x.texto) + lugarTxt(x) + "</p></div>";
+    }).join("") + "</div>";
+  }
+
+  // Frases calculadas en el servidor con datos reales del CRM.
+  function insightsHtml() {
+    var l = st.datos.insights || [];
+    return '<div class="icc-sala-bloque-tit"><h2><span class="icc-sala-ia-chip" aria-hidden="true">✦</span> Análisis en directo</h2><span class="icc-sala-act">Calculado con los datos del CRM</span></div>' +
+      (l.length
+        ? '<ul class="icc-sala-ia-lista">' + l.map(function (x, i) {
+            return '<li style="--i:' + i + '"><span aria-hidden="true">' + esc(x.ico) + "</span><p>" + esc(x.txt) + "</p></li>";
+          }).join("") + "</ul>"
+        : '<p class="icc-sala-vacio">En cuanto haya contratos y visitas este mes, aquí verás la proyección, la provincia más activa y el ritmo que hace falta.</p>');
   }
 
   // Confeti una vez por mes y navegador cuando el equipo llega al objetivo.
@@ -248,9 +279,9 @@
         ? '<div class="icc-sala-podio">' +
           orden.map(function (x) {
             var pos = podio.indexOf(x);
-            return '<div class="icc-sala-escalon is-' + (pos + 1) + '" style="--c:' + colorDe(x.id) + '">' +
+            return '<div class="icc-sala-escalon is-' + (pos + 1) + '" style="--c:' + colorDe(x.anonimo ? pos + 3 : x.id) + '">' +
               '<span class="icc-sala-medalla" aria-hidden="true">' + medallas[pos] + "</span>" +
-              '<span class="icc-sala-ava">' + esc(iniciales(x.nombre.replace(/^Equipo de /, ""))) + "</span>" +
+              '<span class="icc-sala-ava">' + (x.anonimo ? "★" : esc(iniciales(x.nombre.replace(/^Equipo de /, "")))) + "</span>" +
               "<strong>" + esc(x.nombre) + "</strong>" +
               '<span class="icc-sala-pts">' + num(x.puntos) + " pts</span>" +
               '<div class="icc-sala-peana"><span>' + (pos + 1) + "</span></div></div>";
@@ -260,9 +291,9 @@
         ? '<div class="icc-sala-tabla" role="table" aria-label="Ranking">' +
           '<div class="icc-sala-fila is-cab" role="row"><span>#</span><span>Nombre</span><span>Puntos</span><span title="Contratos dados de alta">Contr.</span><span>OK</span><span>kW</span><span title="Visitas realizadas">Visitas</span></div>' +
           lista.slice(0, st.tv ? 10 : 15).map(function (x, i) {
-            return '<div class="icc-sala-fila' + (String(x.id) === miId && st.pestana === "comerciales" ? " is-yo" : "") + '" role="row" style="--c:' + colorDe(x.id) + ";--w:" + Math.round((x.puntos / max) * 100) + '%">' +
+            return '<div class="icc-sala-fila' + (x.es_yo || String(x.id) === miId && st.pestana === "comerciales" ? " is-yo" : "") + (x.anonimo ? " is-anonimo" : "") + '" role="row" style="--c:' + colorDe(x.anonimo ? i + 3 : x.id) + ";--w:" + Math.round((x.puntos / max) * 100) + '%">' +
               '<span class="icc-sala-pos">' + (i + 1) + "</span>" +
-              '<span class="icc-sala-nom"><i class="icc-sala-mini" aria-hidden="true">' + esc(iniciales(x.nombre.replace(/^Equipo de /, ""))) + "</i>" + esc(x.nombre) +
+              '<span class="icc-sala-nom"><i class="icc-sala-mini" aria-hidden="true">' + (x.anonimo ? "·" : esc(iniciales(x.nombre.replace(/^Equipo de /, "")))) + "</i>" + esc(x.nombre) + (x.es_yo ? ' <em class="icc-sala-tu">Tú</em>' : "") +
               (x.personas != null ? " <small>" + x.personas + (x.personas === 1 ? " persona" : " personas") + "</small>" : "") + "</span>" +
               '<span class="icc-sala-barra"><i></i><b>' + num(x.puntos) + "</b></span>" +
               "<span>" + num(x.contratos) + "</span><span>" + num(x.ok) + "</span><span>" + num(x.kw, 1) + "</span><span>" + num(x.citas) + "</span></div>";
@@ -360,16 +391,25 @@
       puntos.push({ k: k, d: p });
     });
     var max = Math.max(1, Math.max.apply(null, puntos.map(function (p) { return p.d.puntos || p.d.contratos || 0; }).concat([0])));
+    var late = {};
+    (m.pulsos || []).forEach(function (pv) { var k = claveProv(pv); if (k) late[k] = true; });
+    var conBurbuja = {};
+    puntos.forEach(function (p) { conBurbuja[p.k] = true; });
+    var soloPulso = Object.keys(late).filter(function (k) { return !conBurbuja[k]; }).map(function (k) {
+      var c = xy(PROV[k][0], PROV[k][1]);
+      return '<g class="icc-sala-burbuja is-pulso is-solo"><title>' + esc(PROV[k][2]) + ': actividad reciente</title><circle cx="' + c[0].toFixed(1) + '" cy="' + c[1].toFixed(1) + '" r="6"></circle>' +
+        '<text x="' + c[0].toFixed(1) + '" y="' + (c[1] + 18).toFixed(1) + '" text-anchor="middle">' + esc(PROV[k][2]) + "</text></g>";
+    }).join("");
     var marcas = puntos.map(function (p) {
       var c = xy(PROV[p.k][0], PROV[p.k][1]);
       var valor = p.d.puntos || p.d.contratos || 0;
       var r = 6 + Math.sqrt(valor / max) * 20;
       var titulo = PROV[p.k][2] + ": " + (p.d.oficinas ? p.d.oficinas + (p.d.oficinas === 1 ? " oficina, " : " oficinas, ") : "") + p.d.personas + (p.d.personas === 1 ? " persona" : " personas") + ", " + p.d.contratos + " contratos, " + p.d.puntos + " puntos";
-      return '<g class="icc-sala-burbuja' + (valor && valor === max ? " is-top" : "") + '"><title>' + esc(titulo) + "</title>" +
+      return '<g class="icc-sala-burbuja' + (valor && valor === max ? " is-top" : "") + (late[p.k] ? " is-pulso" : "") + '"><title>' + esc(titulo) + (late[p.k] ? " · actividad en la última hora" : "") + "</title>" +
         '<circle cx="' + c[0].toFixed(1) + '" cy="' + c[1].toFixed(1) + '" r="' + r.toFixed(1) + '"></circle>' +
         '<text x="' + c[0].toFixed(1) + '" y="' + (c[1] + r + 12).toFixed(1) + '" text-anchor="middle">' + esc(PROV[p.k][2]) + "</text></g>";
     }).join("");
-    var vacio = !puntos.length;
+    var vacio = !puntos.length && !soloPulso;
     var w = (14.6 * K).toFixed(0), h = 472;
     return (
       '<div class="icc-sala-bloque-tit"><h2>Mapa de actividad</h2><span class="icc-sala-act">' +
@@ -380,7 +420,7 @@
       ISLAS.map(function (i) { return '<path class="icc-sala-tierra" d="' + camino(i) + '"></path>'; }).join("") +
       '<rect class="icc-sala-recuadro" x="4" y="394" width="150" height="72" rx="8"></rect>' +
       CANARIAS.map(function (p) { var c = xy(p[0], p[1]); return '<circle class="icc-sala-isla" cx="' + c[0].toFixed(1) + '" cy="' + c[1].toFixed(1) + '" r="5"></circle>'; }).join("") +
-      marcas + "</svg>" +
+      marcas + soloPulso + "</svg>" +
       (vacio
         ? '<p class="icc-sala-mapa-vacio">El mapa se llena cuando las oficinas o las fichas de los agentes tienen <b>provincia</b>. ' +
           (window.icc.auth.esAdminOSuperior() ? 'Puedes ponerla en <a href="#/mi-ficha/informacion">las fichas</a>.' : "") + "</p>"
@@ -398,6 +438,8 @@
         repintarRanking();
       });
     });
+    var anun = document.getElementById("sala-anunciar");
+    if (anun) anun.addEventListener("click", modalAnuncios);
     var pant = document.getElementById("sala-pantalla");
     if (pant) {
       pant.addEventListener("click", function () {
@@ -434,6 +476,18 @@
     requestAnimationFrame(paso);
   }
 
+  function contar(n, desde, hasta, dec) {
+    if (reducido()) { n.textContent = num(hasta, dec); return; }
+    var t0 = performance.now();
+    var paso = function (t) {
+      var f = Math.min(1, (t - t0) / 900);
+      var e = 1 - Math.pow(1 - f, 3);
+      n.textContent = num(desde + (hasta - desde) * e, f === 1 ? dec : dec ? 1 : 0);
+      if (f < 1 && st.activa) requestAnimationFrame(paso);
+    };
+    requestAnimationFrame(paso);
+  }
+
   function reloj() {
     var el = document.getElementById("sala-reloj");
     if (!el) return;
@@ -449,9 +503,8 @@
     st.timers.push(setInterval(function () {
       if (!st.activa) return;
       reloj();
-      var act = document.getElementById("sala-act");
-      if (act) act.textContent = "Actualizado " + haceCuanto(st.ahora);
-    }, 15000));
+      pintarActualizado();
+    }, 1000));
     if (st.tv) {
       st.timers.push(setInterval(function () {
         if (!st.activa) return;
@@ -462,14 +515,38 @@
     }
   }
 
+  // "Actualizado hace X s" con el reloj del navegador desde la última respuesta.
+  function pintarActualizado() {
+    var act = document.getElementById("sala-act");
+    if (!act || !st.recibido) return;
+    var s = Math.max(0, Math.round((Date.now() - st.recibido) / 1000));
+    act.textContent = "Actualizado " + (s < 5 ? "ahora mismo" : s < 60 ? "hace " + s + " s" : "hace " + Math.round(s / 60) + " min");
+  }
+  function conexion(ok) {
+    var el = document.getElementById("sala-envivo");
+    if (!el) return;
+    el.classList.toggle("is-offline", !ok);
+    el.querySelector("span").textContent = ok ? "En directo" : "Reconectando…";
+  }
+
   async function refrescar() {
     var r;
     try {
       r = await cargar(st.ahora);
     } catch (err) {
+      conexion(false);
       return; // sin conexión: se reintenta en el siguiente ciclo
     }
     if (!st.activa) return;
+    conexion(true);
+    st.recibido = Date.now();
+    if (r.anuncios) {
+      st.datos.anuncios = r.anuncios;
+      var an = document.getElementById("sala-anuncios");
+      var nuevoHtml = anunciosHtml();
+      if (an) an.outerHTML = nuevoHtml || "<span hidden id=\"sala-anuncios\"></span>";
+      else if (nuevoHtml) { var tk0 = main().querySelector(".icc-sala-ticker"); if (tk0) tk0.insertAdjacentHTML("beforebegin", nuevoHtml); }
+    }
     var nuevos = (r.eventos || []).filter(function (e) { return !st.vistos[e.id]; });
     st.ahora = r.ahora;
     nuevos.forEach(function (e) { st.vistos[e.id] = true; });
@@ -498,8 +575,7 @@
         actualizarNumeros();
       } catch (err) { /* se reintenta */ }
     }
-    var act = document.getElementById("sala-act");
-    if (act) act.textContent = "Actualizado " + haceCuanto(st.ahora);
+    pintarActualizado();
     if (hayContrato) {
       var c = nuevos.filter(esContrato)[0];
       celebrar(c);
@@ -511,14 +587,81 @@
     var k = st.datos.kpis;
     var valores = [k.contratos, k.ok, k.kw, k.citas, k.clientes, k.puntos];
     main().querySelectorAll(".icc-sala-num").forEach(function (n, i) {
-      n.setAttribute("data-valor", valores[i]);
-      n.textContent = num(valores[i], Number(n.getAttribute("data-dec")));
+      var antes = Number(n.getAttribute("data-valor")) || 0;
+      var despues = Number(valores[i]) || 0;
+      n.setAttribute("data-valor", despues);
+      if (antes === despues) return;
+      var kpiEl = n.closest(".icc-sala-kpi");
+      if (kpiEl) { kpiEl.classList.remove("is-sube"); void kpiEl.offsetWidth; kpiEl.classList.add("is-sube"); }
+      contar(n, antes, despues, Number(n.getAttribute("data-dec")));
     });
+    var ia = document.getElementById("sala-ia");
+    if (ia) ia.innerHTML = insightsHtml();
     repintarRanking();
     var o = main().querySelector(".icc-sala-objetivo");
     if (o) o.innerHTML = objetivoHtml();
     var m = main().querySelector(".icc-sala-mapa");
     if (m) m.innerHTML = mapaHtml();
+  }
+
+  // ------------------------------------------------------- Anuncios (dirección)
+  async function modalAnuncios() {
+    var lista = [];
+    try { lista = (await API.get("api/anuncios.php?todos=1")).anuncios || []; } catch (err) { U.toast(err.message || "No se pudieron cargar los anuncios", "error"); return; }
+    var hoy = new Date().toISOString().slice(0, 10);
+    U.openModal(
+      "<h2>📣 Anuncios de dirección</h2>" +
+      '<p class="icc-muted">Lo que escribas aquí lo verá todo el equipo en la cinta en directo, en la sala de ventas y en el mapa. Se retira solo al caducar.</p>' +
+      '<form id="form-anuncio" class="icc-form">' +
+      '<div class="icc-field"><label>Mensaje</label><textarea class="icc-textarea" name="texto" maxlength="280" required placeholder="Ej.: ¡Enhorabuena a … por su venta de …!"></textarea></div>' +
+      '<div class="icc-form-row" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px">' +
+      '<div class="icc-field"><label>Icono</label><select class="icc-select" name="emoji">' +
+      ["🎉", "📣", "🏆", "🔥", "⚡", "📶", "🚀", "⭐"].map(function (e) { return '<option value="' + e + '">' + e + "</option>"; }).join("") + "</select></div>" +
+      '<div class="icc-field"><label>Ciudad (opcional)</label><input class="icc-input" name="ciudad" maxlength="100"></div>' +
+      '<div class="icc-field"><label>Provincia (opcional)</label><input class="icc-input" name="provincia" maxlength="60"></div>' +
+      "</div>" +
+      '<div class="icc-field"><label>Duración</label><select class="icc-select" name="duracion" id="anuncio-dur">' +
+      '<option value="hoy">Solo hoy</option><option value="semana">Toda la semana (7 días)</option><option value="fecha">Hasta una fecha…</option></select></div>' +
+      '<div class="icc-field" id="anuncio-fecha" hidden><label>Hasta el día</label><input class="icc-input" type="date" name="expira" min="' + hoy + '"></div>' +
+      '<div class="icc-modal-actions"><button type="button" class="icc-btn icc-btn-ghost" data-close-btn>Cerrar</button><button type="submit" class="icc-btn icc-btn-primary">Publicar</button></div>' +
+      "</form>" +
+      (lista.length
+        ? '<h3 style="margin-top:20px">Publicados</h3><ul class="icc-sala-anuncios-lista">' + lista.map(function (a) {
+            return '<li class="' + (a.vigente ? "is-vigente" : "") + '"><span>' + esc(a.emoji) + "</span><div><p>" + esc(a.texto) + "</p><small>" +
+              (a.vigente ? "Visible hasta " : new Date(String(a.expira).replace(" ", "T")) < new Date() ? "Caducó el " : "Hasta ") + esc(U.formatFecha(String(a.expira).slice(0, 10))) +
+              (a.autor ? " · " + esc(a.autor) : "") + "</small></div>" +
+              '<button type="button" class="icc-btn icc-btn-ghost icc-btn-sm" data-borrar-anuncio="' + a.id + '">Retirar</button></li>';
+          }).join("") + "</ul>"
+        : "")
+    );
+    var dur = document.getElementById("anuncio-dur");
+    dur.addEventListener("change", function () { document.getElementById("anuncio-fecha").hidden = dur.value !== "fecha"; });
+    document.getElementById("form-anuncio").addEventListener("submit", async function (e) {
+      e.preventDefault();
+      var fd = new FormData(e.target);
+      var body = {};
+      fd.forEach(function (v, k) { body[k] = String(v); });
+      try {
+        await API.post("api/anuncios.php", body);
+        U.toast("Anuncio publicado para todo el equipo", "success");
+        U.closeModal();
+        view();
+      } catch (err) {
+        U.toast(err.message || "No se pudo publicar", "error");
+      }
+    });
+    document.querySelectorAll("[data-borrar-anuncio]").forEach(function (b) {
+      b.addEventListener("click", async function () {
+        try {
+          await API.del("api/anuncios.php?id=" + encodeURIComponent(b.getAttribute("data-borrar-anuncio")));
+          U.toast("Anuncio retirado", "success");
+          U.closeModal();
+          view();
+        } catch (err) {
+          U.toast(err.message || "No se pudo retirar", "error");
+        }
+      });
+    });
   }
 
   // ------------------------------------------------------------ Celebración
@@ -573,5 +716,5 @@
   });
 
   window.icc = window.icc || {};
-  window.icc.sala = { view: view };
+  window.icc.sala = { view: view, textoEvento: evento };
 })();
