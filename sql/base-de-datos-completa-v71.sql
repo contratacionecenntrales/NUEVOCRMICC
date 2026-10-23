@@ -2095,9 +2095,9 @@ SELECT ''luz'', ''2.0TD'', ''mercado'', ''Plenitude'', ''Fácil Plus Luz'', ''fi
 WHERE NOT EXISTS (SELECT 1 FROM cmp_ene_tarifas WHERE comercializadora = ''Plenitude'' AND nombre = ''Fácil Plus Luz'')', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 
--- Juan (juan@integralconnectionconsulting.es) responsable de Maria y su equipo.
+-- Juan (info@ o juan@integralconnectionconsulting.es) responsable de Maria y su equipo.
 UPDATE usuarios m
-  JOIN usuarios j ON j.email = 'juan@integralconnectionconsulting.es'
+  JOIN usuarios j ON j.email IN ('info@integralconnectionconsulting.es', 'juan@integralconnectionconsulting.es')
 SET m.supervisor_id = j.id
 WHERE m.rol = 'jefe_de_equipo'
   AND (m.email = 'maria.alvarez@integralconnectionconsulting.es' OR m.email LIKE 'maria%@integralconnectionconsulting.es');
@@ -2106,7 +2106,7 @@ WHERE m.rol = 'jefe_de_equipo'
 INSERT IGNORE INTO backoffice_agendas (backoffice_id, usuario_id)
 SELECT bo.id, u.id
 FROM usuarios bo
-JOIN usuarios u ON u.email IN ('juan@integralconnectionconsulting.es', 'maria.alvarez@integralconnectionconsulting.es')
+JOIN usuarios u ON u.email IN ('info@integralconnectionconsulting.es', 'juan@integralconnectionconsulting.es', 'maria.alvarez@integralconnectionconsulting.es')
 WHERE bo.rol = 'backoffice' AND bo.email LIKE 'daniela%@integralconnectionconsulting.es';
 
 -- Daniela (Backoffice) lleva todo el equipo de Maria, incluidos los comerciales nuevos.
@@ -2118,10 +2118,10 @@ JOIN usuarios j ON j.rol = 'jefe_de_equipo'
 WHERE bo.rol = 'backoffice' AND bo.email LIKE 'daniela%@integralconnectionconsulting.es';
 
 -- Solo en una instalacion NUEVA (sin ningun usuario): Super Administrador inicial.
---   Email: juan@integralconnectionconsulting.es
+--   Email: info@integralconnectionconsulting.es
 --   Contrasena provisional: CambiaEsta-2026  (el CRM obliga a cambiarla al entrar)
 INSERT INTO usuarios (nombre, email, password_hash, rol, debe_cambiar_password)
-SELECT 'Juan', 'juan@integralconnectionconsulting.es', '$2y$10$7WMr5tB3z4iCZ2EymGUkH.xZOsgQDW1SdF2e5TjYR.dbaPnZpypVi', 'super_admin', 1 FROM DUAL
+SELECT 'Juan', 'info@integralconnectionconsulting.es', '$2y$10$7WMr5tB3z4iCZ2EymGUkH.xZOsgQDW1SdF2e5TjYR.dbaPnZpypVi', 'super_admin', 1 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM usuarios);
 UPDATE usuarios SET numero_relacion = CONCAT('ICC-', LPAD(id, 5, '0')) WHERE numero_relacion IS NULL;
 

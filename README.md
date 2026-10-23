@@ -138,7 +138,7 @@ Todo cambio de estado queda auditado en la tabla `historial_estado`.
 > **Agendas compartidas con Backoffice (v68):** desde Agentes → Backoffice → «comerciales asignados», un Admin puede marcar jefes de equipo o cargos de dirección cuya **agenda** gestiona ese backoffice (p. ej. Daniela agenda a Juan y a María). De esas personas solo ve y edita su agenda —concierta, mueve y edita citas—; no ve sus clientes, contratos, presupuestos, proformas ni informes, y al abrir sus citas no aparece la ficha del cliente. Con sus comerciales asignados lo sigue viendo todo. Requiere `sql/migracion_backoffice_agendas.sql` (deja ya a Daniela con las agendas de Juan y María).
 
 
-> **Gerente** y **Coordinador** (desde la v67) tienen exactamente los mismos poderes que **Administrador**: ven y gestionan todo el negocio, pueden ser responsables de jefes de equipo y, como cualquier Admin, solo un **Super Administrador** puede asignar estos roles o gestionar sus cuentas. Requieren importar `sql/migracion_gerente_coordinador.sql`, que además deja a Juan (juan@integralconnectionconsulting.es) como responsable de María y su equipo.
+> **Gerente** y **Coordinador** (desde la v67) tienen exactamente los mismos poderes que **Administrador**: ven y gestionan todo el negocio, pueden ser responsables de jefes de equipo y, como cualquier Admin, solo un **Super Administrador** puede asignar estos roles o gestionar sus cuentas. Requieren importar `sql/migracion_gerente_coordinador.sql`, que además deja a Juan (info@integralconnectionconsulting.es) como responsable de María y su equipo.
 
 
 - **Comercial / Agente** (por defecto al registrarse): ve y gestiona solo sus
@@ -221,7 +221,7 @@ propio CRM — ya no hace falta volver a tocar la base de datos a mano.
 
 `sql/base-de-datos-completa-v71.sql` deja cualquier base de datos al día para la v71 importándolo una sola vez en phpMyAdmin:
 - Con datos (v55 en adelante): no borra nada; crea solo las tablas, columnas, índices y relaciones que falten y amplía los roles. Deja a Daniela con todo el equipo de María y las agendas de Juan y María.
-- Vacía: crea el CRM completo y un Super Administrador inicial (juan@integralconnectionconsulting.es, contraseña provisional `CambiaEsta-2026`, que el CRM obliga a cambiar).
+- Vacía: crea el CRM completo y un Super Administrador inicial (info@integralconnectionconsulting.es, contraseña provisional `CambiaEsta-2026`, que el CRM obliga a cambiar).
 - Se puede ejecutar varias veces sin errores ni duplicados. Los datos de ejemplo de los comparadores solo se cargan si esas tablas están vacías.
 
 ## Despliegue en Hostalia (hosting con PHP + MySQL)

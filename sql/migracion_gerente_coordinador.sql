@@ -17,7 +17,7 @@ ALTER TABLE usuarios
 -- Juan (juan@integralconnectionconsulting.es) responsable de Maria.
 -- Solo se aplica si Maria es Jefa de equipo; sus comerciales siguen colgando de ella.
 UPDATE usuarios m
-  JOIN usuarios j ON j.email = 'juan@integralconnectionconsulting.es'
+  JOIN usuarios j ON j.email IN ('info@integralconnectionconsulting.es', 'juan@integralconnectionconsulting.es')
 SET m.supervisor_id = j.id
 WHERE m.rol = 'jefe_de_equipo'
   AND (m.email = 'maria.alvarez@integralconnectionconsulting.es' OR m.email LIKE 'maria%@integralconnectionconsulting.es');

@@ -28,5 +28,5 @@ CREATE TABLE IF NOT EXISTS backoffice_agendas (
 INSERT IGNORE INTO backoffice_agendas (backoffice_id, usuario_id)
 SELECT bo.id, u.id
 FROM usuarios bo
-JOIN usuarios u ON u.email IN ('juan@integralconnectionconsulting.es', 'maria.alvarez@integralconnectionconsulting.es')
+JOIN usuarios u ON u.email IN ('info@integralconnectionconsulting.es', 'juan@integralconnectionconsulting.es', 'maria.alvarez@integralconnectionconsulting.es')
 WHERE bo.rol = 'backoffice' AND bo.email LIKE 'daniela%@integralconnectionconsulting.es';
