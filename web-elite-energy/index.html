@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Elite Energy | Compara tarifas de luz y gas</title>
+<meta name="description" content="Elite Energy SL: comparamos más de 90 ofertas de luz y gas para empresas, particulares y comunidades. Sube tu factura y empieza a ahorrar. Gratis.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0b1f3a; --navy-2:#132d52; --gold:#f5b301; --gold-2:#ffcf4d;
+  --ink:#0f172a; --muted:#5b6475; --line:#e5e8ef; --bg:#ffffff; --soft:#f5f7fb;
+  --radius:18px; --shadow:0 12px 40px rgba(11,31,58,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;color:var(--ink);background:var(--bg);line-height:1.6;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+img,svg{display:block;max-width:100%}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+.btn{display:inline-flex;align-items:center;gap:8px;background:var(--gold);color:var(--navy);font-weight:700;padding:14px 26px;border-radius:999px;border:0;cursor:pointer;font-size:16px;transition:transform .15s,background .15s;font-family:inherit}
+.btn:hover{background:var(--gold-2);transform:translateY(-2px)}
+.btn.dark{background:var(--navy);color:#fff}
+.btn.dark:hover{background:var(--navy-2)}
+.eyebrow{display:inline-block;font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);margin-bottom:12px}
+h1,h2,h3{line-height:1.15;letter-spacing:-.02em}
+h2{font-size:clamp(28px,4vw,44px);font-weight:800}
+.hl{color:var(--gold)}
+section{padding:90px 0}
+
+/* Header */
+header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:74px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:22px;color:var(--navy)}
+.logo-mark{width:38px;height:38px;border-radius:11px;background:var(--navy);display:grid;place-items:center}
+.logo small{display:block;font-size:10px;font-weight:600;letter-spacing:.2em;color:var(--muted);margin-top:-4px}
+.menu{display:flex;gap:30px;align-items:center;font-weight:600;font-size:15px}
+.menu a:not(.btn):hover{color:var(--gold)}
+.burger{display:none;background:none;border:0;cursor:pointer;padding:6px}
+@media (max-width:900px){
+  .menu{position:absolute;top:74px;left:0;right:0;background:#fff;flex-direction:column;padding:20px;gap:18px;border-bottom:1px solid var(--line);display:none}
+  .menu.open{display:flex}
+  .burger{display:block}
+}
+
+/* Hero */
+.hero{background:radial-gradient(1200px 500px at 85% -10%,#1d3f70 0%,transparent 60%),var(--navy);color:#fff;padding:80px 0 110px;position:relative;overflow:hidden}
+.hero-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:50px;align-items:center}
+.hero h1{font-size:clamp(36px,5.6vw,64px);font-weight:800}
+.hero p.lead{font-size:20px;color:#c9d4e6;margin:20px 0 30px;max-width:520px}
+.badges{display:flex;gap:18px;flex-wrap:wrap;margin-top:28px;color:#c9d4e6;font-size:14px}
+.badges span{display:flex;align-items:center;gap:8px}
+.hero-card{background:#fff;color:var(--ink);border-radius:24px;padding:30px;box-shadow:0 30px 70px rgba(0,0,0,.35)}
+.hero-card h3{font-size:22px;margin-bottom:6px}
+.hero-card p{color:var(--muted);font-size:14px;margin-bottom:18px}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.seg label{border:2px solid var(--line);border-radius:14px;padding:14px 6px;text-align:center;cursor:pointer;font-size:13px;font-weight:600;transition:.15s}
+.seg label svg{margin:0 auto 6px}
+.seg input{display:none}
+.seg input:checked+label{border-color:var(--gold);background:#fff8e1}
+.drop{display:block;border:2px dashed #c7cedb;border-radius:14px;padding:22px;text-align:center;cursor:pointer;font-size:14px;color:var(--muted);transition:.15s;margin-bottom:12px}
+.drop:hover,.drop.over{border-color:var(--gold);background:#fffbef}
+.drop strong{color:var(--navy)}
+.field{width:100%;padding:13px 14px;border:1.5px solid var(--line);border-radius:12px;font:inherit;font-size:15px;margin-bottom:10px}
+.field:focus{outline:none;border-color:var(--gold)}
+.hero-card .btn{width:100%;justify-content:center}
+.tiny{font-size:12px;color:var(--muted);margin-top:10px;text-align:center}
+.ok{display:none;background:#ecfdf3;color:#067647;border-radius:12px;padding:14px;font-size:14px;margin-top:12px}
+@media (max-width:900px){.hero-grid{grid-template-columns:1fr}}
+
+/* Segments strip */
+.strip{margin-top:-60px;position:relative;z-index:2;padding:0}
+.strip-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.strip-item{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:26px;display:flex;gap:16px;align-items:center}
+.ico{width:54px;height:54px;flex:none;border-radius:14px;background:#fff4cc;display:grid;place-items:center}
+.strip-item h3{font-size:18px}
+.strip-item p{color:var(--muted);font-size:14px}
+@media (max-width:800px){.strip-grid{grid-template-columns:1fr}}
+
+/* Benefits */
+.center{text-align:center;max-width:720px;margin:0 auto 50px}
+.center p{color:var(--muted);font-size:18px;margin-top:14px}
+.benefits{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.benefit{border:1px solid var(--line);border-radius:var(--radius);padding:32px;transition:.2s;background:#fff}
+.benefit:hover{transform:translateY(-6px);box-shadow:var(--shadow);border-color:transparent}
+.benefit .num{font-size:14px;font-weight:800;color:var(--gold);margin-bottom:16px}
+.benefit h3{font-size:22px;margin:16px 0 10px}
+.benefit p{color:var(--muted)}
+@media (max-width:900px){.benefits{grid-template-columns:1fr}}
+
+/* Problems */
+.problems{background:var(--soft)}
+.prob-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:60px;align-items:start}
+.prob-grid>div:first-child p{color:var(--muted);font-size:18px;margin-top:18px}
+.acc{border-bottom:1px solid #dfe3ea}
+.acc button{width:100%;background:none;border:0;text-align:left;padding:22px 0;font:inherit;font-size:19px;font-weight:700;display:flex;justify-content:space-between;align-items:center;cursor:pointer;color:var(--ink)}
+.acc button span.pl{width:30px;height:30px;border-radius:50%;background:#fff;display:grid;place-items:center;transition:.2s;flex:none}
+.acc.open button span.pl{transform:rotate(45deg);background:var(--gold)}
+.acc .body{max-height:0;overflow:hidden;transition:max-height .3s;color:var(--muted)}
+.acc.open .body{max-height:220px}
+.acc .body p{padding-bottom:22px}
+@media (max-width:900px){.prob-grid{grid-template-columns:1fr;gap:30px}}
+
+/* Steps */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;counter-reset:s}
+.step{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:28px;position:relative}
+.step::before{counter-increment:s;content:counter(s);position:absolute;top:22px;right:24px;font-size:42px;font-weight:800;color:#eef1f6}
+.step h3{font-size:18px;margin:16px 0 6px;position:relative}
+.step p{color:var(--muted);font-size:15px;position:relative}
+.cta-row{text-align:center;margin-top:40px}
+@media (max-width:900px){.steps{grid-template-columns:1fr 1fr}}
+@media (max-width:560px){.steps{grid-template-columns:1fr}}
+
+/* Stats + testimonials */
+.dark{background:var(--navy);color:#fff}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-bottom:60px}
+.stat{text-align:center;padding:20px;border-radius:var(--radius);background:rgba(255,255,255,.05)}
+.stat b{display:block;font-size:clamp(30px,4vw,44px);color:var(--gold);font-weight:800}
+.stat span{color:#c9d4e6;font-size:14px}
+@media (max-width:800px){.stats{grid-template-columns:1fr 1fr}}
+.testis{display:flex;gap:22px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:10px}
+.testi{flex:0 0 340px;scroll-snap-align:start;background:#fff;color:var(--ink);border-radius:var(--radius);padding:28px}
+.stars{color:var(--gold);letter-spacing:2px;margin-bottom:12px}
+.testi p{font-size:16px;margin-bottom:18px}
+.testi b{display:block}
+.testi small{color:var(--muted)}
+@media (max-width:420px){.testi{flex-basis:85%}}
+
+/* Blog */
+.posts{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.post{border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;transition:.2s}
+.post:hover{box-shadow:var(--shadow);transform:translateY(-4px)}
+.post .thumb{height:140px;background:linear-gradient(135deg,var(--navy),#2a5aa0)}
+.post:nth-child(2) .thumb{background:linear-gradient(135deg,#f5b301,#ff8a00)}
+.post:nth-child(3) .thumb{background:linear-gradient(135deg,#0f766e,#22c55e)}
+.post:nth-child(4) .thumb{background:linear-gradient(135deg,#4338ca,#0ea5e9)}
+.post div.c{padding:20px}
+.post .tag{font-size:12px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.06em}
+.post h3{font-size:16px;margin-top:8px}
+@media (max-width:1000px){.posts{grid-template-columns:1fr 1fr}}
+@media (max-width:560px){.posts{grid-template-columns:1fr}}
+
+/* Final CTA */
+.final{padding:0 0 90px}
+.final-box{background:linear-gradient(120deg,var(--gold),#ffd24d);border-radius:28px;padding:56px;display:flex;justify-content:space-between;align-items:center;gap:30px;flex-wrap:wrap}
+.final-box h2{color:var(--navy);max-width:600px}
+.final-box p{color:#3b3000;margin-top:10px}
+@media (max-width:560px){.final-box{padding:34px 24px}}
+
+/* Footer */
+footer{background:#071629;color:#aab6c8;padding:70px 0 30px;font-size:15px}
+.foot{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:40px}
+footer h4{color:#fff;margin-bottom:16px;font-size:16px}
+footer li{list-style:none;margin-bottom:10px}
+footer a:hover{color:var(--gold)}
+footer .logo{color:#fff;margin-bottom:16px}
+footer .logo-mark{background:var(--gold)}
+.social{display:flex;gap:10px;margin-top:18px}
+.social a{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.08);display:grid;place-items:center}
+.legal{border-top:1px solid rgba(255,255,255,.08);margin-top:50px;padding-top:24px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;font-size:13px}
+.legal a{margin-left:14px}
+@media (max-width:900px){.foot{grid-template-columns:1fr 1fr}}
+@media (max-width:520px){.foot{grid-template-columns:1fr}}
+
+/* Cookies */
+.cookies{position:fixed;left:16px;right:16px;bottom:16px;max-width:520px;background:#fff;border-radius:16px;box-shadow:0 20px 50px rgba(0,0,0,.25);padding:20px;z-index:100;display:none;font-size:14px}
+.cookies .row{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+.cookies .btn{padding:10px 18px;font-size:14px}
+.btn.ghost{background:transparent;border:1.5px solid var(--line);color:var(--ink)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a href="#" class="logo" aria-label="Elite Energy inicio">
+      <span class="logo-mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="#f5b301"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></span>
+      <span>Elite Energy<small>ENERGÍA INTELIGENTE</small></span>
+    </a>
+    <button class="burger" aria-label="Abrir menú" onclick="document.getElementById('menu').classList.toggle('open')">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0b1f3a" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+    <nav class="menu" id="menu">
+      <a href="#empresas">Para empresas</a>
+      <a href="#como">Luz y gas</a>
+      <a href="#blog">Blog</a>
+      <a href="#contacto">Contacto</a>
+      <a href="#contacto">Colaboradores</a>
+      <a href="#comparar" class="btn">Comparar</a>
+    </nav>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero" id="comparar">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="eyebrow">Comparador de tarifas · 100% gratuito</span>
+      <h1>Ahorrar en tu factura de luz <span class="hl">nunca fue tan fácil.</span></h1>
+      <p class="lead">Sube tu factura y en segundos te mostramos las mejores ofertas del mercado. Sin papeleos, sin esperas y sin compromiso.</p>
+      <a href="#comparar-form" class="btn">Empieza a ahorrar
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      <div class="badges">
+        <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f5b301" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>+50 comercializadoras</span>
+        <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f5b301" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>Contratación online</span>
+        <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f5b301" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>Sin llamadas no deseadas</span>
+      </div>
+    </div>
+
+    <form class="hero-card" id="comparar-form" onsubmit="return enviar(event)">
+      <h3>Calcula tu ahorro</h3>
+      <p>Elige tu perfil y adjunta tu última factura.</p>
+      <div class="seg">
+        <input type="radio" name="perfil" id="p1" value="Empresa" checked>
+        <label for="p1"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0b1f3a" stroke-width="1.8"><path d="M3 21h18M5 21V7l7-4v18M19 21V11l-7-4M9 9h.01M9 13h.01M9 17h.01"/></svg>Empresa</label>
+        <input type="radio" name="perfil" id="p2" value="Particular">
+        <label for="p2"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0b1f3a" stroke-width="1.8"><path d="m3 11 9-8 9 8M5 9v12h14V9M10 21v-6h4v6"/></svg>Particular</label>
+        <input type="radio" name="perfil" id="p3" value="Comunidad">
+        <label for="p3"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0b1f3a" stroke-width="1.8"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M15 14.5c3 0 6 1.8 6 5.5"/></svg>Comunidad</label>
+      </div>
+      <label class="drop" id="drop">
+        <input type="file" id="factura" name="factura" accept=".pdf,image/*" hidden>
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#f5b301" stroke-width="2" style="margin:0 auto 6px"><path d="M12 16V4M6 10l6-6 6 6M4 20h16"/></svg>
+        <span id="dropTxt"><strong>Sube tu factura</strong> o arrástrala aquí<br>PDF o foto</span>
+      </label>
+      <input class="field" type="text" name="nombre" placeholder="Nombre y apellidos" required>
+      <input class="field" type="tel" name="telefono" placeholder="Teléfono" required pattern="[0-9 +]{9,15}">
+      <input class="field" type="email" name="email" placeholder="Email" required>
+      <button class="btn dark" type="submit">Comparar ahora</button>
+      <div class="ok" id="ok">¡Recibido! Te enviaremos tu comparativa personalizada en breve.</div>
+      <p class="tiny">Al enviar aceptas nuestra <a href="#" style="text-decoration:underline">política de privacidad</a>.</p>
+    </form>
+  </div>
+</section>
+
+<!-- SEGMENTS -->
+<section class="strip" id="empresas">
+  <div class="wrap strip-grid">
+    <div class="strip-item">
+      <div class="ico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0b1f3a" stroke-width="1.8"><path d="M3 21h18M5 21V7l7-4v18M19 21V11l-7-4"/></svg></div>
+      <div><h3>Empresas</h3><p>Tarifas 3.0TD y 6.1TD, optimización de potencia y precios indexados o fijos.</p></div>
+    </div>
+    <div class="strip-item">
+      <div class="ico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0b1f3a" stroke-width="1.8"><path d="m3 11 9-8 9 8M5 9v12h14V9"/></svg></div>
+      <div><h3>Particulares</h3><p>Encuentra la tarifa 2.0TD que mejor encaja con tus hábitos de consumo.</p></div>
+    </div>
+    <div class="strip-item">
+      <div class="ico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0b1f3a" stroke-width="1.8"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M17 11a3 3 0 1 0 0-6M21 20c0-3-1.8-5-4-5.6"/></svg></div>
+      <div><h3>Comunidades de propietarios</h3><p>Zonas comunes, ascensores, garajes y calefacción central.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- BENEFITS -->
+<section>
+  <div class="wrap">
+    <div class="center">
+      <span class="eyebrow">Comparamos en más de 50 compañías</span>
+      <h2>Elige la tarifa ideal para ti</h2>
+    </div>
+    <div class="benefits">
+      <div class="benefit">
+        <div class="ico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0b1f3a" stroke-width="1.8"><path d="M3 3v18h18M7 15l4-4 3 3 5-6"/></svg></div>
+        <h3>Compara +90 ofertas</h3>
+        <p>Adjunta tu factura y obtén en segundos las ofertas que mejor encajan con tu consumo real.</p>
+      </div>
+      <div class="benefit">
+        <div class="ico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0b1f3a" stroke-width="1.8"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></div>
+        <h3>Contrata al instante</h3>
+        <p>Contratación 100% online para cualquier tarifa: hogar, pyme o gran empresa.</p>
+      </div>
+      <div class="benefit">
+        <div class="ico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0b1f3a" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1 1.7 3 2 3 1 3 2.2-1.3 1.8-3 1.8c-1.4 0-2.5-.5-3-1.5M12 6v2M12 16v2"/></svg></div>
+        <h3>Empieza a ahorrar</h3>
+        <p>Buscamos las mejores condiciones para conseguirte entre un 15% y un 40% de descuento. Gratis.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROBLEMS -->
+<section class="problems">
+  <div class="wrap prob-grid">
+    <div>
+      <span class="eyebrow">Por qué Elite Energy</span>
+      <h2>Problemas que solucionamos en <span class="hl">Elite Energy</span></h2>
+      <p>Cada hogar y cada empresa son distintos y merecen acceder a la mejor oferta de energía. Simplificamos la elección y te damos la información que necesitas para decidir con criterio.</p>
+    </div>
+    <div>
+      <div class="acc open"><button type="button">Explora y compara<span class="pl"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0b1f3a" stroke-width="3"><path d="M12 5v14M5 12h14"/></svg></span></button>
+        <div class="body"><p>Accede a ofertas de las principales comercializadoras y filtra por lo que te importa: precio, permanencia, tipo de contrato o energía 100% renovable.</p></div></div>
+      <div class="acc"><button type="button">Información clara y transparente<span class="pl"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0b1f3a" stroke-width="3"><path d="M12 5v14M5 12h14"/></svg></span></button>
+        <div class="body"><p>Sin letra pequeña: te explicamos cada término de tu factura y cada condición de la nueva oferta antes de que firmes.</p></div></div>
+      <div class="acc"><button type="button">Análisis personalizado<span class="pl"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0b1f3a" stroke-width="3"><path d="M12 5v14M5 12h14"/></svg></span></button>
+        <div class="body"><p>Estudiamos tus consumos por periodo y tu potencia contratada para detectar sobrecostes y recomendarte el ajuste óptimo.</p></div></div>
+      <div class="acc"><button type="button">Compromiso con la sostenibilidad<span class="pl"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0b1f3a" stroke-width="3"><path d="M12 5v14M5 12h14"/></svg></span></button>
+        <div class="body"><p>Te ayudamos a pasarte a energía con garantía de origen renovable y a valorar el autoconsumo solar.</p></div></div>
+      <div class="acc"><button type="button">Atención al cliente cercana<span class="pl"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0b1f3a" stroke-width="3"><path d="M12 5v14M5 12h14"/></svg></span></button>
+        <div class="body"><p>Un asesor de Elite Energy te acompaña durante todo el proceso, por el canal que prefieras.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW -->
+<section id="como">
+  <div class="wrap">
+    <div class="center">
+      <span class="eyebrow">Cómo lo hacemos</span>
+      <h2>Así conseguimos la mejor comparativa para ti</h2>
+      <p>Analizamos tu factura, consumos y potencias para darte una oferta a medida.</p>
+    </div>
+    <div class="steps">
+      <div class="step"><div class="ico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0b1f3a" stroke-width="1.8"><path d="M14 3H6v18h12V7zM14 3v4h4M9 13h6M9 17h6"/></svg></div><h3>Adjunta tu factura</h3><p>Nosotros extraemos automáticamente los datos importantes.</p></div>
+      <div class="step"><div class="ico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0b1f3a" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg></div><h3>Recibe tu comparativa</h3><p>Información clara y transparente de cada oferta.</p></div>
+      <div class="step"><div class="ico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0b1f3a" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg></div><h3>Completa tus datos</h3><p>Titular, punto de suministro (CUPS) y datos de pago.</p></div>
+      <div class="step"><div class="ico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0b1f3a" stroke-width="1.8"><path d="M3 17c3-1 4-6 6-6s1 5 3 5 2-3 4-3 3 2 5 2M3 21h18"/></svg></div><h3>Firma 100% online</h3><p>Desde el móvil o el ordenador, en un par de minutos.</p></div>
+      <div class="step"><div class="ico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0b1f3a" stroke-width="1.8"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg></div><h3>Tú decides el contacto</h3><p>Sin llamadas si no quieres. Si prefieres un agente por teléfono, también.</p></div>
+      <div class="step"><div class="ico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0b1f3a" stroke-width="1.8"><path d="M19 5 5 19M7 9a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM17 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></svg></div><h3>Ahorra desde el primer mes</h3><p>Entre un 15% y un 40% de descuento en tu factura.</p></div>
+    </div>
+    <div class="cta-row"><a href="#comparar-form" class="btn dark">Comparar ahora</a></div>
+  </div>
+</section>
+
+<!-- STATS + TESTIMONIALS -->
+<section class="dark">
+  <div class="wrap">
+    <div class="stats">
+      <div class="stat"><b>+50</b><span>comercializadoras comparadas</span></div>
+      <div class="stat"><b>+90</b><span>ofertas analizadas</span></div>
+      <div class="stat"><b>15–40%</b><span>de ahorro habitual</span></div>
+      <div class="stat"><b>0 €</b><span>coste del servicio</span></div>
+    </div>
+    <div class="center" style="margin-bottom:36px">
+      <span class="eyebrow">Opiniones</span>
+      <h2>Nuestros clientes te lo cuentan</h2>
+    </div>
+    <!-- Sustituir por opiniones reales de clientes de Elite Energy -->
+    <div class="testis">
+      <div class="testi"><div class="stars">★★★★★</div><p>"[Opinión de cliente: ahorro conseguido y experiencia con Elite Energy.]"</p><b>[Nombre del cliente]</b><small>[Empresa · Ciudad]</small></div>
+      <div class="testi"><div class="stars">★★★★★</div><p>"[Opinión de cliente: rapidez del proceso de contratación.]"</p><b>[Nombre del cliente]</b><small>[Empresa · Ciudad]</small></div>
+      <div class="testi"><div class="stars">★★★★★</div><p>"[Opinión de cliente: atención del asesor.]"</p><b>[Nombre del cliente]</b><small>[Empresa · Ciudad]</small></div>
+      <div class="testi"><div class="stars">★★★★★</div><p>"[Opinión de cliente: reducción de costes en el negocio.]"</p><b>[Nombre del cliente]</b><small>[Empresa · Ciudad]</small></div>
+    </div>
+  </div>
+</section>
+
+<!-- BLOG -->
+<section id="blog">
+  <div class="wrap">
+    <div class="center">
+      <span class="eyebrow">Últimas noticias</span>
+      <h2>Revisa nuestras novedades</h2>
+    </div>
+    <div class="posts">
+      <a href="#" class="post"><div class="thumb"></div><div class="c"><span class="tag">Empresas</span><h3>Cómo ajustar la potencia contratada para dejar de pagar de más</h3></div></a>
+      <a href="#" class="post"><div class="thumb"></div><div class="c"><span class="tag">Hogar</span><h3>Precio fijo o indexado: qué tarifa te conviene en 2026</h3></div></a>
+      <a href="#" class="post"><div class="thumb"></div><div class="c"><span class="tag">Autoconsumo</span><h3>Placas solares en comunidades: pasos para aprobarlo en junta</h3></div></a>
+      <a href="#" class="post"><div class="thumb"></div><div class="c"><span class="tag">Normativa</span><h3>Entiende tu factura de luz línea a línea</h3></div></a>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="final">
+  <div class="wrap">
+    <div class="final-box">
+      <div>
+        <h2>¿Listo para pagar menos por tu energía?</h2>
+        <p>Sube tu factura y recibe tu comparativa gratuita hoy mismo.</p>
+      </div>
+      <a href="#comparar-form" class="btn dark">Empieza a ahorrar</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer id="contacto">
+  <div class="wrap">
+    <div class="foot">
+      <div>
+        <a href="#" class="logo"><span class="logo-mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="#0b1f3a"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></span>Elite Energy</a>
+        <p>Nos comprometemos a reducir la factura de nuestros clientes con los mejores servicios y productos energéticos del mercado.</p>
+        <div class="social">
+          <a href="#" aria-label="LinkedIn"><svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M4 3a2 2 0 1 1 0 4 2 2 0 0 1 0-4zM3 9h3v12H3zM9 9h3v1.7c.5-.9 1.7-1.9 3.6-1.9 3.4 0 4.4 2 4.4 5.3V21h-3v-6c0-1.5-.3-3-2.2-3S12 13.5 12 15v6H9z"/></svg></a>
+          <a href="#" aria-label="Instagram"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/></svg></a>
+          <a href="#" aria-label="Facebook"><svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M14 8h3V4h-3c-2.8 0-4 1.8-4 4v2H7v4h3v8h4v-8h3l1-4h-4V8.5c0-.3.2-.5.5-.5z"/></svg></a>
+        </div>
+      </div>
+      <div>
+        <h4>Servicios</h4>
+        <ul>
+          <li><a href="#comparar">Comparativa y contratación</a></li>
+          <li><a href="#como">Optimización de potencia</a></li>
+          <li><a href="#como">Estudios de eficiencia energética</a></li>
+          <li><a href="#como">Transición a renovables</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Elite Energy</h4>
+        <ul>
+          <li><a href="#">Eficiencia energética</a></li>
+          <li><a href="#">Autoconsumo</a></li>
+          <li><a href="#blog">Blog</a></li>
+          <li><a href="#comparar">Comparador</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Contacto</h4>
+        <ul>
+          <li><a href="mailto:info@eliteenergy.es">info@eliteenergy.es</a></li>
+          <li><a href="tel:+34900000000">900 000 000</a></li>
+          <li>Elite Energy SL</li>
+          <li>CIF: B-00000000</li>
+        </ul>
+      </div>
+    </div>
+    <div class="legal">
+      <span>© <span id="y">2026</span> Elite Energy SL. Todos los derechos reservados.</span>
+      <span><a href="#">Aviso legal</a><a href="#">Política de privacidad</a><a href="#">Política de cookies</a></span>
+    </div>
+  </div>
+</footer>
+
+<div class="cookies" id="cookies">
+  <b>Usamos cookies</b>
+  <p style="color:var(--muted);margin-top:6px">Utilizamos cookies propias y de terceros para mejorar tu experiencia y analizar el uso de la web.</p>
+  <div class="row">
+    <button class="btn" onclick="cookies(1)">Aceptar</button>
+    <button class="btn ghost" onclick="cookies(0)">Rechazar</button>
+  </div>
+</div>
+
+<script>
+// Acordeón
+document.querySelectorAll('.acc button').forEach(b=>b.addEventListener('click',()=>{
+  const a=b.parentElement, open=a.classList.contains('open');
+  document.querySelectorAll('.acc').forEach(x=>x.classList.remove('open'));
+  if(!open)a.classList.add('open');
+}));
+// Subida de factura
+const drop=document.getElementById('drop'),file=document.getElementById('factura'),txt=document.getElementById('dropTxt');
+const show=f=>{if(f)txt.innerHTML='<strong>'+f.name.replace(/[<>&]/g,'')+'</strong><br>Factura lista';};
+file.addEventListener('change',()=>show(file.files[0]));
+['dragover','dragenter'].forEach(e=>drop.addEventListener(e,ev=>{ev.preventDefault();drop.classList.add('over')}));
+['dragleave','drop'].forEach(e=>drop.addEventListener(e,ev=>{ev.preventDefault();drop.classList.remove('over')}));
+drop.addEventListener('drop',ev=>{if(ev.dataTransfer.files.length){file.files=ev.dataTransfer.files;show(file.files[0]);}});
+// Envío del formulario: conectar aquí con el CRM / backend
+function enviar(e){
+  e.preventDefault();
+  document.getElementById('ok').style.display='block';
+  e.target.reset(); txt.innerHTML='<strong>Sube tu factura</strong> o arrástrala aquí<br>PDF o foto';
+  return false;
+}
+// Cookies
+function cookies(v){try{localStorage.setItem('ee_cookies',v)}catch(e){} document.getElementById('cookies').style.display='none';}
+try{if(localStorage.getItem('ee_cookies')===null)document.getElementById('cookies').style.display='block'}catch(e){document.getElementById('cookies').style.display='block'}
+document.getElementById('y').textContent=new Date().getFullYear();
+</script>
+</body>
+</html>
