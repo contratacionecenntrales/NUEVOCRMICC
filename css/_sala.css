@@ -1,0 +1,244 @@
+/* Sala de ventas en directo (#/sala-ventas) — js/sala.js */
+
+.icc-sala { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.icc-sala * { box-sizing: border-box; }
+.icc-sala h1, .icc-sala h2 { margin: 0; }
+
+/* ---------- Hero ---------- */
+.icc-sala-hero {
+  position: relative; overflow: hidden;
+  display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px;
+  padding: 26px 26px 22px; border-radius: var(--radius); border: 1px solid var(--line);
+  background:
+    radial-gradient(120% 140% at 0% 0%, rgba(34, 211, 238, .18), transparent 55%),
+    radial-gradient(90% 120% at 100% 100%, rgba(16, 185, 129, .16), transparent 60%),
+    linear-gradient(135deg, #12203A, var(--card));
+  box-shadow: var(--shadow);
+}
+.icc-sala-hero::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, .05) 45%, transparent 60%);
+  background-size: 250% 100%; animation: icc-sala-brillo 7s linear infinite;
+}
+.icc-sala-hero-txt { min-width: 0; flex: 1 1 320px; position: relative; z-index: 1; }
+.icc-sala-hero-txt h1 { font-size: clamp(26px, 4vw, 40px); letter-spacing: -.02em; line-height: 1.1; margin: 8px 0 6px; }
+.icc-sala-hero-res { margin: 0; color: var(--txt-2); font-size: 15px; }
+.icc-sala-hero-res b { color: var(--txt); }
+.icc-sala-hero-acc { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; position: relative; z-index: 1; }
+
+.icc-sala-envivo {
+  display: inline-flex; align-items: center; gap: 8px; padding: 4px 11px; border-radius: 999px;
+  font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  color: #FCA5A5; background: rgba(248, 113, 113, .12); border: 1px solid rgba(248, 113, 113, .35);
+}
+.icc-sala-envivo i { width: 8px; height: 8px; border-radius: 50%; background: var(--red); box-shadow: 0 0 0 0 rgba(248, 113, 113, .7); animation: icc-sala-latido 1.6s infinite; }
+.icc-sala-reloj { font-variant-numeric: tabular-nums; font-size: 22px; font-weight: 700; color: var(--txt); padding: 0 6px; }
+
+.icc-sala-periodos { display: inline-flex; padding: 3px; border-radius: 999px; background: rgba(0, 0, 0, .3); border: 1px solid var(--line); }
+.icc-sala-periodo { padding: 6px 14px; border-radius: 999px; color: var(--txt-2); text-decoration: none; font-weight: 600; font-size: 14px; }
+.icc-sala-periodo:hover { color: var(--txt); }
+.icc-sala-periodo.is-activo { background: var(--accent); color: #04130D; }
+
+/* ---------- Ticker ---------- */
+.icc-sala-ticker {
+  position: relative; overflow: hidden; border-radius: var(--radius-sm); border: 1px solid var(--line);
+  background: var(--card-2); padding: 10px 0;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+}
+.icc-sala-ticker-pista { display: inline-flex; gap: 34px; white-space: nowrap; padding-right: 34px; animation: icc-sala-desliza 80s linear infinite; }
+.icc-sala-ticker:hover .icc-sala-ticker-pista { animation-play-state: paused; }
+.icc-sala-ticker-item { display: inline-flex; align-items: center; gap: 8px; color: var(--txt-2); font-size: 14px; }
+.icc-sala-ticker-item i { font-style: normal; }
+.icc-sala-ticker-item b, .icc-sala-ticker-item strong { color: var(--txt); }
+.icc-sala-ticker-item small { color: var(--txt-3); }
+.icc-sala-ticker-item a { color: var(--cian); text-decoration: none; }
+
+/* ---------- KPIs ---------- */
+.icc-sala-kpis { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; }
+.icc-sala-kpi {
+  --c: var(--accent);
+  position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 2px; min-width: 0;
+  padding: 14px 16px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--card);
+  color: var(--txt-2); text-decoration: none; font-size: 13px;
+  transition: transform .18s ease, border-color .18s ease;
+}
+.icc-sala-kpi::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--c); }
+.icc-sala-kpi::after { content: ""; position: absolute; right: -30px; top: -30px; width: 90px; height: 90px; border-radius: 50%; background: var(--c); opacity: .09; }
+a.icc-sala-kpi:hover { transform: translateY(-2px); border-color: var(--c); }
+.icc-sala-kpi-ico { font-size: 18px; }
+.icc-sala-num { font-size: 30px; font-weight: 800; color: var(--txt); font-variant-numeric: tabular-nums; letter-spacing: -.02em; line-height: 1.15; }
+
+/* ---------- Rejilla ---------- */
+.icc-sala-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, .95fr); gap: 16px; align-items: start; }
+.icc-sala-col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.icc-sala-bloque { min-width: 0; padding: 18px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--card); box-shadow: var(--shadow); }
+.icc-sala-bloque-tit { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
+.icc-sala-bloque-tit h2 { font-size: 17px; }
+.icc-sala-act, .icc-sala-mipos { font-size: 12px; color: var(--txt-3); }
+.icc-sala-mipos b { color: var(--accent); font-size: 14px; }
+.icc-sala-vacio { color: var(--txt-3); font-size: 14px; padding: 14px 4px; margin: 0; list-style: none; }
+
+/* ---------- Ranking ---------- */
+.icc-sala-tabs { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+.icc-sala-tab { font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--txt-2); }
+.icc-sala-tab:hover { color: var(--txt); }
+.icc-sala-tab.is-activo { background: rgba(34, 211, 238, .14); border-color: rgba(34, 211, 238, .5); color: var(--cian); }
+
+.icc-sala-podio { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: end; gap: 10px; margin: 6px 0 18px; }
+.icc-sala-escalon { --c: var(--accent); display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; text-align: center; animation: icc-sala-sube .7s cubic-bezier(.2, .9, .3, 1.2) both; }
+.icc-sala-escalon.is-1 { animation-delay: .25s; }
+.icc-sala-escalon.is-3 { animation-delay: .1s; }
+.icc-sala-escalon strong { font-size: 14px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.icc-sala-medalla { font-size: 26px; line-height: 1; }
+.icc-sala-escalon.is-1 .icc-sala-medalla { font-size: 34px; filter: drop-shadow(0 0 10px rgba(212, 166, 42, .6)); }
+.icc-sala-ava {
+  display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%;
+  font-weight: 800; color: #06121E; background: var(--c); box-shadow: 0 0 0 3px var(--card), 0 0 0 5px var(--c);
+}
+.icc-sala-escalon.is-1 .icc-sala-ava { width: 60px; height: 60px; font-size: 18px; }
+.icc-sala-pts { font-size: 13px; color: var(--txt-2); font-variant-numeric: tabular-nums; }
+.icc-sala-peana {
+  width: 100%; display: grid; place-items: center; margin-top: 6px; border-radius: 10px 10px 4px 4px;
+  font-size: 22px; font-weight: 800; color: rgba(255, 255, 255, .85);
+  background: linear-gradient(180deg, rgba(255, 255, 255, .12), rgba(255, 255, 255, .03)); border: 1px solid var(--line);
+}
+.icc-sala-escalon.is-1 .icc-sala-peana { height: 92px; background: linear-gradient(180deg, rgba(212, 166, 42, .45), rgba(212, 166, 42, .08)); border-color: rgba(212, 166, 42, .55); }
+.icc-sala-escalon.is-2 .icc-sala-peana { height: 66px; background: linear-gradient(180deg, rgba(203, 213, 225, .35), rgba(203, 213, 225, .05)); }
+.icc-sala-escalon.is-3 .icc-sala-peana { height: 48px; background: linear-gradient(180deg, rgba(205, 127, 50, .4), rgba(205, 127, 50, .06)); }
+
+.icc-sala-tabla { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+.icc-sala-fila {
+  --c: var(--accent); --w: 0%;
+  display: grid; grid-template-columns: 26px minmax(0, 1.5fr) minmax(0, 1.3fr) repeat(4, 46px); align-items: center; gap: 8px;
+  padding: 7px 8px; border-radius: 8px; font-variant-numeric: tabular-nums;
+}
+.icc-sala-fila > span:nth-child(n+4) { text-align: right; color: var(--txt-2); }
+.icc-sala-fila:not(.is-cab):hover { background: rgba(255, 255, 255, .03); }
+.icc-sala-fila.is-cab { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--txt-3); padding-top: 0; padding-bottom: 2px; }
+.icc-sala-fila.is-yo { background: rgba(16, 185, 129, .1); box-shadow: inset 0 0 0 1px rgba(16, 185, 129, .45); }
+.icc-sala-pos { color: var(--txt-3); font-weight: 700; text-align: center; }
+.icc-sala-nom { display: flex; align-items: center; gap: 8px; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: var(--txt); }
+.icc-sala-nom small { color: var(--txt-3); }
+.icc-sala-mini { flex: 0 0 auto; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; font-style: normal; font-size: 10px; font-weight: 800; color: #06121E; background: var(--c); }
+.icc-sala-barra { position: relative; display: flex; align-items: center; height: 20px; min-width: 0; border-radius: 6px; background: rgba(255, 255, 255, .04); overflow: hidden; }
+.icc-sala-barra i { position: absolute; inset: 0 auto 0 0; width: var(--w); border-radius: 6px; background: linear-gradient(90deg, color-mix(in srgb, var(--c) 35%, transparent), var(--c)); animation: icc-sala-crece 1s ease-out both; }
+.icc-sala-barra b { position: relative; padding-left: 8px; font-size: 12px; color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, .6); }
+
+/* ---------- Objetivo ---------- */
+.icc-sala-obj { display: flex; align-items: center; gap: 16px; }
+.icc-sala-anillo { flex: 0 0 auto; width: 128px; height: 128px; color: var(--txt); }
+.icc-sala-anillo-val { transition: stroke-dashoffset 1.2s ease; filter: drop-shadow(0 0 6px rgba(34, 211, 238, .45)); }
+.icc-sala-anillo-pct { font-size: 26px; font-weight: 800; }
+.icc-sala-anillo-sub { font-size: 12px; opacity: .6; }
+.icc-sala-obj-txt { min-width: 0; font-size: 14px; color: var(--txt-2); }
+.icc-sala-obj-txt p { margin: 0 0 6px; }
+.icc-sala-obj-txt b { color: var(--txt); }
+.icc-sala-logrado { color: var(--accent) !important; font-weight: 700; font-size: 16px; }
+.icc-sala-mio { padding: 6px 10px; border-radius: 8px; background: rgba(129, 140, 248, .1); border: 1px solid rgba(129, 140, 248, .3); }
+
+/* ---------- Mapa ---------- */
+.icc-sala-mapa-caja { position: relative; }
+.icc-sala-svg { display: block; width: 100%; height: auto; }
+.icc-sala-tierra { fill: #1A2740; stroke: #2E4566; stroke-width: 1.5; stroke-linejoin: round; }
+.icc-sala-recuadro { fill: none; stroke: var(--line); stroke-dasharray: 4 4; }
+.icc-sala-isla { fill: #1A2740; stroke: #2E4566; stroke-width: 1.5; }
+.icc-sala-burbuja circle { fill: rgba(34, 211, 238, .35); stroke: var(--cian); stroke-width: 1.5; transform-box: fill-box; transform-origin: center; animation: icc-sala-pulso 3s ease-in-out infinite; }
+.icc-sala-burbuja.is-top circle { fill: rgba(16, 185, 129, .45); stroke: var(--accent); }
+.icc-sala-burbuja text { fill: var(--txt-2); font-size: 11px; font-weight: 600; paint-order: stroke; stroke: var(--card); stroke-width: 3px; }
+.icc-sala-mapa-vacio {
+  position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%); width: min(88%, 300px); margin: 0;
+  padding: 12px 14px; border-radius: 10px; text-align: center; font-size: 13px; color: var(--txt-2);
+  background: rgba(11, 15, 25, .88); border: 1px solid var(--line);
+}
+.icc-sala-sinubicar { margin: 8px 0 0; font-size: 12px; color: var(--txt-3); }
+
+/* ---------- Feed ---------- */
+.icc-sala-eventos { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; max-height: 760px; overflow-y: auto; scrollbar-width: thin; }
+.icc-sala-ev { --c: var(--cian); min-width: 0; }
+.icc-sala-ev > a, .icc-sala-ev > div { display: flex; gap: 10px; align-items: flex-start; padding: 9px 10px; border-radius: 9px; color: var(--txt-2); text-decoration: none; border-left: 3px solid var(--c); background: rgba(255, 255, 255, .02); font-size: 13px; }
+.icc-sala-ev > a:hover { background: rgba(255, 255, 255, .05); }
+.icc-sala-ev-ico { flex: 0 0 auto; font-size: 16px; line-height: 1.3; }
+.icc-sala-ev-txt { min-width: 0; overflow-wrap: anywhere; }
+.icc-sala-ev-txt b, .icc-sala-ev-txt strong { color: var(--txt); }
+.icc-sala-ev-txt small { display: block; color: var(--txt-3); font-size: 11px; margin-top: 2px; }
+.icc-sala-ev.is-contrato > a, .icc-sala-ev.is-contrato > div { background: linear-gradient(90deg, rgba(16, 185, 129, .1), transparent); }
+.icc-sala-ev.is-nuevo { animation: icc-sala-entra .6s ease-out both; }
+.icc-sala-ev.is-nuevo > a, .icc-sala-ev.is-nuevo > div { box-shadow: 0 0 0 1px var(--c); }
+
+.icc-sala-nota { margin: 0; font-size: 12px; color: var(--txt-3); text-align: center; }
+
+/* ---------- Celebración ---------- */
+.icc-sala-celebra {
+  position: fixed; z-index: 1000; left: 50%; top: 22px; transform: translateX(-50%);
+  display: flex; gap: 12px; align-items: center; max-width: min(92vw, 520px);
+  padding: 14px 18px; border-radius: 14px; color: var(--txt);
+  background: linear-gradient(135deg, #0F3B2E, #12304A); border: 1px solid rgba(16, 185, 129, .6);
+  box-shadow: 0 18px 50px -12px rgba(16, 185, 129, .5);
+  animation: icc-sala-aparece .5s cubic-bezier(.2, .9, .3, 1.3) both;
+  transition: opacity .6s ease, transform .6s ease;
+}
+.icc-sala-celebra > span { font-size: 32px; }
+.icc-sala-celebra strong { font-size: 17px; }
+.icc-sala-celebra p { margin: 2px 0 0; font-size: 14px; color: var(--txt-2); }
+.icc-sala-celebra.is-sale { opacity: 0; transform: translate(-50%, -20px); }
+.icc-sala-confeti { position: fixed; inset: 0; z-index: 999; pointer-events: none; }
+
+/* ---------- Modo TV ---------- */
+body.icc-sala-tv .icc-sticky-top,
+body.icc-sala-tv #btn-fab-cita { display: none !important; }
+body.icc-sala-tv main, body.icc-sala-tv #app { max-width: none !important; }
+.icc-sala.is-tv { padding: 10px 6px; }
+.icc-sala.is-tv .icc-sala-hero-txt h1 { font-size: clamp(32px, 4.4vw, 60px); }
+.icc-sala.is-tv .icc-sala-hero-res { font-size: 20px; }
+.icc-sala.is-tv .icc-sala-reloj { font-size: 36px; }
+.icc-sala.is-tv .icc-sala-ticker-item { font-size: 18px; }
+.icc-sala.is-tv .icc-sala-num { font-size: 44px; }
+.icc-sala.is-tv .icc-sala-kpi { font-size: 16px; }
+.icc-sala.is-tv .icc-sala-bloque-tit h2 { font-size: 22px; }
+.icc-sala.is-tv .icc-sala-tabla { font-size: 16px; }
+.icc-sala.is-tv .icc-sala-escalon strong { font-size: 18px; }
+.icc-sala.is-tv .icc-sala-ev > a, .icc-sala.is-tv .icc-sala-ev > div { font-size: 15px; }
+.icc-sala.is-tv .icc-sala-eventos { max-height: 68vh; }
+.icc-sala.is-tv #sala-bloque-ranking { animation: icc-sala-entra .5s ease-out; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1200px) {
+  .icc-sala-grid { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); }
+  .icc-sala-feed { grid-column: 1 / -1; }
+  .icc-sala-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 820px) {
+  .icc-sala-grid { grid-template-columns: minmax(0, 1fr); }
+  .icc-sala-hero { padding: 20px 16px 16px; }
+  .icc-sala-hero-acc { width: 100%; }
+}
+@media (max-width: 560px) {
+  .icc-sala-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .icc-sala-kpi { padding: 12px; }
+  .icc-sala-num { font-size: 24px; }
+  .icc-sala-bloque { padding: 14px 12px; }
+  .icc-sala-fila { grid-template-columns: 22px minmax(0, 1.4fr) minmax(0, 1fr) 36px 30px; gap: 6px; padding: 6px 4px; }
+  .icc-sala-fila > span:nth-child(n+6) { display: none; }
+  .icc-sala-ava { width: 40px; height: 40px; font-size: 13px; }
+  .icc-sala-escalon.is-1 .icc-sala-ava { width: 48px; height: 48px; }
+  .icc-sala-obj { flex-direction: column; text-align: center; }
+  .icc-sala-reloj { display: none; }
+  .icc-sala-btn-tv { flex: 1 1 auto; text-align: center; }
+}
+
+/* ---------- Animaciones ---------- */
+@keyframes icc-sala-latido { 0% { box-shadow: 0 0 0 0 rgba(248, 113, 113, .7); } 70% { box-shadow: 0 0 0 9px rgba(248, 113, 113, 0); } 100% { box-shadow: 0 0 0 0 rgba(248, 113, 113, 0); } }
+@keyframes icc-sala-desliza { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@keyframes icc-sala-brillo { from { background-position: 150% 0; } to { background-position: -100% 0; } }
+@keyframes icc-sala-sube { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+@keyframes icc-sala-crece { from { width: 0; } }
+@keyframes icc-sala-pulso { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.12); } }
+@keyframes icc-sala-entra { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+@keyframes icc-sala-aparece { from { opacity: 0; transform: translate(-50%, -24px) scale(.9); } to { opacity: 1; transform: translateX(-50%); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .icc-sala *, .icc-sala *::before, .icc-sala *::after, .icc-sala-celebra { animation: none !important; transition: none !important; }
+  .icc-sala-ticker-pista { flex-wrap: wrap; white-space: normal; }
+  .icc-sala-ticker { overflow-x: auto; }
+}
