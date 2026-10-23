@@ -6,7 +6,7 @@ $metodo = $_SERVER['REQUEST_METHOD'];
 
 if ($metodo === 'GET' && $accion === 'me') {
   $user = icc_current_user();
-  icc_json(['user' => $user, 'csrf' => icc_ensure_csrf(), 'impersonando' => icc_info_impersonacion()]);
+  icc_json(['demo' => ICC_MODO_DEMO, 'user' => $user, 'csrf' => icc_ensure_csrf(), 'impersonando' => icc_info_impersonacion()]);
 }
 
 if ($metodo === 'POST' && $accion === 'ver_como') {
@@ -61,7 +61,7 @@ if ($metodo === 'POST' && $accion === 'ver_como') {
   icc_auditar($objetivoId, $impersonadorOriginal, 'ver_como', 'Ha entrado en la cuenta con "Ver como"' . $detalle);
 
   $nuevoUsuario = icc_current_user(true);
-  icc_json(['user' => $nuevoUsuario, 'csrf' => icc_ensure_csrf(), 'impersonando' => icc_info_impersonacion()]);
+  icc_json(['demo' => ICC_MODO_DEMO, 'user' => $nuevoUsuario, 'csrf' => icc_ensure_csrf(), 'impersonando' => icc_info_impersonacion()]);
 }
 
 if ($metodo === 'POST' && $accion === 'detener_impersonacion') {
@@ -72,7 +72,7 @@ if ($metodo === 'POST' && $accion === 'detener_impersonacion') {
   }
   icc_cerrar_impersonacion_actual();
   $adminOriginal = icc_current_user(true);
-  icc_json(['user' => $adminOriginal, 'csrf' => icc_ensure_csrf(), 'impersonando' => null]);
+  icc_json(['demo' => ICC_MODO_DEMO, 'user' => $adminOriginal, 'csrf' => icc_ensure_csrf(), 'impersonando' => null]);
 }
 
 if ($metodo === 'GET' && $accion === 'historial_impersonacion') {
@@ -127,7 +127,7 @@ if ($metodo === 'POST' && $accion === 'login') {
   $_SESSION['user_id'] = (int)$user['id'];
   icc_sesion_crear((int)$user['id']);
   icc_auditar((int)$user['id'], (int)$user['id'], 'login', 'Inicio de sesion');
-  icc_json(['user' => icc_current_user(true), 'csrf' => icc_ensure_csrf(), 'impersonando' => null]);
+  icc_json(['demo' => ICC_MODO_DEMO, 'user' => icc_current_user(true), 'csrf' => icc_ensure_csrf(), 'impersonando' => null]);
 }
 
 if ($metodo === 'POST' && $accion === 'cambiar_password') {

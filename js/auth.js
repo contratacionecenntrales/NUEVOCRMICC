@@ -10,10 +10,44 @@ window.icc.auth = (function () {
     rolPrincipal: "comercial",
     loading: true,
     impersonando: null,
+    demo: false,
   };
   var listeners = [];
 
+  // ------------------------------------------------------- Modo demostracion
+  // Solo en la instalacion aparte con datos de ejemplo (ICC_MODO_DEMO en el
+  // servidor): franja fija DEMO en todas las pantallas, sin boton de cerrar,
+  // que se vuelve a poner si algo la quita, y "DEMO ·" en el titulo.
+  var vigiaDemo = null;
+  function marcarTituloDemo() {
+    if (document.title.indexOf("DEMO · ") !== 0) document.title = "DEMO · " + document.title;
+  }
+  function asegurarFranjaDemo() {
+    if (!state.demo || !document.body) return;
+    // Solo si falta: add() siempre reescribe el atributo y el vigia se llamaria en bucle.
+    if (!document.documentElement.classList.contains("icc-modo-demo")) document.documentElement.classList.add("icc-modo-demo");
+    var franja = document.getElementById("icc-demo-franja");
+    if (!franja || franja.parentNode !== document.body || franja.hidden || franja.getAttribute("style")) {
+      if (franja) franja.remove();
+      franja = document.createElement("div");
+      franja.id = "icc-demo-franja";
+      franja.setAttribute("role", "note");
+      franja.innerHTML = "<b>DEMO</b><span>Datos de ejemplo, no reales · Algunas funciones están desactivadas</span>";
+      document.body.insertBefore(franja, document.body.firstChild);
+    }
+    marcarTituloDemo();
+  }
+  function pintarAvisoDemo() {
+    if (!state.demo) return; // la demo no se apaga sin recargar
+    asegurarFranjaDemo();
+    if (!vigiaDemo && window.MutationObserver) {
+      vigiaDemo = new MutationObserver(asegurarFranjaDemo);
+      vigiaDemo.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "style", "hidden"], characterData: true });
+    }
+  }
+
   function notify() {
+    pintarAvisoDemo();
     listeners.forEach(function (fn) {
       fn(state);
     });
@@ -23,7 +57,9 @@ window.icc.auth = (function () {
     listeners.push(fn);
   }
 
-  function aplicarUsuario(user, csrf, impersonando) {
+  function aplicarUsuario(user, csrf, impersonando, demo) {
+    // Modo demostracion: lo dice el servidor (instalacion aparte con datos de ejemplo).
+    if (typeof demo === "boolean") state.demo = demo;
     state.user = user;
     state.rolPrincipal = user ? user.rol : "comercial";
     state.impersonando = impersonando || null;
@@ -33,7 +69,7 @@ window.icc.auth = (function () {
   async function init() {
     try {
       var data = await API.get("api/auth.php?action=me");
-      aplicarUsuario(data.user, data.csrf, data.impersonando);
+      aplicarUsuario(data.user, data.csrf, data.impersonando, data.demo);
     } catch (e) {
       console.error(e);
       state.user = null;
@@ -44,7 +80,7 @@ window.icc.auth = (function () {
 
   async function signIn(email, password) {
     var data = await API.post("api/auth.php?action=login", { email: email, password: password });
-    aplicarUsuario(data.user, data.csrf, data.impersonando);
+    aplicarUsuario(data.user, data.csrf, data.impersonando, data.demo);
     notify();
   }
 
@@ -58,13 +94,13 @@ window.icc.auth = (function () {
 
   async function verComo(id) {
     var data = await API.post("api/auth.php?action=ver_como", { id: id });
-    aplicarUsuario(data.user, data.csrf, data.impersonando);
+    aplicarUsuario(data.user, data.csrf, data.impersonando, data.demo);
     notify();
   }
 
   async function detenerImpersonacion() {
     var data = await API.post("api/auth.php?action=detener_impersonacion", {});
-    aplicarUsuario(data.user, data.csrf, data.impersonando);
+    aplicarUsuario(data.user, data.csrf, data.impersonando, data.demo);
     notify();
   }
 

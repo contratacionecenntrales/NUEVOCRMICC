@@ -433,3 +433,42 @@ esa carpeta del servidor. Pasos a seguir, en este orden:
 Cada cliente tiene un `upload_token` único (UUID). Desde su ficha en el CRM
 hay un botón "Copiar" que genera el enlace `subir.html?token=...` listo para
 enviar por email/WhatsApp al cliente, sin que este necesite ninguna cuenta.
+
+## Modo demostración (instalación aparte con datos de ejemplo)
+
+Sirve para enseñar el CRM a posibles oficinas o distribuidores sin tocar los
+datos reales. **Todo lo que se ve en la demo es inventado y así se indica**:
+una franja amarilla «DEMO · Datos de ejemplo, no reales» fija arriba en todas
+las pantallas (acceso, CRM, firma, modo TV), que no se puede cerrar ni quitar
+desde la página, y «DEMO ·» delante del título de la pestaña.
+
+> ⚠️ **Nunca** actives el modo demo ni ejecutes el generador sobre la base de
+> datos real: el generador **borra todas las tablas** de la BD configurada.
+> La demo va siempre en otra carpeta/subdominio y con **otra base de datos**.
+
+Montarla (por ejemplo en `demo.crm.tudominio.es`):
+
+1. Crea el subdominio en Hostalia apuntando a una carpeta nueva y sube ahí el
+   mismo zip del CRM.
+2. Crea una base de datos **nueva y vacía** e importa
+   `sql/base-de-datos-completa-v71.sql` (más las migraciones nuevas si las hay).
+3. Crea `api/config.local.php` de esa carpeta con los datos de la BD nueva y
+   añade `define('ICC_MODO_DEMO', true);`.
+4. Rellena la demo por SSH (el generador no se puede abrir desde el navegador):
+   `php sql/demo/generar_demo.php --confirmar`
+   Opciones: `--oficinas=6 --comerciales=5 --meses=6 --semilla=2026`
+   (misma semilla = mismos datos).
+5. Antes de cada presentación: `php sql/demo/generar_demo.php --refrescar`
+   mueve las fechas para que la actividad acabe hoy (sin regenerar nada).
+
+Accesos (contraseña `Demo2026!`): `demo-admin@demo.invalid` (Super Admin),
+`demo-gerente@`, `demo-coordinador@`, `demo-backoffice@`, `demo-tramitacion@`,
+`demo-jefe1@`…, `demo-comercial1@`… (todos `@demo.invalid`).
+Empresas «Demo … Ejemplo N», CIF `B1000xxxx`, emails `@demo.invalid`.
+
+Desactivado en la demo (responde «Desactivado en la demostración»): copias de
+seguridad, limpieza de archivos, firma digital, enlace público de subida de
+facturas, lectura de facturas con IA, consulta SIPS y borrado de cuentas.
+
+En la instalación real `ICC_MODO_DEMO` no se define (vale `false`) y no
+aparece nada de esto.

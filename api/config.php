@@ -37,6 +37,13 @@ defined('ICC_SIPS_URL') || define('ICC_SIPS_URL', '');
 defined('ICC_SIPS_TOKEN') || define('ICC_SIPS_TOKEN', '');
 defined('ICC_SIPS_HEADER') || define('ICC_SIPS_HEADER', 'Authorization: Bearer');
 
+// Modo demostracion: SOLO para una instalacion aparte (p. ej. demo.crm...)
+// con su propia base de datos de ejemplo. Muestra un aviso DEMO permanente y
+// desactiva todo lo que tiene efectos reales (IA, SIPS, firmas, enlaces
+// publicos de subida, copias de seguridad, limpieza y borrado de cuentas).
+// Nunca lo actives en la instalacion con los datos reales.
+defined('ICC_MODO_DEMO') || define('ICC_MODO_DEMO', false);
+
 // -----------------------------------------------------------------------------
 error_reporting(E_ALL);
 ini_set('display_errors', '0'); // nunca mostrar errores PHP crudos al cliente
@@ -68,6 +75,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_SERVER['HTTP_X_HTTP_METHOD
   $metodoReal = strtoupper($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE']);
   if (in_array($metodoReal, ['DELETE', 'PUT'], true)) {
     $_SERVER['REQUEST_METHOD'] = $metodoReal;
+  }
+}
+
+/**
+ * Modo demostracion: acciones con efectos reales desactivadas en un unico
+ * sitio. Devuelve el motivo o null si la peticion esta permitida.
+ */
+function icc_motivo_bloqueo_demo(string $script, string $metodo): ?string {
+  $lectura = in_array($metodo, ['GET', 'HEAD', 'OPTIONS'], true);
+  switch ($script) {
+    case 'backup.php':
+      return 'las copias de seguridad';
+    case 'cmp_energia_factura.php':
+      return 'la lectura de facturas con IA';
+    case 'cmp_energia_sips.php':
+      return 'la consulta SIPS de CUPS';
+    case 'mantenimiento.php':
+      return $lectura ? null : 'la limpieza de archivos';
+    case 'firmas.php':
+      return $lectura ? null : 'la firma digital con validez legal';
+    case 'subir_publico.php':
+      // Pagina publica sin franja DEMO: se cierra entera.
+      return 'el enlace público de subida de facturas';
+    case 'agentes.php':
+      return $metodo === 'DELETE' ? 'el borrado de cuentas' : null;
+  }
+  return null;
+}
+
+if (ICC_MODO_DEMO) {
+  $iccMotivoDemo = icc_motivo_bloqueo_demo(basename($_SERVER['SCRIPT_NAME'] ?? ''), $_SERVER['REQUEST_METHOD'] ?? 'GET');
+  if ($iccMotivoDemo !== null) {
+    header('Content-Type: application/json; charset=utf-8');
+    http_response_code(403);
+    echo json_encode(['error' => 'Desactivado en la demostración: ' . $iccMotivoDemo . '.', 'demo' => true], JSON_UNESCAPED_UNICODE);
+    exit;
   }
 }
 
