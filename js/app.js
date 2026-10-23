@@ -216,6 +216,7 @@
           { href: "#/comparador", label: "Panel e histórico de auditorías" },
           { href: "#/comparador/energia", label: "⚡ Comparador de energía" },
           { href: "#/comparador/telefonia", label: "📶 Comparador de telefonía" },
+          { href: "#/comparador/novedades", label: "🔔 Novedades de tarifas", badge: "novedades" },
         ],
       });
     }
@@ -331,13 +332,16 @@
           item.href +
           '">' +
           item.label +
+          (tieneSubmenu && item.submenu.some(function (s) { return s.badge; })
+            ? '<span class="icc-nov-badge icc-nov-badge--dot" data-nov-badge hidden></span>' : "") +
           (tieneSubmenu ? ' <span class="icc-caret">▾</span>' : "") +
           "</a>" +
           (tieneSubmenu
             ? '<div class="icc-topnav-dropdown">' +
               item.submenu
                 .map(function (s) {
-                  return '<a href="' + s.href + '">' + s.label + "</a>";
+                  return '<a href="' + s.href + '">' + s.label +
+                    (s.badge ? '<span class="icc-nov-badge" data-nov-badge hidden></span>' : "") + "</a>";
                 })
                 .join("") +
               "</div>"
@@ -402,6 +406,7 @@
         if (clienteId) location.hash = "#/clientes/" + clienteId;
         else if (tipoNotif.indexOf("ficha_agente:") === 0) location.hash = "#/agentes/" + tipoNotif.split(":")[1];
         else if (tipoNotif.indexOf("cita:") === 0) location.hash = "#/agenda?cita=" + tipoNotif.split(":")[1];
+        else if (tipoNotif === "tarifas_novedades") location.hash = "#/comparador/novedades";
         actualizarBadgeNotif();
       });
     });
@@ -533,6 +538,7 @@
     }
     if (!shellPintado) renderShell();
     pintarNav();
+    if (window.icc.novedades) window.icc.novedades.alNavegar();
 
     var hash = location.hash || "#/dashboard";
     var ruta = hash.split("?")[0];
@@ -585,6 +591,8 @@
         }
       } else if (ruta === "#/comparador") {
         await window.icc.comparador.viewPanel();
+      } else if (ruta === "#/comparador/novedades") {
+        await window.icc.novedades.view();
       } else if (ruta.indexOf("#/comparador/") === 0) {
         // Abre la pagina del comparador (y redirige los enlaces antiguos).
         window.icc.comparador.abrirDesdeRuta(ruta, hash);

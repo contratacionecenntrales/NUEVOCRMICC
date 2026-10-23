@@ -14,6 +14,7 @@
  * Las comisiones solo se envian a usuarios con sesion y nunca salen en el PDF.
  */
 require __DIR__ . '/cmp_comun.php';
+require_once __DIR__ . '/tarifas_novedades_lib.php';
 
 $user = cmp_actor();
 icc_require_csrf();
@@ -115,10 +116,12 @@ if ($recurso === 'tarifas') {
     }
     $id = isset($b['id']) ? (int)$b['id'] : 0;
     $cols = array_keys($vals);
+    $antes = null;
     if ($id) {
-      $stmt = $db->prepare('SELECT id FROM cmp_ene_tarifas WHERE id = ?');
+      $stmt = $db->prepare('SELECT * FROM cmp_ene_tarifas WHERE id = ?');
       $stmt->execute([$id]);
-      if (!$stmt->fetch()) icc_json(['error' => 'Tarifa no encontrada.'], 404);
+      $antes = $stmt->fetch();
+      if (!$antes) icc_json(['error' => 'Tarifa no encontrada.'], 404);
       $set = implode(', ', array_map(function ($c) { return "$c = ?"; }, $cols));
       $db->prepare("UPDATE cmp_ene_tarifas SET $set WHERE id = ?")->execute(array_merge(array_values($vals), [$id]));
     } else {
@@ -128,11 +131,18 @@ if ($recurso === 'tarifas') {
     }
     $stmt = $db->prepare('SELECT * FROM cmp_ene_tarifas WHERE id = ?');
     $stmt->execute([$id]);
-    icc_json(ene_tarifa_out($stmt->fetch()));
+    $despues = $stmt->fetch();
+    // Novedad para el equipo con lo que ha cambiado (antes -> despues).
+    nov_ene_guardada($antes ?: null, $despues, (int)$user['id']);
+    icc_json(ene_tarifa_out($despues));
   }
   if ($metodo === 'DELETE') {
     if (!icc_es_admin_o_superior($user)) icc_json(['error' => 'Solo un administrador puede borrar tarifas. Puedes desactivarla.'], 403);
+    $stmt = $db->prepare('SELECT * FROM cmp_ene_tarifas WHERE id = ?');
+    $stmt->execute([(int)($_GET['id'] ?? 0)]);
+    $antes = $stmt->fetch();
     $db->prepare('DELETE FROM cmp_ene_tarifas WHERE id = ?')->execute([(int)($_GET['id'] ?? 0)]);
+    if ($antes) nov_ene_borrada($antes, (int)$user['id']);
     icc_json(['ok' => true]);
   }
   icc_json(['error' => 'Metodo no soportado.'], 405);
