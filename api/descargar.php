@@ -5,7 +5,7 @@ $user = icc_require_auth();
 
 $tipo = $_GET['tipo'] ?? '';
 $ruta = $_GET['ruta'] ?? '';
-$tiposValidos = ['facturas', 'estudios', 'firmas', 'ficheros', 'proformas', 'avatares'];
+$tiposValidos = ['facturas', 'estudios', 'firmas', 'ficheros', 'proformas', 'avatares', 'anuncios'];
 
 if (!in_array($tipo, $tiposValidos, true) || $ruta === '') {
   icc_json(['error' => 'Peticion invalida'], 400);
@@ -31,8 +31,8 @@ if (in_array($tipo, ['facturas', 'estudios', 'firmas'], true)) {
   if (!$proforma) icc_json(['error' => 'No encontrado'], 404);
   $puedeVer = icc_puede_ver_comercial($user, $proforma['comercial_id']);
   if (!$puedeVer) icc_json(['error' => 'No tienes acceso a este archivo'], 403);
-} elseif ($tipo === 'avatares') {
-  // Fotos de perfil: visibles para cualquier usuario con sesion iniciada.
+} elseif ($tipo === 'avatares' || $tipo === 'anuncios') {
+  // Fotos de perfil y de anuncios: visibles para cualquier usuario con sesion iniciada.
 } elseif ($tipo === 'ficheros') {
   icc_require_permiso($user, 'ficheros.ver');
   // Carpetas compartidas (Ficheros/Dosieres/Comerciales...): visibles para

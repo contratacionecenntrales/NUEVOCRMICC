@@ -20,6 +20,7 @@
  *   contrato OK = 10 · contrato dado de alta = 5 · cita realizada = 2 · cliente nuevo = 1
  */
 require __DIR__ . '/config.php';
+require __DIR__ . '/anuncios_lib.php';
 
 $user = icc_require_auth();
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') icc_json(['error' => 'Metodo no permitido'], 405);
@@ -55,7 +56,7 @@ $conOficinas = sala_existe($db, 'SELECT 1 FROM oficinas LIMIT 0') && sala_existe
 $conFicha = sala_existe($db, 'SELECT provincia, objetivo_contratos_mes, objetivo_kw_mes FROM agentes_ficha LIMIT 0');
 
 // Usuarios (nombre visible) — solo nombres internos.
-$colsUsuarios = 'id, nombre, apellidos, rol, supervisor_id, bloqueado' . ($conOficinas ? ', oficina_id' : '');
+$colsUsuarios = 'id, nombre, apellidos, rol, supervisor_id, bloqueado, avatar_ruta' . ($conOficinas ? ', oficina_id' : '');
 $usuarios = [];
 foreach (sala_filas($db, "SELECT $colsUsuarios FROM usuarios") as $u) $usuarios[(int)$u['id']] = $u;
 $nombreReal = function ($id) use ($usuarios): string {
@@ -102,6 +103,11 @@ $etiquetaAnonima = function ($id) use ($usuarios, $provDe): string {
   $rol = isset($usuarios[(int)$id]) ? $usuarios[(int)$id]['rol'] : 'comercial';
   $base = $rol === 'jefe_de_equipo' ? 'Jefe de equipo' : 'Comercial';
   return isset($provDe[(int)$id]) ? $base . ' · ' . $provDe[(int)$id] : $base;
+};
+/** Foto de perfil de una persona, solo si su nombre es visible y es quien aparece en el evento. */
+$fotoDe = function ($id, string $quien) use ($usuarios, $nombreVisible, $nombreReal): ?string {
+  if (!$nombreVisible($id) || $nombreReal($id) !== $quien || empty($usuarios[(int)$id]['avatar_ruta'])) return null;
+  return 'api/descargar.php?tipo=avatares&ruta=' . rawurlencode($usuarios[(int)$id]['avatar_ruta']);
 };
 /** Nombre que ve quien consulta: el real o el anonimo. */
 $nombre = function ($id) use ($nombreReal, $nombreVisible, $etiquetaAnonima): string {
@@ -183,23 +189,27 @@ function sala_eventos(PDO $db, array $user, string $desde, callable $nombre, boo
 
 /** Anuncios vigentes de direccion (tabla de sql/migracion_anuncios.sql). */
 function sala_anuncios(PDO $db): array {
-  $filas = sala_filas($db, 'SELECT id, texto, emoji, provincia, ciudad, inicio, expira FROM anuncios WHERE inicio <= NOW() AND expira > NOW() ORDER BY inicio DESC LIMIT 20');
-  foreach ($filas as &$f) $f['id'] = (int)$f['id'];
-  return $filas;
+  try {
+    return icc_anuncios_vigentes($db);
+  } catch (PDOException $e) {
+    error_log('ICC sala anuncios: ' . $e->getMessage());
+    return [];
+  }
 }
 
 /** Anade la provincia a cada evento, quita el id del comercial y suma los anuncios. */
-function sala_completar(array $eventos, array $anuncios, array $provDe, string $desde): array {
+function sala_completar(array $eventos, array $anuncios, array $provDe, string $desde, ?callable $fotoDe = null): array {
   foreach ($eventos as &$e) {
     $cid = $e['comercial_id'];
     $e['provincia'] = $cid !== null && isset($provDe[$cid]) ? $provDe[$cid] : '';
+    $e['foto'] = $fotoDe && $cid !== null ? $fotoDe($cid, (string)$e['quien']) : null;
     unset($e['comercial_id']);
   }
   unset($e);
   foreach ($anuncios as $a) {
     if ((string)$a['inicio'] <= $desde) continue;
     $eventos[] = ['id' => 'anuncio-' . $a['id'], 'tipo' => 'anuncio', 'fecha' => $a['inicio'], 'quien' => '', 'cliente' => null,
-      'titulo' => $a['texto'], 'emoji' => $a['emoji'], 'provincia' => $a['provincia'], 'ciudad' => $a['ciudad'], 'href' => null];
+      'titulo' => $a['texto'], 'emoji' => $a['emoji'], 'provincia' => $a['provincia'], 'ciudad' => $a['ciudad'], 'foto' => $a['foto'], 'href' => null];
   }
   usort($eventos, function ($a, $b) { return strcmp((string)$b['fecha'], (string)$a['fecha']); });
   return array_slice($eventos, 0, 40);
@@ -213,7 +223,7 @@ $desde = isset($_GET['desde']) && preg_match('/^\d{4}-\d{2}-\d{2}( \d{2}:\d{2}(:
 if (!empty($_GET['solo_eventos'])) {
   $ventana = max(1, min(720, (int)($_GET['ventana'] ?? 24)));
   $desdeEv = $desde ?? date('Y-m-d H:i:s', strtotime($ahora . ' -' . $ventana . ' hours'));
-  $eventos = sala_completar(sala_eventos($db, $user, $desdeEv, $nombre, $conCmpEne, $conCmpTel, $conNovedades), $anuncios, $provDe, $desdeEv);
+  $eventos = sala_completar(sala_eventos($db, $user, $desdeEv, $nombre, $conCmpEne, $conCmpTel, $conNovedades), $anuncios, $provDe, $desdeEv, $fotoDe);
   icc_json(['ahora' => $ahora, 'eventos' => $eventos, 'anuncios' => $anuncios]);
 }
 
@@ -395,7 +405,7 @@ if ($conOficinas && $oficinas) {
 }
 
 $desdeEv = $desde ?? date('Y-m-d H:i:s', strtotime($ahora . ' -30 days'));
-$eventos = sala_completar(sala_eventos($db, $user, $desdeEv, $nombre, $conCmpEne, $conCmpTel, $conNovedades), $anuncios, $provDe, $desdeEv);
+$eventos = sala_completar(sala_eventos($db, $user, $desdeEv, $nombre, $conCmpEne, $conCmpTel, $conNovedades), $anuncios, $provDe, $desdeEv, $fotoDe);
 
 // --------------------------------------------------------------- Insights
 // Frases calculadas con datos reales; si no hay datos suficientes, no salen.

@@ -130,6 +130,7 @@
     if (st.pestana === "oficinas" && !(st.datos.ranking.oficinas || []).length) st.pestana = "comerciales";
     pintar();
     programar();
+    if (window.icc.estelar) window.icc.estelar.anuncios(st.datos.anuncios);
   }
 
   function href(cambios) {
@@ -207,7 +208,9 @@
     var a = st.datos.anuncios || [];
     if (!a.length) return "";
     return '<div class="icc-sala-anuncios" id="sala-anuncios">' + a.map(function (x) {
-      return '<div class="icc-sala-anuncio"><span class="icc-sala-anuncio-ico" aria-hidden="true">' + esc(x.emoji || "📣") + "</span><p>" + esc(x.texto) + lugarTxt(x) + "</p></div>";
+      return '<button type="button" class="icc-sala-anuncio" data-ver-anuncio="' + x.id + '" title="Ver a pantalla completa">' +
+        (x.foto ? '<img class="icc-sala-anuncio-foto" src="' + esc(x.foto) + '" alt="">' : '<span class="icc-sala-anuncio-ico" aria-hidden="true">' + esc(x.emoji || "📣") + "</span>") +
+        "<p>" + (x.persona ? "<b>" + esc(x.persona) + "</b> · " : "") + esc(x.texto) + lugarTxt(x) + '</p><span class="icc-sala-anuncio-ver">▶ Ver</span></button>';
     }).join("") + "</div>";
   }
 
@@ -438,6 +441,7 @@
         repintarRanking();
       });
     });
+    enlazarAnuncios();
     var anun = document.getElementById("sala-anunciar");
     if (anun) anun.addEventListener("click", modalAnuncios);
     var pant = document.getElementById("sala-pantalla");
@@ -448,6 +452,16 @@
         if (el.requestFullscreen) el.requestFullscreen().catch(function () { U.toast("Tu navegador no permite pantalla completa aquí (prueba con F11)", "info"); });
       });
     }
+  }
+  function enlazarAnuncios() {
+    main().querySelectorAll("[data-ver-anuncio]").forEach(function (b) {
+      if (b._icc) return;
+      b._icc = true;
+      b.addEventListener("click", function () {
+        var a = (st.datos.anuncios || []).filter(function (x) { return String(x.id) === b.getAttribute("data-ver-anuncio"); })[0];
+        if (a && window.icc.estelar) window.icc.estelar.repetir(a);
+      });
+    });
   }
   function repintarRanking() {
     var b = document.getElementById("sala-bloque-ranking");
@@ -507,6 +521,11 @@
     }, 1000));
     if (st.tv) {
       st.timers.push(setInterval(function () {
+        if (!st.activa || !window.icc.estelar) return;
+        var a = st.datos.anuncios || [];
+        if (a.length) window.icc.estelar.repetir(a[Math.floor(Date.now() / 300000) % a.length]);
+      }, 300000));
+      st.timers.push(setInterval(function () {
         if (!st.activa) return;
         var orden = ["comerciales", "equipos"].concat((st.datos.ranking.oficinas || []).length ? ["oficinas"] : []);
         st.pestana = orden[(orden.indexOf(st.pestana) + 1) % orden.length];
@@ -546,6 +565,7 @@
       var nuevoHtml = anunciosHtml();
       if (an) an.outerHTML = nuevoHtml || "<span hidden id=\"sala-anuncios\"></span>";
       else if (nuevoHtml) { var tk0 = main().querySelector(".icc-sala-ticker"); if (tk0) tk0.insertAdjacentHTML("beforebegin", nuevoHtml); }
+      enlazarAnuncios();
     }
     var nuevos = (r.eventos || []).filter(function (e) { return !st.vistos[e.id]; });
     st.ahora = r.ahora;
@@ -578,8 +598,10 @@
     pintarActualizado();
     if (hayContrato) {
       var c = nuevos.filter(esContrato)[0];
-      celebrar(c);
+      if (window.icc.estelar) window.icc.estelar.venta(c, evento(c).txt.replace(/<[^>]+>/g, ""));
+      else celebrar(c);
     }
+    if (window.icc.estelar && r.anuncios) window.icc.estelar.anuncios(r.anuncios);
   }
 
   // Repinta cifras, ranking, objetivo y mapa sin perder el feed.
@@ -607,13 +629,25 @@
   // ------------------------------------------------------- Anuncios (dirección)
   async function modalAnuncios() {
     var lista = [];
-    try { lista = (await API.get("api/anuncios.php?todos=1")).anuncios || []; } catch (err) { U.toast(err.message || "No se pudieron cargar los anuncios", "error"); return; }
+    var personas = [];
+    try {
+      var res = await Promise.all([API.get("api/anuncios.php?todos=1"), API.get("api/agentes.php").catch(function () { return { agentes: [] }; })]);
+      lista = res[0].anuncios || [];
+      personas = (res[1].agentes || []).filter(function (p) { return !Number(p.bloqueado); })
+        .sort(function (a, b) { return (a.nombre + " " + (a.apellidos || "")).localeCompare(b.nombre + " " + (b.apellidos || ""), "es"); });
+    } catch (err) { U.toast(err.message || "No se pudieron cargar los anuncios", "error"); return; }
     var hoy = new Date().toISOString().slice(0, 10);
     U.openModal(
       "<h2>📣 Anuncios de dirección</h2>" +
       '<p class="icc-muted">Lo que escribas aquí lo verá todo el equipo en la cinta en directo, en la sala de ventas y en el mapa. Se retira solo al caducar.</p>' +
       '<form id="form-anuncio" class="icc-form">' +
       '<div class="icc-field"><label>Mensaje</label><textarea class="icc-textarea" name="texto" maxlength="280" required placeholder="Ej.: ¡Enhorabuena a … por su venta de …!"></textarea></div>' +
+      '<div class="icc-form-row" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">' +
+      '<div class="icc-field"><label>Protagonista (sale su foto de perfil)</label><select class="icc-select" name="usuario_id"><option value="">— Nadie en concreto —</option>' +
+      personas.map(function (p) { return '<option value="' + p.id + '">' + esc((p.nombre + " " + (p.apellidos || "")).trim()) + (p.avatar_ruta ? " 📷" : "") + "</option>"; }).join("") + "</select></div>" +
+      '<div class="icc-field"><label>Foto del anuncio (opcional)</label><input class="icc-input" type="file" name="foto" accept="image/png,image/jpeg,image/webp"></div>' +
+      "</div>" +
+      '<p class="icc-muted" style="margin:-4px 0 4px;font-size:12.5px">Si subes una foto, sale esa. Si no, la foto de perfil del protagonista (📷 = tiene foto).</p>' +
       '<div class="icc-form-row" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px">' +
       '<div class="icc-field"><label>Icono</label><select class="icc-select" name="emoji">' +
       ["🎉", "📣", "🏆", "🔥", "⚡", "📶", "🚀", "⭐"].map(function (e) { return '<option value="' + e + '">' + e + "</option>"; }).join("") + "</select></div>" +
@@ -627,7 +661,8 @@
       "</form>" +
       (lista.length
         ? '<h3 style="margin-top:20px">Publicados</h3><ul class="icc-sala-anuncios-lista">' + lista.map(function (a) {
-            return '<li class="' + (a.vigente ? "is-vigente" : "") + '"><span>' + esc(a.emoji) + "</span><div><p>" + esc(a.texto) + "</p><small>" +
+            return '<li class="' + (a.vigente ? "is-vigente" : "") + '">' + (a.foto ? '<img class="icc-sala-anuncio-foto is-mini" src="' + esc(a.foto) + '" alt="">' : "<span>" + esc(a.emoji) + "</span>") +
+              "<div><p>" + (a.persona ? "<b>" + esc(a.persona) + "</b> · " : "") + esc(a.texto) + "</p><small>" +
               (a.vigente ? "Visible hasta " : new Date(String(a.expira).replace(" ", "T")) < new Date() ? "Caducó el " : "Hasta ") + esc(U.formatFecha(String(a.expira).slice(0, 10))) +
               (a.autor ? " · " + esc(a.autor) : "") + "</small></div>" +
               '<button type="button" class="icc-btn icc-btn-ghost icc-btn-sm" data-borrar-anuncio="' + a.id + '">Retirar</button></li>';
@@ -639,14 +674,18 @@
     document.getElementById("form-anuncio").addEventListener("submit", async function (e) {
       e.preventDefault();
       var fd = new FormData(e.target);
-      var body = {};
-      fd.forEach(function (v, k) { body[k] = String(v); });
+      var f = fd.get("foto");
+      if (f && f.size > 5 * 1024 * 1024) { U.toast("La foto supera los 5 MB", "error"); return; }
+      if (f && !f.size) fd.delete("foto");
+      var boton = e.target.querySelector("button[type=submit]");
+      boton.disabled = true;
       try {
-        await API.post("api/anuncios.php", body);
+        await API.postForm("api/anuncios.php", fd);
         U.toast("Anuncio publicado para todo el equipo", "success");
         U.closeModal();
         view();
       } catch (err) {
+        boton.disabled = false;
         U.toast(err.message || "No se pudo publicar", "error");
       }
     });

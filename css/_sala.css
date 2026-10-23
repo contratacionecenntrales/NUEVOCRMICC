@@ -279,3 +279,12 @@ body.icc-sala-tv main, body.icc-sala-tv #app { max-width: none !important; }
   .icc-sala-ticker-pista { flex-wrap: wrap; white-space: normal; }
   .icc-sala-ticker { overflow-x: auto; }
 }
+
+/* Anuncio con foto (clic = pantalla completa) */
+button.icc-sala-anuncio { width: 100%; font: inherit; text-align: left; cursor: pointer; color: inherit; }
+button.icc-sala-anuncio:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.icc-sala-anuncio-foto { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; flex: none; border: 3px solid #FBBF24; box-shadow: 0 0 20px rgba(251, 191, 36, .6); }
+.icc-sala-anuncio-foto.is-mini { width: 32px; height: 32px; border-width: 2px; box-shadow: none; }
+.icc-sala-anuncio p { flex: 1; min-width: 0; }
+.icc-sala-anuncio-ver { flex: none; font-size: 13px; font-weight: 800; padding: 6px 12px; border-radius: 99px; background: #FBBF24; color: #1A1203; }
+.icc-sala.is-tv .icc-sala-anuncio-foto { width: 84px; height: 84px; }

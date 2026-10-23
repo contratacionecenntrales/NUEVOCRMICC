@@ -1,11 +1,11 @@
 -- =============================================================================
--- ICC CRM v73 · BASE DE DATOS COMPLETA (instalar o actualizar en un solo paso)
+-- ICC CRM v74 · BASE DE DATOS COMPLETA (instalar o actualizar en un solo paso)
 --
 -- Cómo usarlo: phpMyAdmin > tu base de datos > Importar > este archivo > Continuar.
 --
 -- - Si la base de datos YA TIENE datos (tu CRM actual): NO borra nada.
 --   Solo crea las tablas, columnas e índices que falten y amplía lo necesario
---   para la versión v73. Sirve vengas de la versión que vengas (v55 en adelante).
+--   para la versión v74. Sirve vengas de la versión que vengas (v55 en adelante).
 -- - Si la base de datos está VACÍA: crea el CRM completo y un usuario
 --   Super Administrador inicial (ver el final del archivo).
 -- - Se puede ejecutar MÁS DE UNA VEZ sin errores ni duplicados.
@@ -72,10 +72,14 @@ CREATE TABLE IF NOT EXISTS `anuncios` (
   `expira` datetime NOT NULL,
   `autor_id` int(10) unsigned DEFAULT NULL,
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `usuario_id` int(10) unsigned DEFAULT NULL,
+  `foto_ruta` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `fk_anuncio_autor` (`autor_id`),
   KEY `idx_anuncios_vigencia` (`inicio`,`expira`),
-  CONSTRAINT `fk_anuncio_autor` FOREIGN KEY (`autor_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL
+  KEY `fk_anuncio_usuario` (`usuario_id`),
+  CONSTRAINT `fk_anuncio_autor` FOREIGN KEY (`autor_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `fk_anuncio_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `backoffice_agendas` (
@@ -869,6 +873,10 @@ PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'anuncios' AND column_name = 'autor_id'), 'ALTER TABLE `anuncios` ADD COLUMN `autor_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'anuncios' AND column_name = 'created_at'), 'ALTER TABLE `anuncios` ADD COLUMN `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'anuncios' AND column_name = 'usuario_id'), 'ALTER TABLE `anuncios` ADD COLUMN `usuario_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'anuncios' AND column_name = 'foto_ruta'), 'ALTER TABLE `anuncios` ADD COLUMN `foto_ruta` varchar(255) DEFAULT NULL', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'backoffice_agendas' AND column_name = 'backoffice_id'), 'ALTER TABLE `backoffice_agendas` ADD COLUMN `backoffice_id` int(10) unsigned NOT NULL', 'DO 0'));
@@ -1745,6 +1753,8 @@ SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHER
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'anuncios' AND index_name = 'fk_anuncio_autor'), 'CREATE INDEX `fk_anuncio_autor` ON `anuncios` (`autor_id`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'anuncios' AND index_name = 'fk_anuncio_usuario'), 'CREATE INDEX `fk_anuncio_usuario` ON `anuncios` (`usuario_id`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'anuncios' AND index_name = 'idx_anuncios_vigencia'), 'CREATE INDEX `idx_anuncios_vigencia` ON `anuncios` (`inicio`, `expira`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'backoffice_agendas' AND index_name = 'fk_bo_ag_asignado_por'), 'CREATE INDEX `fk_bo_ag_asignado_por` ON `backoffice_agendas` (`asignado_por`)', 'DO 0'));
@@ -1944,6 +1954,8 @@ PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'agentes_seguimiento' AND constraint_name = 'fk_agente_seg_usuario' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `agentes_seguimiento` ADD CONSTRAINT `fk_agente_seg_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'anuncios' AND constraint_name = 'fk_anuncio_autor' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `anuncios` ADD CONSTRAINT `fk_anuncio_autor` FOREIGN KEY (`autor_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'anuncios' AND constraint_name = 'fk_anuncio_usuario' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `anuncios` ADD CONSTRAINT `fk_anuncio_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'backoffice_agendas' AND constraint_name = 'fk_bo_ag_asignado_por' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `backoffice_agendas` ADD CONSTRAINT `fk_bo_ag_asignado_por` FOREIGN KEY (`asignado_por`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
@@ -2274,6 +2286,12 @@ FROM DUAL
 WHERE EXISTS (SELECT 1 FROM usuarios)
   AND NOT EXISTS (SELECT 1 FROM anuncios WHERE texto = '¡Arantxa Sacacia ha firmado una venta de Orange!');
 
+-- Protagonista del anuncio: Arantxa Sacacia (su foto de perfil sale en la celebracion).
+UPDATE anuncios a
+  JOIN usuarios u ON (CONCAT(u.nombre, ' ', COALESCE(u.apellidos, '')) LIKE '%Arantxa%Sacacia%' OR u.email LIKE 'arantxa.sacacia%')
+SET a.usuario_id = u.id
+WHERE a.texto = '¡Arantxa Sacacia ha firmado una venta de Orange!' AND a.usuario_id IS NULL;
+
 -- Solo en una instalacion NUEVA (sin ningun usuario): Super Administrador inicial.
 --   Email: info@integralconnectionconsulting.es
 --   Contrasena provisional: CambiaEsta-2026  (el CRM obliga a cambiarla al entrar)
@@ -2285,4 +2303,4 @@ UPDATE usuarios SET numero_relacion = CONCAT('ICC-', LPAD(id, 5, '0')) WHERE num
 SET FOREIGN_KEY_CHECKS = 1;
 SET SESSION sql_mode = @icc_modo_anterior;
 
--- Listo. Base de datos al dia para ICC CRM v73.
+-- Listo. Base de datos al dia para ICC CRM v74.

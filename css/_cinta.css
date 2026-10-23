@@ -1,35 +1,50 @@
 /* ICC CRM · Cinta en directo bajo el menú (js/cinta.js) */
-.icc-cinta { display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 12px; overflow: hidden;
-  background: linear-gradient(90deg, rgba(16, 185, 129, .10), rgba(34, 211, 238, .06) 40%, rgba(167, 139, 250, .06));
-  border-bottom: 1px solid rgba(148, 163, 184, .18); font-size: 13px; }
+.icc-cinta { position: relative; display: flex; align-items: center; gap: 12px; height: 50px; padding: 0 14px; overflow: hidden;
+  background: linear-gradient(90deg, #0B2A2A, #10203F 25%, #2A1240 50%, #10203F 75%, #0B2A2A); background-size: 200% 100%;
+  animation: icc-cinta-fondo 14s linear infinite; border-bottom: 1px solid rgba(251, 191, 36, .35);
+  box-shadow: inset 0 -1px 0 rgba(34, 211, 238, .25), 0 6px 24px rgba(0, 0, 0, .25); font-size: 14px; }
+.icc-cinta::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(100deg, transparent 35%, rgba(255, 255, 255, .07) 50%, transparent 65%); background-size: 250% 100%; animation: icc-cinta-brillo 5s ease-in-out infinite; }
 .icc-cinta[hidden] { display: none; }
-.icc-cinta-tit { flex: none; display: inline-flex; align-items: center; gap: 6px; font-weight: 700; font-size: 11px; letter-spacing: .06em;
-  text-transform: uppercase; color: var(--accent); text-decoration: none; }
-.icc-cinta-tit i { width: 7px; height: 7px; border-radius: 50%; background: var(--red, #F87171); animation: icc-cinta-latido 1.6s infinite; }
-.icc-cinta-vent { flex: 1; min-width: 0; overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 24px, #000 calc(100% - 24px), transparent);
-  mask-image: linear-gradient(90deg, transparent, #000 24px, #000 calc(100% - 24px), transparent); }
+.icc-cinta-tit { position: relative; z-index: 1; flex: none; display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; border-radius: 10px;
+  font-weight: 900; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #fff; text-decoration: none;
+  background: linear-gradient(135deg, #EF4444, #F97316); box-shadow: 0 0 18px rgba(239, 68, 68, .55); }
+.icc-cinta-tit i { width: 8px; height: 8px; border-radius: 50%; background: #fff; animation: icc-cinta-latido 1.2s infinite; }
+.icc-cinta-vent { position: relative; z-index: 1; flex: 1; min-width: 0; overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 28px, #000 calc(100% - 28px), transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 28px, #000 calc(100% - 28px), transparent); }
 .icc-cinta-pista { display: inline-flex; white-space: nowrap; animation: icc-cinta-desliza var(--dur, 60s) linear infinite; }
+.icc-cinta-copia { display: inline-flex; align-items: center; gap: 28px; padding-right: 28px; }
 .icc-cinta:hover .icc-cinta-pista, .icc-cinta.is-pausa .icc-cinta-pista { animation-play-state: paused; }
-.icc-cinta-item { display: inline-flex; align-items: center; gap: 6px; color: var(--txt-2); }
-.icc-cinta-item i { font-style: normal; }
-.icc-cinta-item b { color: var(--txt); }
-.icc-cinta-item small { color: var(--txt-3); }
-.icc-cinta-item.is-anuncio { color: var(--txt); font-weight: 600; padding: 2px 10px; border-radius: 99px; background: rgba(251, 191, 36, .16); border: 1px solid rgba(251, 191, 36, .4); }
-.icc-cinta-copia { display: inline-flex; gap: 32px; padding-right: 32px; }
-.icc-cinta-pausa { flex: none; width: 26px; height: 26px; border-radius: 8px; border: 1px solid rgba(148, 163, 184, .3); background: transparent;
-  color: var(--txt-2); cursor: pointer; font-size: 11px; line-height: 1; }
-.icc-cinta-pausa:hover, .icc-cinta-pausa:focus-visible { color: var(--txt); border-color: var(--accent); }
-.icc-cinta.is-nuevo { animation: icc-cinta-flash 1.4s ease-out; }
+.icc-cinta-item { display: inline-flex; align-items: center; gap: 8px; color: #CBD5E1; font: inherit; }
+.icc-cinta-item b { color: #fff; }
+.icc-cinta-item small { color: #94A3B8; }
+.icc-cinta-ico { font-style: normal; display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: rgba(255, 255, 255, .08); }
+.icc-cinta-cara { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; border: 2px solid #22D3EE; box-shadow: 0 0 10px rgba(34, 211, 238, .5); }
+.icc-cinta-cara.is-grande, .icc-cinta-ico.is-grande { width: 36px; height: 36px; border-color: #FBBF24; box-shadow: 0 0 16px rgba(251, 191, 36, .7); font-size: 18px; }
+.icc-cinta-chip { font-size: 10.5px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; padding: 3px 8px; border-radius: 6px; color: #1A1203; background: #FBBF24; }
+.icc-cinta-chip.is-venta { background: linear-gradient(135deg, #34D399, #22D3EE); color: #04221A; }
+.icc-cinta-item.is-anuncio { cursor: pointer; color: #fff; font-weight: 700; padding: 4px 14px 4px 4px; border-radius: 99px; border: 1px solid rgba(251, 191, 36, .7);
+  background: linear-gradient(90deg, rgba(251, 191, 36, .28), rgba(244, 114, 182, .22)); box-shadow: 0 0 20px rgba(251, 191, 36, .35); animation: icc-cinta-resplandor 2s ease-in-out infinite; }
+.icc-cinta-item.is-anuncio:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.icc-cinta-item.is-venta { color: #E2E8F0; }
+.icc-cinta-item.is-reciente { padding: 3px 10px 3px 3px; border-radius: 99px; background: rgba(52, 211, 153, .18); box-shadow: 0 0 0 1px rgba(52, 211, 153, .6); }
+.icc-cinta-pausa { position: relative; z-index: 1; flex: none; width: 30px; height: 30px; border-radius: 9px; border: 1px solid rgba(255, 255, 255, .25); background: rgba(0, 0, 0, .2);
+  color: #E2E8F0; cursor: pointer; font-size: 11px; line-height: 1; }
+.icc-cinta-pausa:hover, .icc-cinta-pausa:focus-visible { color: #fff; border-color: #FBBF24; }
+.icc-cinta.is-nuevo { animation: icc-cinta-fondo 14s linear infinite, icc-cinta-flash 1.6s ease-out; }
 @keyframes icc-cinta-desliza { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-@keyframes icc-cinta-latido { 0% { box-shadow: 0 0 0 0 rgba(248, 113, 113, .7); } 70% { box-shadow: 0 0 0 7px rgba(248, 113, 113, 0); } 100% { box-shadow: 0 0 0 0 rgba(248, 113, 113, 0); } }
-@keyframes icc-cinta-flash { 0% { background-color: rgba(16, 185, 129, .35); } 100% { background-color: transparent; } }
+@keyframes icc-cinta-fondo { to { background-position: 200% 0; } }
+@keyframes icc-cinta-brillo { 0%, 40% { background-position: 150% 0; } 100% { background-position: -100% 0; } }
+@keyframes icc-cinta-latido { 0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, .8); } 70% { box-shadow: 0 0 0 8px rgba(255, 255, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); } }
+@keyframes icc-cinta-resplandor { 0%, 100% { box-shadow: 0 0 14px rgba(251, 191, 36, .3); } 50% { box-shadow: 0 0 26px rgba(251, 191, 36, .7); } }
+@keyframes icc-cinta-flash { 0% { box-shadow: inset 0 0 0 999px rgba(52, 211, 153, .35); } 100% { box-shadow: inset 0 0 0 999px transparent; } }
 @media (max-width: 560px) {
-  .icc-cinta { padding: 0 8px; gap: 8px; }
-  .icc-cinta-tit { font-size: 0; gap: 0; }
+  .icc-cinta { height: 46px; padding: 0 8px; gap: 8px; font-size: 13px; }
+  .icc-cinta-tit { font-size: 0; gap: 0; padding: 8px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .icc-cinta-pista { animation: none; }
+  .icc-cinta, .icc-cinta::after, .icc-cinta-pista, .icc-cinta-tit i, .icc-cinta-item.is-anuncio, .icc-cinta.is-nuevo { animation: none; }
   .icc-cinta-vent { overflow-x: auto; scrollbar-width: none; }
-  .icc-cinta-tit i, .icc-cinta.is-nuevo { animation: none; }
 }
 body.icc-sala-tv .icc-cinta { display: none; }

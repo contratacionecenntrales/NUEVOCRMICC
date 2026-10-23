@@ -10,7 +10,7 @@
   var REFRESCO_MS = 45000;
   var CLAVE_PAUSA = "icc-cinta-pausa";
 
-  var st = { eventos: [], anuncios: [], ahora: null, vistos: {}, timer: null, montada: false, pausa: false, oculta: false };
+  var st = { eventos: [], anuncios: [], ahora: null, vistos: {}, nuevos: {}, timer: null, montada: false, pausa: false, oculta: false };
 
   function leerPausa() {
     try { return localStorage.getItem(CLAVE_PAUSA) === "1"; } catch (e) { return false; }
@@ -34,16 +34,27 @@
     return "hace " + Math.round(s / 86400) + " d";
   }
 
+  function cara(foto, ico, clase) {
+    return foto
+      ? '<img class="icc-cinta-cara' + (clase || "") + '" src="' + esc(foto) + '" alt="" loading="lazy">'
+      : '<i class="icc-cinta-ico' + (clase || "") + '" aria-hidden="true">' + ico + "</i>";
+  }
+  function esVenta(e) {
+    return e.tipo === "contrato" || e.tipo === "contrato_ok" || (e.tipo === "fase" && e.estado === "cliente_activo");
+  }
   function items() {
     var fmt = window.icc.sala && window.icc.sala.textoEvento;
     var out = st.anuncios.map(function (a) {
       var lugar = [a.ciudad, a.provincia].filter(Boolean).join(", ");
-      return '<span class="icc-cinta-item is-anuncio"><i aria-hidden="true">' + esc(a.emoji || "📣") + "</i>" + esc(a.texto) + (lugar ? " <small>📍 " + esc(lugar) + "</small>" : "") + "</span>";
+      return '<button type="button" class="icc-cinta-item is-anuncio" data-anuncio="' + a.id + '" title="Ver el anuncio">' +
+        cara(a.foto, esc(a.emoji || "📣"), " is-grande") + '<span class="icc-cinta-chip">📣 Dirección</span>' +
+        "<span>" + esc(a.texto) + "</span>" + (lugar ? " <small>📍 " + esc(lugar) + "</small>" : "") + "</button>";
     });
     st.eventos.filter(function (e) { return e.tipo !== "anuncio"; }).slice(0, 14).forEach(function (e) {
       if (!fmt) return;
       var t = fmt(e);
-      out.push('<span class="icc-cinta-item"><i aria-hidden="true">' + t.ico + "</i>" + t.txt + " <small>" + esc(hace(e.fecha)) + "</small></span>");
+      out.push('<span class="icc-cinta-item' + (esVenta(e) ? " is-venta" : "") + (st.nuevos[e.id] ? " is-reciente" : "") + '">' + cara(e.foto, t.ico) +
+        (esVenta(e) ? '<span class="icc-cinta-chip is-venta">🔥 Venta</span>' : "") + "<span>" + t.txt + "</span> <small>" + esc(hace(e.fecha)) + "</small></span>");
     });
     return out;
   }
@@ -81,7 +92,17 @@
     st.ahora = r.ahora;
     st.anuncios = r.anuncios || [];
     var nuevos = (r.eventos || []).filter(function (e) { return !st.vistos[e.id]; });
-    nuevos.forEach(function (e) { st.vistos[e.id] = true; });
+    nuevos.forEach(function (e) { st.vistos[e.id] = true; if (!inicial) st.nuevos[e.id] = true; });
+    var E = window.icc.estelar;
+    if (E) {
+      // Los anuncios se celebran a pantalla completa (una vez por navegador).
+      E.anuncios(st.anuncios);
+      // Una venta que entra mientras trabajas también se celebra.
+      if (!inicial) {
+        var v = nuevos.filter(esVenta)[0];
+        if (v && window.icc.sala) E.venta(v, window.icc.sala.textoEvento(v).txt.replace(/<[^>]+>/g, ""));
+      }
+    }
     if (nuevos.length || inicial) {
       st.eventos = nuevos.concat(st.eventos).slice(0, 30);
       var c = el();
@@ -104,6 +125,12 @@
       '<div class="icc-cinta-vent"><div class="icc-cinta-pista"></div></div>' +
       '<button type="button" class="icc-cinta-pausa"></button>' +
       "</div>");
+    el().addEventListener("click", function (ev) {
+      var b = ev.target.closest("[data-anuncio]");
+      if (!b || !window.icc.estelar) return;
+      var a = st.anuncios.filter(function (x) { return String(x.id) === b.getAttribute("data-anuncio"); })[0];
+      if (a) window.icc.estelar.repetir(a);
+    });
     el().querySelector(".icc-cinta-pausa").addEventListener("click", function () {
       st.pausa = !st.pausa;
       guardarPausa(st.pausa);
