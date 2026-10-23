@@ -14,7 +14,7 @@ ALTER TABLE usuarios
   MODIFY rol ENUM('comercial','backoffice','jefe_de_equipo','coordinador','gerente','admin','super_admin')
   NOT NULL DEFAULT 'comercial';
 
--- Juan (juan@integralconnectionconsulting.es) responsable de Maria.
+-- Juan (info@ o juan@integralconnectionconsulting.es) responsable de Maria.
 -- Solo se aplica si Maria es Jefa de equipo; sus comerciales siguen colgando de ella.
 UPDATE usuarios m
   JOIN usuarios j ON j.email IN ('info@integralconnectionconsulting.es', 'juan@integralconnectionconsulting.es')

@@ -11,7 +11,7 @@
 -- nada.
 
 UPDATE usuarios SET rol = 'super_admin'
-WHERE email = 'juan@integralconnectionconsulting.es';
+WHERE email IN ('info@integralconnectionconsulting.es', 'juan@integralconnectionconsulting.es');
 
 UPDATE usuarios SET rol = 'admin'
 WHERE email = 'maria.alvarez@integralconnectionconsulting.es';
@@ -19,4 +19,4 @@ WHERE email = 'maria.alvarez@integralconnectionconsulting.es';
 -- Comprobacion final: Juan deberia salir como super_admin, Maria como admin.
 SELECT id, nombre, email, rol
 FROM usuarios
-WHERE email IN ('juan@integralconnectionconsulting.es', 'maria.alvarez@integralconnectionconsulting.es');
+WHERE email IN ('info@integralconnectionconsulting.es', 'juan@integralconnectionconsulting.es', 'maria.alvarez@integralconnectionconsulting.es');
