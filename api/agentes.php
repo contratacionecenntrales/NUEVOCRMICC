@@ -5,6 +5,16 @@ $user = icc_require_role(ICC_ROLES_INTERNOS);
 $metodo = $_SERVER['REQUEST_METHOD'];
 $id = isset($_GET['id']) ? (int)$_GET['id'] : null;
 
+// Lo que tiene cada cuenta antes de darla de baja (solo Admin): ?action=resumen_baja&ids=1,2
+if ($metodo === 'GET' && ($_GET['action'] ?? '') === 'resumen_baja') {
+  icc_require_role(ICC_ROLES_ADMIN);
+  $db = icc_db();
+  $ids = array_values(array_unique(array_filter(array_map('intval', explode(',', (string)($_GET['ids'] ?? ''))))));
+  $out = [];
+  foreach ($ids as $uid) $out[$uid] = icc_resumen_datos_usuario($db, $uid);
+  icc_json(['resumen' => (object)$out]);
+}
+
 if ($metodo === 'GET' && $id === null) {
   $db = icc_db();
   $where = [];
@@ -276,8 +286,11 @@ if ($metodo === 'DELETE' && $id !== null) {
   if ($id === (int)$user['id']) {
     icc_json(['error' => 'No puedes eliminar tu propia cuenta'], 400);
   }
+  if (!empty($_SESSION['impersonador_id']) && $id === (int)$_SESSION['impersonador_id']) {
+    icc_json(['error' => 'No puedes eliminar la cuenta con la que has entrado'], 400);
+  }
 
-  $stmt = $db->prepare('SELECT rol FROM usuarios WHERE id = ?');
+  $stmt = $db->prepare('SELECT id, nombre, apellidos, rol FROM usuarios WHERE id = ?');
   $stmt->execute([$id]);
   $objetivo = $stmt->fetch();
   if (!$objetivo) icc_json(['error' => 'Usuario no encontrado'], 404);
@@ -285,36 +298,38 @@ if ($metodo === 'DELETE' && $id !== null) {
     icc_json(['error' => 'Solo un Super Administrador puede eliminar una cuenta de Administrador, Gerente, Coordinador o Super Admin'], 403);
   }
 
-  $conteos = [
-    'clientes' => 'SELECT COUNT(*) AS total FROM clientes WHERE comercial_id = ?',
-    'contratos' => 'SELECT COUNT(*) AS total FROM contratos WHERE comercial_id = ?',
-    'presupuestos' => 'SELECT COUNT(*) AS total FROM presupuestos WHERE comercial_id = ?',
-    'proformas' => 'SELECT COUNT(*) AS total FROM proformas WHERE comercial_id = ?',
-    'equipo' => 'SELECT COUNT(*) AS total FROM usuarios WHERE supervisor_id = ?',
-  ];
-  // Informes de los comparadores (si la migracion esta importada): al borrar
-  // la cuenta se perderian, asi que tambien bloquean el borrado.
-  foreach (['cmp_ene_informes' => 'informes de energia', 'cmp_tel_informes' => 'informes de telefonia'] as $tabla => $motivo) {
-    try {
-      $db->query("SELECT 1 FROM $tabla LIMIT 0");
-      $conteos[$motivo] = "SELECT COUNT(*) AS total FROM $tabla WHERE usuario_id = ?";
-    } catch (PDOException $e) {
-      // Migracion de comparadores aun no importada.
+  // Destino del traspaso: una cuenta de direccion activa (Admin, Gerente, Coordinador o Super Admin).
+  $destinoId = isset($_GET['traspasar_a']) && $_GET['traspasar_a'] !== '' ? (int)$_GET['traspasar_a'] : null;
+  $resumen = icc_resumen_datos_usuario($db, $id);
+  $tieneDatos = array_sum($resumen) > 0;
+  if ($tieneDatos && $destinoId === null) {
+    icc_json(['error' => 'Esta cuenta tiene clientes u otros datos: elige a quién se traspasan antes de borrarla', 'resumen' => $resumen], 409);
+  }
+  $destino = null;
+  if ($destinoId !== null) {
+    if ($destinoId === $id) icc_json(['error' => 'No puedes traspasar los datos a la misma cuenta que borras'], 400);
+    $stmt = $db->prepare('SELECT id, nombre, apellidos, rol, bloqueado FROM usuarios WHERE id = ?');
+    $stmt->execute([$destinoId]);
+    $destino = $stmt->fetch();
+    if (!$destino || !icc_es_rol_admin($destino['rol']) || (int)$destino['bloqueado'] === 1) {
+      icc_json(['error' => 'Los datos solo se pueden traspasar a una cuenta de dirección activa (Administrador, Gerente, Coordinador o Super Admin)'], 400);
     }
   }
+
+  $db->beginTransaction();
   try {
-    foreach ($conteos as $motivo => $sql) {
-      $stmt = $db->prepare($sql);
-      $stmt->execute([$id]);
-      if ((int)$stmt->fetch()['total'] > 0) {
-        icc_json(['error' => 'No se puede eliminar: esta cuenta todavia tiene ' . $motivo . ' asociados. Reasignalos primero, o bloquea la cuenta en su lugar.'], 409);
-      }
-    }
+    if ($destino) icc_traspasar_datos_usuario($db, $id, (int)$destino['id'], trim($objetivo['nombre'] . ' ' . ($objetivo['apellidos'] ?? '')));
     $db->prepare('DELETE FROM usuarios WHERE id = ?')->execute([$id]);
+    $db->commit();
   } catch (Exception $e) {
+    $db->rollBack();
     icc_json(['error' => icc_mensaje_error('No se pudo eliminar la cuenta', $e, $user)], 500);
   }
-  icc_json(['ok' => true]);
+  if ($destino) {
+    icc_auditar((int)$destino['id'], (int)$user['id'], 'datos_traspasados',
+      'Recibe los datos de la cuenta borrada de ' . trim($objetivo['nombre'] . ' ' . ($objetivo['apellidos'] ?? '')) . ': ' . json_encode($resumen, JSON_UNESCAPED_UNICODE));
+  }
+  icc_json(['ok' => true, 'traspasado' => $destino ? $resumen : null]);
 }
 
 icc_json(['error' => 'Peticion no valida'], 404);
@@ -399,4 +414,72 @@ function icc_validar_supervisor(PDO $db, int $supervisorId, string $rolSubordina
     icc_json(['error' => $mensaje], 400);
   }
   return $supervisorId;
+}
+
+/** Tablas que existen en esta base de datos (algunas dependen de migraciones). */
+function icc_tabla_existe(PDO $db, string $tabla): bool {
+  static $cache = [];
+  if (!array_key_exists($tabla, $cache)) {
+    try {
+      $db->query("SELECT 1 FROM `$tabla` LIMIT 0");
+      $cache[$tabla] = true;
+    } catch (PDOException $e) {
+      $cache[$tabla] = false;
+    }
+  }
+  return $cache[$tabla];
+}
+
+/** Cuantos datos tiene una cuenta (lo que se traspasa al darla de baja). */
+function icc_resumen_datos_usuario(PDO $db, int $id): array {
+  $consultas = [
+    'clientes' => 'SELECT COUNT(*) FROM clientes WHERE comercial_id = ?',
+    'contratos' => 'SELECT COUNT(*) FROM contratos WHERE comercial_id = ?',
+    'presupuestos' => 'SELECT COUNT(*) FROM presupuestos WHERE comercial_id = ?',
+    'proformas' => 'SELECT COUNT(*) FROM proformas WHERE comercial_id = ?',
+    'citas' => 'SELECT COUNT(*) FROM citas WHERE comercial_id = ?',
+    'equipo' => 'SELECT COUNT(*) FROM usuarios WHERE supervisor_id = ?',
+  ];
+  if (icc_tabla_existe($db, 'cmp_ene_informes')) $consultas['informes_energia'] = 'SELECT COUNT(*) FROM cmp_ene_informes WHERE usuario_id = ?';
+  if (icc_tabla_existe($db, 'cmp_tel_informes')) $consultas['informes_telefonia'] = 'SELECT COUNT(*) FROM cmp_tel_informes WHERE usuario_id = ?';
+  $consultas['archivos_personales'] = 'SELECT COUNT(*) FROM ficheros f JOIN ficheros_carpetas c ON c.id = f.carpeta_id WHERE c.propietario_id = ?';
+  $out = [];
+  foreach ($consultas as $clave => $sql) {
+    $stmt = $db->prepare($sql);
+    $stmt->execute([$id]);
+    $out[$clave] = (int)$stmt->fetchColumn();
+  }
+  return $out;
+}
+
+/**
+ * Pasa a $destino todo lo de la cuenta $id antes de borrarla, para que la
+ * empresa siga trabajando: clientes, contratos, presupuestos, proformas,
+ * citas (agenda), informes de los comparadores, su carpeta personal de
+ * facturacion (con sus archivos) y, si era jefe, su equipo.
+ */
+function icc_traspasar_datos_usuario(PDO $db, int $id, int $destino, string $nombreBaja): void {
+  foreach (['clientes', 'contratos', 'presupuestos', 'proformas', 'citas'] as $tabla) {
+    $db->prepare("UPDATE `$tabla` SET comercial_id = ? WHERE comercial_id = ?")->execute([$destino, $id]);
+  }
+  if (icc_tabla_existe($db, 'citas')) {
+    try {
+      $db->prepare('UPDATE citas SET equipo_id = ? WHERE equipo_id = ?')->execute([$destino, $id]);
+    } catch (PDOException $e) {
+      // Sin la migracion de equipos no existe la columna.
+    }
+  }
+  foreach (['cmp_ene_informes', 'cmp_tel_informes'] as $tabla) {
+    if (icc_tabla_existe($db, $tabla)) $db->prepare("UPDATE `$tabla` SET usuario_id = ? WHERE usuario_id = ?")->execute([$destino, $id]);
+  }
+  // Su carpeta personal no se borra: pasa a quien recibe los datos, marcada como baja.
+  $stmt = $db->prepare('SELECT id, nombre FROM ficheros_carpetas WHERE propietario_id = ?');
+  $stmt->execute([$id]);
+  foreach ($stmt->fetchAll() as $carpeta) {
+    $nombre = $carpeta['nombre'];
+    if (strpos($nombre, '(baja)') === false) $nombre = mb_substr($nombre . ' (baja)', 0, 150);
+    $db->prepare('UPDATE ficheros_carpetas SET propietario_id = ?, nombre = ? WHERE id = ?')->execute([$destino, $nombre, $carpeta['id']]);
+  }
+  // Su equipo pasa a depender de quien recibe los datos.
+  $db->prepare('UPDATE usuarios SET supervisor_id = ? WHERE supervisor_id = ?')->execute([$destino, $id]);
 }

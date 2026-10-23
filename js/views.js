@@ -1615,6 +1615,94 @@ window.icc.views = (function () {
     });
   }
 
+  /**
+   * Borra una o varias cuentas. Antes enseña lo que tiene cada una y lo
+   * traspasa a una cuenta de dirección (clientes, contratos, presupuestos,
+   * proformas, citas, informes, carpeta personal y equipo), para que la
+   * empresa siga trabajando con todo.
+   */
+  async function modalBajaAgentes(ids, agentes) {
+    var esc = U.escapeHtml;
+    var porId = {};
+    agentes.forEach(function (a) { porId[a.id] = a; });
+    var nombre = function (a) { return a ? (a.nombre + " " + (a.apellidos || "")).trim() : "Usuario"; };
+    var miId = String((window.icc.auth.state.user || {}).id);
+    var destinos = agentes.filter(function (a) {
+      return esRolAdmin(a.rol) && !Number(a.bloqueado) && ids.indexOf(String(a.id)) === -1;
+    });
+    if (!destinos.length) {
+      U.toast("No hay ninguna cuenta de dirección activa a la que traspasar los datos", "error");
+      return;
+    }
+    var resumen = {};
+    try {
+      resumen = await D.resumenBajaAgentes(ids);
+    } catch (err) {
+      U.toast(err.message || "No se pudo consultar lo que tienen esas cuentas", "error");
+      return;
+    }
+    var etiquetas = { clientes: "clientes", contratos: "contratos", presupuestos: "presupuestos", proformas: "proformas", citas: "citas",
+      informes_energia: "informes de energía", informes_telefonia: "informes de telefonía", archivos_personales: "archivos personales", equipo: "personas a su cargo" };
+    var textoResumen = function (r) {
+      var singular = { clientes: "cliente", contratos: "contrato", presupuestos: "presupuesto", proformas: "proforma", citas: "cita",
+        informes_energia: "informe de energía", informes_telefonia: "informe de telefonía", archivos_personales: "archivo personal", equipo: "persona a su cargo" };
+      var partes = Object.keys(etiquetas).filter(function (k) { return r && Number(r[k]); }).map(function (k) { return "<b>" + Number(r[k]) + "</b> " + (Number(r[k]) === 1 ? singular[k] : etiquetas[k]); });
+      return partes.length ? partes.join(" · ") : "Sin datos";
+    };
+    var total = {};
+    ids.forEach(function (id) { Object.keys(etiquetas).forEach(function (k) { total[k] = (total[k] || 0) + Number((resumen[id] || {})[k] || 0); }); });
+
+    U.openModal(
+      "<h2>🗑 Borrar " + (ids.length === 1 ? "cuenta" : ids.length + " cuentas") + "</h2>" +
+      '<p class="icc-muted">Las cuentas se eliminan y <b>todo lo suyo pasa a la cuenta que elijas</b>, para que la empresa siga trabajando con ello.</p>' +
+      '<ul class="icc-baja-lista">' +
+      ids.map(function (id) {
+        var a = porId[id];
+        return '<li><strong>' + esc(nombre(a)) + '</strong> <span class="icc-muted">' + esc(a ? C.ROLES[a.rol] || a.rol : "") + "</span><small>" + textoResumen(resumen[id]) + "</small></li>";
+      }).join("") +
+      "</ul>" +
+      (ids.length > 1 ? '<p class="icc-baja-total">En total: ' + textoResumen(total) + "</p>" : "") +
+      '<form id="form-baja" class="icc-form">' +
+      '<div class="icc-field"><label for="baja-destino">Todo pasa a</label><select class="icc-select" id="baja-destino" name="destino">' +
+      destinos.map(function (d) {
+        return '<option value="' + d.id + '"' + (String(d.id) === miId ? " selected" : "") + ">" + esc(nombre(d)) + " · " + esc(C.ROLES[d.rol] || d.rol) + "</option>";
+      }).join("") + "</select>" +
+      '<span class="icc-ayuda">Recibe sus clientes, contratos, presupuestos, proformas, citas, informes, su carpeta de facturación (marcada «baja») y, si era jefe, su equipo.</span></div>' +
+      '<div class="icc-field"><label for="baja-confirmar">Para confirmar, escribe BORRAR</label><input class="icc-input" id="baja-confirmar" autocomplete="off" required></div>' +
+      '<p class="icc-baja-progreso" id="baja-progreso" role="status"></p>' +
+      '<div class="icc-modal-actions"><button type="button" class="icc-btn icc-btn-ghost" data-close-btn>Cancelar</button>' +
+      '<button type="submit" class="icc-btn icc-ap-btn-baja" id="baja-ok" disabled>Borrar y traspasar</button></div></form>'
+    );
+    var form = document.getElementById("form-baja");
+    var confirmar = document.getElementById("baja-confirmar");
+    var ok = document.getElementById("baja-ok");
+    confirmar.addEventListener("input", function () { ok.disabled = confirmar.value.trim().toUpperCase() !== "BORRAR"; });
+    confirmar.focus();
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      if (confirmar.value.trim().toUpperCase() !== "BORRAR") return;
+      var destino = document.getElementById("baja-destino").value;
+      var progreso = document.getElementById("baja-progreso");
+      ok.disabled = true;
+      confirmar.disabled = true;
+      var hechos = 0;
+      var errores = [];
+      for (var i = 0; i < ids.length; i++) {
+        progreso.textContent = "Borrando " + (i + 1) + " de " + ids.length + ": " + nombre(porId[ids[i]]) + "…";
+        try {
+          await D.borrarAgente(ids[i], destino);
+          hechos++;
+        } catch (err) {
+          errores.push(nombre(porId[ids[i]]) + ": " + (err.message || "error"));
+        }
+      }
+      U.closeModal();
+      if (hechos) U.toast(hechos + (hechos === 1 ? " cuenta borrada" : " cuentas borradas") + "; sus datos pasan a " + nombre(porId[destino]), "success");
+      errores.forEach(function (m) { U.toast(m, "error"); });
+      viewAgentes();
+    });
+  }
+
   async function viewAgentes() {
     var params = new URLSearchParams(location.hash.split("?")[1] || "");
     var q = (params.get("q") || params.get("nombre") || "").trim();
@@ -1765,6 +1853,7 @@ window.icc.views = (function () {
 
       return (
         '<article class="icc-ap-card' + (bloqueado(a) ? " is-bloqueado" : "") + '" style="--c:' + color + '" data-buscar="' + esc(textoBusqueda(a)) + '">' +
+        (puedeBorrar ? '<label class="icc-ap-sel" title="Seleccionar para borrar"><input type="checkbox" data-sel-id="' + a.id + '" aria-label="Seleccionar a ' + esc(nombreDe(a)) + '"></label>' : "") +
         '<header class="icc-ap-cab">' + avatarRol(a, 48) +
         '<div class="icc-ap-nombre">' +
         (hrefNombre ? '<a href="' + hrefNombre + '"><strong>' + esc(nombreDe(a)) + "</strong></a>" : "<strong>" + esc(nombreDe(a)) + "</strong>") +
@@ -1874,6 +1963,7 @@ window.icc.views = (function () {
       '<input class="icc-input" id="ap-buscar" type="search" placeholder="🔎 Buscar por nombre, email, empresa, CIF o teléfono" value="' + esc(q) + '">' +
       '<div class="icc-tabs icc-ap-vistas"><a class="icc-tab' + (vista === "tarjetas" ? " is-active" : "") + '" href="' + linkQs({ vista: "" }) + '">▦ Tarjetas</a>' +
       '<a class="icc-tab' + (vista === "equipos" ? " is-active" : "") + '" href="' + linkQs({ vista: "equipos" }) + '">🧩 Por equipos</a></div>' +
+      (esAdmin ? '<button type="button" class="icc-btn icc-btn-ghost icc-ap-btn-sel" id="ap-seleccionar" aria-pressed="false">☑ Borrar varios</button>' : "") +
       "</section>" +
 
       (visibles.length
@@ -1881,7 +1971,10 @@ window.icc.views = (function () {
           ? '<div class="icc-ap-equipos">' + vistaEquipos() + "</div>"
           : '<div class="icc-ap-grid">' + visibles.map(tarjeta).join("") + "</div>"
         : '<p class="icc-empty">No hay usuarios con este filtro.</p>') +
-      '<p class="icc-empty icc-ap-sin-resultados" hidden>Nadie coincide con la búsqueda.</p>';
+      '<p class="icc-empty icc-ap-sin-resultados" hidden>Nadie coincide con la búsqueda.</p>' +
+      '<div class="icc-ap-lote" id="ap-lote" hidden><span id="ap-lote-n">0 seleccionados</span>' +
+      '<button type="button" class="icc-btn icc-btn-ghost" id="ap-lote-cancelar">Cancelar</button>' +
+      '<button type="button" class="icc-btn icc-ap-btn-baja" id="ap-lote-borrar">🗑 Borrar y traspasar</button></div>';
 
     // ---- Busqueda al instante
     var buscar = document.getElementById("ap-buscar");
@@ -1955,18 +2048,40 @@ window.icc.views = (function () {
           }
         });
       });
+    // ---- Borrar (una o varias cuentas) traspasando sus datos a dirección
+    main().classList.remove("icc-ap-seleccionando");
+    var lote = document.getElementById("ap-lote");
+    var seleccionados = function () {
+      return Array.prototype.map.call(main().querySelectorAll("[data-sel-id]:checked"), function (i) { return i.getAttribute("data-sel-id"); });
+    };
+    var pintarLote = function () {
+      var n = seleccionados().length;
+      document.getElementById("ap-lote-n").textContent = n + (n === 1 ? " seleccionado" : " seleccionados");
+      document.getElementById("ap-lote-borrar").disabled = !n;
+    };
+    var modoSeleccion = function (activo) {
+      main().classList.toggle("icc-ap-seleccionando", activo);
+      if (lote) lote.hidden = !activo;
+      var b = document.getElementById("ap-seleccionar");
+      if (b) { b.setAttribute("aria-pressed", activo ? "true" : "false"); b.textContent = activo ? "✓ Seleccionando…" : "☑ Borrar varios"; }
+      if (!activo) main().querySelectorAll("[data-sel-id]").forEach(function (i) { i.checked = false; });
+      if (lote) pintarLote();
+    };
+    var btnSel = document.getElementById("ap-seleccionar");
+    if (btnSel) btnSel.addEventListener("click", function () { modoSeleccion(!main().classList.contains("icc-ap-seleccionando")); });
+    main().querySelectorAll("[data-sel-id]").forEach(function (i) { i.addEventListener("change", pintarLote); });
+    if (lote) {
+      document.getElementById("ap-lote-cancelar").addEventListener("click", function () { modoSeleccion(false); });
+      document.getElementById("ap-lote-borrar").addEventListener("click", function () {
+        var ids = seleccionados();
+        if (ids.length) modalBajaAgentes(ids, agentes);
+      });
+    }
     main()
       .querySelectorAll("[data-borrar-agente-id]")
       .forEach(function (btn) {
-        btn.addEventListener("click", async function () {
-          if (!confirm("¿Eliminar esta cuenta? Solo se puede si no tiene clientes, contratos, proformas ni equipo asociados. No se puede deshacer.")) return;
-          try {
-            await D.borrarAgente(btn.getAttribute("data-borrar-agente-id"));
-            U.toast("Cuenta eliminada", "success");
-            viewAgentes();
-          } catch (err) {
-            U.toast(err.message || "No se pudo eliminar", "error");
-          }
+        btn.addEventListener("click", function () {
+          modalBajaAgentes([btn.getAttribute("data-borrar-agente-id")], agentes);
         });
       });
     main()

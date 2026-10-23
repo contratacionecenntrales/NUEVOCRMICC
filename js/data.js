@@ -131,8 +131,14 @@ window.icc.data = (function () {
     await API.put("api/agentes.php?id=" + encodeURIComponent(id), payload);
   }
 
-  async function borrarAgente(id) {
-    await API.del("api/agentes.php?id=" + encodeURIComponent(id));
+  // destino: cuenta de dirección que recibe sus datos (clientes, contratos...).
+  async function borrarAgente(id, destino) {
+    await API.del("api/agentes.php?id=" + encodeURIComponent(id) + (destino ? "&traspasar_a=" + encodeURIComponent(destino) : ""));
+  }
+
+  async function resumenBajaAgentes(ids) {
+    var data = await API.get("api/agentes.php?action=resumen_baja&ids=" + encodeURIComponent(ids.join(",")));
+    return data.resumen || {};
   }
 
   // Comerciales asignados a cada usuario de Backoffice (solo Admin).
@@ -424,6 +430,7 @@ window.icc.data = (function () {
     crearAgente: crearAgente,
     actualizarAgente: actualizarAgente,
     borrarAgente: borrarAgente,
+    resumenBajaAgentes: resumenBajaAgentes,
     obtenerFichaAgente: obtenerFichaAgente,
     obtenerUsuario: obtenerUsuario,
     accionUsuario: accionUsuario,
