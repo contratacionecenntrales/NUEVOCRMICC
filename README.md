@@ -430,7 +430,7 @@ esa carpeta del servidor. Pasos a seguir, en este orden:
 
 ## Sala de ventas, cinta en directo y anuncios
 
-- **Sala de ventas** (`#/sala-ventas`, modo TV con `?tv=1`): ranking, objetivo del mes, mapa por provincias, actividad y «Análisis en directo». Todo sale de los datos reales del CRM (`api/sala.php`) y se refresca cada 30 s; las cifras solo se mueven cuando entra un movimiento real.
+- **Sala de ventas** (`#/sala-ventas`, modo TV con `?tv=1`), visible para todos menos los comerciales (ellos siguen viendo la cinta en directo y las celebraciones): ranking, objetivo del mes, mapa por provincias, actividad y «Análisis en directo». Todo sale de los datos reales del CRM (`api/sala.php`) y se refresca cada 30 s; las cifras solo se mueven cuando entra un movimiento real.
 - **Privacidad**: dirección (Admin, Gerente, Coordinador, Super Admin) ve todos los nombres. El resto ve con nombre solo a su propio equipo; de los demás, «Comercial · Provincia», «Equipo · Provincia» u «Oficina · Provincia». Nunca se envían emails ni teléfonos.
 - **Cinta en directo**: franja bajo el menú en todas las pantallas con los anuncios y los últimos movimientos (anónimos fuera de tu equipo). Se puede pausar y respeta «reducir movimiento».
 - **Anuncios de dirección** (`api/anuncios.php`, tabla de `sql/migracion_anuncios.sql`): en la sala, botón «📣 Anuncios». Texto, ciudad y provincia (la provincia late en el mapa), y duración: solo hoy, una semana o hasta una fecha. Caducan solos.

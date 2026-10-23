@@ -180,7 +180,7 @@
     var interno = window.icc.auth.esBackofficeOAdmin();
     var puede = window.icc.auth.puede;
     var items = [{ href: "#/dashboard", label: "Inicio" }];
-    items.push({ href: "#/sala-ventas", label: "Sala de ventas" });
+    if (window.icc.auth.puedeVerSala()) items.push({ href: "#/sala-ventas", label: "Sala de ventas" });
 
     if (puede("agenda.ver")) items.push({ label: "Agenda", href: "#/agenda" });
 
@@ -546,7 +546,7 @@
     var main = document.getElementById("icc-main");
 
     try {
-      if (sinPermisoRuta(ruta)) {
+      if (sinPermisoRuta(ruta) || (ruta === "#/sala-ventas" && !window.icc.auth.puedeVerSala())) {
         main.innerHTML = '<p class="icc-empty">No tienes permiso para acceder a esta sección. Si lo necesitas, pídeselo a dirección.</p>';
       } else if (ruta === "#/dashboard" || hash === "" || hash === "#") {
         await window.icc.views.viewDashboard();

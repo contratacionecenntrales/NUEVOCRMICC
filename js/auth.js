@@ -148,6 +148,8 @@ window.icc.auth = (function () {
     detenerImpersonacion: detenerImpersonacion,
     tieneRol: tieneRol,
     esBackofficeOAdmin: esBackofficeOAdmin,
+    // Sala de ventas: todos menos los comerciales (lo comprueba también api/sala.php).
+    puedeVerSala: function () { return !!state.user && state.rolPrincipal !== "comercial"; },
     esAdminOSuperior: esAdminOSuperior,
     esSuperAdmin: esSuperAdmin,
     puede: puede,

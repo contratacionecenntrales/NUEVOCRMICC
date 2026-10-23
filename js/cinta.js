@@ -121,7 +121,9 @@
     st.pausa = leerPausa();
     sticky.insertAdjacentHTML("beforeend",
       '<div class="icc-cinta" id="icc-cinta" hidden role="region" aria-label="Actividad en directo del equipo">' +
-      '<a class="icc-cinta-tit" href="#/sala-ventas" title="Abrir la sala de ventas"><i aria-hidden="true"></i>En directo</a>' +
+      (window.icc.auth.puedeVerSala()
+        ? '<a class="icc-cinta-tit" href="#/sala-ventas" title="Abrir la sala de ventas"><i aria-hidden="true"></i>En directo</a>'
+        : '<span class="icc-cinta-tit"><i aria-hidden="true"></i>En directo</span>') +
       '<div class="icc-cinta-vent"><div class="icc-cinta-pista"></div></div>' +
       '<button type="button" class="icc-cinta-pausa"></button>' +
       "</div>");

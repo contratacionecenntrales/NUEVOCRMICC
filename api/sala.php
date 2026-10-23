@@ -24,6 +24,11 @@ require __DIR__ . '/anuncios_lib.php';
 
 $user = icc_require_auth();
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') icc_json(['error' => 'Metodo no permitido'], 405);
+// La sala completa (rankings, objetivos, mapa) es para todos menos los comerciales.
+// Los comerciales solo reciben la actividad de la cinta en directo (solo_eventos).
+if ((string)$user['rol'] === 'comercial' && empty($_GET['solo_eventos'])) {
+  icc_json(['error' => 'La sala de ventas no está disponible para tu perfil'], 403);
+}
 $db = icc_db();
 
 function sala_existe(PDO $db, string $sql): bool {
