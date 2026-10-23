@@ -17,3 +17,7 @@ define('ICC_BACKUP_TOKEN', 'CAMBIA_ESTE_TOKEN_POR_UNO_LARGO_Y_SECRETO');
 // define('ICC_SIPS_URL', 'https://proveedor.example/api/sips?cups={cups}');
 // define('ICC_SIPS_TOKEN', '...');
 // define('ICC_SIPS_HEADER', 'Authorization: Bearer');
+
+// SOLO en una instalacion de DEMOSTRACION aparte, con su propia BD de ejemplo
+// (ver README, "Modo demostracion"). Nunca en la real.
+// define('ICC_MODO_DEMO', true);
