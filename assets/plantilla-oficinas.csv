@@ -1,0 +1,4 @@
+nombre;provincia;ciudad;direccion;telefono;email;responsable_email
+Oficina Ejemplo Centro;Madrid;Madrid;Calle Ejemplo 1;910000000;centro@ejemplo.com;
+Distribuidor Ejemplo Norte;Bizkaia;Bilbao;Avenida Ejemplo 2;940000000;norte@ejemplo.com;
+Tienda Ejemplo Sur;Sevilla;Sevilla;Plaza Ejemplo 3;;;

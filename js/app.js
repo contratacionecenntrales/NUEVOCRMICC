@@ -204,6 +204,9 @@
     if (interno) {
       items.push({ label: "Agentes", href: "#/agentes" });
     }
+    // Red de oficinas: Admin la gestiona entera; el resto ve su oficina y solo
+    // agregados anónimos de la red (lo decide api/oficinas.php).
+    items.push({ label: "Oficinas", href: "#/oficinas" });
 
     if (puede("comparador.usar")) {
       items.push({
@@ -550,6 +553,11 @@
         await window.icc.views.viewAgenda();
       } else if (ruta === "#/pipeline") {
         await window.icc.pipeline.view();
+      } else if (ruta === "#/oficinas") {
+        // El permiso real lo decide api/oficinas.php (comercial: sin acceso).
+        await window.icc.oficinas.view();
+      } else if (/^#\/oficinas\/\d+$/.test(ruta)) {
+        await window.icc.oficinas.viewDetalle(ruta.split("/")[2]);
       } else if (ruta === "#/presupuestos") {
         await window.icc.views.viewPresupuestos();
       } else if (ruta.indexOf("#/presupuestos/") === 0) {
