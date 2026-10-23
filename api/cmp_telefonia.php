@@ -13,6 +13,7 @@
  *   ?recurso=pdf&id=     GET  descarga el PDF archivado · POST lo archiva
  */
 require __DIR__ . '/cmp_comun.php';
+require_once __DIR__ . '/tarifas_novedades_lib.php';
 
 $user = cmp_actor();
 icc_require_csrf();
@@ -77,20 +78,28 @@ if ($recurso === 'perfiles') {
       icc_json(['error' => 'Faltan el nombre o las operadoras del perfil.'], 422);
     }
     $json = json_encode($datos, JSON_UNESCAPED_UNICODE);
-    $stmt = $db->prepare('SELECT id FROM cmp_tel_perfiles WHERE nombre = ? LIMIT 1');
+    $stmt = $db->prepare('SELECT id, datos FROM cmp_tel_perfiles WHERE nombre = ? LIMIT 1');
     $stmt->execute([$nombre]);
-    $id = $stmt->fetchColumn();
+    $previo = $stmt->fetch();
+    $id = $previo ? (int)$previo['id'] : 0;
     if ($id) {
       $db->prepare('UPDATE cmp_tel_perfiles SET datos = ?, actualizado_por = ? WHERE id = ?')->execute([$json, $user['id'], $id]);
     } else {
       $db->prepare('INSERT INTO cmp_tel_perfiles (nombre, datos, actualizado_por) VALUES (?, ?, ?)')->execute([$nombre, $json, $user['id']]);
-      $id = $db->lastInsertId();
+      $id = (int)$db->lastInsertId();
     }
+    // Novedad para el equipo: cuotas y promociones que han cambiado.
+    $datosAntes = $previo ? json_decode($previo['datos'], true) : null;
+    nov_tel_perfil_guardado(is_array($datosAntes) ? $datosAntes : null, $datos, $nombre, (int)$id, (int)$user['id']);
     icc_json(['id' => (int)$id, 'nombre' => $nombre]);
   }
   if ($metodo === 'DELETE') {
     if (!icc_es_admin_o_superior($user)) icc_json(['error' => 'Solo un administrador puede borrar perfiles de tarifas.'], 403);
+    $stmt = $db->prepare('SELECT id, nombre FROM cmp_tel_perfiles WHERE id = ?');
+    $stmt->execute([(int)($_GET['id'] ?? 0)]);
+    $previo = $stmt->fetch();
     $db->prepare('DELETE FROM cmp_tel_perfiles WHERE id = ?')->execute([(int)($_GET['id'] ?? 0)]);
+    if ($previo) nov_tel_perfil_borrado($previo['nombre'], (int)$previo['id'], (int)$user['id']);
     icc_json(['ok' => true]);
   }
   icc_json(['error' => 'Metodo no soportado.'], 405);
@@ -193,6 +202,12 @@ if ($recurso === 'comisiones') {
     if (!icc_es_admin_o_superior($user)) icc_json(['error' => 'Solo un administrador puede cambiar las comisiones.'], 403);
     $filas = cmp_body()['filas'] ?? null;
     if (!is_array($filas) || count($filas) > 1000) icc_json(['error' => 'Faltan las filas de comisiones.'], 422);
+    $leerComisiones = function () use ($db) {
+      $out = [];
+      foreach ($db->query('SELECT id, marca, concepto, tramo, importe, importe_alta FROM cmp_tel_comisiones')->fetchAll() as $f) $out[(int)$f['id']] = $f;
+      return $out;
+    };
+    $comisionesAntes = $leerComisiones();
     $stmt = $db->prepare('UPDATE cmp_tel_comisiones SET importe = ?, importe_alta = ? WHERE id = ?');
     $n = 0;
     foreach ($filas as $f) {
@@ -201,6 +216,8 @@ if ($recurso === 'comisiones') {
       $stmt->execute([(float)$f['importe'], $alta, (int)$f['id']]);
       $n++;
     }
+    // Una sola novedad resumen con los importes que han cambiado.
+    nov_tel_comisiones($comisionesAntes, $leerComisiones(), (int)$user['id']);
     icc_json(['ok' => true, 'actualizadas' => $n]);
   }
   icc_json(['error' => 'Metodo no soportado.'], 405);

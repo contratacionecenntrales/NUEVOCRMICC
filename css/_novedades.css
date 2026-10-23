@@ -1,0 +1,171 @@
+/* =============================================================================
+   ICC CRM · Novedades de tarifas (js/novedades.js)
+   Linea de tiempo por dias, chips energia/telefonia, flechas ↓ verde / ↑ rojo,
+   contador del menu y aviso flotante. Usa los tokens de css/app.css.
+   ============================================================================= */
+.icc-nov{--nov-ok:var(--esmeralda);--nov-ko:var(--red);--nov-ene:var(--amber);--nov-tel:var(--cian);
+  max-width:1080px;margin:0 auto;min-width:0}
+.icc-nov-sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+/* ---------- Contador en el menu ---------- */
+.icc-nov-badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;
+  margin-left:7px;border-radius:999px;background:var(--esmeralda);color:#03170F;font-size:10.5px;font-weight:800;
+  line-height:1;vertical-align:middle;box-shadow:0 0 0 0 rgba(16,185,129,.55);animation:icc-nov-latido 2.4s ease-out infinite}
+.icc-nov-badge[hidden]{display:none}
+.icc-nov-badge--dot{min-width:8px;width:8px;height:8px;padding:0;margin-left:6px;position:relative;top:-1px}
+@keyframes icc-nov-latido{0%{box-shadow:0 0 0 0 rgba(16,185,129,.55)}70%{box-shadow:0 0 0 7px rgba(16,185,129,0)}100%{box-shadow:0 0 0 0 rgba(16,185,129,0)}}
+
+/* ---------- Cabecera ---------- */
+.icc-nov-hero{position:relative;overflow:hidden;display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap;
+  padding:26px 26px 22px;border-radius:var(--radius);border:1px solid var(--line);margin-bottom:14px;
+  background:
+    radial-gradient(600px 220px at 100% 0%,rgba(16,185,129,.18),transparent 70%),
+    radial-gradient(500px 200px at 0% 100%,rgba(34,211,238,.12),transparent 70%),
+    linear-gradient(135deg,var(--card),var(--card-2))}
+.icc-nov-hero-txt{min-width:0;flex:1 1 420px}
+.icc-nov-hero h1{margin:6px 0 6px;font-size:28px;line-height:1.15;color:#fff;letter-spacing:-.01em}
+.icc-nov-hero p{margin:0;color:var(--txt-2);font-size:13.5px;max-width:640px}
+.icc-nov-leyenda{display:block;margin-top:6px;font-size:12.5px}
+.icc-nov-leyenda .ok{color:var(--nov-ok)}
+.icc-nov-leyenda .ko{color:var(--nov-ko)}
+.icc-nov-kicker{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--esmeralda)}
+.icc-nov-pulso{width:8px;height:8px;border-radius:50%;background:var(--esmeralda);animation:icc-nov-latido 1.8s ease-out infinite}
+.icc-nov-hero-acc{display:flex;gap:10px;flex-wrap:wrap}
+.icc-nov-hero-acc .icc-btn[disabled]{opacity:.55;cursor:default}
+.icc-nov-hero-n{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 6px;margin-left:4px;
+  border-radius:999px;background:rgba(3,23,15,.25);font-size:11px;font-weight:800}
+
+.icc-nov-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.icc-nov-kpi{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:10px;align-items:center;
+  padding:13px 15px;border-radius:var(--radius-sm);background:var(--card);border:1px solid var(--line);
+  border-left:3px solid var(--kpi,var(--esmeralda));min-width:0}
+.icc-nov-kpi span{grid-row:1 / span 2;font-size:20px}
+.icc-nov-kpi b{font-size:22px;color:#fff;line-height:1.1}
+.icc-nov-kpi small{color:var(--txt-2);font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.icc-nov-kpi.is-nv{--kpi:var(--esmeralda)}
+.icc-nov-kpi.is-hoy{--kpi:var(--violet)}
+.icc-nov-kpi.is-energia{--kpi:var(--nov-ene)}
+.icc-nov-kpi.is-telefonia{--kpi:var(--nov-tel)}
+
+/* ---------- Filtros ---------- */
+.icc-nov-filtros{position:sticky;top:var(--nov-sticky,64px);z-index:5;display:flex;flex-wrap:wrap;align-items:center;gap:10px;
+  padding:10px;margin-bottom:18px;border-radius:var(--radius-sm);border:1px solid var(--line);
+  background:color-mix(in srgb,var(--panel) 92%,transparent);backdrop-filter:blur(8px)}
+.icc-nov-seg{display:inline-flex;padding:3px;border-radius:999px;background:var(--card-2);border:1px solid var(--line)}
+.icc-nov-seg-btn{border:0;background:none;color:var(--txt-2);font:inherit;font-size:12px;font-weight:600;
+  padding:6px 12px;border-radius:999px;cursor:pointer;white-space:nowrap}
+.icc-nov-seg-btn:hover{color:#fff}
+.icc-nov-seg-btn.is-active{background:var(--esmeralda);color:#03170F}
+.icc-nov-seg-btn:focus-visible,.icc-nov-select select:focus-visible,.icc-nov-buscar input:focus-visible{outline:2px solid var(--cian);outline-offset:2px}
+.icc-nov-select select{appearance:auto;background:var(--card-2);border:1px solid var(--line);color:var(--txt);
+  font:inherit;font-size:12.5px;padding:7px 10px;border-radius:999px}
+.icc-nov-buscar{flex:1 1 220px;min-width:0;display:flex;align-items:center;gap:8px;padding:0 12px;
+  background:var(--card-2);border:1px solid var(--line);border-radius:999px}
+.icc-nov-buscar input{flex:1;min-width:0;border:0;background:none;color:var(--txt);font:inherit;font-size:13px;padding:8px 0;outline:none}
+
+/* ---------- Linea de tiempo ---------- */
+.icc-nov-dia{margin-bottom:22px}
+.icc-nov-dia-titulo{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:0 0 12px;font-size:15px;color:#fff}
+.icc-nov-dia-titulo small{font-size:12px;font-weight:500;color:var(--txt-3)}
+.icc-nov-dia-titulo small b{color:var(--esmeralda)}
+.icc-nov-lista{position:relative;display:flex;flex-direction:column;gap:12px;padding-left:44px}
+.icc-nov-lista::before{content:"";position:absolute;left:15px;top:6px;bottom:6px;width:2px;border-radius:2px;
+  background:linear-gradient(var(--line),rgba(35,44,61,.2))}
+.icc-nov-item{position:relative;animation:icc-nov-entra .35s ease both}
+@keyframes icc-nov-entra{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.icc-nov-dot{position:absolute;left:-44px;top:14px;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:800;background:var(--card);border:2px solid var(--line);color:var(--txt-2)}
+.icc-nov-dot.is-alta{border-color:var(--esmeralda);color:var(--esmeralda)}
+.icc-nov-dot.is-cambio{border-color:var(--cian);color:var(--cian)}
+.icc-nov-dot.is-baja{border-color:var(--txt-3);color:var(--txt-3)}
+.icc-nov-item.tend-baja .icc-nov-dot.is-cambio{border-color:var(--nov-ok);color:var(--nov-ok)}
+.icc-nov-item.tend-sube .icc-nov-dot.is-cambio{border-color:var(--nov-ko);color:var(--nov-ko)}
+
+.icc-nov-card{min-width:0;padding:14px 16px;border-radius:var(--radius);background:var(--card);border:1px solid var(--line);
+  border-left:3px solid var(--nov-borde,var(--line));transition:border-color .15s,transform .15s}
+.icc-nov-card:hover{border-color:rgba(148,163,184,.35);border-left-color:var(--nov-borde,var(--line))}
+.icc-nov-item.is-energia{--nov-borde:var(--nov-ene)}
+.icc-nov-item.is-telefonia{--nov-borde:var(--nov-tel)}
+.icc-nov-item.is-nueva .icc-nov-card{box-shadow:0 0 0 1px rgba(16,185,129,.35),0 10px 30px -18px rgba(16,185,129,.6)}
+.icc-nov-card-top{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.icc-nov-card h3{margin:8px 0 4px;font-size:15px;font-weight:700;line-height:1.35;color:#fff;text-transform:none;letter-spacing:0;overflow-wrap:anywhere}
+.icc-nov-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700;
+  background:rgba(148,163,184,.12);color:var(--txt-2)}
+.icc-nov-chip.is-energia{background:rgba(251,191,36,.14);color:var(--nov-ene)}
+.icc-nov-chip.is-telefonia{background:rgba(34,211,238,.14);color:var(--nov-tel)}
+.icc-nov-chip.is-alta{background:rgba(16,185,129,.14);color:var(--esmeralda)}
+.icc-nov-chip.is-cambio{background:rgba(129,140,248,.14);color:var(--violet)}
+.icc-nov-chip.is-baja{background:rgba(148,163,184,.12);color:var(--txt-3)}
+.icc-nov-chip.is-buena{background:rgba(16,185,129,.18);color:var(--nov-ok)}
+.icc-nov-chip.is-mala{background:rgba(248,113,113,.16);color:var(--nov-ko)}
+.icc-nov-nueva{padding:3px 8px;border-radius:999px;font-size:10.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;
+  background:var(--esmeralda);color:#03170F}
+.icc-nov-hora{margin-left:auto;font-size:12px;color:var(--txt-3);font-variant-numeric:tabular-nums}
+.icc-nov-meta{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 2px}
+.icc-nov-meta-chip{font-size:11px;color:var(--txt-3);padding:2px 8px;border-radius:6px;border:1px solid var(--line)}
+
+.icc-nov-cambios{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.icc-nov-cambio{display:grid;grid-template-columns:minmax(120px,190px) minmax(0,1fr) auto;align-items:center;gap:10px;
+  padding:8px 10px;border-radius:9px;background:var(--card-2);font-size:12.5px}
+.icc-nov-cambio.is-baja{background:linear-gradient(90deg,rgba(16,185,129,.10),var(--card-2) 60%)}
+.icc-nov-cambio.is-sube{background:linear-gradient(90deg,rgba(248,113,113,.10),var(--card-2) 60%)}
+.icc-nov-label{color:var(--txt-2);overflow-wrap:anywhere}
+.icc-nov-valores{display:flex;align-items:baseline;flex-wrap:wrap;gap:6px;min-width:0;font-variant-numeric:tabular-nums}
+.icc-nov-antes{color:var(--txt-3);text-decoration:line-through;text-decoration-color:rgba(148,163,184,.45)}
+.icc-nov-to{color:var(--txt-3)}
+.icc-nov-despues{color:#fff;font-weight:700;overflow-wrap:anywhere}
+.icc-nov-despues small{font-weight:500;color:var(--txt-3)}
+.icc-nov-flecha{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:999px;font-size:11.5px;font-weight:800;white-space:nowrap}
+.icc-nov-flecha.is-baja{background:rgba(16,185,129,.18);color:var(--nov-ok)}
+.icc-nov-flecha.is-sube{background:rgba(248,113,113,.18);color:var(--nov-ko)}
+.icc-nov-resto{margin:6px 0 0;font-size:12px;color:var(--txt-3)}
+.icc-nov-pie{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:10px;font-size:12px;color:var(--txt-3)}
+.icc-nov-abrir{color:var(--cian);font-weight:600}
+.icc-nov-abrir:hover{text-decoration:underline}
+
+.icc-nov-vacio{text-align:center;padding:48px 20px;border:1px dashed var(--line);border-radius:var(--radius);color:var(--txt-2)}
+.icc-nov-vacio span{font-size:38px}
+.icc-nov-vacio h3{margin:10px 0 6px;color:#fff;font-size:16px;text-transform:none;letter-spacing:0}
+.icc-nov-vacio p{margin:0 auto 14px;max-width:460px;font-size:13px}
+.icc-nov-mas{display:flex;justify-content:center;margin:8px 0 24px}
+
+/* ---------- Aviso flotante al entrar ---------- */
+.icc-nov-aviso{position:fixed;right:20px;bottom:20px;z-index:60;display:flex;align-items:center;gap:12px;
+  width:min(420px,calc(100vw - 32px));padding:14px 40px 14px 14px;border-radius:var(--radius);
+  background:linear-gradient(135deg,#10251f,var(--card));border:1px solid rgba(16,185,129,.45);box-shadow:var(--shadow);
+  opacity:0;transform:translateY(16px);transition:opacity .3s,transform .3s}
+.icc-nov-aviso.is-in{opacity:1;transform:none}
+.icc-nov-aviso-ico{font-size:24px;flex:none}
+.icc-nov-aviso-txt{min-width:0;flex:1;display:flex;flex-direction:column;gap:2px}
+.icc-nov-aviso-txt strong{color:#fff;font-size:13.5px}
+.icc-nov-aviso-txt span{color:var(--txt-2);font-size:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.icc-nov-aviso-btn{flex:none;white-space:nowrap}
+.icc-nov-aviso-x{position:absolute;top:6px;right:8px;border:0;background:none;color:var(--txt-3);font-size:20px;line-height:1;cursor:pointer;padding:4px}
+.icc-nov-aviso-x:hover{color:#fff}
+
+/* ---------- Movil ---------- */
+@media (max-width:900px){
+  .icc-nov-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .icc-nov-filtros{position:static}
+}
+@media (max-width:600px){
+  .icc-nov-hero{padding:18px 16px}
+  .icc-nov-hero h1{font-size:22px}
+  .icc-nov-hero-acc,.icc-nov-hero-acc .icc-btn{width:100%}
+  .icc-nov-seg{width:100%}
+  .icc-nov-seg-btn{flex:1;padding:6px 6px}
+  .icc-nov-select,.icc-nov-select select{width:100%}
+  .icc-nov-lista{padding-left:30px}
+  .icc-nov-lista::before{left:10px}
+  .icc-nov-dot{left:-30px;width:22px;height:22px;font-size:11px;top:16px}
+  .icc-nov-card{padding:12px}
+  .icc-nov-cambio{grid-template-columns:minmax(0,1fr) auto;gap:4px 8px}
+  .icc-nov-label{grid-column:1 / -1;font-size:11.5px}
+  .icc-nov-aviso{right:16px;bottom:16px;flex-wrap:wrap}
+  .icc-nov-aviso-btn{width:100%}
+}
+@media (prefers-reduced-motion:reduce){
+  .icc-nov-badge,.icc-nov-pulso,.icc-nov-item{animation:none}
+  .icc-nov-aviso{transition:none}
+}
