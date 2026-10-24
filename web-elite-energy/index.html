@@ -81,8 +81,7 @@ header{position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid 
 .hero{padding:22px 0 0}
 .banner{position:relative;border-radius:28px;overflow:hidden;background:var(--blue);color:#fff}
 .slide{display:none;grid-template-columns:1.05fr .95fr;min-height:520px}
-.slide.on{display:grid;animation:fade .6s ease}
-@keyframes fade{from{opacity:0}to{opacity:1}}
+.slide.on{display:grid}
 .slide .txt{padding:clamp(32px,5vw,72px) clamp(28px,5vw,72px) 84px;display:flex;flex-direction:column;justify-content:center}
 .tag{display:inline-flex;align-self:flex-start;background:rgba(255,255,255,.15);border-radius:999px;padding:7px 14px;font-size:13px;font-weight:700;margin-bottom:22px}
 .slide h1,.slide .h1{color:#fff;font-family:var(--head);font-weight:600;letter-spacing:-.03em;line-height:1.04;font-size:clamp(34px,4.8vw,60px)}
@@ -110,8 +109,8 @@ header{position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid 
 /* Accesos rápidos */
 .quick{padding:22px 0 0}
 .q-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
-.q{display:flex;flex-direction:column;gap:14px;padding:18px;border-radius:var(--r-s);background:var(--grey);font-weight:700;color:var(--navy);font-size:15px;line-height:1.25;transition:background .2s,transform .2s}
-.q:hover{background:var(--ice);transform:translateY(-2px)}
+.q{display:flex;flex-direction:column;gap:14px;padding:18px;border-radius:var(--r-s);background:var(--grey);font-weight:700;color:var(--navy);font-size:15px;line-height:1.25;transition:background .2s}
+.q:hover{background:var(--ice)}
 .q .ic{width:44px;height:44px;border-radius:50%;background:#fff;display:grid;place-items:center}
 @media (max-width:1000px){.q-grid{grid-template-columns:repeat(3,1fr)}}
 @media (max-width:560px){.q-grid{grid-template-columns:1fr 1fr}.q{flex-direction:row;align-items:center;padding:14px;gap:10px;font-size:14px}.q .ic{width:38px;height:38px}}
@@ -149,18 +148,26 @@ header{position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid 
 .c-solar .copy{position:relative;z-index:1;max-width:60%}
 .c-ev{grid-column:8 / span 5;background:var(--ice)}
 .c-eff{grid-column:3 / span 10;border:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;margin-top:20px}
-.c-eff .meter{background:var(--ice-2);border-radius:16px;padding:24px}
-.meter h4{font-size:15px;display:flex;justify-content:space-between;margin-bottom:16px}
-.meter h4 small{font:600 13px var(--body);color:var(--muted)}
-.mrow{display:grid;grid-template-columns:110px 1fr auto;gap:12px;align-items:center;font-size:14px;padding:8px 0}
-.mbar{height:10px;border-radius:6px;background:var(--line);position:relative;overflow:hidden}
-.mbar i{position:absolute;left:0;top:0;bottom:0;border-radius:6px;background:var(--blue);width:0;transition:width 1.2s cubic-bezier(.2,.7,.2,1)}
-.mbar i.after{background:var(--sky)}
-.in .mbar i{width:var(--w)}
-.legend{display:flex;gap:18px;font-size:13px;color:var(--muted);margin-top:12px}
-.legend span{display:flex;gap:6px;align-items:center}
-.legend i{width:10px;height:10px;border-radius:3px;background:var(--blue)}
-.legend i.after{background:var(--sky)}
+.c-eff .meter{background:var(--ice-2);border-radius:16px;padding:26px}
+.meter-h{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.meter-h h4{font-size:16px}
+.meter-h small{font-size:13px;color:var(--muted);white-space:nowrap}
+.mrow{padding:16px 0;border-bottom:1px solid var(--line)}
+.mtop{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:10px;font-size:15px}
+.mtop strong{font-weight:600;color:var(--navy)}
+.mval{display:flex;align-items:baseline;gap:10px;font-size:14px;color:var(--muted);white-space:nowrap}
+.mval b{color:var(--navy);font-weight:700}
+.pill{font-size:12px;font-weight:700;color:var(--blue);background:var(--ice);border-radius:999px;padding:3px 9px}
+.mtrack{position:relative;height:12px;border-radius:6px;background:#fff;border:1px solid var(--line)}
+.mtrack .was{position:absolute;inset:-1px auto -1px -1px;border-radius:6px;background:repeating-linear-gradient(135deg,#cfe0f3 0 4px,#e6eff9 4px 8px)}
+.mtrack .now{position:absolute;inset:-1px auto -1px -1px;border-radius:6px;background:var(--blue)}
+.mtotal{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding-top:16px}
+.mtotal span{font-size:14px;color:var(--muted)}
+.mtotal b{font-family:var(--head);font-weight:600;font-size:30px;color:var(--blue);letter-spacing:-.03em}
+.legend{display:flex;gap:18px;font-size:13px;color:var(--muted);margin-top:14px}
+.legend span{display:flex;gap:7px;align-items:center}
+.legend i{width:14px;height:10px;border-radius:3px;background:var(--blue)}
+.legend i.was{background:repeating-linear-gradient(135deg,#cfe0f3 0 4px,#e6eff9 4px 8px);border:1px solid var(--line)}
 @media (max-width:960px){
   .svc-head{grid-template-columns:1fr}.svc-head>p{justify-self:start}
   .c-solar,.c-ev,.c-eff{grid-column:1 / -1}
@@ -197,7 +204,7 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;bac
 .res .y{margin:14px 0 4px;font-family:var(--head);font-weight:600;font-size:clamp(54px,6vw,80px);line-height:1;letter-spacing:-.04em}
 .res .ysub{color:#cfe2fa}
 .cmp{display:grid;grid-template-columns:auto 1fr auto;gap:12px 14px;align-items:center;margin:28px 0;font-size:14px;color:#cfe2fa}
-.cmp .bar{height:28px;border-radius:8px;background:rgba(255,255,255,.22);transition:width .5s cubic-bezier(.2,.7,.2,1)}
+.cmp .bar{height:28px;border-radius:8px;background:rgba(255,255,255,.22)}
 .cmp .bar.n{background:#fff}
 .cmp .v{font-weight:700;color:#fff;font-size:16px;text-align:right;min-width:72px}
 .kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -215,8 +222,8 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;bac
 .switch button{border:0;background:none;font:700 15px var(--body);padding:11px 22px;border-radius:999px;cursor:pointer;color:var(--muted)}
 .switch button.on{background:#fff;color:var(--blue);box-shadow:0 1px 4px rgba(0,42,92,.12)}
 .plans{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:20px}
-.plan{border:1px solid var(--line);border-radius:var(--r);padding:30px;display:flex;flex-direction:column;background:#fff;position:relative;transition:border-color .2s,transform .2s}
-.plan:hover{border-color:var(--blue);transform:translateY(-3px)}
+.plan{border:1px solid var(--line);border-radius:var(--r);padding:30px;display:flex;flex-direction:column;background:#fff;position:relative;transition:border-color .2s}
+.plan:hover{border-color:var(--blue)}
 .plan.star{background:var(--navy);border-color:var(--navy);color:#fff}
 .plan.star h3{color:#fff}
 .badge{position:absolute;top:22px;right:22px;background:var(--sky);color:#fff;font-size:12px;font-weight:700;padding:5px 12px;border-radius:999px}
@@ -328,11 +335,7 @@ footer{background:var(--navy);color:#b7cde9;padding:70px 0 30px;font-size:15px}
 .cookies p{color:var(--muted)}
 .cookies .row{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
 
-/* Animación al hacer scroll */
-.rv{opacity:0;transform:translateY(20px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.7,.2,1)}
-.rv.in{opacity:1;transform:none}
-.d1{transition-delay:.08s}.d2{transition-delay:.16s}.d3{transition-delay:.24s}
-@media (prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}.slide.on{animation:none}.mbar i{transition:none}html{scroll-behavior:auto}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 </style>
 </head>
 <body>
@@ -431,12 +434,12 @@ footer{background:var(--navy);color:#b7cde9;padding:70px 0 30px;font-size:15px}
 <!-- ACCESOS RÁPIDOS -->
 <section class="quick" style="padding-bottom:0">
   <div class="wrap q-grid">
-    <a href="#tarifas" class="q rv"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0058b9" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></span>Tarifas de luz y gas</a>
-    <a href="#servicios" class="q rv d1"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0058b9" stroke-width="1.8"><path d="M5 5h14l2 10H3z"/><path d="M4 10h16M9.5 5l-1 10M14.5 5l1 10M12 15v5M8 20h8"/></svg></span>Placas solares</a>
-    <a href="#recarga" class="q rv d2"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0058b9" stroke-width="1.8"><path d="M3 16v-3l2-5h10l3 5h1a2 2 0 0 1 2 2v1"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/><path d="M9 17h6"/></svg></span>Cargador coche eléctrico</a>
-    <a href="#eficiencia" class="q rv d3"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0058b9" stroke-width="1.8"><path d="M4 18a8 8 0 1 1 16 0"/><path d="M12 18l4-6"/><path d="M4 18h16"/></svg></span>Eficiencia energética</a>
-    <a href="#simulador" class="q rv d3"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0058b9" stroke-width="1.8"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 11h2M12 11h2M16 11v6M8 15h2M12 15h2M8 18h6"/></svg></span>Calcular ahorro</a>
-    <a href="#llamada" class="q rv d3"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0058b9" stroke-width="1.8"><path d="M12 15V3M7 8l5-5 5 5M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg></span>Subir factura</a>
+    <a href="#tarifas" class="q"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0058b9" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></span>Tarifas de luz y gas</a>
+    <a href="#servicios" class="q"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0058b9" stroke-width="1.8"><path d="M5 5h14l2 10H3z"/><path d="M4 10h16M9.5 5l-1 10M14.5 5l1 10M12 15v5M8 20h8"/></svg></span>Placas solares</a>
+    <a href="#recarga" class="q"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0058b9" stroke-width="1.8"><path d="M3 16v-3l2-5h10l3 5h1a2 2 0 0 1 2 2v1"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/><path d="M9 17h6"/></svg></span>Cargador coche eléctrico</a>
+    <a href="#eficiencia" class="q"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0058b9" stroke-width="1.8"><path d="M4 18a8 8 0 1 1 16 0"/><path d="M12 18l4-6"/><path d="M4 18h16"/></svg></span>Eficiencia energética</a>
+    <a href="#simulador" class="q"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0058b9" stroke-width="1.8"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 11h2M12 11h2M16 11v6M8 15h2M12 15h2M8 18h6"/></svg></span>Calcular ahorro</a>
+    <a href="#llamada" class="q"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0058b9" stroke-width="1.8"><path d="M12 15V3M7 8l5-5 5 5M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg></span>Subir factura</a>
   </div>
 </section>
 
@@ -444,10 +447,10 @@ footer{background:var(--navy);color:#b7cde9;padding:70px 0 30px;font-size:15px}
 <section class="figs" style="padding-bottom:0">
   <div class="wrap">
     <div class="f-grid num">
-      <div class="f rv"><b><span data-count="23">23</span><small>%</small></b><span>ahorro medio en la factura de nuestros clientes</span></div>
-      <div class="f rv d1"><b><span data-count="1840">1.840</span></b><span>hogares y empresas atendidos</span></div>
-      <div class="f rv d2"><b>3,2<small>MWp</small></b><span>de fotovoltaica instalada</span></div>
-      <div class="f rv d3"><b><span data-count="12">12</span><small>años</small></b><span>en el sector energético</span></div>
+      <div class="f"><b><span>23</span><small>%</small></b><span>ahorro medio en la factura de nuestros clientes</span></div>
+      <div class="f"><b><span>1.840</span></b><span>hogares y empresas atendidos</span></div>
+      <div class="f"><b>3,2<small>MWp</small></b><span>de fotovoltaica instalada</span></div>
+      <div class="f"><b><span>12</span><small>años</small></b><span>en el sector energético</span></div>
     </div>
   </div>
 </section>
@@ -455,13 +458,13 @@ footer{background:var(--navy);color:#b7cde9;padding:70px 0 30px;font-size:15px}
 <!-- SERVICIOS -->
 <section id="servicios">
   <div class="wrap">
-    <div class="svc-head rv">
+    <div class="svc-head">
       <div><p class="eyebrow">Qué hacemos</p><h2 style="margin-top:12px">Pagar menos luz es el principio. Después, gastar menos.</h2></div>
       <p>Además de negociar tu tarifa, instalamos lo que hace falta para que consumas menos y produzcas tu propia energía. Un solo interlocutor para todo.</p>
     </div>
 
     <div class="svc">
-      <article class="card c-solar rv">
+      <article class="card c-solar">
         <div class="copy">
           <p class="eyebrow">Fotovoltaica</p>
           <h3>Placas solares para casa, nave o comunidad.</h3>
@@ -486,7 +489,7 @@ footer{background:var(--navy);color:#b7cde9;padding:70px 0 30px;font-size:15px}
         </svg>
       </article>
 
-      <article class="card c-ev rv d1" id="recarga">
+      <article class="card c-ev" id="recarga">
         <p class="eyebrow">Recarga de coche eléctrico</p>
         <h3>Tu cargador, instalado y legalizado.</h3>
         <p class="lead">Wallbox en vivienda, garaje comunitario o parking de empresa. Revisamos la potencia para que no salte nada.</p>
@@ -502,7 +505,7 @@ footer{background:var(--navy);color:#b7cde9;padding:70px 0 30px;font-size:15px}
         <div class="foot"><a href="#llamada" class="btn">Pedir presupuesto</a></div>
       </article>
 
-      <article class="card c-eff rv" id="eficiencia">
+      <article class="card c-eff" id="eficiencia">
         <div>
           <p class="eyebrow">Eficiencia energética</p>
           <h3>Antes de producir más, gasta menos.</h3>
@@ -516,14 +519,12 @@ footer{background:var(--navy);color:#b7cde9;padding:70px 0 30px;font-size:15px}
           <div class="foot"><a href="#llamada" class="btn">Solicitar auditoría</a></div>
         </div>
         <div class="meter num" aria-label="Ejemplo de reducción de consumo tras una auditoría">
-          <h4>Nave logística · consumo anual <small>MWh</small></h4>
-          <div class="mrow"><span>Climatización</span><div class="mbar"><i style="--w:92%"></i></div><b>184</b></div>
-          <div class="mrow"><span></span><div class="mbar"><i class="after" style="--w:64%"></i></div><b>128</b></div>
-          <div class="mrow"><span>Iluminación</span><div class="mbar"><i style="--w:58%"></i></div><b>116</b></div>
-          <div class="mrow"><span></span><div class="mbar"><i class="after" style="--w:24%"></i></div><b>48</b></div>
-          <div class="mrow"><span>Maquinaria</span><div class="mbar"><i style="--w:70%"></i></div><b>140</b></div>
-          <div class="mrow"><span></span><div class="mbar"><i class="after" style="--w:60%"></i></div><b>121</b></div>
-          <div class="legend"><span><i></i>Antes</span><span><i class="after"></i>Después</span><span style="margin-left:auto;color:var(--blue);font-weight:700">−34 %</span></div>
+          <div class="meter-h"><h4>Nave logística · consumo anual</h4><small>MWh / año</small></div>
+          <div class="mrow"><div class="mtop"><strong>Climatización</strong><span class="mval">184 → <b>128</b><span class="pill">−30 %</span></span></div><div class="mtrack"><span class="was" style="width:100.0%"></span><span class="now" style="width:69.6%"></span></div></div>
+          <div class="mrow"><div class="mtop"><strong>Iluminación</strong><span class="mval">116 → <b>48</b><span class="pill">−59 %</span></span></div><div class="mtrack"><span class="was" style="width:63.0%"></span><span class="now" style="width:26.1%"></span></div></div>
+          <div class="mrow"><div class="mtop"><strong>Maquinaria</strong><span class="mval">140 → <b>121</b><span class="pill">−14 %</span></span></div><div class="mtrack"><span class="was" style="width:76.1%"></span><span class="now" style="width:65.8%"></span></div></div>
+          <div class="mtotal"><span>Total: 440 → 297 MWh</span><b>−32 %</b></div>
+          <div class="legend"><span><i></i>Después</span><span><i class="was"></i>Consumo que se elimina</span></div>
         </div>
       </article>
     </div>
@@ -533,7 +534,7 @@ footer{background:var(--navy);color:#b7cde9;padding:70px 0 30px;font-size:15px}
 <!-- SIMULADOR -->
 <section class="soft" id="simulador">
   <div class="wrap">
-    <div class="sim-top rv">
+    <div class="sim-top">
       <div><p class="eyebrow">Simulador</p><h2 style="margin-top:12px">Haz números antes de llamarnos.</h2><p class="sub">Elige qué quieres calcular. Es orientativo; el dato exacto lo sacamos de tu factura.</p></div>
       <div class="tabs" role="tablist">
         <button type="button" class="on" data-tab="fact" role="tab" aria-selected="true">Ahorro en factura</button>
@@ -543,7 +544,7 @@ footer{background:var(--navy);color:#b7cde9;padding:70px 0 30px;font-size:15px}
 
     <!-- Factura -->
     <div class="pane on sim-grid" id="pane-fact">
-      <form class="panel rv" id="sim" onsubmit="return false">
+      <form class="panel" id="sim" onsubmit="return false">
         <div class="qq"><div class="t">¿Dónde tienes el suministro?</div>
           <div class="chips"><input type="radio" name="tipo" id="t1" value="hogar" checked><label for="t1">Vivienda</label><input type="radio" name="tipo" id="t2" value="pyme"><label for="t2">Comercio o pyme</label><input type="radio" name="tipo" id="t3" value="empresa"><label for="t3">Industria</label></div></div>
         <div class="qq"><label class="t" for="gasto">Lo que pagas al mes <output id="gastoOut" class="num">85 €</output></label>
@@ -553,7 +554,7 @@ footer{background:var(--navy);color:#b7cde9;padding:70px 0 30px;font-size:15px}
         <div class="qq"><div class="t">¿Cuándo revisaste la potencia?</div>
           <div class="chips"><input type="radio" name="pot" id="p1" value="0"><label for="p1">Hace menos de un año</label><input type="radio" name="pot" id="p2" value="1" checked><label for="p2">Hace más</label><input type="radio" name="pot" id="p3" value="2"><label for="p3">Nunca</label></div></div>
       </form>
-      <div class="panel res rv d1" aria-live="polite">
+      <div class="panel res" aria-live="polite">
         <h3>Tu ahorro estimado al año</h3>
         <div class="y num" id="anual">190 €</div>
         <div class="ysub" id="pctTxt">Un 19 % menos en tu factura</div>
@@ -596,7 +597,7 @@ footer{background:var(--navy);color:#b7cde9;padding:70px 0 30px;font-size:15px}
 <!-- TARIFAS -->
 <section id="tarifas">
   <div class="wrap">
-    <div class="plans-head rv">
+    <div class="plans-head">
       <div><p class="eyebrow">Luz y gas</p><h2 style="margin-top:12px">Elige tu tarifa</h2><p class="sub">Precios claros y sin permanencia. Si no sabes cuál te conviene, te lo calculamos con tu factura.</p></div>
       <div class="switch" role="tablist" aria-label="Tipo de cliente">
         <button type="button" class="on" data-plan="hogar" role="tab" aria-selected="true">Hogar</button>
@@ -611,7 +612,7 @@ footer{background:var(--navy);color:#b7cde9;padding:70px 0 30px;font-size:15px}
 <!-- FACTURA -->
 <section class="soft" id="factura">
   <div class="wrap read-grid">
-    <div class="bill rv num" aria-hidden="true">
+    <div class="bill num" aria-hidden="true">
       <div class="bill-top"><div><h4>Factura de electricidad</h4><small>01/03 – 31/03 · 31 días</small></div><small style="text-align:right">Tarifa 3.0TD<br>CUPS ES0021…4471</small></div>
       <div class="bl" data-k="1"><span class="n">1</span><span>Potencia contratada · 15 kW</span><b>214,37 €</b></div>
       <div class="bl" data-k="2"><span class="n">2</span><span>Energía consumida · 4.812 kWh</span><b>837,29 €</b></div>
@@ -621,13 +622,13 @@ footer{background:var(--navy);color:#b7cde9;padding:70px 0 30px;font-size:15px}
       <div class="bill-sum"><span>Total</span><span>1.284,60 €</span></div>
     </div>
     <div>
-      <div class="rv"><p class="eyebrow">Revisión de factura</p><h2 style="margin-top:12px">Cinco sitios donde se escapa el dinero</h2><p class="sub">En casi todas las facturas que nos llegan hay al menos dos.</p></div>
+      <div><p class="eyebrow">Revisión de factura</p><h2 style="margin-top:12px">Cinco sitios donde se escapa el dinero</h2><p class="sub">En casi todas las facturas que nos llegan hay al menos dos.</p></div>
       <div class="tips">
-        <div class="tip rv" data-k="1"><span class="n">1</span><div><h4>Potencia de más</h4><p>Pagas 15 kW y tu pico real es de 10. Se ajusta sin obras.</p></div></div>
-        <div class="tip rv" data-k="2"><span class="n">2</span><div><h4>Precio desactualizado</h4><p>El contrato se renovó solo, con el precio que le convenía a la compañía.</p></div></div>
-        <div class="tip rv" data-k="3"><span class="n">3</span><div><h4>Reactiva</h4><p>Una batería de condensadores la deja a cero y se paga sola en meses.</p></div></div>
-        <div class="tip rv" data-k="4"><span class="n">4</span><div><h4>Excesos</h4><p>Te quedas corto en algún periodo y pagas recargo.</p></div></div>
-        <div class="tip rv" data-k="5"><span class="n">5</span><div><h4>Extras que no pediste</h4><p>Seguros y servicios añadidos al contratar por teléfono. Los damos de baja.</p></div></div>
+        <div class="tip" data-k="1"><span class="n">1</span><div><h4>Potencia de más</h4><p>Pagas 15 kW y tu pico real es de 10. Se ajusta sin obras.</p></div></div>
+        <div class="tip" data-k="2"><span class="n">2</span><div><h4>Precio desactualizado</h4><p>El contrato se renovó solo, con el precio que le convenía a la compañía.</p></div></div>
+        <div class="tip" data-k="3"><span class="n">3</span><div><h4>Reactiva</h4><p>Una batería de condensadores la deja a cero y se paga sola en meses.</p></div></div>
+        <div class="tip" data-k="4"><span class="n">4</span><div><h4>Excesos</h4><p>Te quedas corto en algún periodo y pagas recargo.</p></div></div>
+        <div class="tip" data-k="5"><span class="n">5</span><div><h4>Extras que no pediste</h4><p>Seguros y servicios añadidos al contratar por teléfono. Los damos de baja.</p></div></div>
       </div>
     </div>
   </div>
@@ -636,12 +637,12 @@ footer{background:var(--navy);color:#b7cde9;padding:70px 0 30px;font-size:15px}
 <!-- CÓMO TRABAJAMOS -->
 <section>
   <div class="wrap steps-wrap">
-    <div class="side rv"><p class="eyebrow">Cómo trabajamos</p><h2 style="margin-top:12px">Un asesor para todo. De la factura al tejado.</h2><p class="sub">Sin subcontratas que no conoces y sin llamadas a la hora de comer.</p></div>
+    <div class="side"><p class="eyebrow">Cómo trabajamos</p><h2 style="margin-top:12px">Un asesor para todo. De la factura al tejado.</h2><p class="sub">Sin subcontratas que no conoces y sin llamadas a la hora de comer.</p></div>
     <ol class="steps">
-      <li class="rv"><span class="n">01</span><div><h4>Nos mandas una factura</h4><p>Con una foto basta. Si te interesa solar o recarga, nos dices también la dirección.</p><span class="time">5 minutos</span></div></li>
-      <li class="rv"><span class="n">02</span><div><h4>Estudiamos tu consumo real</h4><p>Pedimos tus curvas horarias a la distribuidora y, si hace falta, vamos a ver la instalación.</p><span class="time">48 horas</span></div></li>
-      <li class="rv"><span class="n">03</span><div><h4>Propuesta con números</h4><p>Qué pagas hoy, qué pagarías y en cuánto se amortiza cada cosa. En una página.</p><span class="time">Sin compromiso</span></div></li>
-      <li class="rv"><span class="n">04</span><div><h4>Lo hacemos y lo vigilamos</h4><p>Cambio de tarifa, instalación, legalización y seguimiento de cada factura.</p><span class="time">Siempre</span></div></li>
+      <li><span class="n">01</span><div><h4>Nos mandas una factura</h4><p>Con una foto basta. Si te interesa solar o recarga, nos dices también la dirección.</p><span class="time">5 minutos</span></div></li>
+      <li><span class="n">02</span><div><h4>Estudiamos tu consumo real</h4><p>Pedimos tus curvas horarias a la distribuidora y, si hace falta, vamos a ver la instalación.</p><span class="time">48 horas</span></div></li>
+      <li><span class="n">03</span><div><h4>Propuesta con números</h4><p>Qué pagas hoy, qué pagarías y en cuánto se amortiza cada cosa. En una página.</p><span class="time">Sin compromiso</span></div></li>
+      <li><span class="n">04</span><div><h4>Lo hacemos y lo vigilamos</h4><p>Cambio de tarifa, instalación, legalización y seguimiento de cada factura.</p><span class="time">Siempre</span></div></li>
     </ol>
   </div>
 </section>
@@ -649,12 +650,12 @@ footer{background:var(--navy);color:#b7cde9;padding:70px 0 30px;font-size:15px}
 <!-- AYUDA -->
 <section class="soft" id="ayuda">
   <div class="wrap help-grid">
-    <div class="rv">
+    <div>
       <h2>Preguntas habituales</h2>
       <p class="sub">Si la tuya no está, llámanos.</p>
       <div class="contact-card"><p>Atención al cliente gratuita</p><a href="tel:+34900000000">900 000 000</a><p>Lunes a viernes de 9:00 a 19:00</p></div>
     </div>
-    <div class="rv d1">
+    <div>
       <details open><summary>¿Cuánto cuesta el estudio?</summary><p>Nada. El estudio de factura, de placas o de recarga es gratuito y sin compromiso.</p></details>
       <details><summary>¿Me quedo sin luz al cambiar de compañía?</summary><p>No. La instalación es la misma, solo cambia quién te factura.</p></details>
       <details><summary>¿Mi tejado vale para placas solares?</summary><p>Casi siempre. Miramos orientación, inclinación y sombras con imágenes y, si hace falta, con una visita.</p></details>
@@ -667,7 +668,7 @@ footer{background:var(--navy);color:#b7cde9;padding:70px 0 30px;font-size:15px}
 <!-- TE LLAMAMOS -->
 <section id="llamada">
   <div class="wrap">
-    <div class="cb rv">
+    <div class="cb">
       <span class="deco" aria-hidden="true"></span>
       <div><h2>Te llamamos gratis</h2><p>Déjanos tus datos y un asesor te llama en el horario que prefieras. Si adjuntas la factura, te llamamos con el estudio hecho.</p></div>
       <form id="cform">
@@ -727,12 +728,9 @@ menu.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{menu.class
 
 // Banner con 3 ofertas
 const slides=[...document.querySelectorAll('.slide')],dots=[...document.querySelectorAll('.b-nav button')];
-let cur=0,timer;
+let cur=0;
 function show(i){cur=i;slides.forEach((s,k)=>s.classList.toggle('on',k===i));dots.forEach((d,k)=>{d.classList.toggle('on',k===i);d.setAttribute('aria-selected',k===i)})}
-function auto(){if(reduce)return;clearInterval(timer);timer=setInterval(()=>show((cur+1)%slides.length),7000)}
-dots.forEach((d,i)=>d.addEventListener('click',()=>{show(i);auto()}));
-const ban=$('banner');ban.addEventListener('mouseenter',()=>clearInterval(timer));ban.addEventListener('mouseleave',auto);ban.addEventListener('focusin',()=>clearInterval(timer));
-auto();
+dots.forEach((d,i)=>d.addEventListener('click',()=>show(i)));
 
 // Tarifas (precios de ejemplo)
 const check='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>';
@@ -813,13 +811,6 @@ sol.addEventListener('input',scalc);scalc();
 
 // Factura: resaltar línea
 document.querySelectorAll('.tip').forEach(t=>{const l=document.querySelector('.bl[data-k="'+t.dataset.k+'"]');t.addEventListener('mouseenter',()=>l.classList.add('hot'));t.addEventListener('mouseleave',()=>l.classList.remove('hot'))});
-
-// Aparición al hacer scroll y contadores
-function count(el){if(reduce)return;const end=+el.dataset.count,t0=performance.now();(function s(t){const p=Math.min((t-t0)/1100,1);el.textContent=fmt(end*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(s)})(t0)}
-if('IntersectionObserver' in window){
-  const io=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;e.target.classList.add('in');e.target.querySelectorAll('[data-count]').forEach(count);io.unobserve(e.target)}),{threshold:.12,rootMargin:'0px 0px -30px 0px'});
-  document.querySelectorAll('.rv').forEach(el=>io.observe(el));
-}else document.querySelectorAll('.rv').forEach(el=>el.classList.add('in'));
 
 // Formulario (conectar aquí con el CRM)
 $('fact').addEventListener('change',e=>{const f=e.target.files[0];if(f)$('fname').textContent=f.name});
