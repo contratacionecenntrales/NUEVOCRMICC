@@ -229,7 +229,35 @@ if (!empty($_GET['solo_eventos'])) {
   $ventana = max(1, min(720, (int)($_GET['ventana'] ?? 24)));
   $desdeEv = $desde ?? date('Y-m-d H:i:s', strtotime($ahora . ' -' . $ventana . ' hours'));
   $eventos = sala_completar(sala_eventos($db, $user, $desdeEv, $nombre, $conCmpEne, $conCmpTel, $conNovedades), $anuncios, $provDe, $desdeEv, $fotoDe);
-  icc_json(['ahora' => $ahora, 'eventos' => $eventos, 'anuncios' => $anuncios]);
+  // Cifras agregadas de toda la red (sin nombres) para la cinta.
+  $uno = function (string $sql, array $p = []) use ($db): int {
+    $f = sala_filas($db, $sql, $p);
+    return $f ? (int)array_values($f[0])[0] : 0;
+  };
+  $iniMes = substr($hoy, 0, 7) . '-01';
+  $resumen = [
+    'citas_hoy' => $uno('SELECT COUNT(*) FROM citas WHERE created_at >= ?', [$hoy . ' 00:00:00']),
+    'visitas_hoy' => $uno("SELECT COUNT(*) FROM citas WHERE estado = 'realizada' AND fecha = ?", [$hoy]),
+    'contratos_hoy' => $uno('SELECT COUNT(*) FROM contratos WHERE created_at >= ?', [$hoy . ' 00:00:00']),
+    'clientes_hoy' => $uno('SELECT COUNT(*) FROM clientes WHERE created_at >= ?', [$hoy . ' 00:00:00']),
+    'contratos_mes' => $uno('SELECT COUNT(*) FROM contratos WHERE fecha_alta >= ? AND fecha_alta <= ?', [$iniMes, $hoy]),
+    'ok_mes' => $uno("SELECT COUNT(*) FROM contratos WHERE estado = 'ok' AND COALESCE(fecha_activacion, fecha_alta) >= ? AND COALESCE(fecha_activacion, fecha_alta) <= ?", [$iniMes, $hoy]),
+    'citas_semana' => $uno('SELECT COUNT(*) FROM citas WHERE fecha >= ? AND fecha < ? + INTERVAL 7 DAY', [$hoy, $hoy]),
+    'activos_hoy' => $uno('SELECT COUNT(DISTINCT id) FROM (
+        SELECT comercial_id id FROM citas WHERE created_at >= ? UNION ALL SELECT creado_por FROM citas WHERE created_at >= ?
+        UNION ALL SELECT comercial_id FROM clientes WHERE created_at >= ? UNION ALL SELECT comercial_id FROM contratos WHERE created_at >= ?
+      ) t WHERE id IS NOT NULL', array_fill(0, 4, $hoy . ' 00:00:00')),
+    'equipo' => $uno("SELECT COUNT(*) FROM usuarios WHERE bloqueado = 0 AND rol IN ('comercial', 'jefe_de_equipo')"),
+  ];
+  // Red de oficinas y distribuidores dados de alta en Oficinas (solo cifras, sin datos de contacto).
+  if ($conOficinas) {
+    $resumen['oficinas'] = $uno('SELECT COUNT(*) FROM oficinas WHERE activa = 1');
+    $resumen['provincias'] = $uno("SELECT COUNT(DISTINCT provincia) FROM oficinas WHERE activa = 1 AND provincia <> ''");
+    $resumen['oficinas_activas_hoy'] = $uno('SELECT COUNT(DISTINCT u.oficina_id) FROM usuarios u WHERE u.oficina_id IS NOT NULL AND u.id IN (
+        SELECT comercial_id FROM citas WHERE created_at >= ? UNION SELECT creado_por FROM citas WHERE created_at >= ?
+        UNION SELECT comercial_id FROM clientes WHERE created_at >= ? UNION SELECT comercial_id FROM contratos WHERE created_at >= ?)', array_fill(0, 4, $hoy . ' 00:00:00'));
+  }
+  icc_json(['ahora' => $ahora, 'eventos' => $eventos, 'anuncios' => $anuncios, 'resumen' => $resumen]);
 }
 
 // ------------------------------------------------------------------ Periodo
