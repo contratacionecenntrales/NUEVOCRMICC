@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Elite Energy">
+  <!-- Isotipo Floral Core · para fondos oscuros (#0B192C) -->
+  <defs>
+    <radialGradient id="ee-glow"><stop offset="0" stop-color="#00F59B" stop-opacity="0.5"/><stop offset="1" stop-color="#00F59B" stop-opacity="0"/></radialGradient>
+    <path id="ee-petal-in" d="M100 100 C93 86 93 66 100 52 C107 66 107 86 100 100 Z"/>
+    <path id="ee-petal-out" d="M100 100 C88 76 88 42 100 14 C112 42 112 76 100 100 Z"/>
+  </defs>
+  <circle cx="100" cy="100" r="46" fill="url(#ee-glow)"/>
+  <g fill="none" stroke="#5B8DC2" stroke-width="3" stroke-linejoin="round">
+    <use href="#ee-petal-in" transform="rotate(22.5 100 100)"/><use href="#ee-petal-in" transform="rotate(67.5 100 100)"/>
+    <use href="#ee-petal-in" transform="rotate(112.5 100 100)"/><use href="#ee-petal-in" transform="rotate(157.5 100 100)"/>
+    <use href="#ee-petal-in" transform="rotate(202.5 100 100)"/><use href="#ee-petal-in" transform="rotate(247.5 100 100)"/>
+    <use href="#ee-petal-in" transform="rotate(292.5 100 100)"/><use href="#ee-petal-in" transform="rotate(337.5 100 100)"/>
+  </g>
+  <g fill="none" stroke="#10B981" stroke-width="4.5" stroke-linejoin="round">
+    <use href="#ee-petal-out"/><use href="#ee-petal-out" transform="rotate(45 100 100)"/>
+    <use href="#ee-petal-out" transform="rotate(90 100 100)"/><use href="#ee-petal-out" transform="rotate(135 100 100)"/>
+    <use href="#ee-petal-out" transform="rotate(180 100 100)"/><use href="#ee-petal-out" transform="rotate(225 100 100)"/>
+    <use href="#ee-petal-out" transform="rotate(270 100 100)"/><use href="#ee-petal-out" transform="rotate(315 100 100)"/>
+  </g>
+  <circle cx="100" cy="100" r="11" fill="#00F59B"/>
+</svg>

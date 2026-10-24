@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <!-- Favicon / icono de app · versión sólida legible hasta 16 px -->
+  <defs><path id="ee-p" d="M100 92 C88 70 88 40 100 12 C112 40 112 70 100 92 Z"/></defs>
+  <rect width="200" height="200" rx="44" fill="#0B192C"/>
+  <g fill="#10B981" transform="translate(100 100) scale(0.82) translate(-100 -100)">
+    <use href="#ee-p"/><use href="#ee-p" transform="rotate(45 100 100)"/>
+    <use href="#ee-p" transform="rotate(90 100 100)"/><use href="#ee-p" transform="rotate(135 100 100)"/>
+    <use href="#ee-p" transform="rotate(180 100 100)"/><use href="#ee-p" transform="rotate(225 100 100)"/>
+    <use href="#ee-p" transform="rotate(270 100 100)"/><use href="#ee-p" transform="rotate(315 100 100)"/>
+  </g>
+  <circle cx="100" cy="100" r="9" fill="#00F59B"/>
+</svg>

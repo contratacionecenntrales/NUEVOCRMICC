@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+  <!-- Trama de fondo repetible (background-repeat). Pensada sobre #0B192C; ajusta opacity si hace falta. -->
+  <defs><path id="ee-t" d="M60 60 C52 46 52 28 60 14 C68 28 68 46 60 60 Z"/></defs>
+  <g fill="none" stroke="#10B981" stroke-width="0.8" opacity="0.12">
+    <use href="#ee-t"/><use href="#ee-t" transform="rotate(45 60 60)"/>
+    <use href="#ee-t" transform="rotate(90 60 60)"/><use href="#ee-t" transform="rotate(135 60 60)"/>
+    <use href="#ee-t" transform="rotate(180 60 60)"/><use href="#ee-t" transform="rotate(225 60 60)"/>
+    <use href="#ee-t" transform="rotate(270 60 60)"/><use href="#ee-t" transform="rotate(315 60 60)"/>
+    <circle cx="60" cy="60" r="3"/>
+    <circle cx="0" cy="0" r="2"/><circle cx="120" cy="0" r="2"/><circle cx="0" cy="120" r="2"/><circle cx="120" cy="120" r="2"/>
+  </g>
+</svg>
