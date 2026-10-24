@@ -3,67 +3,71 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Elite Energy · Luz y gas para hogares y empresas</title>
-<meta name="description" content="Tarifas de luz y gas, ajuste de potencia y revisión de factura para hogares y empresas. Calcula tu ahorro en un minuto.">
+<title>Elite Energy · Luz, placas solares, recarga y eficiencia</title>
+<meta name="description" content="Tarifas de luz y gas, instalaciones fotovoltaicas, puntos de recarga para coche eléctrico y eficiencia energética para hogares y empresas.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --navy:#002d62; --blue:#0058b9; --blue-2:#0a6fd8; --sky:#00a3e0;
-  --ice:#e9f3fd; --ice-2:#f4f8fc; --grey:#f3f5f8;
-  --ink:#10233f; --muted:#5d6b80; --line:#dfe6ef; --white:#fff;
+  --navy:#002a5c; --navy-2:#0b3a72; --blue:#0058b9; --sky:#00a3e0; --sky-soft:#8fd3f5;
+  --ice:#e8f2fc; --ice-2:#f4f8fc; --grey:#f2f4f7;
+  --ink:#0f2140; --muted:#5a6880; --line:#dde5ef;
   --r:20px; --r-s:12px;
-  --head:'DM Sans',system-ui,sans-serif; --body:'Manrope',system-ui,sans-serif;
+  --head:'Space Grotesk',system-ui,sans-serif; --body:'DM Sans',system-ui,sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
-body{font-family:var(--body);color:var(--ink);background:var(--white);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body{font-family:var(--body);color:var(--ink);background:#fff;font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
 a{color:inherit;text-decoration:none}
 svg{display:block;flex:none}
 .num{font-variant-numeric:tabular-nums}
 .wrap{max-width:1240px;margin:0 auto;padding:0 20px}
-h1,h2,h3,h4{font-family:var(--head);font-weight:700;letter-spacing:-.02em;line-height:1.12;color:var(--navy)}
-h2{font-size:clamp(28px,3.6vw,42px)}
-.sub{color:var(--muted);font-size:18px;margin-top:12px;max-width:620px}
-section{padding:clamp(64px,8vw,104px) 0}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;height:50px;padding:0 28px;border-radius:999px;background:var(--blue);color:#fff;font:700 16px var(--body);border:2px solid var(--blue);cursor:pointer;transition:background .2s,border-color .2s,color .2s;white-space:nowrap}
+h1,h2,h3,h4{font-family:var(--head);font-weight:600;letter-spacing:-.025em;line-height:1.08;color:var(--navy)}
+h2{font-size:clamp(30px,3.8vw,46px)}
+.eyebrow{font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--blue)}
+.sub{color:var(--muted);font-size:18px;margin-top:14px;max-width:560px}
+section{padding:clamp(70px,9vw,120px) 0}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;height:50px;padding:0 26px;border-radius:999px;background:var(--blue);color:#fff;font:700 16px var(--body);border:2px solid var(--blue);cursor:pointer;transition:background .2s,border-color .2s,color .2s;white-space:nowrap}
 .btn:hover{background:var(--navy);border-color:var(--navy)}
 .btn.out{background:transparent;color:var(--blue)}
 .btn.out:hover{background:var(--blue);color:#fff}
 .btn.white{background:#fff;color:var(--blue);border-color:#fff}
 .btn.white:hover{background:var(--ice);border-color:var(--ice)}
-.btn.ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,.6)}
+.btn.ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,.55)}
 .btn.ghost:hover{background:#fff;color:var(--blue);border-color:#fff}
 .btn.sm{height:42px;padding:0 20px;font-size:15px}
+.more{display:inline-flex;align-items:center;gap:8px;font-weight:700;color:var(--blue);transition:gap .2s}
+.more:hover{gap:12px}
 
 /* Barra superior */
-.topbar{background:var(--navy);color:#cfe0f5;font-size:14px}
-.topbar .wrap{display:flex;align-items:center;justify-content:space-between;height:42px}
-.seg-top{display:flex;height:100%;align-items:flex-end}
+.topbar{background:var(--navy);color:#c6d8ef;font-size:14px}
+.topbar .wrap{display:flex;align-items:flex-end;justify-content:space-between;height:42px}
+.seg-top{display:flex}
 .seg-top a{display:flex;align-items:center;padding:0 18px;height:36px;font-weight:600}
 .seg-top a.on{background:#fff;color:var(--navy);border-radius:10px 10px 0 0}
-.top-r{display:flex;gap:24px;align-items:center}
+.top-r{display:flex;gap:24px;align-items:center;height:42px}
 .top-r a:hover{color:#fff}
 @media (max-width:700px){.top-r .hide-s{display:none}.seg-top a{padding:0 12px}}
 
 /* Cabecera */
-header{position:sticky;top:0;z-index:50;background:#fff;box-shadow:0 1px 0 var(--line)}
-.nav{display:flex;align-items:center;height:76px;gap:36px}
-.logo{display:flex;align-items:center;gap:10px;font-family:var(--head);font-weight:700;font-size:24px;color:var(--navy);letter-spacing:-.02em}
-.logo .mk{width:36px;height:36px;border-radius:10px;background:var(--blue);position:relative;overflow:hidden;flex:none}
-.logo .mk::before{content:"";position:absolute;width:30px;height:30px;border-radius:50%;border:5px solid #fff;left:-9px;bottom:-9px}
-.logo .mk::after{content:"";position:absolute;width:12px;height:12px;border-radius:50%;background:var(--sky);right:5px;top:5px}
+header{position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid var(--line)}
+.nav{display:flex;align-items:center;height:76px;gap:34px}
+.logo{display:flex;align-items:center;gap:10px;font-family:var(--head);font-weight:700;font-size:23px;color:var(--navy);letter-spacing:-.03em}
+.logo .mk{width:34px;height:34px;border-radius:9px;background:var(--blue);position:relative;overflow:hidden;flex:none}
+.logo .mk::before{content:"";position:absolute;width:28px;height:28px;border-radius:50%;border:5px solid #fff;left:-8px;bottom:-8px}
+.logo .mk::after{content:"";position:absolute;width:11px;height:11px;border-radius:50%;background:var(--sky);right:5px;top:5px}
 .logo b{color:var(--blue);font-weight:500}
-.menu{display:flex;gap:28px;font-weight:600;font-size:15px;margin-right:auto}
+.menu{display:flex;gap:26px;font-weight:600;font-size:15px;margin-right:auto}
 .menu a{position:relative;padding:26px 0}
-.menu a:hover,.menu a.on{color:var(--blue)}
-.menu a.on::after{content:"";position:absolute;left:0;right:0;bottom:16px;height:3px;border-radius:3px;background:var(--blue)}
+.menu a:hover{color:var(--blue)}
+.menu a.on{color:var(--blue)}
+.menu a.on::after{content:"";position:absolute;left:0;right:0;bottom:17px;height:3px;border-radius:3px;background:var(--blue)}
 .nav-r{display:flex;gap:12px;align-items:center}
 .icon-btn{display:flex;align-items:center;gap:8px;font-weight:600;font-size:15px;color:var(--navy);padding:0 6px}
 .burger{display:none;width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:#fff;cursor:pointer;place-items:center}
-@media (max-width:1040px){
-  .menu{position:absolute;top:76px;left:0;right:0;background:#fff;flex-direction:column;gap:0;padding:8px 20px 20px;box-shadow:0 20px 30px rgba(0,45,98,.12);display:none}
+@media (max-width:1100px){
+  .menu{position:absolute;top:76px;left:0;right:0;background:#fff;flex-direction:column;gap:0;padding:6px 20px 20px;border-bottom:1px solid var(--line);display:none}
   .menu.open{display:flex}
   .menu a{padding:16px 0;border-bottom:1px solid var(--line)}
   .menu a.on::after{display:none}
@@ -73,92 +77,111 @@ header{position:sticky;top:0;z-index:50;background:#fff;box-shadow:0 1px 0 var(-
 }
 @media (max-width:520px){.nav-r .btn{display:none}}
 
-/* Banner principal */
-.hero{padding:24px 0 0}
-.banner{position:relative;border-radius:28px;overflow:hidden;background:var(--blue);color:#fff;min-height:500px;display:grid;grid-template-columns:1.05fr .95fr}
-.banner .txt{padding:clamp(32px,5vw,72px);display:flex;flex-direction:column;justify-content:center;position:relative;z-index:1}
-.tag{display:inline-flex;align-self:flex-start;background:rgba(255,255,255,.16);border-radius:999px;padding:7px 14px;font-size:13px;font-weight:700;letter-spacing:.02em;margin-bottom:22px}
-.banner h1{color:#fff;font-size:clamp(34px,5vw,62px)}
-.banner p{font-size:19px;color:#d8e8fb;margin:18px 0 30px;max-width:480px}
-.price{display:flex;align-items:flex-end;gap:14px;margin-bottom:30px}
-.price b{font-family:var(--head);font-size:clamp(54px,6.4vw,84px);line-height:.85;letter-spacing:-.04em}
-.price span{font-size:15px;color:#d8e8fb;line-height:1.3}
-.banner .acts{display:flex;gap:14px;flex-wrap:wrap}
-.banner .legal{font-size:12px;color:#a9c8ee;margin:22px 0 0}
-.art{position:relative;background:var(--navy)}
-.art svg{position:absolute;inset:0;width:100%;height:100%}
-.bill-card{position:absolute;right:8%;bottom:12%;width:min(300px,76%);background:#fff;color:var(--ink);border-radius:18px;padding:20px;box-shadow:0 24px 50px rgba(0,20,50,.35)}
-.bill-card h4{font-size:15px;margin-bottom:12px;display:flex;justify-content:space-between}
-.bill-card h4 small{font:600 12px var(--body);color:var(--muted)}
-.bc-row{display:flex;justify-content:space-between;font-size:14px;padding:7px 0;border-top:1px solid var(--line)}
-.bc-row s{color:var(--muted)}
-.bc-save{margin-top:10px;background:var(--ice);border-radius:12px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;font-weight:700;color:var(--blue)}
-.bc-save b{font-family:var(--head);font-size:26px}
-.dots{position:absolute;left:clamp(32px,5vw,72px);bottom:26px;display:flex;gap:8px;z-index:2}
-.dots i{width:28px;height:4px;border-radius:4px;background:rgba(255,255,255,.35)}
-.dots i.on{background:#fff}
-@media (max-width:900px){.banner{grid-template-columns:1fr}.art{min-height:320px}.dots{display:none}.bill-card{left:50%;right:auto;transform:translateX(-50%);bottom:10%}}
+/* Banner */
+.hero{padding:22px 0 0}
+.banner{position:relative;border-radius:28px;overflow:hidden;background:var(--blue);color:#fff}
+.slide{display:none;grid-template-columns:1.05fr .95fr;min-height:520px}
+.slide.on{display:grid;animation:fade .6s ease}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.slide .txt{padding:clamp(32px,5vw,72px) clamp(28px,5vw,72px) 84px;display:flex;flex-direction:column;justify-content:center}
+.tag{display:inline-flex;align-self:flex-start;background:rgba(255,255,255,.15);border-radius:999px;padding:7px 14px;font-size:13px;font-weight:700;margin-bottom:22px}
+.slide h1,.slide .h1{color:#fff;font-family:var(--head);font-weight:600;letter-spacing:-.03em;line-height:1.04;font-size:clamp(34px,4.8vw,60px)}
+.slide p{font-size:18px;color:#d5e6fa;margin:18px 0 28px;max-width:470px}
+.big-price{display:flex;align-items:flex-end;gap:14px;margin-bottom:28px}
+.big-price b{font-family:var(--head);font-size:clamp(52px,6vw,80px);line-height:.85;letter-spacing:-.04em;font-weight:600}
+.big-price span{font-size:15px;color:#d5e6fa;line-height:1.3}
+.acts{display:flex;gap:12px;flex-wrap:wrap}
+.slide p.legal{font-size:12px;color:#a6c6ec;margin:20px 0 0}
+.art{position:relative;background:var(--navy);min-height:320px}
+.art svg.bg{position:absolute;inset:0;width:100%;height:100%}
+.float-card{position:absolute;right:7%;bottom:12%;width:min(290px,78%);background:#fff;color:var(--ink);border-radius:16px;padding:18px 20px;box-shadow:0 10px 24px rgba(0,20,50,.25)}
+.float-card h4{font-size:15px;margin-bottom:10px;display:flex;justify-content:space-between;gap:10px}
+.float-card h4 small{font:600 12px var(--body);color:var(--muted)}
+.fc-row{display:flex;justify-content:space-between;gap:10px;font-size:14px;padding:7px 0;border-top:1px solid var(--line)}
+.fc-row s{color:var(--muted)}
+.fc-hi{margin-top:10px;background:var(--ice);border-radius:12px;padding:11px 14px;display:flex;justify-content:space-between;align-items:center;font-weight:700;color:var(--blue)}
+.fc-hi b{font-family:var(--head);font-size:24px}
+.b-nav{position:absolute;left:clamp(28px,5vw,72px);bottom:28px;display:flex;gap:10px;align-items:center;z-index:2}
+.b-nav button{width:30px;height:4px;border-radius:4px;border:0;background:rgba(255,255,255,.35);cursor:pointer;padding:0}
+.b-nav button.on{background:#fff;width:46px}
+.b-nav button:focus-visible{outline:2px solid #fff;outline-offset:4px}
+@media (max-width:900px){.slide{grid-template-columns:1fr}.slide .txt{padding-bottom:40px}.b-nav{top:22px;bottom:auto;right:24px;left:auto}.float-card{left:50%;right:auto;transform:translateX(-50%);bottom:9%}}
 
 /* Accesos rápidos */
-.quick{padding:24px 0 0}
-.q-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
-.q{display:flex;align-items:center;gap:14px;padding:18px;border-radius:var(--r-s);background:var(--grey);font-weight:700;color:var(--navy);transition:background .2s,transform .2s}
+.quick{padding:22px 0 0}
+.q-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+.q{display:flex;flex-direction:column;gap:14px;padding:18px;border-radius:var(--r-s);background:var(--grey);font-weight:700;color:var(--navy);font-size:15px;line-height:1.25;transition:background .2s,transform .2s}
 .q:hover{background:var(--ice);transform:translateY(-2px)}
-.q .ic{width:46px;height:46px;border-radius:50%;background:#fff;display:grid;place-items:center;flex:none}
+.q .ic{width:44px;height:44px;border-radius:50%;background:#fff;display:grid;place-items:center}
 @media (max-width:1000px){.q-grid{grid-template-columns:repeat(3,1fr)}}
-@media (max-width:600px){.q-grid{grid-template-columns:1fr 1fr}.q{padding:14px;gap:10px;font-size:14px}.q .ic{width:38px;height:38px}.q:last-child{grid-column:1 / -1}}
+@media (max-width:560px){.q-grid{grid-template-columns:1fr 1fr}.q{flex-direction:row;align-items:center;padding:14px;gap:10px;font-size:14px}.q .ic{width:38px;height:38px}}
 
 /* Cifras */
-.figs{padding:56px 0 0}
-.f-grid{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
-.f{padding:28px 24px;border-left:1px solid var(--line)}
-.f:first-child{border-left:0;padding-left:0}
-.f b{display:block;font-family:var(--head);font-size:clamp(32px,4vw,48px);color:var(--blue);letter-spacing:-.03em;line-height:1}
-.f span{display:block;margin-top:8px;color:var(--muted);font-size:15px}
-.f b span{display:inline;margin:0;color:inherit;font-size:inherit}
-@media (max-width:800px){.f-grid{grid-template-columns:1fr 1fr}.f{border-left:0;padding:22px 12px 22px 0}.f:nth-child(n+3){border-top:1px solid var(--line)}}
+.figs{padding:64px 0 0}
+.f-grid{display:grid;grid-template-columns:1.3fr 1fr 1fr .9fr;border-top:2px solid var(--navy)}
+.f{padding:26px 24px 0 0}
+.f b{display:block;font-family:var(--head);font-weight:600;font-size:clamp(36px,4.4vw,58px);color:var(--navy);letter-spacing:-.04em;line-height:1}
+.f b small{font-size:.45em;color:var(--blue);margin-left:4px;letter-spacing:-.01em}
+.f>span{display:block;margin-top:10px;color:var(--muted);font-size:15px;max-width:220px}
+@media (max-width:800px){.f-grid{grid-template-columns:1fr 1fr;gap:26px 0}}
 
-/* Tarifas */
-.plans-head{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-bottom:40px}
-.switch{display:inline-flex;background:var(--grey);border-radius:999px;padding:5px}
-.switch button{border:0;background:none;font:700 15px var(--body);padding:11px 22px;border-radius:999px;cursor:pointer;color:var(--muted)}
-.switch button.on{background:#fff;color:var(--blue);box-shadow:0 2px 8px rgba(0,45,98,.12)}
-.plans{display:grid;grid-template-columns:1.15fr 1fr 1fr;gap:20px;align-items:stretch}
-.plan{border:1px solid var(--line);border-radius:var(--r);padding:30px;display:flex;flex-direction:column;background:#fff;position:relative;transition:box-shadow .2s,transform .2s}
-.plan:hover{box-shadow:0 18px 40px rgba(0,45,98,.10);transform:translateY(-3px)}
-.plan.star{background:var(--navy);border-color:var(--navy);color:#fff}
-.plan.star h3{color:#fff}
-.badge{position:absolute;top:22px;right:22px;background:var(--sky);color:#fff;font-size:12px;font-weight:700;padding:5px 12px;border-radius:999px}
-.plan .kind{font-size:13px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.06em}
-.plan.star .kind{color:#7fd0ff}
-.plan h3{font-size:26px;margin:8px 0 6px}
-.plan .desc{color:var(--muted);font-size:15px;min-height:46px}
-.plan.star .desc{color:#b9d1ee}
-.pp{margin:24px 0;padding:20px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);display:grid;gap:10px}
-.plan.star .pp{border-color:#1d4a80}
-.pp div{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
-.pp div span{font-size:14px;color:var(--muted)}
-.plan.star .pp div span{color:#b9d1ee}
-.pp b{font-family:var(--head);font-size:30px;letter-spacing:-.02em}
-.pp b small{font-size:14px;font-weight:500}
-.pp .second b{font-size:20px}
-.plan ul{list-style:none;display:grid;gap:10px;margin-bottom:28px;font-size:15px}
-.plan li{display:flex;gap:10px;align-items:flex-start}
-.plan li svg{margin-top:3px;color:var(--blue)}
-.plan.star li svg{color:#7fd0ff}
-.plan .btn{margin-top:auto;width:100%}
-.plans-note{font-size:13px;color:var(--muted);margin-top:18px}
-@media (max-width:960px){.plans{grid-template-columns:1fr}}
+/* Servicios */
+.svc-head{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:end;margin-bottom:56px}
+.svc-head>p{color:var(--muted);font-size:18px;max-width:440px;justify-self:end}
+.svc{display:grid;grid-template-columns:repeat(12,1fr);gap:20px}
+.card{border-radius:var(--r);padding:clamp(26px,3.4vw,44px);position:relative;overflow:hidden;display:flex;flex-direction:column}
+.card .eyebrow{margin-bottom:12px}
+.card h3{font-size:clamp(26px,2.8vw,36px);max-width:460px}
+.card p.lead{color:var(--muted);margin-top:14px;max-width:440px}
+.card .stat{display:flex;gap:18px 28px;flex-wrap:wrap;margin:28px 0}
+.card .stat div b{display:block;font-family:var(--head);font-weight:600;font-size:clamp(30px,3vw,42px);letter-spacing:-.03em;line-height:1;color:var(--navy)}
+.card .stat div span{font-size:14px;color:var(--muted)}
+.card ul{list-style:none;display:grid;gap:10px;margin-bottom:28px;font-size:15px}
+.card li{display:flex;gap:10px;align-items:flex-start}
+.card li::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--blue);margin-top:8px;flex:none}
+.card .foot{margin-top:auto;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.c-solar{grid-column:1 / span 7;background:var(--navy);color:#fff;min-height:560px}
+.c-solar h3,.c-solar .stat div b{color:#fff}
+.c-solar .eyebrow{color:var(--sky-soft)}
+.c-solar p.lead,.c-solar .stat div span{color:#b7cde9}
+.c-solar li::before{background:var(--sky)}
+.c-solar .ill{position:absolute;right:-20px;bottom:-10px;width:56%;max-width:380px;opacity:.95}
+.c-solar .copy{position:relative;z-index:1;max-width:60%}
+.c-ev{grid-column:8 / span 5;background:var(--ice)}
+.c-eff{grid-column:3 / span 10;border:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;margin-top:20px}
+.c-eff .meter{background:var(--ice-2);border-radius:16px;padding:24px}
+.meter h4{font-size:15px;display:flex;justify-content:space-between;margin-bottom:16px}
+.meter h4 small{font:600 13px var(--body);color:var(--muted)}
+.mrow{display:grid;grid-template-columns:110px 1fr auto;gap:12px;align-items:center;font-size:14px;padding:8px 0}
+.mbar{height:10px;border-radius:6px;background:var(--line);position:relative;overflow:hidden}
+.mbar i{position:absolute;left:0;top:0;bottom:0;border-radius:6px;background:var(--blue);width:0;transition:width 1.2s cubic-bezier(.2,.7,.2,1)}
+.mbar i.after{background:var(--sky)}
+.in .mbar i{width:var(--w)}
+.legend{display:flex;gap:18px;font-size:13px;color:var(--muted);margin-top:12px}
+.legend span{display:flex;gap:6px;align-items:center}
+.legend i{width:10px;height:10px;border-radius:3px;background:var(--blue)}
+.legend i.after{background:var(--sky)}
+@media (max-width:960px){
+  .svc-head{grid-template-columns:1fr}.svc-head>p{justify-self:start}
+  .c-solar,.c-ev,.c-eff{grid-column:1 / -1}
+  .c-solar{min-height:0}.c-solar .copy{max-width:none}
+  .c-solar .ill{position:relative;right:auto;bottom:auto;width:100%;max-width:360px;margin:10px auto -20px}
+  .c-eff{grid-template-columns:1fr;margin-top:0}
+}
 
 /* Simulador */
 .soft{background:var(--ice-2)}
-.sim-grid{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:40px}
+.sim-top{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap}
+.tabs{display:inline-flex;background:#fff;border:1px solid var(--line);border-radius:999px;padding:5px}
+.tabs button{border:0;background:none;font:700 15px var(--body);padding:11px 22px;border-radius:999px;cursor:pointer;color:var(--muted)}
+.tabs button.on{background:var(--blue);color:#fff}
+.sim-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:40px}
 .panel{background:#fff;border-radius:var(--r);padding:clamp(24px,3vw,36px);border:1px solid var(--line)}
 .qq{padding:18px 0;border-bottom:1px solid var(--line)}
 .qq:first-child{padding-top:0}
 .qq:last-child{border-bottom:0;padding-bottom:0}
 .qq .t{display:flex;justify-content:space-between;align-items:baseline;font-weight:700;color:var(--navy);margin-bottom:12px}
-.qq output{font-family:var(--head);font-size:26px;color:var(--blue)}
+.qq output{font-family:var(--head);font-weight:600;font-size:26px;color:var(--blue)}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chips input{position:absolute;opacity:0;pointer-events:none}
 .chips label{padding:10px 18px;border-radius:999px;border:1.5px solid var(--line);font-weight:600;font-size:15px;cursor:pointer;transition:.15s}
@@ -166,27 +189,61 @@ header{position:sticky;top:0;z-index:50;background:#fff;box-shadow:0 1px 0 var(-
 .chips input:checked+label{background:var(--blue);border-color:var(--blue);color:#fff}
 .chips input:focus-visible+label{outline:2px solid var(--sky);outline-offset:2px}
 input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:6px;border-radius:6px;background:var(--ice);outline:none}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:var(--blue);border:4px solid #fff;box-shadow:0 2px 8px rgba(0,45,98,.3);cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:var(--blue);border:4px solid #fff;box-shadow:0 1px 4px rgba(0,42,92,.35);cursor:pointer}
 input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--blue);border:4px solid #fff;cursor:pointer}
 .ends{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-top:8px}
 .res{background:var(--blue);color:#fff;border:0;display:flex;flex-direction:column}
 .res h3{color:#fff;font-size:20px}
-.res .y{margin:16px 0 4px;font-family:var(--head);font-size:clamp(54px,6vw,78px);line-height:1;letter-spacing:-.04em}
+.res .y{margin:14px 0 4px;font-family:var(--head);font-weight:600;font-size:clamp(54px,6vw,80px);line-height:1;letter-spacing:-.04em}
 .res .ysub{color:#cfe2fa}
-.cmp{display:grid;grid-template-columns:auto 1fr auto;gap:12px 14px;align-items:center;margin:30px 0;font-size:14px;color:#cfe2fa}
-.cmp .bar{height:30px;border-radius:8px;background:rgba(255,255,255,.22);transition:width .5s cubic-bezier(.2,.7,.2,1)}
+.cmp{display:grid;grid-template-columns:auto 1fr auto;gap:12px 14px;align-items:center;margin:28px 0;font-size:14px;color:#cfe2fa}
+.cmp .bar{height:28px;border-radius:8px;background:rgba(255,255,255,.22);transition:width .5s cubic-bezier(.2,.7,.2,1)}
 .cmp .bar.n{background:#fff}
 .cmp .v{font-weight:700;color:#fff;font-size:16px;text-align:right;min-width:72px}
-.kwh{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px 12px;background:rgba(255,255,255,.12);border-radius:14px;padding:16px 18px;font-size:14px;color:#cfe2fa}
-.kwh b{font-family:var(--head);font-size:22px;color:#fff}
-.kwh s{color:#9fbfe8;margin-right:6px;font-size:16px}
-.res .acts{margin-top:26px}
-.disc{font-size:12px;color:#a9c8ee;margin-top:16px}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kpi{background:rgba(255,255,255,.12);border-radius:14px;padding:14px 16px;font-size:13px;color:#cfe2fa}
+.kpi b{display:block;font-family:var(--head);font-weight:600;font-size:22px;color:#fff;margin-top:2px}
+.kpi s{color:#9fbfe8;font-size:15px;margin-right:4px}
+.res .acts{margin-top:24px}
+.disc{font-size:12px;color:#a6c6ec;margin-top:14px}
+.pane{display:none}.pane.on{display:grid}
 @media (max-width:900px){.sim-grid{grid-template-columns:1fr}}
 
+/* Tarifas */
+.plans-head{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-bottom:40px}
+.switch{display:inline-flex;background:var(--grey);border-radius:999px;padding:5px}
+.switch button{border:0;background:none;font:700 15px var(--body);padding:11px 22px;border-radius:999px;cursor:pointer;color:var(--muted)}
+.switch button.on{background:#fff;color:var(--blue);box-shadow:0 1px 4px rgba(0,42,92,.12)}
+.plans{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:20px}
+.plan{border:1px solid var(--line);border-radius:var(--r);padding:30px;display:flex;flex-direction:column;background:#fff;position:relative;transition:border-color .2s,transform .2s}
+.plan:hover{border-color:var(--blue);transform:translateY(-3px)}
+.plan.star{background:var(--navy);border-color:var(--navy);color:#fff}
+.plan.star h3{color:#fff}
+.badge{position:absolute;top:22px;right:22px;background:var(--sky);color:#fff;font-size:12px;font-weight:700;padding:5px 12px;border-radius:999px}
+.plan .kind{font-size:13px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.06em}
+.plan.star .kind{color:var(--sky-soft)}
+.plan h3{font-size:26px;margin:8px 0 6px}
+.plan .desc{color:var(--muted);font-size:15px;min-height:46px}
+.plan.star .desc{color:#b7cde9}
+.pp{margin:22px 0;padding:18px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);display:grid;gap:10px}
+.plan.star .pp{border-color:#1d4a80}
+.pp div{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.pp div span{font-size:14px;color:var(--muted)}
+.plan.star .pp div span{color:#b7cde9}
+.pp b{font-family:var(--head);font-weight:600;font-size:30px;letter-spacing:-.02em}
+.pp b small{font:500 14px var(--body)}
+.pp .second b{font-size:20px}
+.plan ul{list-style:none;display:grid;gap:10px;margin-bottom:26px;font-size:15px}
+.plan li{display:flex;gap:10px;align-items:flex-start}
+.plan li svg{margin-top:3px;color:var(--blue)}
+.plan.star li svg{color:var(--sky-soft)}
+.plan .btn{margin-top:auto;width:100%}
+.note{font-size:13px;color:var(--muted);margin-top:18px}
+@media (max-width:960px){.plans{grid-template-columns:1fr}}
+
 /* Factura */
-.read-grid{display:grid;grid-template-columns:1fr 1.1fr;gap:56px;align-items:center}
-.bill{background:#fff;border-radius:var(--r);border:1px solid var(--line);padding:28px;box-shadow:0 20px 50px rgba(0,45,98,.08)}
+.read-grid{display:grid;grid-template-columns:1fr 1.1fr;gap:60px;align-items:center}
+.bill{background:#fff;border-radius:var(--r);border:1px solid var(--line);padding:28px}
 .bill-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding-bottom:16px;border-bottom:1px solid var(--line)}
 .bill-top h4{font-size:18px}
 .bill-top small{color:var(--muted);font-size:13px}
@@ -195,83 +252,62 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;bac
 .bl.hot{background:var(--ice)}
 .bl.hot .n{background:var(--blue);color:#fff}
 .bill-sum{display:flex;justify-content:space-between;padding-top:14px;margin-top:6px;border-top:1px solid var(--line);font-weight:700;font-size:17px;color:var(--navy)}
-.tips{display:grid;gap:12px;margin-top:30px}
-.tip{display:flex;gap:16px;padding:18px 20px;border-radius:16px;background:var(--grey);cursor:default;transition:background .2s}
+.tips{display:grid;gap:10px;margin-top:28px}
+.tip{display:flex;gap:16px;padding:16px 20px;border-radius:14px;background:var(--grey);transition:background .2s}
 .tip:hover{background:var(--ice)}
-.tip .n{width:32px;height:32px;border-radius:50%;background:var(--blue);color:#fff;font-weight:700;display:grid;place-items:center;flex:none}
+.tip .n{width:30px;height:30px;border-radius:50%;background:var(--blue);color:#fff;font-weight:700;font-size:14px;display:grid;place-items:center;flex:none}
 .tip h4{font-size:17px;margin-bottom:2px}
 .tip p{color:var(--muted);font-size:15px}
-@media (max-width:960px){.read-grid{grid-template-columns:1fr}.bill{padding:20px}}
-
-/* Empresas / Hogar */
-.split{display:grid;grid-template-columns:1fr 1fr;gap:20px}
-.box{border-radius:var(--r);padding:clamp(28px,4vw,48px);display:flex;flex-direction:column;min-height:420px;position:relative;overflow:hidden}
-.box.biz{background:var(--navy);color:#fff}
-.box.biz h3{color:#fff}
-.box.home{background:var(--ice)}
-.box .kind{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--blue)}
-.box.biz .kind{color:#7fd0ff}
-.box h3{font-size:clamp(26px,3vw,36px);margin:12px 0 14px;max-width:440px}
-.box p{max-width:440px;color:var(--muted)}
-.box.biz p{color:#b9d1ee}
-.box ul{list-style:none;margin:26px 0 30px;display:grid;gap:12px;max-width:460px}
-.box li{display:flex;justify-content:space-between;gap:16px;padding-bottom:12px;border-bottom:1px solid rgba(0,88,185,.15);font-size:15px}
-.box.biz li{border-color:#1d4a80}
-.box li b{color:var(--blue);white-space:nowrap}
-.box.biz li b{color:#7fd0ff}
-.box .btn{align-self:flex-start;margin-top:auto}
-.box .deco{position:absolute;right:-60px;top:-60px;width:220px;height:220px;border-radius:50%;border:34px solid rgba(255,255,255,.06)}
-.box.home .deco{border-color:rgba(0,88,185,.07)}
-@media (max-width:900px){.split{grid-template-columns:1fr}.box{min-height:0}}
+@media (max-width:960px){.read-grid{grid-template-columns:1fr;gap:40px}.bill{padding:20px}}
 
 /* Pasos */
-.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-top:44px}
-.step{position:relative;padding-top:26px}
-.step::before{content:"";position:absolute;left:0;right:0;top:0;height:4px;border-radius:4px;background:var(--ice)}
-.step:first-child::before{background:var(--blue)}
-.step .n{font-family:var(--head);font-weight:700;color:var(--blue);font-size:15px}
-.step h4{font-size:20px;margin:8px 0}
-.step p{color:var(--muted);font-size:15px}
-.step .time{display:inline-block;margin-top:12px;font-size:13px;font-weight:700;color:var(--blue);background:var(--ice);padding:4px 10px;border-radius:999px}
-@media (max-width:900px){.steps{grid-template-columns:1fr 1fr}}
-@media (max-width:520px){.steps{grid-template-columns:1fr}}
+.steps-wrap{display:grid;grid-template-columns:.8fr 1.2fr;gap:60px}
+.steps-wrap .side{position:sticky;top:120px;align-self:start}
+.steps{list-style:none}
+.steps li{display:grid;grid-template-columns:64px 1fr;gap:18px;padding:28px 0;border-top:1px solid var(--line)}
+.steps li:last-child{border-bottom:1px solid var(--line)}
+.steps .n{font-family:var(--head);font-weight:600;font-size:40px;line-height:1;color:var(--blue);letter-spacing:-.04em}
+.steps h4{font-size:21px;margin-bottom:6px}
+.steps p{color:var(--muted)}
+.steps .time{display:inline-block;margin-top:10px;font-size:13px;font-weight:700;color:var(--blue);background:var(--ice);padding:4px 10px;border-radius:999px}
+@media (max-width:900px){.steps-wrap{grid-template-columns:1fr;gap:30px}.steps-wrap .side{position:static}}
 
 /* Ayuda */
-.help-grid{display:grid;grid-template-columns:.8fr 1.2fr;gap:56px}
+.help-grid{display:grid;grid-template-columns:.8fr 1.2fr;gap:60px}
 .contact-card{margin-top:30px;background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:26px}
-.contact-card a{display:block;font-family:var(--head);font-size:32px;font-weight:700;color:var(--blue);margin:6px 0}
+.contact-card a{display:block;font-family:var(--head);font-weight:600;font-size:32px;color:var(--blue);margin:6px 0}
 .contact-card p{color:var(--muted);font-size:14px}
 details{border-bottom:1px solid var(--line)}
 details:first-child{border-top:1px solid var(--line)}
-summary{list-style:none;cursor:pointer;padding:22px 48px 22px 0;font-family:var(--head);font-weight:700;font-size:18px;color:var(--navy);position:relative}
+summary{list-style:none;cursor:pointer;padding:22px 50px 22px 0;font-family:var(--head);font-weight:600;font-size:19px;color:var(--navy);position:relative}
 summary::-webkit-details-marker{display:none}
 summary::after{content:"+";position:absolute;right:0;top:17px;width:32px;height:32px;border-radius:50%;background:#fff;border:1px solid var(--line);color:var(--blue);font-size:22px;line-height:30px;text-align:center;transition:transform .2s}
 details[open] summary::after{transform:rotate(45deg)}
-details p{padding:0 48px 22px 0;color:var(--muted)}
+details p{padding:0 50px 22px 0;color:var(--muted)}
 @media (max-width:900px){.help-grid{grid-template-columns:1fr;gap:30px}}
 
 /* Te llamamos */
-.cb{background:var(--blue);border-radius:28px;padding:clamp(28px,4vw,56px);display:grid;grid-template-columns:1fr 1.2fr;gap:40px;align-items:center;color:#fff;position:relative;overflow:hidden}
+.cb{background:var(--blue);border-radius:28px;padding:clamp(28px,4vw,56px);display:grid;grid-template-columns:1fr 1.25fr;gap:40px;align-items:center;color:#fff;position:relative;overflow:hidden}
 .cb h2{color:#fff}
-.cb p{color:#d8e8fb;margin-top:12px}
+.cb p{color:#d5e6fa;margin-top:12px;max-width:420px}
 .cb form{display:grid;grid-template-columns:1fr 1fr;gap:12px;position:relative;z-index:1}
 .cb input,.cb select{height:52px;border-radius:999px;border:0;padding:0 20px;font:16px var(--body);color:var(--ink);background:#fff;width:100%}
-.cb input:focus,.cb select:focus{outline:3px solid #7fd0ff}
+.cb input:focus,.cb select:focus{outline:3px solid var(--sky-soft)}
 .cb .file{grid-column:1 / -1;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:52px;border-radius:999px;border:1.5px dashed rgba(255,255,255,.6);padding:0 20px;cursor:pointer;font-weight:600;font-size:15px}
 .cb .file:hover{border-color:#fff}
-.cb .chk{grid-column:1 / -1;display:flex;gap:10px;font-size:13px;color:#d8e8fb;align-items:flex-start}
+.cb .chk{grid-column:1 / -1;display:flex;gap:10px;font-size:13px;color:#d5e6fa;align-items:flex-start}
 .cb .chk input{width:auto;height:auto;margin-top:3px}
-.cb .btn{grid-column:1 / -1}
+.cb .full{grid-column:1 / -1}
 .ok{grid-column:1 / -1;display:none;background:#fff;color:var(--blue);border-radius:14px;padding:14px 18px;font-weight:700}
 .cb .deco{position:absolute;left:-90px;bottom:-120px;width:320px;height:320px;border-radius:50%;border:50px solid rgba(255,255,255,.07)}
 @media (max-width:900px){.cb{grid-template-columns:1fr}}
 @media (max-width:520px){.cb form{grid-template-columns:1fr}}
 
 /* Pie */
-footer{background:var(--navy);color:#b9d1ee;padding:70px 0 30px;font-size:15px}
+footer{background:var(--navy);color:#b7cde9;padding:70px 0 30px;font-size:15px}
 .ft{display:grid;grid-template-columns:1.4fr repeat(4,1fr);gap:32px}
 .ft .logo{color:#fff;margin-bottom:16px;display:flex;padding:0}
-.ft .logo b{color:#7fd0ff}
+.ft .logo b{color:var(--sky-soft)}
 .ft p{max-width:300px;font-size:14px}
 .ft h4{color:#fff;font-size:15px;margin-bottom:14px}
 .ft a{display:block;padding:5px 0}
@@ -283,22 +319,20 @@ footer{background:var(--navy);color:#b9d1ee;padding:70px 0 30px;font-size:15px}
 .ft-b nav{display:flex;gap:18px;flex-wrap:wrap}
 @media (max-width:960px){.ft{grid-template-columns:1fr 1fr}.ft>div:first-child{grid-column:1 / -1}}
 
-/* Botón flotante */
-.float{position:fixed;right:18px;bottom:18px;z-index:60;display:flex;align-items:center;gap:10px;height:56px;padding:0 22px 0 12px;border-radius:999px;background:var(--navy);color:#fff;font-weight:700;box-shadow:0 12px 30px rgba(0,45,98,.35)}
+/* Flotante y cookies */
+.float{position:fixed;right:18px;bottom:18px;z-index:60;display:flex;align-items:center;gap:10px;height:56px;padding:0 22px 0 12px;border-radius:999px;background:var(--navy);color:#fff;font-weight:700;box-shadow:0 6px 18px rgba(0,42,92,.3)}
 .float .ic{width:34px;height:34px;border-radius:50%;background:var(--sky);display:grid;place-items:center}
 @media (max-width:520px){.float .lb{display:none}.float{padding:0 11px}}
-
-/* Cookies */
-.cookies{position:fixed;left:18px;bottom:18px;z-index:70;max-width:420px;width:calc(100% - 36px);background:#fff;border-radius:18px;box-shadow:0 18px 50px rgba(0,30,70,.25);padding:20px;font-size:14px;display:none}
+.cookies{position:fixed;left:18px;bottom:18px;z-index:70;max-width:420px;width:calc(100% - 36px);background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 10px 30px rgba(0,30,70,.18);padding:20px;font-size:14px;display:none}
 .cookies h4{font-size:16px;margin-bottom:6px}
 .cookies p{color:var(--muted)}
 .cookies .row{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
 
-/* Animación */
+/* Animación al hacer scroll */
 .rv{opacity:0;transform:translateY(20px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.7,.2,1)}
 .rv.in{opacity:1;transform:none}
 .d1{transition-delay:.08s}.d2{transition-delay:.16s}.d3{transition-delay:.24s}
-@media (prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}html{scroll-behavior:auto}}
+@media (prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}.slide.on{animation:none}.mbar i{transition:none}html{scroll-behavior:auto}}
 </style>
 </head>
 <body>
@@ -320,20 +354,17 @@ footer{background:var(--navy);color:#b9d1ee;padding:70px 0 30px;font-size:15px}
   <div class="wrap nav">
     <a href="#" class="logo" aria-label="Elite Energy"><span class="mk" aria-hidden="true"></span>Elite<b>Energy</b></a>
     <nav class="menu" id="menu">
-      <a href="#tarifas" class="on">Tarifas</a>
-      <a href="#simulador">Calcula tu ahorro</a>
-      <a href="#factura">Tu factura</a>
-      <a href="#empresas">Empresas</a>
+      <a href="#tarifas" class="on">Luz y gas</a>
+      <a href="#servicios">Placas solares</a>
+      <a href="#recarga">Recarga coche eléctrico</a>
+      <a href="#eficiencia">Eficiencia</a>
+      <a href="#simulador">Simulador</a>
       <a href="#ayuda">Ayuda</a>
     </nav>
     <div class="nav-r">
-      <a href="#" class="icon-btn" aria-label="Área clientes">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg><span>Área clientes</span>
-      </a>
-      <a href="#llamada" class="btn sm">Contratar</a>
-      <button class="burger" id="burger" aria-label="Abrir menú" aria-expanded="false">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#002d62" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
-      </button>
+      <a href="#" class="icon-btn" aria-label="Área clientes"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg><span>Área clientes</span></a>
+      <a href="#llamada" class="btn sm">Pedir estudio</a>
+      <button class="burger" id="burger" aria-label="Abrir menú" aria-expanded="false"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#002a5c" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
     </div>
   </div>
 </header>
@@ -342,36 +373,57 @@ footer{background:var(--navy);color:#b9d1ee;padding:70px 0 30px;font-size:15px}
 <!-- BANNER -->
 <section class="hero" style="padding-bottom:0">
   <div class="wrap">
-    <div class="banner">
-      <div class="txt">
-        <span class="tag">Tarifa Elite Fija · Hogar</span>
-        <h1>Un precio de luz que no cambia en 12 meses.</h1>
-        <p>Sin permanencia y con la potencia ajustada a lo que usas de verdad. Te lo dejamos todo hecho.</p>
-        <div class="price num"><b>0,119</b><span>€/kWh<br>las 24 horas</span></div>
-        <div class="acts">
-          <a href="#llamada" class="btn white">Contratar ahora</a>
-          <a href="#simulador" class="btn ghost">Calcular mi ahorro</a>
+    <div class="banner" id="banner" aria-roledescription="carrusel">
+      <!-- 1 · Tarifa -->
+      <div class="slide on" aria-label="1 de 3">
+        <div class="txt">
+          <span class="tag">Tarifa Elite Fija · Hogar</span>
+          <h1>Un precio de luz que no cambia en 12 meses.</h1>
+          <p>Sin permanencia y con la potencia ajustada a lo que usas de verdad. Te lo dejamos todo hecho.</p>
+          <div class="big-price num"><b>0,119</b><span>€/kWh<br>las 24 horas</span></div>
+          <div class="acts"><a href="#tarifas" class="btn white">Ver tarifa</a><a href="#simulador" class="btn ghost">Calcular mi ahorro</a></div>
+          <p class="legal">Precio de ejemplo sin impuestos.</p>
         </div>
-        <p class="legal">Precio de ejemplo sin impuestos. Consulta condiciones.</p>
-      </div>
-      <div class="art" aria-hidden="true">
-        <svg viewBox="0 0 600 500" preserveAspectRatio="xMidYMid slice">
-          <rect width="600" height="500" fill="#002d62"/>
-          <circle cx="470" cy="120" r="210" fill="#0058b9"/>
-          <circle cx="470" cy="120" r="130" fill="#0a6fd8"/>
-          <circle cx="470" cy="120" r="56" fill="#00a3e0"/>
-          <path d="M0 420 C 140 360, 260 470, 420 400 S 600 380, 600 380 V500 H0Z" fill="#0b3d7a"/>
-          <path d="M40 300 h120 v-60 h90 v100 h70 v-140 h80 v90 h60" stroke="#fff" stroke-opacity=".18" stroke-width="2" fill="none"/>
-          <g fill="#fff" fill-opacity=".5"><circle cx="160" cy="300" r="5"/><circle cx="250" cy="240" r="5"/><circle cx="320" cy="340" r="5"/><circle cx="390" cy="200" r="5"/></g>
-        </svg>
-        <div class="bill-card num">
-          <h4>Tu factura <small>Marzo</small></h4>
-          <div class="bc-row"><span>Antes</span><s>86,40 €</s></div>
-          <div class="bc-row"><span>Con Elite</span><b>68,10 €</b></div>
-          <div class="bc-save"><span>Ahorras</span><b>−21 %</b></div>
+        <div class="art" aria-hidden="true">
+          <svg class="bg" viewBox="0 0 600 520" preserveAspectRatio="xMidYMid slice"><rect width="600" height="520" fill="#002a5c"/><circle cx="480" cy="110" r="210" fill="#0058b9"/><circle cx="480" cy="110" r="130" fill="#0b6fd6"/><circle cx="480" cy="110" r="54" fill="#00a3e0"/><path d="M0 440C140 380 260 490 420 420S600 400 600 400V520H0Z" fill="#0b3a72"/><path d="M40 310h120v-60h90v100h70V210h80v90h60" stroke="#fff" stroke-opacity=".18" stroke-width="2" fill="none"/></svg>
+          <div class="float-card num"><h4>Tu factura <small>Marzo</small></h4><div class="fc-row"><span>Antes</span><s>86,40 €</s></div><div class="fc-row"><span>Con Elite</span><b>68,10 €</b></div><div class="fc-hi"><span>Ahorras</span><b>−21 %</b></div></div>
         </div>
       </div>
-      <div class="dots" aria-hidden="true"><i class="on"></i><i></i><i></i></div>
+      <!-- 2 · Fotovoltaica -->
+      <div class="slide" aria-label="2 de 3">
+        <div class="txt">
+          <span class="tag">Autoconsumo fotovoltaico</span>
+          <div class="h1">Tu tejado puede pagar la mitad de tu factura.</div>
+          <p>Estudio, instalación, legalización y ayudas. Una vivienda tipo recupera la inversión en unos 6 años.</p>
+          <div class="big-price num"><b>−55 %</b><span>en la factura<br>de luz</span></div>
+          <div class="acts"><a href="#servicios" class="btn white">Ver instalaciones</a><a href="#simulador" class="btn ghost" data-tab-link="solar">Calcular mis placas</a></div>
+          <p class="legal">Dato orientativo para vivienda con buena orientación.</p>
+        </div>
+        <div class="art" aria-hidden="true">
+          <svg class="bg" viewBox="40 0 540 520" preserveAspectRatio="xMidYMax slice"><rect width="600" height="520" fill="#002a5c"/><circle cx="470" cy="100" r="46" fill="#8fd3f5"/><path d="M60 330 300 170 540 330Z" fill="#0b3a72"/><rect x="100" y="330" width="400" height="190" fill="#0b3a72"/><g transform="translate(300 170) skewX(0)"><path d="M-170 140 0 26 170 140Z" fill="#0058b9"/></g><g stroke="#002a5c" stroke-width="3"><path d="M-0 0" /><path d="M215 255 385 255" transform="translate(0 0)"/></g><g fill="#00a3e0"><polygon points="150,300 205,263 245,263 190,300"/><polygon points="198,300 253,263 293,263 238,300"/><polygon points="246,300 301,263 341,263 286,300"/><polygon points="205,258 255,225 295,225 245,258"/><polygon points="253,258 303,225 343,225 293,258"/></g><rect x="260" y="400" width="80" height="120" fill="#002a5c"/></svg>
+          <div class="float-card num"><h4>Instalación tipo <small>Vivienda</small></h4><div class="fc-row"><span>Potencia</span><b>4,5 kWp</b></div><div class="fc-row"><span>Paneles</span><b>10 × 450 W</b></div><div class="fc-hi"><span>Retorno</span><b>6 años</b></div></div>
+        </div>
+      </div>
+      <!-- 3 · Recarga -->
+      <div class="slide" aria-label="3 de 3">
+        <div class="txt">
+          <span class="tag">Puntos de recarga</span>
+          <div class="h1">Carga el coche en casa por menos de 2 € cada 100 km.</div>
+          <p>Instalamos el cargador, adaptamos tu cuadro y tramitamos las ayudas disponibles. En viviendas, garajes comunitarios y empresas.</p>
+          <div class="big-price num"><b>7,4</b><span>kW de potencia<br>de carga</span></div>
+          <div class="acts"><a href="#recarga" class="btn white">Ver cargadores</a><a href="#llamada" class="btn ghost">Pedir presupuesto</a></div>
+          <p class="legal">Coste estimado con tarifa por horas en periodo valle.</p>
+        </div>
+        <div class="art" aria-hidden="true">
+          <svg class="bg" viewBox="50 0 470 520" preserveAspectRatio="xMidYMax slice"><rect width="600" height="520" fill="#002a5c"/><rect y="390" width="600" height="130" fill="#0b3a72"/><rect x="430" y="170" width="70" height="220" rx="12" fill="#0058b9"/><rect x="445" y="195" width="40" height="34" rx="6" fill="#8fd3f5"/><circle cx="465" cy="265" r="9" fill="#00a3e0"/><path d="M465 300C465 360 400 330 360 340" stroke="#8fd3f5" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M70 380c0-22 10-32 30-38l50-12 50-46c10-8 22-12 36-12h90c14 0 26 6 34 16l38 44 30 6c16 4 22 14 22 30v12z" fill="#0b6fd6"/><path d="M185 330l40-38h60v38zM300 330v-38h36l30 38z" fill="#002a5c" opacity=".6"/><circle cx="140" cy="384" r="30" fill="#002a5c" stroke="#8fd3f5" stroke-width="8"/><circle cx="350" cy="384" r="30" fill="#002a5c" stroke="#8fd3f5" stroke-width="8"/></svg>
+          <div class="float-card num"><h4>Wallbox instalado <small>Vivienda</small></h4><div class="fc-row"><span>Carga completa</span><b>≈ 7 h</b></div><div class="fc-row"><span>Coste 100 km</span><b>1,60 €</b></div><div class="fc-hi"><span>Desde</span><b>890 €</b></div></div>
+        </div>
+      </div>
+      <div class="b-nav" role="tablist" aria-label="Elegir banner">
+        <button class="on" aria-label="Tarifa de luz" aria-selected="true"></button>
+        <button aria-label="Placas solares" aria-selected="false"></button>
+        <button aria-label="Recarga" aria-selected="false"></button>
+      </div>
     </div>
   </div>
 </section>
@@ -379,11 +431,12 @@ footer{background:var(--navy);color:#b9d1ee;padding:70px 0 30px;font-size:15px}
 <!-- ACCESOS RÁPIDOS -->
 <section class="quick" style="padding-bottom:0">
   <div class="wrap q-grid">
-    <a href="#tarifas" class="q rv"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0058b9" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></span>Ver tarifas</a>
-    <a href="#simulador" class="q rv d1"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0058b9" stroke-width="1.8"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 11h2M12 11h2M16 11v6M8 15h2M12 15h2M8 18h6"/></svg></span>Calcular ahorro</a>
-    <a href="#llamada" class="q rv d2"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0058b9" stroke-width="1.8"><path d="M12 15V3M7 8l5-5 5 5M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg></span>Subir factura</a>
-    <a href="#empresas" class="q rv d3"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0058b9" stroke-width="1.8"><path d="M3 21h18M5 21V8l7-5 7 5v13M10 21v-5h4v5"/></svg></span>Empresas</a>
-    <a href="#ayuda" class="q rv d3"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0058b9" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17.5v.5"/></svg></span>Ayuda</a>
+    <a href="#tarifas" class="q rv"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0058b9" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></span>Tarifas de luz y gas</a>
+    <a href="#servicios" class="q rv d1"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0058b9" stroke-width="1.8"><path d="M5 5h14l2 10H3z"/><path d="M4 10h16M9.5 5l-1 10M14.5 5l1 10M12 15v5M8 20h8"/></svg></span>Placas solares</a>
+    <a href="#recarga" class="q rv d2"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0058b9" stroke-width="1.8"><path d="M3 16v-3l2-5h10l3 5h1a2 2 0 0 1 2 2v1"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/><path d="M9 17h6"/></svg></span>Cargador coche eléctrico</a>
+    <a href="#eficiencia" class="q rv d3"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0058b9" stroke-width="1.8"><path d="M4 18a8 8 0 1 1 16 0"/><path d="M12 18l4-6"/><path d="M4 18h16"/></svg></span>Eficiencia energética</a>
+    <a href="#simulador" class="q rv d3"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0058b9" stroke-width="1.8"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 11h2M12 11h2M16 11v6M8 15h2M12 15h2M8 18h6"/></svg></span>Calcular ahorro</a>
+    <a href="#llamada" class="q rv d3"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0058b9" stroke-width="1.8"><path d="M12 15V3M7 8l5-5 5 5M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg></span>Subir factura</a>
   </div>
 </section>
 
@@ -391,10 +444,151 @@ footer{background:var(--navy);color:#b9d1ee;padding:70px 0 30px;font-size:15px}
 <section class="figs" style="padding-bottom:0">
   <div class="wrap">
     <div class="f-grid num">
-      <div class="f rv"><b><span data-count="23">23</span> %</b><span>ahorro medio en factura</span></div>
-      <div class="f rv d1"><b>0,119 €</b><span>por kWh en tarifa fija</span></div>
-      <div class="f rv d2"><b data-count="1840">1.840</b><span>clientes entre hogares y empresas</span></div>
-      <div class="f rv d3"><b><span data-count="12">12</span> años</b><span>de experiencia en el sector</span></div>
+      <div class="f rv"><b><span data-count="23">23</span><small>%</small></b><span>ahorro medio en la factura de nuestros clientes</span></div>
+      <div class="f rv d1"><b><span data-count="1840">1.840</span></b><span>hogares y empresas atendidos</span></div>
+      <div class="f rv d2"><b>3,2<small>MWp</small></b><span>de fotovoltaica instalada</span></div>
+      <div class="f rv d3"><b><span data-count="12">12</span><small>años</small></b><span>en el sector energético</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICIOS -->
+<section id="servicios">
+  <div class="wrap">
+    <div class="svc-head rv">
+      <div><p class="eyebrow">Qué hacemos</p><h2 style="margin-top:12px">Pagar menos luz es el principio. Después, gastar menos.</h2></div>
+      <p>Además de negociar tu tarifa, instalamos lo que hace falta para que consumas menos y produzcas tu propia energía. Un solo interlocutor para todo.</p>
+    </div>
+
+    <div class="svc">
+      <article class="card c-solar rv">
+        <div class="copy">
+          <p class="eyebrow">Fotovoltaica</p>
+          <h3>Placas solares para casa, nave o comunidad.</h3>
+          <p class="lead">Dimensionamos con tu curva de consumo real, no a ojo. Así no pagas paneles que no vas a aprovechar.</p>
+          <div class="stat num">
+            <div><b>−55 %</b><span>factura de luz</span></div>
+            <div><b>5–7</b><span>años de retorno</span></div>
+            <div><b>25</b><span>años de garantía</span></div>
+          </div>
+          <ul>
+            <li>Estudio de cubierta y sombras</li>
+            <li>Baterías y compensación de excedentes</li>
+            <li>Legalización, bonificación de IBI y ayudas</li>
+          </ul>
+          <div class="foot"><a href="#llamada" class="btn white">Pedir estudio solar</a><a href="#simulador" class="more" style="color:#fff" data-tab-link="solar">Calcular mis placas →</a></div>
+        </div>
+        <svg class="ill" viewBox="0 0 380 300" aria-hidden="true">
+          <g fill="#0b3a72"><polygon points="20,280 190,140 360,280"/></g>
+          <g fill="#0058b9"><polygon points="70,250 130,200 175,200 115,250"/><polygon points="125,250 185,200 230,200 170,250"/><polygon points="180,250 240,200 285,200 225,250"/><polygon points="135,195 175,162 220,162 180,195"/><polygon points="190,195 230,162 275,162 235,195"/></g>
+          <g stroke="#00a3e0" stroke-width="1.5" fill="none" opacity=".8"><path d="M100 225h60M155 225h60M210 225h60M160 178h40M215 178h40"/></g>
+          <circle cx="320" cy="60" r="30" fill="#8fd3f5"/>
+        </svg>
+      </article>
+
+      <article class="card c-ev rv d1" id="recarga">
+        <p class="eyebrow">Recarga de coche eléctrico</p>
+        <h3>Tu cargador, instalado y legalizado.</h3>
+        <p class="lead">Wallbox en vivienda, garaje comunitario o parking de empresa. Revisamos la potencia para que no salte nada.</p>
+        <div class="stat num">
+          <div><b>890 €</b><span>desde, instalado</span></div>
+          <div><b>1,60 €</b><span>cada 100 km</span></div>
+        </div>
+        <ul>
+          <li>Cargadores de 7,4 a 22 kW</li>
+          <li>Preinstalación en comunidades</li>
+          <li>Gestión de ayudas disponibles</li>
+        </ul>
+        <div class="foot"><a href="#llamada" class="btn">Pedir presupuesto</a></div>
+      </article>
+
+      <article class="card c-eff rv" id="eficiencia">
+        <div>
+          <p class="eyebrow">Eficiencia energética</p>
+          <h3>Antes de producir más, gasta menos.</h3>
+          <p class="lead">Auditamos tu consumo y te decimos qué cambiar, cuánto cuesta y en cuánto se paga solo. Para empresas, industria y comunidades.</p>
+          <ul style="margin-top:22px">
+            <li>Auditoría energética y certificado</li>
+            <li>Monitorización del consumo en tiempo real</li>
+            <li>Baterías de condensadores contra la reactiva</li>
+            <li>Climatización y aerotermia</li>
+          </ul>
+          <div class="foot"><a href="#llamada" class="btn">Solicitar auditoría</a></div>
+        </div>
+        <div class="meter num" aria-label="Ejemplo de reducción de consumo tras una auditoría">
+          <h4>Nave logística · consumo anual <small>MWh</small></h4>
+          <div class="mrow"><span>Climatización</span><div class="mbar"><i style="--w:92%"></i></div><b>184</b></div>
+          <div class="mrow"><span></span><div class="mbar"><i class="after" style="--w:64%"></i></div><b>128</b></div>
+          <div class="mrow"><span>Iluminación</span><div class="mbar"><i style="--w:58%"></i></div><b>116</b></div>
+          <div class="mrow"><span></span><div class="mbar"><i class="after" style="--w:24%"></i></div><b>48</b></div>
+          <div class="mrow"><span>Maquinaria</span><div class="mbar"><i style="--w:70%"></i></div><b>140</b></div>
+          <div class="mrow"><span></span><div class="mbar"><i class="after" style="--w:60%"></i></div><b>121</b></div>
+          <div class="legend"><span><i></i>Antes</span><span><i class="after"></i>Después</span><span style="margin-left:auto;color:var(--blue);font-weight:700">−34 %</span></div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- SIMULADOR -->
+<section class="soft" id="simulador">
+  <div class="wrap">
+    <div class="sim-top rv">
+      <div><p class="eyebrow">Simulador</p><h2 style="margin-top:12px">Haz números antes de llamarnos.</h2><p class="sub">Elige qué quieres calcular. Es orientativo; el dato exacto lo sacamos de tu factura.</p></div>
+      <div class="tabs" role="tablist">
+        <button type="button" class="on" data-tab="fact" role="tab" aria-selected="true">Ahorro en factura</button>
+        <button type="button" data-tab="solar" role="tab" aria-selected="false">Placas solares</button>
+      </div>
+    </div>
+
+    <!-- Factura -->
+    <div class="pane on sim-grid" id="pane-fact">
+      <form class="panel rv" id="sim" onsubmit="return false">
+        <div class="qq"><div class="t">¿Dónde tienes el suministro?</div>
+          <div class="chips"><input type="radio" name="tipo" id="t1" value="hogar" checked><label for="t1">Vivienda</label><input type="radio" name="tipo" id="t2" value="pyme"><label for="t2">Comercio o pyme</label><input type="radio" name="tipo" id="t3" value="empresa"><label for="t3">Industria</label></div></div>
+        <div class="qq"><label class="t" for="gasto">Lo que pagas al mes <output id="gastoOut" class="num">85 €</output></label>
+          <input type="range" id="gasto" min="30" max="400" step="5" value="85"><div class="ends num"><span id="minL">30 €</span><span id="maxL">400 €</span></div></div>
+        <div class="qq"><div class="t">Tu tarifa actual</div>
+          <div class="chips"><input type="radio" name="tarifa" id="r1" value="fija"><label for="r1">Precio fijo</label><input type="radio" name="tarifa" id="r2" value="indexada"><label for="r2">Indexada</label><input type="radio" name="tarifa" id="r3" value="nose" checked><label for="r3">No lo sé</label></div></div>
+        <div class="qq"><div class="t">¿Cuándo revisaste la potencia?</div>
+          <div class="chips"><input type="radio" name="pot" id="p1" value="0"><label for="p1">Hace menos de un año</label><input type="radio" name="pot" id="p2" value="1" checked><label for="p2">Hace más</label><input type="radio" name="pot" id="p3" value="2"><label for="p3">Nunca</label></div></div>
+      </form>
+      <div class="panel res rv d1" aria-live="polite">
+        <h3>Tu ahorro estimado al año</h3>
+        <div class="y num" id="anual">190 €</div>
+        <div class="ysub" id="pctTxt">Un 19 % menos en tu factura</div>
+        <div class="cmp num"><span>Ahora</span><div><div class="bar" style="width:100%"></div></div><span class="v" id="vOld">85 €</span><span>Con Elite</span><div><div class="bar n" id="barNew" style="width:80%"></div></div><span class="v" id="vNew">69 €</span></div>
+        <div class="kpis num"><div class="kpi">Precio energía<b><s id="kOld">0,168</s> <span id="kNew">0,144</span></b></div><div class="kpi">Al mes<b id="mes">−16 €</b></div></div>
+        <div class="acts"><a href="#llamada" class="btn white">Quiero este ahorro</a></div>
+        <p class="disc">Estimación orientativa. El cálculo exacto lo hacemos con tu factura, sin coste.</p>
+      </div>
+    </div>
+
+    <!-- Solar -->
+    <div class="pane sim-grid" id="pane-solar">
+      <form class="panel" id="sol" onsubmit="return false">
+        <div class="qq"><div class="t">¿Dónde irían las placas?</div>
+          <div class="chips"><input type="radio" name="stipo" id="s1" value="hogar" checked><label for="s1">Vivienda</label><input type="radio" name="stipo" id="s2" value="empresa"><label for="s2">Empresa o nave</label></div></div>
+        <div class="qq"><label class="t" for="sgasto">Factura de luz al mes <output id="sOut" class="num">110 €</output></label>
+          <input type="range" id="sgasto" min="40" max="400" step="5" value="110"><div class="ends num"><span id="sMin">40 €</span><span id="sMax">400 €</span></div></div>
+        <div class="qq"><div class="t">Zona</div>
+          <div class="chips"><input type="radio" name="zona" id="z1" value="1200"><label for="z1">Norte</label><input type="radio" name="zona" id="z2" value="1450" checked><label for="z2">Centro</label><input type="radio" name="zona" id="z3" value="1650"><label for="z3">Sur y Levante</label></div></div>
+        <div class="qq"><div class="t">¿Con batería?</div>
+          <div class="chips"><input type="radio" name="bat" id="b1" value="0" checked><label for="b1">No</label><input type="radio" name="bat" id="b2" value="1"><label for="b2">Sí</label></div></div>
+      </form>
+      <div class="panel res" aria-live="polite">
+        <h3>Ahorro estimado al año</h3>
+        <div class="y num" id="sAnual">620 €</div>
+        <div class="ysub" id="sPct">Un 47 % menos en tu factura de luz</div>
+        <div class="kpis num" style="margin-top:28px">
+          <div class="kpi">Potencia recomendada<b id="sKwp">4,0 kWp</b></div>
+          <div class="kpi">Paneles<b id="sPan">9 × 450 W</b></div>
+          <div class="kpi">Inversión aproximada<b id="sCost">5.200 €</b></div>
+          <div class="kpi">Se paga en<b id="sRet">8 años</b></div>
+        </div>
+        <div class="acts"><a href="#llamada" class="btn white">Pedir estudio de mi tejado</a></div>
+        <p class="disc">Estimación orientativa antes de ayudas y deducciones. El estudio real incluye visita técnica y análisis de sombras.</p>
+      </div>
     </div>
   </div>
 </section>
@@ -403,72 +597,19 @@ footer{background:var(--navy);color:#b9d1ee;padding:70px 0 30px;font-size:15px}
 <section id="tarifas">
   <div class="wrap">
     <div class="plans-head rv">
-      <div><h2>Elige tu tarifa</h2><p class="sub">Precios claros y sin permanencia. Si no sabes cuál te conviene, te lo calculamos con tu factura.</p></div>
+      <div><p class="eyebrow">Luz y gas</p><h2 style="margin-top:12px">Elige tu tarifa</h2><p class="sub">Precios claros y sin permanencia. Si no sabes cuál te conviene, te lo calculamos con tu factura.</p></div>
       <div class="switch" role="tablist" aria-label="Tipo de cliente">
         <button type="button" class="on" data-plan="hogar" role="tab" aria-selected="true">Hogar</button>
         <button type="button" data-plan="empresa" role="tab" aria-selected="false">Empresas</button>
       </div>
     </div>
     <div class="plans" id="plans"></div>
-    <p class="plans-note">Precios de ejemplo sin IVA ni impuesto eléctrico. Sustituir por las tarifas vigentes.</p>
-  </div>
-</section>
-
-<!-- SIMULADOR -->
-<section class="soft" id="simulador">
-  <div class="wrap">
-    <div class="rv"><h2>¿Cuánto puedes ahorrar?</h2><p class="sub">Responde cuatro preguntas y te damos una estimación al momento.</p></div>
-    <div class="sim-grid">
-      <form class="panel rv" id="sim" onsubmit="return false">
-        <div class="qq">
-          <div class="t">¿Dónde tienes el suministro?</div>
-          <div class="chips">
-            <input type="radio" name="tipo" id="t1" value="hogar" checked><label for="t1">Vivienda</label>
-            <input type="radio" name="tipo" id="t2" value="pyme"><label for="t2">Comercio o pyme</label>
-            <input type="radio" name="tipo" id="t3" value="empresa"><label for="t3">Industria</label>
-          </div>
-        </div>
-        <div class="qq">
-          <label class="t" for="gasto">Lo que pagas al mes <output id="gastoOut" class="num">85 €</output></label>
-          <input type="range" id="gasto" min="30" max="400" step="5" value="85">
-          <div class="ends num"><span id="minL">30 €</span><span id="maxL">400 €</span></div>
-        </div>
-        <div class="qq">
-          <div class="t">Tu tarifa actual</div>
-          <div class="chips">
-            <input type="radio" name="tarifa" id="r1" value="fija"><label for="r1">Precio fijo</label>
-            <input type="radio" name="tarifa" id="r2" value="indexada"><label for="r2">Indexada</label>
-            <input type="radio" name="tarifa" id="r3" value="nose" checked><label for="r3">No lo sé</label>
-          </div>
-        </div>
-        <div class="qq">
-          <div class="t">¿Cuándo revisaste la potencia?</div>
-          <div class="chips">
-            <input type="radio" name="pot" id="p1" value="0"><label for="p1">Hace menos de un año</label>
-            <input type="radio" name="pot" id="p2" value="1" checked><label for="p2">Hace más</label>
-            <input type="radio" name="pot" id="p3" value="2"><label for="p3">Nunca</label>
-          </div>
-        </div>
-      </form>
-
-      <div class="panel res rv d1" aria-live="polite">
-        <h3>Tu ahorro estimado al año</h3>
-        <div class="y num" id="anual">200 €</div>
-        <div class="ysub" id="pctTxt">Un 20 % menos en tu factura</div>
-        <div class="cmp num">
-          <span>Ahora</span><div><div class="bar" style="width:100%"></div></div><span class="v" id="vOld">85 €</span>
-          <span>Con Elite</span><div><div class="bar n" id="barNew" style="width:80%"></div></div><span class="v" id="vNew">68 €</span>
-        </div>
-        <div class="kwh num"><span>Precio de la energía</span><b><s id="kOld">0,168</s><span id="kNew">0,140</span> €/kWh</b></div>
-        <div class="acts"><a href="#llamada" class="btn white">Quiero este ahorro</a></div>
-        <p class="disc">Estimación orientativa. El cálculo exacto lo hacemos con tu factura, sin coste.</p>
-      </div>
-    </div>
+    <p class="note">Precios de ejemplo sin IVA ni impuesto eléctrico. Sustituir por las tarifas vigentes.</p>
   </div>
 </section>
 
 <!-- FACTURA -->
-<section id="factura">
+<section class="soft" id="factura">
   <div class="wrap read-grid">
     <div class="bill rv num" aria-hidden="true">
       <div class="bill-top"><div><h4>Factura de electricidad</h4><small>01/03 – 31/03 · 31 días</small></div><small style="text-align:right">Tarifa 3.0TD<br>CUPS ES0021…4471</small></div>
@@ -480,59 +621,28 @@ footer{background:var(--navy);color:#b9d1ee;padding:70px 0 30px;font-size:15px}
       <div class="bill-sum"><span>Total</span><span>1.284,60 €</span></div>
     </div>
     <div>
-      <div class="rv"><h2>Así revisamos tu factura</h2><p class="sub">En casi todas las que nos llegan hay al menos dos de estos fallos.</p></div>
+      <div class="rv"><p class="eyebrow">Revisión de factura</p><h2 style="margin-top:12px">Cinco sitios donde se escapa el dinero</h2><p class="sub">En casi todas las facturas que nos llegan hay al menos dos.</p></div>
       <div class="tips">
         <div class="tip rv" data-k="1"><span class="n">1</span><div><h4>Potencia de más</h4><p>Pagas 15 kW y tu pico real es de 10. Se ajusta sin obras.</p></div></div>
-        <div class="tip rv" data-k="2"><span class="n">2</span><div><h4>Precio desactualizado</h4><p>Tu contrato se renovó solo, con el precio que le convenía a la compañía.</p></div></div>
+        <div class="tip rv" data-k="2"><span class="n">2</span><div><h4>Precio desactualizado</h4><p>El contrato se renovó solo, con el precio que le convenía a la compañía.</p></div></div>
         <div class="tip rv" data-k="3"><span class="n">3</span><div><h4>Reactiva</h4><p>Una batería de condensadores la deja a cero y se paga sola en meses.</p></div></div>
-        <div class="tip rv" data-k="4"><span class="n">4</span><div><h4>Excesos</h4><p>Te quedas corto en algún periodo y pagas recargo. Hay que equilibrar.</p></div></div>
+        <div class="tip rv" data-k="4"><span class="n">4</span><div><h4>Excesos</h4><p>Te quedas corto en algún periodo y pagas recargo.</p></div></div>
         <div class="tip rv" data-k="5"><span class="n">5</span><div><h4>Extras que no pediste</h4><p>Seguros y servicios añadidos al contratar por teléfono. Los damos de baja.</p></div></div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- EMPRESAS / HOGAR -->
-<section id="empresas" style="padding-top:0">
-  <div class="wrap split">
-    <div class="box biz rv">
-      <span class="deco" aria-hidden="true"></span>
-      <span class="kind">Empresas</span>
-      <h3>Energía para tu negocio, con un gestor que conoce tus números.</h3>
-      <p>Hostelería, comercio, talleres, naves y oficinas. Tarifas 3.0TD y 6.1TD, varios suministros y gas.</p>
-      <ul class="num">
-        <li>Ajuste de potencia por periodos <b>−8 a −15 %</b></li>
-        <li>Precio fijo o indexado negociado <b>−10 a −25 %</b></li>
-        <li>Eliminación de reactiva <b>hasta −100 %</b></li>
-        <li>Estudio de autoconsumo <b>retorno 4–6 años</b></li>
-      </ul>
-      <a href="#llamada" class="btn white">Hablar con un gestor</a>
-    </div>
-    <div class="box home rv d1">
-      <span class="deco" aria-hidden="true"></span>
-      <span class="kind">Hogar</span>
-      <h3>Tu casa también puede pagar menos.</h3>
-      <p>Revisamos tarifa, potencia y bono social. Sin cambiar tus hábitos y sin cortes de suministro.</p>
-      <ul class="num">
-        <li>Ahorro medio al año <b>180–320 €</b></li>
-        <li>Cambio de compañía <b>sin cortes</b></li>
-        <li>Permanencia <b>ninguna</b></li>
-      </ul>
-      <a href="#tarifas" class="btn">Ver tarifas de hogar</a>
-    </div>
-  </div>
-</section>
-
-<!-- PASOS -->
-<section style="padding-top:0">
-  <div class="wrap">
-    <div class="rv"><h2>Cambiarte es fácil</h2><p class="sub">Nos ocupamos de todo. Tú solo nos mandas una factura.</p></div>
-    <div class="steps">
-      <div class="step rv"><span class="n">01</span><h4>Envía tu factura</h4><p>Una foto con el móvil es suficiente.</p><span class="time">5 minutos</span></div>
-      <div class="step rv d1"><span class="n">02</span><h4>Recibe tu estudio</h4><p>Revisamos tus consumos reales y comparamos más de 30 compañías.</p><span class="time">48 horas</span></div>
-      <div class="step rv d2"><span class="n">03</span><h4>Firma online</h4><p>Desde el móvil. Sin papeles y sin cortes de luz.</p><span class="time">2 minutos</span></div>
-      <div class="step rv d3"><span class="n">04</span><h4>Seguimiento</h4><p>Revisamos cada factura nueva. Si algo no cuadra, reclamamos nosotros.</p><span class="time">Siempre</span></div>
-    </div>
+<!-- CÓMO TRABAJAMOS -->
+<section>
+  <div class="wrap steps-wrap">
+    <div class="side rv"><p class="eyebrow">Cómo trabajamos</p><h2 style="margin-top:12px">Un asesor para todo. De la factura al tejado.</h2><p class="sub">Sin subcontratas que no conoces y sin llamadas a la hora de comer.</p></div>
+    <ol class="steps">
+      <li class="rv"><span class="n">01</span><div><h4>Nos mandas una factura</h4><p>Con una foto basta. Si te interesa solar o recarga, nos dices también la dirección.</p><span class="time">5 minutos</span></div></li>
+      <li class="rv"><span class="n">02</span><div><h4>Estudiamos tu consumo real</h4><p>Pedimos tus curvas horarias a la distribuidora y, si hace falta, vamos a ver la instalación.</p><span class="time">48 horas</span></div></li>
+      <li class="rv"><span class="n">03</span><div><h4>Propuesta con números</h4><p>Qué pagas hoy, qué pagarías y en cuánto se amortiza cada cosa. En una página.</p><span class="time">Sin compromiso</span></div></li>
+      <li class="rv"><span class="n">04</span><div><h4>Lo hacemos y lo vigilamos</h4><p>Cambio de tarifa, instalación, legalización y seguimiento de cada factura.</p><span class="time">Siempre</span></div></li>
+    </ol>
   </div>
 </section>
 
@@ -540,20 +650,16 @@ footer{background:var(--navy);color:#b9d1ee;padding:70px 0 30px;font-size:15px}
 <section class="soft" id="ayuda">
   <div class="wrap help-grid">
     <div class="rv">
-      <h2>¿Tienes dudas?</h2>
-      <p class="sub">Las preguntas que más nos hacen. Si la tuya no está, llámanos.</p>
-      <div class="contact-card">
-        <p>Atención al cliente gratuita</p>
-        <a href="tel:+34900000000">900 000 000</a>
-        <p>Lunes a viernes de 9:00 a 19:00</p>
-      </div>
+      <h2>Preguntas habituales</h2>
+      <p class="sub">Si la tuya no está, llámanos.</p>
+      <div class="contact-card"><p>Atención al cliente gratuita</p><a href="tel:+34900000000">900 000 000</a><p>Lunes a viernes de 9:00 a 19:00</p></div>
     </div>
     <div class="rv d1">
-      <details open><summary>¿Cuánto me cuesta el estudio?</summary><p>Nada. El estudio de tu factura es gratuito y sin compromiso.</p></details>
-      <details><summary>¿Me quedo sin luz al cambiar de compañía?</summary><p>No. La instalación es la misma, solo cambia quién te factura. No viene ningún técnico.</p></details>
-      <details><summary>¿Tengo permanencia?</summary><p>Nuestras tarifas no tienen permanencia. Si tu contrato actual la tiene, calculamos si compensa cambiar ya o esperar.</p></details>
-      <details><summary>¿Precio fijo o indexado?</summary><p>Depende de cuándo consumes y del riesgo que quieras asumir. Te lo explicamos con tus números.</p></details>
-      <details><summary>¿Qué documentación necesito?</summary><p>Una factura reciente, tu DNI o CIF y el número de cuenta para la domiciliación.</p></details>
+      <details open><summary>¿Cuánto cuesta el estudio?</summary><p>Nada. El estudio de factura, de placas o de recarga es gratuito y sin compromiso.</p></details>
+      <details><summary>¿Me quedo sin luz al cambiar de compañía?</summary><p>No. La instalación es la misma, solo cambia quién te factura.</p></details>
+      <details><summary>¿Mi tejado vale para placas solares?</summary><p>Casi siempre. Miramos orientación, inclinación y sombras con imágenes y, si hace falta, con una visita.</p></details>
+      <details><summary>¿Puedo poner un cargador en un garaje comunitario?</summary><p>Sí. Basta con comunicarlo a la comunidad; no necesitas su aprobación. Nos encargamos de la instalación hasta tu plaza.</p></details>
+      <details><summary>¿Hay ayudas para placas y cargadores?</summary><p>Según la comunidad autónoma y el momento hay subvenciones, deducciones en el IRPF y bonificaciones de IBI. Te decimos cuáles aplican y las tramitamos.</p></details>
     </div>
   </div>
 </section>
@@ -563,18 +669,15 @@ footer{background:var(--navy);color:#b9d1ee;padding:70px 0 30px;font-size:15px}
   <div class="wrap">
     <div class="cb rv">
       <span class="deco" aria-hidden="true"></span>
-      <div>
-        <h2>Te llamamos gratis</h2>
-        <p>Déjanos tus datos y un asesor te llama en el horario que prefieras. Si adjuntas la factura, te llamamos ya con el estudio hecho.</p>
-      </div>
+      <div><h2>Te llamamos gratis</h2><p>Déjanos tus datos y un asesor te llama en el horario que prefieras. Si adjuntas la factura, te llamamos con el estudio hecho.</p></div>
       <form id="cform">
         <input name="nombre" placeholder="Nombre" autocomplete="name" required aria-label="Nombre">
         <input name="tel" type="tel" placeholder="Teléfono" autocomplete="tel" required pattern="[0-9 +]{9,15}" aria-label="Teléfono">
         <input name="email" type="email" placeholder="Correo electrónico" autocomplete="email" required aria-label="Correo electrónico">
-        <select name="tipo" aria-label="Tipo de suministro"><option>Hogar</option><option>Comercio o pyme</option><option>Industria</option><option>Comunidad de propietarios</option></select>
+        <select name="interes" aria-label="Qué te interesa"><option>Tarifa de luz o gas</option><option>Placas solares</option><option>Cargador coche eléctrico</option><option>Eficiencia energética</option><option>Varias cosas</option></select>
         <label class="file"><input type="file" id="fact" accept=".pdf,image/*" hidden><span id="fname">Adjuntar factura (opcional)</span><span>Elegir</span></label>
-        <label class="chk"><input type="checkbox" required><span>Acepto la política de privacidad. Solo usaremos tus datos para llamarte sobre tu factura.</span></label>
-        <button class="btn white" type="submit">Quiero que me llaméis</button>
+        <label class="chk"><input type="checkbox" required><span>Acepto la política de privacidad. Solo usaremos tus datos para responder a tu solicitud.</span></label>
+        <button class="btn white full" type="submit">Quiero que me llaméis</button>
         <div class="ok" id="ok">Recibido. Te llamamos en menos de 24 horas laborables.</div>
       </form>
     </div>
@@ -587,22 +690,19 @@ footer{background:var(--navy);color:#b9d1ee;padding:70px 0 30px;font-size:15px}
     <div class="ft">
       <div>
         <a href="#" class="logo"><span class="mk" aria-hidden="true"></span>Elite<b>Energy</b></a>
-        <p>Luz y gas para hogares y empresas. Revisamos, negociamos y vigilamos tu factura.</p>
+        <p>Luz, gas, placas solares, recarga y eficiencia energética para hogares y empresas.</p>
         <div class="social">
           <a href="#" aria-label="LinkedIn"><svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M4 3a2 2 0 1 1 0 4 2 2 0 0 1 0-4zM3 9h3v12H3zM9 9h3v1.7c.5-.9 1.7-1.9 3.6-1.9 3.4 0 4.4 2 4.4 5.3V21h-3v-6c0-1.5-.3-3-2.2-3S12 13.5 12 15v6H9z"/></svg></a>
           <a href="#" aria-label="Instagram"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/></svg></a>
           <a href="#" aria-label="Facebook"><svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M14 8h3V4h-3c-2.8 0-4 1.8-4 4v2H7v4h3v8h4v-8h3l1-4h-4V8.5c0-.3.2-.5.5-.5z"/></svg></a>
         </div>
       </div>
-      <div><h4>Hogar</h4><a href="#tarifas">Tarifas de luz</a><a href="#tarifas">Tarifas de gas</a><a href="#simulador">Calcula tu ahorro</a></div>
-      <div><h4>Empresas</h4><a href="#empresas">Pymes y comercios</a><a href="#empresas">Industria</a><a href="#empresas">Autoconsumo</a></div>
+      <div><h4>Energía</h4><a href="#tarifas">Tarifas de luz</a><a href="#tarifas">Tarifas de gas</a><a href="#factura">Revisión de factura</a></div>
+      <div><h4>Instalaciones</h4><a href="#servicios">Placas solares</a><a href="#recarga">Puntos de recarga</a><a href="#eficiencia">Eficiencia energética</a></div>
       <div><h4>Elite Energy</h4><a href="#">Quiénes somos</a><a href="colaboradores.html">Colaboradores</a><a href="#">Trabaja con nosotros</a></div>
       <div><h4>Ayuda</h4><a href="#ayuda">Preguntas frecuentes</a><a href="#llamada">Contacto</a><a href="tel:+34900000000">900 000 000</a></div>
     </div>
-    <div class="ft-b">
-      <span>© <span id="y">2026</span> Elite Energy SL · CIF B-00000000</span>
-      <nav><a href="#">Aviso legal</a><a href="#">Privacidad</a><a href="#">Cookies</a><a href="#">Accesibilidad</a></nav>
-    </div>
+    <div class="ft-b"><span>© <span id="y">2026</span> Elite Energy SL · CIF B-00000000</span><nav><a href="#">Aviso legal</a><a href="#">Privacidad</a><a href="#">Cookies</a><a href="#">Accesibilidad</a></nav></div>
   </div>
 </footer>
 
@@ -617,40 +717,40 @@ footer{background:var(--navy);color:#b9d1ee;padding:70px 0 30px;font-size:15px}
 <script>
 const $=id=>document.getElementById(id);
 const fmt=n=>String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,'.');
-const dec=n=>n.toFixed(3).replace('.',',');
+const dec=(n,d=3)=>n.toFixed(d).replace('.',',');
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // Menú móvil
 const menu=$('menu'),bg=$('burger');
 bg.addEventListener('click',()=>{const o=menu.classList.toggle('open');bg.setAttribute('aria-expanded',o)});
 menu.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{menu.classList.remove('open');bg.setAttribute('aria-expanded',false)}));
 
-// Tarifas (precios de ejemplo: sustituir por los vigentes)
+// Banner con 3 ofertas
+const slides=[...document.querySelectorAll('.slide')],dots=[...document.querySelectorAll('.b-nav button')];
+let cur=0,timer;
+function show(i){cur=i;slides.forEach((s,k)=>s.classList.toggle('on',k===i));dots.forEach((d,k)=>{d.classList.toggle('on',k===i);d.setAttribute('aria-selected',k===i)})}
+function auto(){if(reduce)return;clearInterval(timer);timer=setInterval(()=>show((cur+1)%slides.length),7000)}
+dots.forEach((d,i)=>d.addEventListener('click',()=>{show(i);auto()}));
+const ban=$('banner');ban.addEventListener('mouseenter',()=>clearInterval(timer));ban.addEventListener('mouseleave',auto);ban.addEventListener('focusin',()=>clearInterval(timer));
+auto();
+
+// Tarifas (precios de ejemplo)
 const check='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>';
 const PLANS={
   hogar:[
     {k:'Precio fijo',n:'Elite Fija',d:'El mismo precio a cualquier hora, durante 12 meses.',e:'0,119',p:'0,089',f:['Sin permanencia','Potencia ajustada gratis','Factura digital'],star:true},
-    {k:'Por horas',n:'Elite Horas',d:'Más barata por la noche y los fines de semana.',e:'0,094',p:'0,089',f:['Valle desde 0,094 €/kWh','Ideal para coche eléctrico','Sin permanencia']},
-    {k:'Mercado',n:'Elite Indexada',d:'Precio del mercado mayorista más un margen fijo.',e:'PVPC+',p:'0,089',f:['Margen transparente','Informe mensual','Sin permanencia']}
+    {k:'Por horas',n:'Elite Horas',d:'Más barata de noche y en fin de semana. Ideal si cargas el coche en casa.',e:'0,094',p:'0,089',f:['Valle desde 0,094 €/kWh','Pensada para coche eléctrico','Sin permanencia']},
+    {k:'Solar',n:'Elite Excedentes',d:'Para quien tiene placas: te pagamos la energía que no usas.',e:'0,119',p:'0,089',f:['Compensación de excedentes','Batería virtual','Sin permanencia']}
   ],
   empresa:[
     {k:'Precio fijo',n:'Elite Negocio',d:'Precio estable para comercios y pymes 3.0TD.',e:'0,118',p:'0,071',f:['Gestor asignado','Ajuste de potencia por periodos','Varios suministros en una factura'],star:true},
     {k:'Mercado',n:'Elite Index Pro',d:'Indexada con cobertura parcial para industria.',e:'OMIE+',p:'0,064',f:['Coberturas a medida','Curvas de carga mensuales','Tarifas 6.1TD']},
-    {k:'Autoconsumo',n:'Elite Solar',d:'Estudio, instalación y compensación de excedentes.',e:'A medida',p:'—',f:['Estudio de viabilidad','Retorno estimado 4–6 años','Subvenciones gestionadas']}
+    {k:'Gas',n:'Elite Gas Negocio',d:'Gas natural para hostelería, calderas y procesos.',e:'0,059',p:'—',f:['Precio fijo 12 meses','Revisión de caudal contratado','Sin permanencia']}
   ]
 };
 const isNum=v=>/^\d/.test(v);
 function renderPlans(t){
-  $('plans').innerHTML=PLANS[t].map(p=>`
-    <article class="plan${p.star?' star':''}">
-      ${p.star?'<span class="badge">La más elegida</span>':''}
-      <span class="kind">${p.k}</span><h3>${p.n}</h3><p class="desc">${p.d}</p>
-      <div class="pp num">
-        <div><span>Energía</span><b>${p.e}${isNum(p.e)?' <small>€/kWh</small>':''}</b></div>
-        <div class="second"><span>Potencia</span><b>${p.p}${isNum(p.p)?' <small>€/kW día</small>':''}</b></div>
-      </div>
-      <ul>${p.f.map(x=>`<li>${check}<span>${x}</span></li>`).join('')}</ul>
-      <a href="#llamada" class="btn${p.star?' white':' out'}">Contratar</a>
-    </article>`).join('');
+  $('plans').innerHTML=PLANS[t].map(p=>`<article class="plan${p.star?' star':''}">${p.star?'<span class="badge">La más elegida</span>':''}<span class="kind">${p.k}</span><h3>${p.n}</h3><p class="desc">${p.d}</p><div class="pp num"><div><span>Energía</span><b>${p.e}${isNum(p.e)?' <small>€/kWh</small>':''}</b></div><div class="second"><span>Potencia</span><b>${p.p}${isNum(p.p)?' <small>€/kW día</small>':''}</b></div></div><ul>${p.f.map(x=>`<li>${check}<span>${x}</span></li>`).join('')}</ul><a href="#llamada" class="btn${p.star?' white':' out'}">Contratar</a></article>`).join('');
 }
 function setPlan(t){
   document.querySelectorAll('.switch button').forEach(x=>{const on=x.dataset.plan===t;x.classList.toggle('on',on);x.setAttribute('aria-selected',on)});
@@ -658,13 +758,18 @@ function setPlan(t){
   renderPlans(t);
 }
 document.querySelectorAll('.switch button').forEach(b=>b.addEventListener('click',()=>setPlan(b.dataset.plan)));
-document.querySelectorAll('.seg-top a').forEach(a=>a.addEventListener('click',e=>{
-  if(a.dataset.seg==='empresa')setPlan('empresa');
-  else{e.preventDefault();setPlan('hogar');scrollTo({top:0,behavior:'smooth'})}
-}));
+document.querySelectorAll('.seg-top a').forEach(a=>a.addEventListener('click',e=>{if(a.dataset.seg==='empresa')setPlan('empresa');else{e.preventDefault();setPlan('hogar');scrollTo({top:0,behavior:'smooth'})}}));
 renderPlans('hogar');
 
-// Simulador (porcentajes orientativos: ajustar con resultados reales)
+// Pestañas del simulador
+function setTab(t){
+  document.querySelectorAll('.tabs button').forEach(b=>{const on=b.dataset.tab===t;b.classList.toggle('on',on);b.setAttribute('aria-selected',on)});
+  $('pane-fact').classList.toggle('on',t==='fact');$('pane-solar').classList.toggle('on',t==='solar');
+}
+document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>setTab(b.dataset.tab)));
+document.querySelectorAll('[data-tab-link]').forEach(a=>a.addEventListener('click',()=>setTab(a.dataset.tabLink)));
+
+// Simulador de factura (porcentajes orientativos)
 const S={hogar:{min:30,max:400,step:5,def:85,base:.14,kwh:.168},pyme:{min:100,max:4000,step:10,def:450,base:.20,kwh:.152},empresa:{min:1000,max:40000,step:100,def:6000,base:.18,kwh:.131}};
 const tAdj={fija:.03,indexada:0,nose:.02},pAdj=[0,.03,.06];
 const sim=$('sim'),g=$('gasto');let prev='hogar';
@@ -676,19 +781,40 @@ function calc(){
   $('barNew').style.width=(100*(1-pct))+'%';
   $('anual').textContent=fmt(Math.round((m-n)*12/10)*10)+' €';
   $('pctTxt').textContent='Un '+Math.round(pct*100)+' % menos en tu factura';
+  $('mes').textContent='−'+fmt(m-n)+' €';
   $('kOld').textContent=dec(c.kwh);$('kNew').textContent=dec(c.kwh*(1-pct*.75));
 }
 sim.addEventListener('input',calc);calc();
 
-// Factura: resaltar línea al pasar por cada punto
-document.querySelectorAll('.tip').forEach(t=>{
-  const l=document.querySelector('.bl[data-k="'+t.dataset.k+'"]');
-  t.addEventListener('mouseenter',()=>l.classList.add('hot'));
-  t.addEventListener('mouseleave',()=>l.classList.remove('hot'));
-});
+// Simulador solar (valores orientativos: ajustar con datos reales)
+const SOL={hogar:{min:40,max:400,step:5,def:110,price:.17,day:.35,eur:1250,max_kwp:10},empresa:{min:200,max:10000,step:50,def:1500,price:.14,day:.65,eur:900,max_kwp:200}};
+const sol=$('sol'),sg=$('sgasto');let sprev='hogar';
+function scalc(){
+  const t=sol.stipo.value,c=SOL[t];
+  if(t!==sprev){sg.min=c.min;sg.max=c.max;sg.step=c.step;sg.value=c.def;$('sMin').textContent=fmt(c.min)+' €';$('sMax').textContent=fmt(c.max)+' €';sprev=t}
+  const m=+sg.value,prod1=+sol.zona.value,bat=sol.bat.value==='1';
+  const kwhYear=m*12/c.price;
+  let kwp=Math.max(2,Math.min(c.max_kwp,Math.round((kwhYear*.6/prod1)*2)/2));
+  const prod=kwp*prod1;
+  const share=Math.min(1,c.day+(bat?.3:0));
+  const self=Math.min(prod*(bat?.9:.7),kwhYear*share);
+  const save=self*c.price+(prod-self)*.06;
+  const cost=kwp*c.eur+(bat?(t==='hogar'?4000:kwp*300):0);
+  const pct=Math.min(save/(m*12),.85);
+  $('sOut').textContent=fmt(m)+' €';
+  $('sAnual').textContent=fmt(Math.round(save/10)*10)+' €';
+  $('sPct').textContent='Un '+Math.round(pct*100)+' % menos en tu factura de luz';
+  $('sKwp').textContent=dec(kwp,1)+' kWp';
+  $('sPan').textContent=Math.ceil(kwp*1000/450)+' × 450 W';
+  $('sCost').textContent=fmt(Math.round(cost/100)*100)+' €';
+  $('sRet').textContent=dec(cost/save,1)+' años';
+}
+sol.addEventListener('input',scalc);scalc();
+
+// Factura: resaltar línea
+document.querySelectorAll('.tip').forEach(t=>{const l=document.querySelector('.bl[data-k="'+t.dataset.k+'"]');t.addEventListener('mouseenter',()=>l.classList.add('hot'));t.addEventListener('mouseleave',()=>l.classList.remove('hot'))});
 
 // Aparición al hacer scroll y contadores
-const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
 function count(el){if(reduce)return;const end=+el.dataset.count,t0=performance.now();(function s(t){const p=Math.min((t-t0)/1100,1);el.textContent=fmt(end*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(s)})(t0)}
 if('IntersectionObserver' in window){
   const io=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;e.target.classList.add('in');e.target.querySelectorAll('[data-count]').forEach(count);io.unobserve(e.target)}),{threshold:.12,rootMargin:'0px 0px -30px 0px'});
