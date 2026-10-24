@@ -8,6 +8,9 @@
   var API = window.icc.api;
   var esc = window.icc.util.escapeHtml;
   var REFRESCO_MS = 45000;
+  // La franja visible está desactivada a petición de dirección. El módulo sigue
+  // consultando la actividad para abrir las celebraciones de anuncios y ventas.
+  var MOSTRAR_CINTA = false;
   var CLAVE_PAUSA = "icc-cinta-pausa";
 
   var st = { eventos: [], anuncios: [], ahora: null, vistos: {}, nuevos: {}, timer: null, montada: false, pausa: false, oculta: false };
@@ -111,7 +114,7 @@
       c.hidden = true;
       return;
     }
-    c.hidden = st.oculta;
+    c.hidden = st.oculta || !MOSTRAR_CINTA;
     var html = lista.join("");
     // Duplicado para que el desplazamiento sea continuo (solo si se mueve).
     var copia = '<span class="icc-cinta-copia">' + html + "</span>";
@@ -189,7 +192,7 @@
     if (st.timer) clearInterval(st.timer);
     st.timer = setInterval(function () {
       if (!el()) { clearInterval(st.timer); st.timer = null; return; }
-      if (document.visibilityState === "visible" && !st.oculta) cargar(false);
+      if (document.visibilityState === "visible") cargar(false);
     }, REFRESCO_MS);
   }
 
@@ -199,7 +202,7 @@
     var ruta = (location.hash || "").split("?")[0];
     st.oculta = ruta === "#/sala-ventas";
     var c = el();
-    if (c) c.hidden = st.oculta || !items().length;
+    if (c) c.hidden = st.oculta || !MOSTRAR_CINTA || !items().length;
   }
 
   window.icc = window.icc || {};
