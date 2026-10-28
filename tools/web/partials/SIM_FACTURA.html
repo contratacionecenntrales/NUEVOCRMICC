@@ -1,0 +1,21 @@
+<div class="pane on sim-grid" id="pane-fact" role="tabpanel">
+      <form class="panel" id="sim" onsubmit="return false" aria-label="Simulador de ahorro en la factura">
+        <div class="qq" role="radiogroup" aria-labelledby="q-tipo"><div class="t" id="q-tipo">¿Dónde tienes el suministro?</div>
+          <div class="chips"><input type="radio" name="tipo" id="t1" value="hogar" checked><label for="t1">Vivienda</label><input type="radio" name="tipo" id="t2" value="pyme"><label for="t2">Comercio o pyme</label><input type="radio" name="tipo" id="t3" value="empresa"><label for="t3">Industria</label></div></div>
+        <div class="qq"><label class="t" for="gasto">Lo que pagas al mes <output id="gastoOut" class="num" for="gasto">85 €</output></label>
+          <input type="range" id="gasto" min="30" max="400" step="5" value="85"><div class="ends num"><span id="minL">30 €</span><span id="maxL">400 €</span></div></div>
+        <div class="qq" role="radiogroup" aria-labelledby="q-tar"><div class="t" id="q-tar">Tu tarifa actual</div>
+          <div class="chips"><input type="radio" name="tarifa" id="r1" value="fija"><label for="r1">Precio fijo</label><input type="radio" name="tarifa" id="r2" value="indexada"><label for="r2">Indexada</label><input type="radio" name="tarifa" id="r3" value="nose" checked><label for="r3">No lo sé</label></div></div>
+        <div class="qq" role="radiogroup" aria-labelledby="q-pot"><div class="t" id="q-pot">¿Cuándo revisaste la potencia?</div>
+          <div class="chips"><input type="radio" name="pot" id="p1" value="0"><label for="p1">Hace menos de un año</label><input type="radio" name="pot" id="p2" value="1" checked><label for="p2">Hace más</label><input type="radio" name="pot" id="p3" value="2"><label for="p3">Nunca</label></div></div>
+      </form>
+      <div class="panel res" aria-live="polite">
+        <h3>Tu ahorro estimado al año</h3>
+        <div class="y num" id="anual">190 €</div>
+        <div class="ysub" id="pctTxt">Un 19 % menos en tu factura</div>
+        <div class="cmp num"><span>Ahora</span><div><div class="bar" style="width:100%"></div></div><span class="v" id="vOld">85 €</span><span>Después</span><div><div class="bar n" id="barNew" style="width:80%"></div></div><span class="v" id="vNew">69 €</span></div>
+        <div class="kpis num"><div class="kpi">Precio de la energía (€/kWh)<b><s id="kOld">0,168</s> <span id="kNew">0,144</span></b></div><div class="kpi">Ahorro al mes<b id="mes">16 €</b></div></div>
+        <div class="acts"><a href="contacto.html?interes=luz" class="btn white">Quiero el cálculo exacto</a></div>
+        <p class="disc">Estimación orientativa basada en casos tipo. El cálculo exacto lo hacemos con tu factura, sin coste.</p>
+      </div>
+    </div>

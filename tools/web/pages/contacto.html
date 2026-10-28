@@ -1,0 +1,53 @@
+<section class="legal-page" style="padding-bottom:0">
+  <div class="wrap">
+    <div class="legal-head">
+      <nav class="crumbs-l" aria-label="Migas de pan"><a href="index.html">Inicio</a> <span aria-hidden="true">›</span> <span aria-current="page">Contacto</span></nav>
+      <h1>Contacta con Elite Energy</h1>
+      <p>Mándanos tu factura y te llamamos con el estudio hecho. También puedes llamarnos, escribirnos o pasar por nuestra oficina de Oviedo.</p>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:44px">
+  <div class="wrap split contact">
+    <div>
+      <address class="nap">
+        <div><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0058b9" stroke-width="2" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg></span><p><b>Teléfono</b><a href="tel:{{TEL164}}">{{TEL}}</a></p></div>
+        <div><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0058b9" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></span><p><b>Correo electrónico</b><a href="mailto:{{EMAIL}}">{{EMAIL}}</a></p></div>
+        <div><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0058b9" stroke-width="2" aria-hidden="true"><path d="M12 21s-7-6.2-7-12a7 7 0 1 1 14 0c0 5.8-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/></svg></span><p><b>Oficina</b><span>{{CALLE}}<br>{{CP}} {{CIUDAD}} (Asturias)</span><br><a href="https://www.google.com/maps/search/?api=1&amp;query=Calle+Posada+Herrera+6+33002+Oviedo" target="_blank" rel="noopener" style="color:var(--blue);font-weight:600">Cómo llegar en Google Maps ↗</a></p></div>
+        <div><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0058b9" stroke-width="2" aria-hidden="true"><path d="M14 3H6v18h12V7zM14 3v4h4"/></svg></span><p><b>Datos de la empresa</b><span>{{RAZON}} · CIF {{CIF}}</span></p></div>
+      </address>
+      <div class="aside-card" style="margin-top:28px">
+        <h3>Para el estudio necesitamos</h3>
+        <dl>
+          <div><dt>Luz o gas</dt><dd>Una factura reciente</dd></div>
+          <div><dt>Placas solares</dt><dd>Factura y dirección</dd></div>
+          <div><dt>Cargador</dt><dd>Foto del cuadro eléctrico</dd></div>
+          <div><dt>Empresas</dt><dd>Facturas de cada suministro</dd></div>
+        </dl>
+      </div>
+    </div>
+
+    <form class="form-card" action="enviar.php" method="post" enctype="multipart/form-data" aria-labelledby="f-title">
+      <h2 id="f-title" style="font-size:26px">Cuéntanos qué necesitas</h2>
+      <p style="color:var(--muted);margin:6px 0 20px">Te respondemos en horario laboral. Los campos con * son obligatorios.</p>
+      <div class="alert" id="form-msg" role="alert" hidden></div>
+      <div class="form-grid">
+        <input type="hidden" name="origen" value="contacto"><input type="hidden" name="ts" value="">
+        <div class="hp" aria-hidden="true"><label>No rellenes este campo <input type="text" name="web" tabindex="-1" autocomplete="off"></label></div>
+        <label class="fld"><span>Nombre y apellidos *</span><input name="nombre" autocomplete="name" required maxlength="80"></label>
+        <label class="fld"><span>Empresa (opcional)</span><input name="empresa" autocomplete="organization" maxlength="100"></label>
+        <label class="fld"><span>Teléfono *</span><input name="telefono" type="tel" autocomplete="tel" required pattern="[0-9 +]{9,15}"></label>
+        <label class="fld"><span>Correo electrónico *</span><input name="email" type="email" autocomplete="email" required maxlength="120"></label>
+        <label class="fld"><span>¿Qué te interesa? *</span><select name="interes" required><option value="luz">Tarifa de luz</option><option value="gas">Tarifa de gas</option><option value="solar">Placas solares</option><option value="recarga">Cargador coche eléctrico</option><option value="eficiencia">Eficiencia energética</option><option value="empresa">Energía para mi empresa</option><option value="varios">Varias cosas</option></select></label>
+        <label class="fld"><span>Concejo o código postal</span><input name="zona" maxlength="60" placeholder="Por ejemplo: Gijón"></label>
+        <label class="fld full"><span>Mensaje</span><textarea name="mensaje" maxlength="2000" placeholder="Cuéntanos lo que quieras: qué pagas, qué quieres instalar, cuándo te viene bien que te llamemos…"></textarea></label>
+        <label class="fld full"><span>Factura o foto (opcional)</span><span class="filebox"><input type="file" name="factura" class="sr-only" accept=".pdf,.jpg,.jpeg,.png,.heic,.webp" data-label="fname-contacto"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0058b9" stroke-width="2" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg><span id="fname-contacto">PDF, JPG o PNG de hasta 8 MB</span><b>Elegir archivo</b></span></label>
+        <label class="chk-l"><input type="checkbox" name="privacidad" value="si" required><span>He leído y acepto la <a href="politica-privacidad.html">política de privacidad</a>. *</span></label>
+        <label class="chk-l"><input type="checkbox" name="comercial" value="si"><span>Quiero recibir ofertas e información sobre energía de Elite Energy (opcional).</span></label>
+        <button class="btn" type="submit">Enviar solicitud</button>
+        <p class="legal-mini"><b>Información básica sobre protección de datos.</b> Responsable: {{RAZON}}. Finalidad: atender tu solicitud y, si lo marcas, enviarte información comercial. Legitimación: tu consentimiento y la aplicación de medidas precontractuales. Destinatarios: no se ceden datos salvo obligación legal o para la contratación que tú solicites. Derechos: acceso, rectificación, supresión y otros, como se explica en la <a href="politica-privacidad.html">política de privacidad</a>.</p>
+      </div>
+    </form>
+  </div>
+</section>

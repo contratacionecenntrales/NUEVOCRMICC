@@ -1,0 +1,179 @@
+<style>
+.perks{padding:22px 0 0}
+.p-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.perk{padding:20px;border-radius:12px;background:var(--grey)}
+.perk b{display:block;font-family:var(--head);font-weight:600;font-size:20px;color:var(--navy)}
+.perk span{font-size:14px;color:var(--muted)}
+@media (max-width:900px){.p-grid{grid-template-columns:1fr 1fr}}
+.reg{display:grid;grid-template-columns:.8fr 1.2fr;gap:60px}
+.reg .side{position:sticky;top:120px;align-self:start}
+.reg-list{display:grid;gap:16px}
+.reg-item{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:26px}
+.reg-item .n{font-family:var(--head);font-weight:600;font-size:15px;color:var(--blue)}
+.reg-item h3{font-size:22px;margin:6px 0 8px}
+.reg-item p{color:var(--muted);font-size:15px}
+.mini{background:var(--ice-2);border-radius:14px;padding:16px 18px;font-size:14px}
+.mini .mt{font-weight:700;color:var(--navy);margin-bottom:6px}
+.mini .r{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid var(--line)}
+@media (max-width:900px){.reg{grid-template-columns:1fr;gap:30px}.reg .side{position:static}.reg-item{grid-template-columns:1fr}}
+.sell{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:36px}
+.sell div{border:1px solid var(--line);border-radius:16px;padding:20px;background:#fff}
+.sell b{display:block;font-family:var(--head);color:var(--navy);font-size:18px}
+.sell span{font-size:14px;color:var(--muted)}
+@media (max-width:1000px){.sell{grid-template-columns:1fr 1fr}}
+.exp{display:grid;grid-template-columns:1.1fr .9fr;gap:56px;align-items:start;margin-top:44px}
+.feats{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.feat{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px}
+.feat .ic{width:44px;height:44px;border-radius:50%;background:var(--ice);display:grid;place-items:center;margin-bottom:14px}
+.feat h3{font-size:18px;margin-bottom:4px}
+.feat p{color:var(--muted);font-size:15px}
+.chat{background:var(--navy);border-radius:22px;padding:26px;color:#fff}
+.chat .ch{display:flex;align-items:center;gap:10px;font-weight:700;margin-bottom:16px}
+.chat .dot{width:10px;height:10px;border-radius:50%;background:var(--sky)}
+.msg{padding:12px 16px;border-radius:16px;margin:10px 0;max-width:88%;font-size:15px}
+.msg.me{background:rgba(255,255,255,.1);margin-left:auto;border-bottom-right-radius:4px}
+.msg.ai{background:var(--blue);border-bottom-left-radius:4px}
+.chat .note{font-size:12px;color:#9fbfe8;margin-top:14px}
+@media (max-width:960px){.exp{grid-template-columns:1fr}}
+@media (max-width:560px){.feats{grid-template-columns:1fr}}
+.join{display:grid;grid-template-columns:1fr 1.1fr;border-radius:28px;overflow:hidden;border:1px solid var(--line)}
+.join-l{background:var(--blue);color:#fff;padding:clamp(28px,4vw,52px)}
+.join-l h2{color:#fff}
+.join-l ul{list-style:none;display:grid;gap:12px;margin-top:28px}
+.join-l li{display:flex;gap:12px;align-items:flex-start;color:#d5e6fa}
+.join-l li svg{margin-top:3px}
+.join-r{background:#fff;padding:clamp(28px,4vw,52px)}
+.join-r h3{font-size:24px}
+.stepper{display:flex;gap:8px;margin:10px 0 22px}
+.stepper i{height:4px;flex:1;border-radius:4px;background:var(--line)}
+.stepper i.on{background:var(--blue)}
+.fstep{display:none}.fstep.on{display:grid;gap:14px}
+.join-r .btn{width:100%}
+.back{background:none;border:0;color:var(--blue);font:600 15px var(--body);cursor:pointer;justify-self:start}
+@media (max-width:900px){.join{grid-template-columns:1fr}}
+</style>
+<section class="page-hero" style="padding-bottom:0">
+  <div class="wrap">
+    <div class="ph-box">
+      <div class="txt">
+        {{CRUMBS}}
+        <h1>Distribuye energía con nosotros.</h1>
+        <p>Hazte comercial o distribuidor de Elite Energy en Asturias. Vende luz, gas, placas solares, cargadores y eficiencia con una plataforma que lee la factura, encuentra la mejor opción y te dice cuánto ganas.</p>
+        <div class="acts"><a href="#unete" class="btn white">Quiero distribuir</a><a href="#alta" class="btn ghost">Cómo funciona</a></div>
+        <div class="ph-facts"><span>Comerciales autónomos</span><span>Agencias y distribuidores</span><span>Pago semanal</span><span>Sin exclusividad</span></div>
+      </div>
+      <div class="art" aria-hidden="true">
+        <svg class="bg" viewBox="0 0 600 520" preserveAspectRatio="xMidYMid slice"><rect width="600" height="520" fill="#002a5c"/><circle cx="520" cy="60" r="200" fill="#0058b9"/><circle cx="520" cy="60" r="120" fill="#0b6fd6"/><circle cx="520" cy="60" r="48" fill="#00a3e0"/><path d="M0 440C140 380 260 490 420 420S600 400 600 400V520H0Z" fill="#0b3a72"/></svg>
+        <div class="float-card num"><h4>Tu panel · este mes <small>Ejemplo</small></h4><div class="fc-row"><span>Estudios enviados</span><b>18</b></div><div class="fc-row"><span>Contratos firmados</span><b>11</b></div><div class="fc-hi"><span>Próximo pago</span><b>Viernes</b></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="perks" style="padding-bottom:0" aria-label="Ventajas">
+  <div class="wrap p-grid">
+    <div class="perk"><b>Cinco líneas de producto</b><span>Luz, gas, placas, recarga y eficiencia</span></div>
+    <div class="perk"><b>Pago semanal</b><span>De los contratos validados</span></div>
+    <div class="perk"><b>Back-office</b><span>Resolvemos las incidencias por ti</span></div>
+    <div class="perk"><b>Sin exclusividad</b><span>Trabajas a tu ritmo</span></div>
+  </div>
+</section>
+
+<section id="alta">
+  <div class="wrap reg">
+    <div class="side"><p class="eyebrow">Alta en tres pasos</p><h2 class="mt12">Empieza a vender esta misma semana</h2><p class="sub">Para comerciales autónomos, agencias, instaladores y asesorías que quieran sumar energía a su cartera.</p><div class="acts" style="margin-top:28px"><a href="#unete" class="btn">Crear mi cuenta</a></div></div>
+    <div class="reg-list">
+      <div class="reg-item"><div><span class="n">01</span><h3>Regístrate</h3><p>Dinos tu zona y qué quieres vender: luz, gas, placas, cargadores o todo.</p></div><div class="mini"><div class="mt">Tu perfil</div><div class="r"><span>Zona</span><b>Asturias</b></div><div class="r"><span>Vende</span><b>Luz, gas y solar</b></div></div></div>
+      <div class="reg-item"><div><span class="n">02</span><h3>Valida tu documentación</h3><p>DNI, alta de autónomo o datos de tu empresa y cuenta bancaria.</p></div><div class="mini"><div class="mt">Documentos</div><div class="r"><span>DNI / CIF</span><b style="color:var(--blue)">Validado</b></div><div class="r"><span>Alta</span><b style="color:var(--blue)">Validado</b></div><div class="r"><span>Cuenta bancaria</span><b style="color:var(--blue)">Validado</b></div></div></div>
+      <div class="reg-item"><div><span class="n">03</span><h3>Activa tu cuenta y vende</h3><p>Accedes a la plataforma, a los materiales y a la firma digital. Cobras comisiones claras y puntuales.</p></div><div class="mini"><div class="mt">Este mes · ejemplo</div><div class="r"><span>Contratos</span><b>12</b></div><div class="r"><span>Validados</span><b>10</b></div></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="soft">
+  <div class="wrap">
+    <p class="eyebrow">Qué puedes vender</p><h2 class="mt12">Una sola cartera, cinco formas de ganar</h2>
+    <p class="sub">Cada cliente puede necesitar más de un servicio. Tú detectas la oportunidad; nuestro equipo técnico se encarga del resto.</p>
+    <div class="sell">
+      <div><b>Luz</b><span>Hogar, pyme e industria</span></div>
+      <div><b>Gas natural</b><span>Hogar, hostelería y empresa</span></div>
+      <div><b>Placas solares</b><span>Estudio e instalación</span></div>
+      <div><b>Recarga</b><span>Wallbox y flotas</span></div>
+      <div><b>Eficiencia</b><span>Auditorías y mejoras</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="plataforma">
+  <div class="wrap">
+    <p class="eyebrow">Plataforma</p><h2 class="mt12" style="max-width:760px">La herramienta que actúa como tu experto energético</h2><p class="sub">No necesitas años en el sector. La plataforma analiza la factura, compara y te da los argumentos.</p>
+    <div class="exp">
+      <div class="feats">
+        <div class="feat"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0058b9" stroke-width="1.8" aria-hidden="true"><path d="M14 3H6v18h12V7zM14 3v4h4M9 13h6M9 17h6"/></svg></div><h3>Lee la factura</h3><p>Extrae CUPS, potencias, consumos por periodo y precios.</p></div>
+        <div class="feat"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0058b9" stroke-width="1.8" aria-hidden="true"><path d="M3 3v18h18M7 15l4-4 3 3 5-6"/></svg></div><h3>Recomienda la oferta</h3><p>Compara tarifas y detecta sobrecostes de potencia.</p></div>
+        <div class="feat"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0058b9" stroke-width="1.8" aria-hidden="true"><path d="M5 5h14l2 10H3z"/><path d="M4 10h16M9.5 5l-1 10M14.5 5l1 10M12 15v5M8 20h8"/></svg></div><h3>Estudios solares</h3><p>Calcula potencia, paneles y retorno para el tejado del cliente.</p></div>
+        <div class="feat"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0058b9" stroke-width="1.8" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M16 4a3 3 0 0 1 0 6M21 20c0-2.6-1.5-4.8-3.6-5.6"/></svg></div><h3>Clientes y comisiones</h3><p>Tus clientes, contratos, renovaciones y pagos en un solo sitio.</p></div>
+      </div>
+      <div class="chat" role="img" aria-label="Ejemplo de conversación con el asistente de la plataforma">
+        <div class="ch"><span class="dot"></span>Asistente Elite</div>
+        <div class="msg me">El cliente tiene 6,9 kW contratados. ¿Le sobra potencia?</div>
+        <div class="msg ai">Su máximo registrado es 4,1 kW. Bajando a 4,6 kW ahorra unos 140 € al año solo en potencia.</div>
+        <div class="msg me">¿Y si pone placas?</div>
+        <div class="msg ai">Con su tejado orientado al sur, 3,5 kWp cubren buena parte de su consumo de día. Retorno estimado: unos 8 años.</div>
+        <p class="note">Conversación de ejemplo.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="soft" id="unete">
+  <div class="wrap">
+    <div class="join">
+      <div class="join-l">
+        <p class="eyebrow" style="color:#8fd3f5">Únete</p>
+        <h2 class="mt12">Distribuye energía con Elite Energy</h2>
+        <ul>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8fd3f5" stroke-width="2.4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Plataforma que analiza cada factura</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8fd3f5" stroke-width="2.4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Luz, gas, placas solares, recarga y eficiencia</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8fd3f5" stroke-width="2.4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Comisiones claras y pago semanal</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8fd3f5" stroke-width="2.4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Formación y materiales de venta</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8fd3f5" stroke-width="2.4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Sin permanencia ni exclusividad</li>
+        </ul>
+      </div>
+      <form class="join-r" id="jform" action="enviar.php" method="post" aria-labelledby="j-title">
+        <input type="hidden" name="origen" value="colaboradores"><input type="hidden" name="ts" value="">
+        <div class="hp" aria-hidden="true"><label>No rellenes este campo <input type="text" name="web" tabindex="-1" autocomplete="off"></label></div>
+        <h3 id="j-title">Solicitud de alta</h3>
+        <div class="stepper" aria-hidden="true"><i class="on"></i><i></i></div>
+        <div class="fstep on" id="s1">
+          <label class="fld"><span>Nombre y apellidos *</span><input name="nombre" autocomplete="name" required maxlength="80"></label>
+          <label class="fld"><span>Correo electrónico *</span><input type="email" name="email" autocomplete="email" required maxlength="120"></label>
+          <label class="fld"><span>Teléfono *</span><input type="tel" name="telefono" autocomplete="tel" required pattern="[0-9 +]{9,15}"></label>
+          <button type="button" class="btn" data-paso="2">Continuar</button>
+        </div>
+        <div class="fstep" id="s2">
+          <label class="fld"><span>¿Cómo quieres colaborar? *</span><select name="perfil" required><option value="">Elige una opción</option><option>Comercial autónomo</option><option>Agencia o distribuidor</option><option>Instalador</option><option>Asesoría o gestoría</option></select></label>
+          <label class="fld"><span>¿Has vendido energía antes? *</span><select name="experiencia" required><option value="">Elige una opción</option><option>Sí, tengo cartera de clientes</option><option>Sí, algo de experiencia</option><option>No, empiezo de cero</option></select></label>
+          <label class="fld"><span>Zona de trabajo *</span><input name="zona" required maxlength="60" placeholder="Por ejemplo: Oviedo y Gijón"></label>
+          <label class="fld"><span>¿Quieres contarnos algo?</span><textarea name="mensaje" maxlength="2000" rows="3"></textarea></label>
+          <label class="chk-l"><input type="checkbox" name="privacidad" value="si" required><span>He leído y acepto la <a href="politica-privacidad.html">política de privacidad</a>. *</span></label>
+          <button type="submit" class="btn">Enviar solicitud</button>
+          <button type="button" class="back" data-paso="1">← Volver</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<section id="ayuda">
+  <div class="wrap help-grid">
+    <div><p class="eyebrow">Preguntas frecuentes</p><h2 class="mt12">Lo que nos preguntan los distribuidores</h2></div>
+    <div>
+      <details data-faq open><summary>¿Necesito experiencia en el sector energético?</summary><p>No. La plataforma analiza la factura y te da la recomendación y los argumentos. Además te formamos al empezar.</p></details>
+      <details data-faq><summary>¿Cómo y cuándo cobro las comisiones?</summary><p>Cada semana, por los contratos validados. En tu panel ves en todo momento lo que llevas generado.</p></details>
+      <details data-faq><summary>¿Tengo que ser autónomo?</summary><p>Para facturar tus comisiones necesitas estar dado de alta como autónomo o tener una sociedad. También trabajamos con agencias, instaladores y asesorías.</p></details>
+      <details data-faq><summary>¿Puedo vender placas solares y cargadores?</summary><p>Sí. Tú detectas la oportunidad y haces el primer estudio; nuestro equipo técnico visita, instala y legaliza.</p></details>
+      <details data-faq><summary>¿Hay permanencia o exclusividad?</summary><p>No. Trabajas cuando quieras y donde quieras.</p></details>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,25 @@
+<div class="pane sim-grid" id="pane-solar" role="tabpanel">
+      <form class="panel" id="sol" onsubmit="return false" aria-label="Simulador de placas solares">
+        <div class="qq" role="radiogroup" aria-labelledby="q-stipo"><div class="t" id="q-stipo">¿Dónde irían las placas?</div>
+          <div class="chips"><input type="radio" name="stipo" id="s1" value="hogar" checked><label for="s1">Vivienda</label><input type="radio" name="stipo" id="s2" value="empresa"><label for="s2">Empresa o nave</label></div></div>
+        <div class="qq"><label class="t" for="sgasto">Factura de luz al mes <output id="sOut" class="num" for="sgasto">110 €</output></label>
+          <input type="range" id="sgasto" min="40" max="400" step="5" value="110"><div class="ends num"><span id="sMin">40 €</span><span id="sMax">400 €</span></div></div>
+        <div class="qq" role="radiogroup" aria-labelledby="q-zona"><div class="t" id="q-zona">¿Dónde está en Asturias?</div>
+          <div class="chips"><input type="radio" name="zona" id="z1" value="1180"><label for="z1">Costa</label><input type="radio" name="zona" id="z2" value="1150" checked><label for="z2">Zona central</label><input type="radio" name="zona" id="z3" value="1100"><label for="z3">Valles y montaña</label></div></div>
+        <div class="qq" role="radiogroup" aria-labelledby="q-bat"><div class="t" id="q-bat">¿Con batería?</div>
+          <div class="chips"><input type="radio" name="bat" id="b1" value="0" checked><label for="b1">No</label><input type="radio" name="bat" id="b2" value="1"><label for="b2">Sí</label></div></div>
+      </form>
+      <div class="panel res" aria-live="polite">
+        <h3>Ahorro estimado al año</h3>
+        <div class="y num" id="sAnual">520 €</div>
+        <div class="ysub" id="sPct">Un 39 % menos en tu factura de luz</div>
+        <div class="kpis num" style="margin-top:28px">
+          <div class="kpi">Potencia recomendada<b id="sKwp">3,5 kWp</b></div>
+          <div class="kpi">Paneles<b id="sPan">8 × 450 W</b></div>
+          <div class="kpi">Inversión aproximada<b id="sCost">4.400 €</b></div>
+          <div class="kpi">Se amortiza en<b id="sRet">8,4 años</b></div>
+        </div>
+        <div class="acts"><a href="contacto.html?interes=solar" class="btn white">Pedir estudio de mi tejado</a></div>
+        <p class="disc">Estimación orientativa antes de ayudas y deducciones, con la producción media de cada zona de Asturias. El estudio real incluye visita técnica y análisis de sombras.</p>
+      </div>
+    </div>

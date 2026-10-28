@@ -1,0 +1,11 @@
+<form action="enviar.php" method="post" enctype="multipart/form-data" aria-label="Formulario para que te llamemos">
+        <input type="hidden" name="origen" value="{{ORIGEN}}"><input type="hidden" name="ts" value="">
+        <div class="hp" aria-hidden="true"><label>No rellenes este campo <input type="text" name="web" tabindex="-1" autocomplete="off"></label></div>
+        <input name="nombre" placeholder="Nombre" autocomplete="name" required maxlength="80" aria-label="Nombre">
+        <input name="telefono" type="tel" placeholder="Teléfono" autocomplete="tel" required pattern="[0-9 +]{9,15}" aria-label="Teléfono">
+        <input name="email" type="email" placeholder="Correo electrónico" autocomplete="email" required maxlength="120" aria-label="Correo electrónico">
+        <select name="interes" aria-label="Qué te interesa"><option value="luz">Tarifa de luz</option><option value="gas">Tarifa de gas</option><option value="solar">Placas solares</option><option value="recarga">Cargador coche eléctrico</option><option value="eficiencia">Eficiencia energética</option><option value="empresa">Energía para mi empresa</option><option value="varios">Varias cosas</option></select>
+        <label class="file"><input type="file" name="factura" accept=".pdf,.jpg,.jpeg,.png,.heic,.webp" data-label="fname-{{ORIGEN}}" class="sr-only"><span id="fname-{{ORIGEN}}">Adjuntar factura (opcional, máx. 8 MB)</span><span aria-hidden="true">Elegir</span></label>
+        <label class="chk"><input type="checkbox" name="privacidad" value="si" required><span>He leído y acepto la <a href="politica-privacidad.html">política de privacidad</a>. ELITE ENERGY SL tratará mis datos para atender mi solicitud.</span></label>
+        <button class="btn white full" type="submit">Quiero que me llaméis</button>
+      </form>
