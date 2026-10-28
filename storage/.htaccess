@@ -1,0 +1,9 @@
+# Los archivos subidos NUNCA se sirven directamente: solo a través de
+# api/index.php, que comprueba quién los pide.
+<IfModule mod_authz_core.c>
+  Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+  Order allow,deny
+  Deny from all
+</IfModule>

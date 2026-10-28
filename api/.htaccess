@@ -1,0 +1,32 @@
+# Solo se puede abrir desde fuera la puerta de entrada (index.php) y la
+# página de puesta en marcha (instalar.php). El resto son piezas internas.
+<FilesMatch "\.php$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+<FilesMatch "^(index|instalar)\.php$">
+  <IfModule mod_authz_core.c>
+    Require all granted
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Allow from all
+  </IfModule>
+</FilesMatch>
+# Hostalia (FastCGI) a veces no pasa la cabecera Authorization a PHP.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{HTTP:Authorization} .
+  RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+</IfModule>
+
+# La página de puesta en marcha (instalar.php) necesita enviar su formulario,
+# cosa que la política general del panel prohíbe. Aquí se usa una propia.
+<IfModule mod_headers.c>
+  Header always set Content-Security-Policy "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'"
+</IfModule>

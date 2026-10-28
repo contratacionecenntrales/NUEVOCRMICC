@@ -1,12 +1,24 @@
 # NUEVOCRMICC
 
-Base de partida: **Labs Command Center 360™** (CRM de Labs24k), importado tal cual.
+**Labs Command Center 360™** (CRM de Labs24k) funcionando con **PHP + MySQL en
+Hostalia**, sin Supabase. Misma estética y mismas funciones que la versión
+anterior; los datos viven en la base de datos MySQL del propio hosting, igual
+que en el CRM de IC.
 
-- `index.html` — panel completo (HTML + CSS + JS autocontenido, sin build)
-- `firmar.html` — página de firma de contratos para el cliente
-- `.htaccess` / `htaccess-blindado.txt` — cabeceras de seguridad y CSP (con los hashes SHA-256 de los scripts en línea: si cambias un HTML, hay que recalcularlos)
-- `test.html` — diagnóstico del hosting
-- `supabase/*.sql` — guiones de base de datos, en orden 01 → 11
-- `supabase/functions/admin-usuarios` — Edge Function de administración de usuarios
+| Qué | Dónde |
+|---|---|
+| Panel | `index.html` |
+| Página de firma del cliente | `firmar.html` |
+| Backend PHP (acceso, permisos, datos, archivos, firma) | `api/` |
+| Base de datos (importar en phpMyAdmin) | `sql/base-de-datos.sql` |
+| Archivos subidos (cerrada al público) | `storage/` |
+| Seguridad del hosting (CSP, HTTPS) | `.htaccess` |
+| Paquete listo para subir | `descargas/labs-crm-hostalia-mysql.zip` |
 
-Instalación y base de datos: ver `LEEME-INSTALACION.md` y `LEEME-SUPABASE.md`.
+**Instalación:** ver [`LEEME-INSTALACION.md`](LEEME-INSTALACION.md). En resumen:
+crear la base MySQL → importar `sql/base-de-datos.sql` → rellenar
+`api/config.local.php` → subir por FTP → abrir `api/instalar.php` para poner la
+contraseña de la cuenta raíz.
+
+Los datos reales (`api/config.local.php` y el contenido de `storage/`) no se
+suben nunca al repositorio.

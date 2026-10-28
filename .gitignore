@@ -1,0 +1,5 @@
+# Datos reales: nunca al repositorio
+api/config.local.php
+storage/*
+!storage/.htaccess
+!storage/index.html

@@ -1251,7 +1251,7 @@ a.btn.btn-g:hover{color:#fff}
 .candado-nota{display:flex;gap:7px;align-items:flex-start;margin-top:6px;line-height:1.55}
 .candado-nota svg{flex:0 0 auto;margin-top:1px;color:var(--violet)}
 
-/* ---------------- Conexión con Supabase ---------------- */
+/* ---------------- Conexión con el servidor ---------------- */
 .sb-pill{display:inline-flex;align-items:center;gap:7px;padding:6px 13px;border-radius:20px;
   font-size:11.5px;margin:0 auto 12px;border:1px solid var(--line);background:var(--card-2);
   color:var(--txt-2)}
@@ -1464,7 +1464,7 @@ a.btn.btn-g:hover{color:#fff}
 <noscript><div style="padding:40px;text-align:center;color:#94A3B8">
 Esta aplicacion necesita JavaScript activado en el navegador.</div></noscript>
 <script>
-var BUILD = '2026-09-06 00:02';
+var BUILD = '2026-10-28 · MySQL';
 /* ==========================================================================
    LABS COMMAND CENTER 360 - Nucleo de la aplicación
    Labs24k · SPA sin dependencias (vanilla JS). Datos de demostración.
@@ -1951,7 +1951,15 @@ function renderApp(){
   (SOPORTE.abierto ? panelAyuda() : '');
 
   qa('[data-go]').forEach(function(b){ b.onclick=function(){ S.view=b.dataset.go; S.sidebar=false; renderApp(); }; });
-  q('#logout').onclick=function(){ if(vcActivo()){ vcVolver(); return; } S.logged=false; renderLogin(); };
+  q('#logout').onclick=function(){
+    if(vcActivo()){ vcVolver(); return; }
+    /* Cierra la sesión también en el servidor, igual que «Cerrar sesión» del
+       menú de perfil: si no, al recargar la página se volvía a entrar solo. */
+    if(typeof sbSalir === 'function' && SB.estado === 'conectado'){
+      if(SB.perfil && SB.perfil.raiz) registraRaiz('SALIDA');
+      sbSalir().then(function(){ S.logged=false; LOGIN.mail=''; LOGIN.pass=''; renderLogin(); });
+    } else { S.logged=false; renderLogin(); }
+  };
   q('#burger').onclick=function(){ S.sidebar=!S.sidebar; renderApp(); };
   hubEventos();
   if(q('#scrim')) q('#scrim').onclick=function(){ S.sidebar=false; renderApp(); };
@@ -3813,10 +3821,10 @@ function hrEventos(){
 
 /* ==========================================================================
    CONTACTOS · leads y clientes con ficha individual · Labs Command Center 360
-   Persistencia real en Supabase: contactos, contacto_eventos (actualizaciones
+   Persistencia real en la base de datos: contactos, contacto_eventos (actualizaciones
    y notas de seguimiento), contacto_comentarios (comentarios interactivos) y
    contacto_documentos (documentación, archivo en el bucket "documentos").
-   Ver NO-SUBIR-supabase/07-contactos.sql para el esquema y las políticas RLS.
+   Esquema en sql/base-de-datos.sql; quién ve qué, en api/esquema.php.
    ========================================================================== */
 var ESTADOS_CT = ['Nuevo','Contactado','Cualificado','Propuesta enviada','Cliente','Perdido'];
 var TABS_CT = [
@@ -3841,7 +3849,7 @@ function ctCarga(){
     CT.cargando = false; CT.cargado = true;
     if(r && r.ok) CT.lista = r.datos || []; else CT.error = sbMensaje(r);
     renderApp();
-  }, function(){ CT.cargando = false; CT.error = 'Sin conexión con Supabase.'; renderApp(); });
+  }, function(){ CT.cargando = false; CT.error = 'Sin conexión con el servidor.'; renderApp(); });
 }
 
 function ctCargaDetalle(id){
@@ -3878,7 +3886,7 @@ function ctGuardaNuevo(){
   sbInsert('contactos', fila).then(function(r){
     if(r && r.ok){ toast('Contacto creado.'); CT.nuevo = null; CT.cargado = false; ctCarga(); }
     else toast('No se ha podido crear el contacto: ' + sbMensaje(r));
-  }, function(){ toast('Sin conexión con Supabase.'); });
+  }, function(){ toast('Sin conexión con el servidor.'); });
 }
 
 /* Guarda un campo suelto de la ficha (estado, especificaciones...) sin tener
@@ -3912,7 +3920,7 @@ function ctAnadeComentario(){
   });
 }
 
-/* -------------------- DOCUMENTACIÓN · Supabase Storage ------------------- */
+/* -------------------- DOCUMENTACIÓN · almacén del servidor ---------------- */
 function ctSubeArchivo(file){
   var id = CT.det;
   if(!id || !file) return;
@@ -3921,9 +3929,9 @@ function ctSubeArchivo(file){
   var limpio = String(file.name || 'archivo').replace(/[^A-Za-z0-9.\-_]/g, '_');
   var ruta = 'contactos/' + id + '/' + Date.now() + '-' + limpio;
   sbConSesion(function(){
-    return fetch(SB.url + '/storage/v1/object/' + BUCKET_DOCS + '/' + ruta, {
-      method:'POST',
-      headers:{'apikey':SB.clave, 'Authorization':'Bearer '+((SB.sesion||{}).access_token||SB.clave),
+    return fetch(sbUrl('/storage/v1/object/' + BUCKET_DOCS + '/' + ruta), {
+      method:'POST', credentials:'same-origin',
+      headers:{'X-Sesion': (SB.sesion||{}).access_token || '',
         'Content-Type': file.type || 'application/octet-stream'},
       body:file
     }).then(function(r){ return {ok:r.ok, estado:r.status}; },
@@ -4152,7 +4160,7 @@ function ctNuevoModal(){
   var n = CT.nuevo;
   return '<div class="ov" data-ov="ct-nuevo"><div class="modal" style="max-width:480px">'+
     '<h3 style="margin:0 0 4px">Nuevo contacto</h3>'+
-    '<p class="tiny muted" style="margin:0 0 16px">Se guarda en Supabase y queda asignado a tu cartera.</p>'+
+    '<p class="tiny muted" style="margin:0 0 16px">Se guarda en la base de datos y queda asignado a tu cartera.</p>'+
     '<div class="grid g-2">'+
       '<div class="field"><label class="f">Nombre *</label><input class="inp" id="ctn-nombre" value="'+esc(n.nombre)+'" placeholder="Nombre y apellidos"></div>'+
       '<div class="field"><label class="f">Empresa</label><input class="inp" id="ctn-empresa" value="'+esc(n.empresa)+'"></div>'+
@@ -4211,9 +4219,9 @@ function dsGuardaNuevo(file){
   var limpio = String(file.name || 'archivo').replace(/[^A-Za-z0-9.\-_]/g, '_');
   var ruta = 'recursos/' + Date.now() + '-' + limpio;
   sbConSesion(function(){
-    return fetch(SB.url + '/storage/v1/object/' + BUCKET_DOCS + '/' + ruta, {
-      method:'POST',
-      headers:{'apikey':SB.clave, 'Authorization':'Bearer '+((SB.sesion||{}).access_token||SB.clave),
+    return fetch(sbUrl('/storage/v1/object/' + BUCKET_DOCS + '/' + ruta), {
+      method:'POST', credentials:'same-origin',
+      headers:{'X-Sesion': (SB.sesion||{}).access_token || '',
         'Content-Type': file.type || 'application/octet-stream'},
       body:file
     }).then(function(r){ return {ok:r.ok, estado:r.status}; },
@@ -4265,7 +4273,7 @@ function dsNuevoModal(){
   var n = DS.nuevo;
   return '<div class="ov" data-ov="ds-nuevo"><div class="modal" style="max-width:480px">'+
     '<h3 style="margin:0 0 4px">Subir dosier</h3>'+
-    '<p class="tiny muted" style="margin:0 0 16px">Se guarda en Supabase Storage y queda visible para toda la red según su categoría.</p>'+
+    '<p class="tiny muted" style="margin:0 0 16px">Se guarda en el servidor y queda visible para toda la red según su categoría.</p>'+
     '<div class="grid g-2">'+
       '<div class="field"><label class="f">Categoría</label><input class="inp" id="dsn-cat" value="'+esc(n.categoria)+'" placeholder="Ej. Servicios, Catálogos, Legal"></div>'+
       '<div class="field"><label class="f">Tipo</label><select class="inp" id="dsn-tipo">'+
@@ -5416,7 +5424,7 @@ function viewSettings(v){
   var cuerpo = {
     general: cfgGeneral, cuenta: cfgCuenta, precios: cfgPrecios,
     urls: cfgUrls, apis: cfgApis, perms: cfgPerms, seg: cfgSeg,
-    datos: cfgDatos                      // conexión con Supabase (_app14.js)
+    datos: cfgDatos                      // conexión con la base de datos MySQL
   }[CFGV.tab]();
 
   var titulo = secciones.filter(function(s){ return s.id===CFGV.tab; })[0].t;
@@ -6425,7 +6433,7 @@ function hubEventos(){
     toast('Cuenta creada con número de relación '+CUENTAS[CUENTAS.length-1].rel);
     renderApp(); };
   if(q('#pc-salir')) q('#pc-salir').onclick=function(){
-    /* Se cierra también del lado de Supabase: si no, el token de refresco
+    /* Se cierra también del lado del servidor: si no, el token de refresco
        seguiría siendo válido aunque el panel diga que has salido. */
     if(typeof sbSalir === 'function' && SB.estado === 'conectado'){
       if(SB.perfil && SB.perfil.raiz) registraRaiz('SALIDA');
@@ -6505,7 +6513,7 @@ function copia(txt, msg){
    labs24k-api-blindada. Ver el aviso al pie del portal.
    ========================================================================== */
 
-/* El directorio se llena desde Supabase al iniciar sesión. Aquí no hay
+/* El directorio se llena desde la base de datos al iniciar sesión. Aquí no hay
    ningún usuario ni ninguna contraseña: este archivo se publica tal cual y
    cualquiera puede leerlo. */
 var USUARIOS = [];
@@ -6613,7 +6621,7 @@ function loginOlvido(){
 
 /* El portal NO valida credenciales por su cuenta: no existe ninguna
    comprobación local ni ninguna contraseña dentro de este archivo. La
-   verificación la hace Supabase, y esta función queda sustituida por la de
+   verificación la hace el servidor, y esta función queda sustituida por la de
    _app14.js, que es la que habla con la base de datos. */
 function loginEventos(){
   function intenta(){
@@ -6907,7 +6915,7 @@ var PERMISOS = [
   ]}
 ];
 /* Permisos que trae cada rol de fábrica. Debe reflejar exactamente
-   permisos_de_rol() en NO-SUBIR-supabase/10-soporte.sql. */
+   labs_permisos_de_rol() en api/nucleo.php. */
 var PERM_ROL = {
   admin:      '*',
   manager:    ['presu.ver','presu.crear','presu.dto','funnel.ver','exp.ver','exp.estado','exp.hitos',
@@ -6950,7 +6958,7 @@ function permisosParaAPI(u){
    nivel base. Aplicarla a un usuario escribe rol, permisos y
    modulos_visibles en su ficha — un guardado puntual, igual que ya hace
    permisos_de_rol() al crear una cuenta, no una relación en vivo.
-   Ver NO-SUBIR-supabase/08-roles-personalizados.sql para el esquema y RLS.
+   Esquema en sql/base-de-datos.sql; reglas en api/esquema.php.
    ========================================================================== */
 var RA = {lista:[], cargando:false, cargado:false, error:'', editando:null, aplicarA:''};
 
@@ -6961,7 +6969,7 @@ function raCarga(){
     RA.cargando = false; RA.cargado = true;
     if(r && r.ok) RA.lista = r.datos || []; else RA.error = sbMensaje(r);
     renderApp();
-  }, function(){ RA.cargando = false; RA.error = 'Sin conexión con Supabase.'; renderApp(); });
+  }, function(){ RA.cargando = false; RA.error = 'Sin conexión con el servidor.'; renderApp(); });
 }
 
 function raNuevo(){
@@ -6995,7 +7003,7 @@ function raGuarda(){
   accion.then(function(r){
     if(r && r.ok){ toast('Plantilla guardada.'); RA.editando = null; RA.cargado = false; raCarga(); }
     else toast('No se ha podido guardar: ' + sbMensaje(r));
-  }, function(){ toast('Sin conexión con Supabase.'); });
+  }, function(){ toast('Sin conexión con el servidor.'); });
 }
 function raBorra(id){
   sbDelete('roles_personalizados', 'id=eq.'+id).then(function(r){
@@ -7019,7 +7027,7 @@ function raAplica(rolId, userId){
   }).then(function(res){
     if(res && res.ok){ toast('Plantilla «'+r.nombre+'» aplicada.'); RA.aplicarA=''; }
     else toast('No se ha podido aplicar: ' + sbMensaje(res));
-  }, function(){ toast('Sin conexión con Supabase.'); });
+  }, function(){ toast('Sin conexión con el servidor.'); });
 }
 
 function raEditorHTML(){
@@ -7050,7 +7058,7 @@ function raEditorHTML(){
 
   return '<div class="ov" data-ov="ra-editor"><div class="modal" style="max-width:720px">'+
     '<h3 style="margin:0 0 4px">'+(d.id?'Editar plantilla':'Nueva plantilla de rol')+'</h3>'+
-    '<p class="tiny muted" style="margin:0 0 16px">Se guarda en Supabase y queda disponible para aplicarla a cualquier usuario.</p>'+
+    '<p class="tiny muted" style="margin:0 0 16px">Se guarda en la base de datos y queda disponible para aplicarla a cualquier usuario.</p>'+
     '<div class="grid g-2" style="margin-bottom:14px">'+
       '<div class="field"><label class="f">Nombre de la plantilla</label>'+
         '<input class="inp" id="ra-nombre" value="'+esc(d.nombre)+'" placeholder="Ej. Comercial Junior"></div>'+
@@ -7310,7 +7318,7 @@ function esRaiz(u){ return !!u && u.raiz === true; }
 var _MIN = 60000, _H = 3600000, _D = 86400000;
 
 /* Sin datos de ejemplo y sin contraseñas dentro del archivo publicado.
-   El directorio, los permisos y la bitácora llegan de Supabase en cuanto se
+   El directorio, los permisos y la bitácora llegan del servidor en cuanto se
    inicia sesión (sbCargaDatos, en _app14.js). */
 USUARIOS = [];
 USUARIOS.forEach(normalizaUsuario);
@@ -7362,7 +7370,7 @@ USU = {form:null, creado:null, filtro:'', rol:'', est:'', det:null, tab:'info',
 /* ============================== VISTA ==================================== */
 /* Alta delegada. El Jefe de Equipo da de alta cuentas de rango inferior
    (Gestión Comercial y Back Office), que quedan a su cargo; quien tenga el
-   permiso «sys.alta_agentes», solo agentes. La Edge Function lo vuelve a
+   permiso «sys.alta_agentes», solo agentes. El servidor (api/admin.php) lo vuelve a
    comprobar y fuerza el rol y el superior; esto solo lo refleja. */
 function puedoAltaAgentes(){
   return S.role === 'admin' || S.role === 'manager' || !!(S.perms && S.perms['sys.alta_agentes']);
@@ -7419,7 +7427,7 @@ function viewAltaAgentes(v){
 }
 
 /* ---------------------- HISTORIAL DE «VER COMO» -------------------------
-   Sale de la bitácora: la Edge Function apunta cada entrada con la acción
+   Sale de la bitácora: el servidor apunta cada entrada con la acción
    «Entrada con «Ver como»», y la bitácora no se puede reescribir. */
 var VCH = {abierto:false, cargando:false, lista:[], error:''};
 var VCH_ACCION = 'Entrada con «Ver como»';
@@ -7482,7 +7490,7 @@ function yoUsuario(){
   var id = (typeof SB !== 'undefined' && SB.perfil) ? SB.perfil.id : null;
   return (id && usuarioPorId(id)) || usuarioPorMail(S.email || '') || null;
 }
-/* Misma regla que la Edge Function: a tu cargo, o por rango. */
+/* Misma regla que el servidor (api/admin.php): a tu cargo, o por rango. */
 function vcPuede(u){
   var yo = yoUsuario();
   if(!u || !yo || esRaiz(u) || u.id === yo.id || u.est !== 'Activo') return false;
@@ -7875,7 +7883,7 @@ function eventosUsuarios(v){
       pass:F.pass, google:F.google, est:'Activo',
       alta:new Date().toLocaleDateString('es-ES'), ultMs:null, ses:[], cambiar:true
     }, USUARIOS.length);
-    /* Con Supabase conectado, la identidad la crea la Edge Function: es la
+    /* Con el servidor conectado, la identidad la crea el servidor: es la
        única que tiene la clave capaz de dar de alta en Auth. */
     sbAltaUsuario({nombre:u.nom, apellidos:u.ape, email:u.mail, prefijo:u.pre,
                    telefono:u.num, extension:u.ext, rol:u.rol, google:u.google,
@@ -7991,7 +7999,7 @@ function eventosUsuarios(v){
   qa('[data-u-sup]').forEach(function(sel){ sel.onchange = function(){
     var u = usuarioPorId(sel.dataset.uSup), ant = u.sup, nuevo = sel.value || null;
     if(!u.conSup && SB.estado === 'conectado'){
-      toast('Falta ejecutar 14-superiores.sql en Supabase.'); setTimeout(renderApp,0); return; }
+      toast('Falta la columna superior_id: vuelve a importar sql/base-de-datos.sql.'); setTimeout(renderApp,0); return; }
     u.sup = nuevo;
     sbGuardaUsuario(u).then(function(r){
       if(!r.ok){ u.sup = ant; toast(r.mensaje); setTimeout(renderApp,0); return; }
@@ -8583,8 +8591,8 @@ function detalleEventos(){
     if(dif.length) cambios.push(dif.length+' permiso'+(dif.length>1?'s':'')+' modificado'+(dif.length>1?'s':''));
 
     var mailNuevo = String(u.mail).toLowerCase().trim();
-    /* El correo es también el usuario de acceso: con Supabase conectado se
-       cambia primero en la identidad (Edge Function) y después en la ficha. */
+    /* El correo es también el usuario de acceso: con el servidor conectado se
+       cambia primero en la identidad (api/admin.php) y después en la ficha. */
     var correo = (real.mail !== mailNuevo && SB.estado === 'conectado' && !esRaiz(real))
       ? sbFuncion('/' + real.id + '/correo', 'POST', {email: mailNuevo}).then(function(r){
           return r.ok ? {ok:true} : {ok:false, mensaje: sbMensaje(r)}; })
@@ -8602,7 +8610,7 @@ function detalleEventos(){
     real.sup = u.sup || null; real.emp = String(u.emp||'').trim(); real.cif = String(u.cif||'').trim().toUpperCase();
     real.ses = (real.est === 'Activo') ? u.ses : [];
 
-    /* Con Supabase conectado, la base de datos manda: si un disparador
+    /* Con el servidor conectado, la base de datos manda: si un disparador
        reimpone algo —los permisos de la raíz, por ejemplo— la ficha vuelve
        con ese valor y es el que se queda. */
     sbGuardaUsuario(real).then(function(r){
@@ -8618,27 +8626,19 @@ function detalleEventos(){
 }
 
 /* ==========================================================================
-   CONEXIÓN CON SUPABASE
+   CONEXIÓN CON EL SERVIDOR (PHP + MySQL en Hostalia)
    Labs Command Center 360™ · Labs24k
 
-   Sin librerías ni CDN: todo con fetch nativo contra la API REST y la de
-   autenticación de Supabase. Así el panel sigue siendo un único archivo, la
-   CSP puede seguir prohibiendo scripts externos y no hay nada que actualizar.
+   Sin librerías ni CDN: todo con fetch nativo contra api/index.php, en el
+   mismo dominio que el panel. El servidor habla el mismo «idioma» que antes
+   hablaba Supabase (rutas /rest/v1, /auth/v1...), así que el resto del panel
+   no ha tenido que cambiar.
 
-   Qué hace cada clave:
-     · publicable (sb_publishable_…)  va en el navegador, es pública a
-       propósito y NO da acceso a nada por sí sola: cada consulta la filtran
-       las políticas RLS según el rol de quien ha iniciado sesión.
-     · de servicio (sb_secret_…)      se salta las políticas. Vive únicamente
-       en la Edge Function, nunca aquí.
-
-   Si no hay conexión —proyecto sin montar, sin red, credenciales mal— el
-   panel sigue funcionando con los datos de ejemplo y lo dice claramente.
+   La seguridad vive en el servidor: cada consulta se filtra según el rol de
+   quien ha iniciado sesión (api/esquema.php). En el navegador no hay ninguna
+   clave: solo el token de la sesión, que caduca y se renueva solo.
    ========================================================================== */
 
-/* SB_DEFECTO vive en _sb.js: lo comparten el panel y la pagina de firma del
-   cliente, para que la direccion del proyecto no pueda quedar duplicada y
-   descoordinada entre las dos. */
 var SB = {
   url: '', clave: '', activo: true,
   sesion: null,          // {access_token, refresh_token, expires_at}
@@ -8648,7 +8648,8 @@ var SB = {
   cargando: false
 };
 
-var SB_LS_CFG = 'labs24k.supabase', SB_LS_SES = 'labs24k.sesion';
+/* Claves nuevas: las sesiones guardadas de la época de Supabase no valen aquí. */
+var SB_LS_CFG = 'labs24k.servidor', SB_LS_SES = 'labs24k.sesion.mysql';
 
 function sbGuardaLocal(clave, valor){
   try { localStorage.setItem(clave, JSON.stringify(valor)); } catch(e){}
@@ -8658,49 +8659,55 @@ function sbLeeLocal(clave){
 }
 
 function sbCfgCarga(){
-  var g = sbLeeLocal(SB_LS_CFG) || {};
-  SB.url    = g.url    || SB_DEFECTO.url;
-  SB.clave  = g.clave  || SB_DEFECTO.clave;
-  SB.activo = g.activo === undefined ? SB_DEFECTO.activo : !!g.activo;
+  SB.url    = SB_DEFECTO.url;
+  SB.clave  = '';
+  SB.activo = true;
+  /* Restos de cuando el panel hablaba con Supabase: ya no sirven y se borran. */
+  try {
+    localStorage.removeItem('labs24k.supabase');
+    localStorage.removeItem('labs24k.sesion');
+    localStorage.removeItem('labs24k.vercomo');
+  } catch(e){}
   SB.sesion = sbLeeLocal(SB_LS_SES);
 }
-function sbCfgGuarda(){
-  sbGuardaLocal(SB_LS_CFG, {url:SB.url, clave:SB.clave, activo:SB.activo});
-}
+function sbCfgGuarda(){ /* la dirección del servidor va fija en el archivo */ }
 function sbConfigurado(){
-  var u = String(SB.url||'').trim();
-  /* Proyecto en la nube, o el Supabase local que levanta la CLI durante el
-     desarrollo (supabase start → http://localhost:54321). */
-  var valida = /^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(u) ||
-               /^http:\/\/(localhost|127\.0\.0\.1):\d{2,5}$/.test(u);
-  return SB.activo && valida && String(SB.clave||'').length > 20;
+  return SB.activo && !!SB.url;
 }
 
 /* ---------------------------- LLAMADAS BASE ----------------------------- */
 function sbCabeceras(conSesion){
-  var h = {'apikey': SB.clave, 'Content-Type': 'application/json'};
+  var h = {'Content-Type': 'application/json'};
   if(conSesion !== false && SB.sesion && SB.sesion.access_token){
-    h['Authorization'] = 'Bearer ' + SB.sesion.access_token;
-  } else {
-    /* Sin sesión, Supabase espera la clave publicable también en Authorization:
-       es lo que hace su propio cliente oficial. Con solo `apikey` algunos
-       proyectos responden 401 y parece un fallo de credenciales cuando en
-       realidad falta la cabecera. */
-    h['Authorization'] = 'Bearer ' + SB.clave;
+    /* Cabecera propia: algunos hostings compartidos no pasan «Authorization» a PHP. */
+    h['X-Sesion'] = SB.sesion.access_token;
   }
   return h;
 }
 
+/* Todas las llamadas van a api/index.php?ruta=/... en el mismo dominio. */
+function sbUrl(ruta){
+  return SB.url + '?ruta=' + encodeURIComponent(ruta);
+}
+
 /* Envoltorio único de fetch: añade cabeceras, corta a los 15 s y traduce el
-   error de red a algo legible. Nada de excepciones sueltas por el código. */
+   error de red a algo legible. Nada de excepciones sueltas por el código.
+   PATCH y DELETE salen como POST con X-HTTP-Method-Override: Hostalia bloquea
+   a veces esos métodos antes de que lleguen a PHP. */
 function sbFetch(ruta, opciones){
   opciones = opciones || {};
   var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
   var corte = ctrl ? setTimeout(function(){ ctrl.abort(); }, 15000) : null;
+  var metodo = opciones.method || 'GET';
+  var cab = Object.assign(sbCabeceras(opciones.conSesion), opciones.headers || {});
+  if(metodo === 'PATCH' || metodo === 'DELETE' || metodo === 'PUT'){
+    cab['X-HTTP-Method-Override'] = metodo; metodo = 'POST';
+  }
 
-  return fetch(SB.url + ruta, {
-    method: opciones.method || 'GET',
-    headers: Object.assign(sbCabeceras(opciones.conSesion), opciones.headers || {}),
+  return fetch(sbUrl(ruta), {
+    method: metodo,
+    headers: cab,
+    credentials: 'same-origin',
     body: opciones.body ? JSON.stringify(opciones.body) : undefined,
     signal: ctrl ? ctrl.signal : undefined
   }).then(function(r){
@@ -8714,11 +8721,11 @@ function sbFetch(ruta, opciones){
     if(corte) clearTimeout(corte);
     return {ok:false, estado:0, datos:{message:
       err && err.name === 'AbortError' ? 'La conexión ha tardado demasiado.'
-                                       : 'No se ha podido contactar con Supabase.'}};
+                                       : 'No se ha podido contactar con el servidor.'}};
   });
 }
 
-/* Mensaje de error presentable a partir de lo que devuelve Supabase. */
+/* Mensaje de error presentable a partir de lo que devuelve el servidor. */
 function sbMensaje(r){
   var d = r && r.datos;
   if(!d) return 'Error desconocido.';
@@ -8737,6 +8744,7 @@ function sbConSesion(hacer){
 /* --------------------------- AUTENTICACIÓN ------------------------------ */
 function sbGuardaSesion(d){
   if(!d || !d.access_token){ return false; }
+  /* La sesión es del servidor propio (MySQL): ver sbCfgCarga(). */
   SB.sesion = {
     access_token:  d.access_token,
     refresh_token: d.refresh_token,
@@ -8787,18 +8795,18 @@ function sbSalir(){
 
 /* ==========================================================================
    VER COMO · el Jefe de Equipo entra en la cuenta de uno de sus agentes
-   La Edge Function admin-usuarios comprueba quién lo pide y que la cuenta
+   El servidor (api/admin.php) comprueba quién lo pide y que la cuenta
    sea de agente, y devuelve una sesión del agente. Aquí se guarda aparte la
    sesión propia para poder volver, y se recarga el panel: todo lo que se ve
    a partir de ahí es exactamente lo que ve el agente, con sus permisos.
    ========================================================================== */
-var VC_LS = 'labs24k.vercomo';
+var VC_LS = 'labs24k.vercomo.mysql';
 function vcActivo(){ return !!sbLeeLocal(VC_LS); }
 function vcOlvida(){ try { localStorage.removeItem(VC_LS); } catch(e){} }
 
 function vcEntra(u){
   if(!u) return;
-  if(SB.estado !== 'conectado'){ toast('«Ver como» necesita conexión con Supabase.'); return; }
+  if(SB.estado !== 'conectado'){ toast('«Ver como» necesita conexión con el servidor.'); return; }
   if(vcActivo()){ toast('Ya estás dentro de otra cuenta. Vuelve primero a la tuya.'); return; }
   if(!window.confirm('Vas a entrar en la cuenta de '+u.n+'.\n\nVerás exactamente lo que ve el agente, '+
      'y lo que hagas quedará hecho en su nombre. La entrada queda anotada en la bitácora.\n\n¿Continuar?')) return;
@@ -8863,7 +8871,7 @@ function sbDelete(tabla, filtro){
     return sbFetch('/rest/v1/' + tabla + '?' + filtro, {method:'DELETE'});
   });
 }
-/* Edge Function: lo que necesita la clave de servicio. */
+/* Administración de usuarios en el servidor (api/admin.php). */
 function sbFuncion(ruta, metodo, cuerpo){
   return sbConSesion(function(){
     return sbFetch('/functions/v1/admin-usuarios' + (ruta||''), {
@@ -8888,7 +8896,7 @@ function deFila(f, i){
     rolPersId: f.rol_personalizado_id || null,
     alta: f.alta ? new Date(f.alta).toLocaleDateString('es-ES') : '',
     ultMs: f.ultimo_acceso ? new Date(f.ultimo_acceso).getTime() : null,
-    perms: {}, pref: null, ses: [], pass: '(en Supabase)'
+    perms: {}, pref: null, ses: [], pass: '(en el servidor)'
   };
   todasLasClaves().forEach(function(k){ u.perms[k] = !!(f.permisos && f.permisos[k]); });
   var p = f.preferencias || {};
@@ -8950,8 +8958,8 @@ function sbCargaPerfil(){
   return sbSelect('perfiles', 'id=eq.' + SB.sesion.uid + '&select=*').then(function(r){
     if(!r.ok || !r.datos || !r.datos.length){
       return {ok:false, mensaje: r.estado === 0 ? sbMensaje(r)
-        : 'Tu cuenta existe en Supabase pero no tiene ficha en la tabla «perfiles». '+
-          'Ejecuta el archivo 02-cuenta-raiz.sql o pide el alta a tu administrador.'};
+        : 'Tu cuenta existe pero no tiene ficha en la tabla «perfiles». '+
+          'Pide el alta a tu administrador.'};
     }
     SB.perfil = r.datos[0];
     if(SB.perfil.estado !== 'Activo'){
@@ -9004,10 +9012,9 @@ function sbRegistraEntrada(){
                           ubicacion: ''}),
     sbUpdate('perfiles', 'id=eq.' + SB.perfil.id, {ultimo_acceso: new Date().toISOString()})
   ];
-  if(SB.perfil.raiz){
-    tareas.push(sbInsert('accesos_raiz', {evento:'ENTRADA', usuario:SB.perfil.id,
-      email:SB.perfil.email, agente:navegadorActual()}));
-  }
+  /* La entrada de la cuenta raíz (y cada intento fallido) la apunta el propio
+     servidor en accesos_raiz al validar la contraseña: el navegador no puede
+     escribir en ese registro. */
   return Promise.all(tareas).then(function(){ return true; }, function(){ return true; });
 }
 
@@ -9067,7 +9074,7 @@ function boot(){
   });
 }
 
-/* ===================== PORTAL DE ACCESO CON SUPABASE ===================== */
+/* ======================= PORTAL DE ACCESO ======================= */
 function loginEventos(){
   var conectado = sbConfigurado();
 
@@ -9118,11 +9125,10 @@ function loginEventos(){
     LOGIN.ver = !LOGIN.ver; renderLogin(); };
 
   if(q('#lg-google')) q('#lg-google').onclick = function(){
-    /* Google se activa en Supabase: Authentication -> Providers -> Google,
-       con la lista blanca de correos de Labs24k. Hasta entonces no se finge
-       que funciona ni se abre ninguna vía alternativa. */
+    /* El acceso con Google no está montado en el servidor propio. Hasta
+       entonces no se finge que funciona ni se abre ninguna vía alternativa. */
     LOGIN.error = conectado
-      ? 'El acceso con Google se activa en Supabase (Authentication → Providers → Google).'
+      ? 'El acceso con Google no está activado: entra con tu correo y contraseña corporativos.'
       : 'El acceso necesita conexión con la base de datos.';
     renderLogin();
   };
@@ -9160,7 +9166,7 @@ function loginEventos(){
 function insertaEstadoConexion(){
   var pie = q('#lg-pie'); if(!pie) return;
   var conectado = sbConfigurado();
-  var proyecto = (String(SB.url).match(/https:\/\/([a-z0-9-]+)\./i) || [])[1] || '';
+  var proyecto = 'MySQL · Hostalia';
 
   var t = SB.cargando
     ? [ic('refresh',13), 'Restaurando tu sesión...', 'sb-espera']
@@ -9171,7 +9177,7 @@ function insertaEstadoConexion(){
   pie.innerHTML = '<div class="sb-pill '+t[2]+'">'+t[0]+'<span>'+t[1]+'</span></div>';
 }
 
-/* ============ ESCRITURAS DEL MÓDULO DE USUARIOS CONTRA SUPABASE ========== */
+/* ============ ESCRITURAS DEL MÓDULO DE USUARIOS CONTRA EL SERVIDOR ======= */
 /* El panel llama a estas tres funciones; cada una decide si va a la base de
    datos o se queda en memoria, según haya conexión o no. */
 
@@ -9202,7 +9208,7 @@ function sbGuardaUsuario(u){
 /* El alta va primero por la función de base de datos alta_usuario()
    (16-alta-por-sql.sql), que crea la identidad y la ficha a la vez y
    comprueba quién puede dar de alta qué. Si esa función no está instalada,
-   se usa la Edge Function admin-usuarios, como antes. */
+   se usa la administración de usuarios (api/admin.php). */
 function sbAltaUsuario(datos){
   if(SB.estado !== 'conectado') return Promise.resolve({ok:true, local:true});
   return sbConSesion(function(){
@@ -9225,7 +9231,7 @@ function sbAltaUsuario(datos){
 
 /* Contraseña y borrado van primero por la base de datos
    (17-jefe-gestiona-equipo.sql) y, si esas funciones no están instaladas,
-   por la Edge Function, como antes. */
+   por la administración de usuarios (api/admin.php). */
 function sbRpcOFuncion(rpc, args, ruta, metodo, convierte, cuerpo){
   return sbConSesion(function(){
     return sbFetch('/rest/v1/rpc/' + rpc, {method:'POST', body: args});
@@ -9261,7 +9267,7 @@ function sbRecarga(){
    un clic y la gestionan; cada agente ve la suya —y solo la suya— en «Mi
    ficha». Es la misma ficha para los dos lados: agente_fichas guarda los datos
    de gestión y agente_seguimiento el historial (notas, tareas, reuniones...).
-   Quién ve qué lo decide RLS: ver NO-SUBIR-supabase/13-fichas-agente.sql.
+   Quién ve qué lo decide el servidor: ver api/esquema.php.
    ========================================================================== */
 var TIPOS_AG = {
   nota:       {n:'Nota',       i:'chat',     c:''},
@@ -9312,7 +9318,7 @@ function agCargaLista(){
     if(r && r.ok){ (r.datos || []).forEach(function(f){ AG.fichas[f.agente_id] = f; }); }
     else AG.error = sbMensaje(r);
     renderApp();
-  }, function(){ AG.cargando = false; AG.cargado = true; AG.error = 'Sin conexión con Supabase.'; renderApp(); });
+  }, function(){ AG.cargando = false; AG.cargado = true; AG.error = 'Sin conexión con el servidor.'; renderApp(); });
 }
 function agCargaDetalle(id){
   if(!agConectado()) return;
@@ -9623,7 +9629,7 @@ function viewEquipo(v){
     '<div class="search" style="width:100%;max-width:380px;margin:14px 0">'+ic('search',15)+
       '<input id="ag-find" placeholder="Nombre, correo, zona o equipo..." value="'+esc(AG.filtro)+'"></div>'+
     (AG.error ? '<div class="nota" style="margin-bottom:12px">'+ic('alert',15)+'<span>'+esc(AG.error)+
-      ' — ¿has ejecutado 13-fichas-agente.sql en Supabase?</span></div>' : '')+
+      ' — ¿está importado sql/base-de-datos.sql?</span></div>' : '')+
     '<div style="overflow-x:auto"><table class="tbl"><thead><tr>'+
       '<th>Agente</th><th>Zona / equipo</th><th>Objetivo mensual</th><th>Estado</th><th>Ficha</th><th></th>'+
       '</tr></thead><tbody>'+filas+'</tbody></table></div>'+
@@ -9680,63 +9686,52 @@ var SBV = {probando:false, resultado:''};
 
 function cfgDatos(){
   var conectado = SB.estado === 'conectado';
-  var proyecto = (String(SB.url).match(/https:\/\/([a-z0-9-]+)\./i) || [])[1] || '—';
+  var e = SBV.estado;
 
   var estado = conectado
-    ? ['green','check','Conectado','Los datos que ves salen de tu proyecto de Supabase.']
-    : sbConfigurado()
-      ? ['amber','alert','Configurado, sin sesión','Las credenciales están puestas; entra de nuevo para conectar.']
-      : ['red','x','Modo demostración','El panel usa datos de ejemplo: nada se guarda al recargar.'];
+    ? ['green','check','Conectado','Los datos que ves salen de la base de datos MySQL de tu hosting.']
+    : ['amber','alert','Sin sesión','Entra con tu correo y contraseña para conectar con la base de datos.'];
+
+  var fila = function(ok, t, d){
+    return '<div class="paso"><span class="paso-n" style="background:'+(ok?'var(--green, #22c55e)':'var(--red, #ef4444)')+
+      '">'+ic(ok?'check':'x',13)+'</span><div><div class="small" style="color:#fff">'+esc(t)+'</div>'+
+      '<div class="tiny muted" style="margin-top:2px">'+esc(d)+'</div></div></div>';
+  };
 
   return '<div class="card flat sb-estado '+estado[0]+'" style="margin-bottom:18px">'+
     '<div class="ico-box '+estado[0]+'" style="width:42px;height:42px;flex:0 0 auto">'+ic(estado[1],20)+'</div>'+
     '<div style="flex:1;min-width:0">'+
       '<div class="small" style="color:#fff;font-weight:600">'+esc(estado[2])+'</div>'+
       '<div class="tiny muted" style="margin-top:3px">'+esc(estado[3])+'</div>'+
-      (conectado ? '<div class="tiny muted" style="margin-top:5px">Proyecto <span class="mono">'+
-        esc(proyecto)+'</span> · '+USUARIOS.length+' usuarios · '+AUDIT.length+' apuntes de bitácora</div>' : '')+
+      (conectado ? '<div class="tiny muted" style="margin-top:5px">MySQL · Hostalia · '+USUARIOS.length+
+        ' usuarios · '+AUDIT.length+' apuntes de bitácora</div>' : '')+
     '</div>'+
     (conectado ? '<button class="btn btn-s" id="sb-recarga">'+ic('refresh',14)+' Recargar</button>' : '')+
   '</div>'+
 
-  '<div class="field"><label class="f">URL del proyecto</label>'+
-    '<input class="inp mono" id="sb-url" value="'+esc(SB.url)+'" placeholder="https://xxxx.supabase.co">'+
-    '<div class="tiny muted" style="margin-top:6px">Es la del panel de Supabase sin la parte de '+
-      '<span class="mono">/dashboard/project/</span>: si tu proyecto es '+
-      '<span class="mono">ezwhkpfqnzyfulivlows</span>, la URL es '+
-      '<span class="mono">https://ezwhkpfqnzyfulivlows.supabase.co</span>.</div></div>'+
-
-  '<div class="field"><label class="f">Clave publicable</label>'+
-    '<input class="inp mono" id="sb-clave" value="'+esc(SB.clave)+'" placeholder="sb_publishable_...">'+
-    '<div class="tiny muted" style="margin-top:6px">Esta clave es pública a propósito y viaja en el '+
-      'archivo HTML. No da acceso a nada por sí sola: cada consulta la filtran las políticas RLS según '+
-      'el rol de quien ha iniciado sesión.</div></div>'+
-
-  '<div class="nota">'+ic('alert',15)+'<span><strong>La clave secreta no va aquí nunca.</strong> '+
-    'La que empieza por <span class="mono">sb_secret_</span> se salta todas las políticas: si la pegas '+
-    'en el panel, cualquiera que abra la web tendría control total de la base de datos. Su sitio es la '+
-    'Edge Function, en el propio Supabase.</span></div>'+
-
-  '<div class="sw-row" data-sb-activo><div style="flex:1;min-width:0">'+
-    '<div class="small" style="color:#fff">Usar Supabase</div>'+
-    '<div class="tiny muted" style="margin-top:2px">Si lo apagas, el panel vuelve a los datos de ejemplo '+
-      'y no toca la base de datos.</div></div>'+
-    '<span class="sw'+(SB.activo?' on':'')+'"><i></i></span></div>'+
+  '<div class="nota">'+ic('plug',15)+'<span>El panel habla con <span class="mono">api/index.php</span>, '+
+    'en este mismo dominio. Los datos de acceso a MySQL están en el servidor '+
+    '(<span class="mono">api/config.local.php</span>) y nunca llegan al navegador.</span></div>'+
 
   '<div class="row" style="gap:10px;margin-top:14px;flex-wrap:wrap">'+
     '<button class="btn btn-p" id="sb-probar"'+(SBV.probando?' disabled':'')+'>'+
-      ic(SBV.probando?'refresh':'plug',15)+' '+(SBV.probando?'Probando...':'Probar conexión')+'</button>'+
-    '<button class="btn btn-s" id="sb-guardar">'+ic('save',15)+' Guardar credenciales</button></div>'+
+      ic(SBV.probando?'refresh':'plug',15)+' '+(SBV.probando?'Comprobando...':'Comprobar la instalación')+'</button></div>'+
   (SBV.resultado ? '<div class="nota '+(SBV.resultado.indexOf('[ok]')===0?'nota-v':'')+'">'+
     ic(SBV.resultado.indexOf('[ok]')===0?'check':'alert',15)+'<span>'+
     esc(SBV.resultado.replace(/^\[ok\]\s*/,''))+'</span></div>' : '')+
+  (e ? '<div class="pasos" style="margin-top:12px">'+
+      fila(e.bd, 'Conexión con MySQL', e.bd ? 'El servidor conecta con la base de datos.' : 'Revisa api/config.local.php.')+
+      fila(e.tablas, 'Tablas del CRM', e.tablas ? 'Creadas.' : 'Importa sql/base-de-datos.sql en phpMyAdmin.')+
+      fila(e.raiz_con_clave, 'Cuenta raíz', e.raiz_con_clave ? 'Tiene contraseña.' : 'Pon su contraseña en api/instalar.php.')+
+      fila(e.almacen, 'Carpeta de archivos', e.almacen ? 'Se puede escribir en storage/.' : 'Da permisos de escritura a storage/.')+
+    '</div>' : '')+
 
-  '<h4 class="ft-t" style="margin-top:24px">Qué hay que tener montado en Supabase</h4>'+
+  '<h4 class="ft-t" style="margin-top:24px">Qué hay que tener montado en Hostalia</h4>'+
   '<div class="pasos">'+
-    [['Ejecutar 01-esquema.sql', 'Crea las tablas, las políticas RLS y los disparadores que protegen la cuenta de raíz. SQL Editor → New query → pegar → Run.'],
-     ['Ejecutar 02-cuenta-raiz.sql', 'Crea la identidad de Juan Álvarez en Authentication y su ficha en la tabla perfiles.'],
-     ['Desplegar la Edge Function', 'admin-usuarios: es la única pieza con la clave secreta, y la que da de alta usuarios nuevos.'],
-     ['Autorizar el dominio', 'Authentication → URL Configuration: añade la dirección donde publiques el panel en Hostalia.']]
+    [['Crear la base de datos MySQL', 'Panel de Hostalia → Bases de datos → MySQL. Apunta servidor, nombre, usuario y contraseña.'],
+     ['Importar sql/base-de-datos.sql', 'phpMyAdmin → tu base de datos → Importar. Crea las tablas y la cuenta raíz.'],
+     ['Rellenar api/config.local.php', 'Copia config.local.example.php con ese nombre y pon los datos de la base de datos.'],
+     ['Abrir api/instalar.php', 'Pon la contraseña de la cuenta raíz. Después ya se entra al panel con normalidad.']]
     .map(function(p,i){ return '<div class="paso"><span class="paso-n">'+(i+1)+'</span>'+
       '<div><div class="small" style="color:#fff">'+esc(p[0])+'</div>'+
       '<div class="tiny muted" style="margin-top:2px">'+esc(p[1])+'</div></div></div>'; }).join('')+
@@ -9744,50 +9739,20 @@ function cfgDatos(){
 }
 
 function sbCfgEventos(){
-  if(q('[data-sb-activo]')) q('[data-sb-activo]').onclick = function(){
-    SB.activo = !SB.activo; sbCfgGuarda();
-    if(!SB.activo) SB.estado = 'demostración';
-    setTimeout(renderApp,0);
-  };
-  if(q('#sb-guardar')) q('#sb-guardar').onclick = function(){
-    SB.url = q('#sb-url').value.trim().replace(/\/+$/,'');
-    SB.clave = q('#sb-clave').value.trim();
-    sbCfgGuarda();
-    SBV.resultado = sbConfigurado()
-      ? '[ok] Credenciales guardadas. Cierra sesión y vuelve a entrar para conectar.'
-      : 'La URL debe tener la forma https://xxxx.supabase.co y la clave publicable no puede estar vacía.';
-    setTimeout(renderApp,0);
-  };
   if(q('#sb-recarga')) q('#sb-recarga').onclick = function(){
-    sbRecarga().then(function(ok){ toast(ok ? 'Datos recargados desde Supabase.' : 'Sin conexión.'); });
+    sbRecarga().then(function(ok){ toast(ok ? 'Datos recargados desde la base de datos.' : 'Sin conexión.'); });
   };
   if(q('#sb-probar')) q('#sb-probar').onclick = function(){
-    SB.url = q('#sb-url').value.trim().replace(/\/+$/,'');
-    SB.clave = q('#sb-clave').value.trim();
-    sbCfgGuarda();
-    if(!sbConfigurado()){
-      SBV.resultado = 'Revisa la URL y la clave antes de probar.'; setTimeout(renderApp,0); return;
-    }
-    SBV.probando = true; SBV.resultado = ''; setTimeout(renderApp,0);
-
-    /* Se pregunta por el catálogo de permisos: existe siempre y lo puede leer
-       cualquiera con sesión, así que distingue bien los tres casos posibles. */
-    sbSelect('permisos_catalogo', 'select=clave&limit=1').then(function(r){
+    SBV.probando = true; SBV.resultado = ''; SBV.estado = null; setTimeout(renderApp,0);
+    sbFetch('/estado', {conSesion: false}).then(function(r){
       SBV.probando = false;
-      if(r.estado === 0){
-        SBV.resultado = 'No se ha podido contactar con el proyecto. Comprueba la URL y que el '+
-          'proyecto no esté en pausa.';
-      } else if(r.estado === 401 || r.estado === 403){
-        SBV.resultado = SB.sesion
-          ? 'La clave es válida pero tu sesión ha caducado. Vuelve a entrar.'
-          : '[ok] El proyecto responde y la clave es válida. Falta iniciar sesión para ver datos.';
-      } else if(r.estado === 404 || (r.datos && r.datos.code === '42P01')){
-        SBV.resultado = 'El proyecto responde, pero no encuentra la tabla «permisos_catalogo». '+
-          'Ejecuta primero 01-esquema.sql en el editor SQL.';
-      } else if(r.ok){
-        SBV.resultado = '[ok] Conexión correcta: el esquema está creado y la clave funciona.';
+      if(r.estado === 0 || !r.datos || typeof r.datos.bd === 'undefined'){
+        SBV.resultado = 'El servidor no responde como se esperaba. Comprueba que la carpeta api/ '+
+          'está subida junto a index.html y que el hosting ejecuta PHP.';
       } else {
-        SBV.resultado = sbMensaje(r);
+        SBV.estado = r.datos;
+        SBV.resultado = r.datos.ok ? '[ok] Instalación correcta: base de datos, tablas, cuenta raíz y almacén en orden.'
+                                   : 'Falta algún paso de la instalación: mira la lista de abajo.';
       }
       setTimeout(renderApp,0);
     });
@@ -9800,7 +9765,7 @@ function sbCfgEventos(){
 
    Aquí vive lo que hasta ahora solo enseñaba un aviso: la generación real del
    informe de auditoría, las exportaciones a CSV y la descarga de los
-   documentos guardados en Supabase Storage.
+   documentos guardados en el servidor (carpeta storage/).
 
    Cómo se descarga un archivo sin servidor ni librerías: se construye un Blob
    en memoria, se le pide al navegador una URL temporal y se pincha un enlace
@@ -10121,7 +10086,7 @@ function exportaExpedientes(){
       return [e.emp, e.sec, e.con, e.tel, e.mail, e.mrr, e.est, e.hito, e.ges, e.bo, e.alta]; }));
 }
 
-/* ==================== DOCUMENTOS EN SUPABASE STORAGE ===================== */
+/* ==================== DOCUMENTOS EN EL ALMACÉN DEL SERVIDOR ============== */
 var BUCKET_DOCS = 'documentos';
 
 /* Descarga autenticada: el archivo no es público, así que se pide con el token
@@ -10129,7 +10094,7 @@ var BUCKET_DOCS = 'documentos';
    en lugar de fingir una descarga. */
 function descargaDocumento(nombre, ruta){
   if(SB.estado !== 'conectado'){
-    toast('Los archivos se guardan en Supabase Storage. Conecta la base de datos para descargarlos.');
+    toast('Los archivos se guardan en el servidor. Entra con tu cuenta para descargarlos.');
     return;
   }
   if(!ruta){
@@ -10138,8 +10103,9 @@ function descargaDocumento(nombre, ruta){
   }
   toast('Recuperando '+nombre+'...');
   sbConSesion(function(){
-    return fetch(SB.url + '/storage/v1/object/authenticated/' + BUCKET_DOCS + '/' + ruta, {
-      headers: {'apikey': SB.clave, 'Authorization': 'Bearer ' + (SB.sesion||{}).access_token}
+    return fetch(sbUrl('/storage/v1/object/authenticated/' + BUCKET_DOCS + '/' + ruta), {
+      credentials: 'same-origin',
+      headers: {'X-Sesion': (SB.sesion||{}).access_token || ''}
     }).then(function(r){
       if(!r.ok) return {ok:false, estado:r.status, datos:null};
       return r.blob().then(function(b){ return {ok:true, estado:200, blob:b}; });
@@ -10334,7 +10300,7 @@ function viewRanking(v){
 
   '<div class="nota" style="margin-top:16px">'+ic('alert',15)+
     '<span>Las cifras salen de los contratos registrados en el CRM. Mientras la tabla '+
-    '<span class="mono">presupuestos</span> de Supabase esté vacía, lo que ves son datos de '+
+    '<span class="mono">presupuestos</span> de la base de datos esté vacía, lo que ves son datos de '+
     'ejemplo para dar forma a la vista.</span></div>';
 
   qa('[data-per]').forEach(function(b){ b.onclick = function(){
@@ -10626,19 +10592,14 @@ function vozEventos(){
 }
 
 /* ==========================================================================
-   PROYECTO DE SUPABASE  ·  fuente unica
+   SERVIDOR  ·  fuente unica
    Lo usan index.html (el panel) y firmar.html (la pagina que abre el cliente).
-
-   La clave publicable va en el navegador a proposito: no da acceso a nada por
-   si sola. Quien decide que se puede leer o escribir son las politicas RLS y
-   las funciones SECURITY DEFINER de la base de datos.
-
-   La clave de servicio (sb_secret_...) NUNCA se pone aqui: vive solo en la
-   Edge Function.
+   Es la ruta relativa del backend PHP: el panel, la pagina de firma y api/
+   van juntos en la misma carpeta del hosting.
    ========================================================================== */
 var SB_DEFECTO = {
-  url:   'https://ezwhkpfqnzyfulivlows.supabase.co',
-  clave: 'sb_publishable_7ZLE8i6zn7AlcaubIBaBrA_rkGvYBsG',
+  url:   'api/index.php',
+  clave: '',
   activo: true
 };
 
@@ -11042,7 +11003,7 @@ var CONTRATO = {
 
 var ESTADOS_CTR = ['Borrador','Enviado','Firmado','Anulado'];
 
-/* Cartera de contratos. Cuando la tabla `contratos` de Supabase tenga datos,
+/* Cartera de contratos. Cuando la tabla `contratos` de la base de datos tenga datos,
    esta lista se llena desde ahí. */
 var CONTRATOS = [
   {id:'C-2026-018', cliente:'Inmobiliaria Gijón Central', servicio:'Command Center 360 + Voz IA',
@@ -11331,7 +11292,7 @@ function ctrGenerarEventos(){
     ctrLee(); enviaCorreo(contratoActual()); };
 }
 
-/* Guarda el contrato en Supabase además de en la cartera de la pantalla. Sin
+/* Guarda el contrato en la base de datos además de en la cartera de la pantalla. Sin
    esto, el enlace de firma no tendría a qué apuntar: la base de datos es la
    que guarda el token, no el navegador.
 
@@ -11357,9 +11318,9 @@ function sbGuardaContrato(c){
     }
   };
   sbInsert('contratos', fila).then(function(r){
-    if(r && r.ok) toast('Contrato ' + c.id + ' guardado en Supabase.');
+    if(r && r.ok) toast('Contrato ' + c.id + ' guardado en la base de datos.');
     else toast('Guardado solo en esta sesión: ' + sbMensaje(r));
-  }, function(){ toast('Guardado solo en esta sesión: sin conexión con Supabase.'); });
+  }, function(){ toast('Guardado solo en esta sesión: sin conexión con el servidor.'); });
 }
 
 function contratoActual(){
@@ -11436,12 +11397,12 @@ function ctrEnvioEventos(){
 }
 
 /* ======================= ENLACE DE FIRMA ================================
-   Pide a Supabase un enlace de un solo uso para que el cliente complete sus
+   Pide al servidor un enlace de un solo uso para que el cliente complete sus
    datos y firme desde el móvil. El token lo genera la base de datos, no el
    navegador: así no se puede adivinar mirando el código de la página.
    ==================================================================== */
 /* Llamada a una función de Postgres (RPC). Distinta de sbFuncion(), que va a
-   la Edge Function: esto habla directamente con la base de datos. */
+   la administración de usuarios: esto pide una función del servidor. */
 function sbRpc(fn, args){
   return sbConSesion(function(){
     return sbFetch('/rest/v1/rpc/' + fn, {method:'POST', body: args || {}});
@@ -11455,7 +11416,7 @@ function sbRpc(fn, args){
 function pideEnlaceFirma(c){
   if(!c){ toast('No hay contrato seleccionado.'); return; }
   if(typeof sbConfigurado !== 'function' || !sbConfigurado()){
-    CTR.enlace = {c:c, error:'sin-supabase'}; setTimeout(renderApp, 0); return;
+    CTR.enlace = {c:c, error:'sin-servidor'}; setTimeout(renderApp, 0); return;
   }
   toast('Generando el enlace...');
   sbRpc('nuevo_enlace_firma', {p_codigo: c.id})
@@ -11481,16 +11442,15 @@ function baseFirma(){
 function ctrEnlaceModal(){
   var e = CTR.enlace;
   var cuerpo;
-  if(e.error === 'sin-supabase'){
+  if(e.error === 'sin-servidor'){
     cuerpo = '<p class="tiny muted" style="line-height:1.65;margin:8px 0 0">La firma en línea '+
-      'necesita la conexión con Supabase activa: el enlace y el token los genera la base de '+
-      'datos, no el navegador. Conecta el panel en <strong>Ajustes → Conexión</strong> y ejecuta '+
-      '<code>05-firma-contratos.sql</code>. Mientras tanto, envía el PDF y que te lo devuelvan '+
+      'necesita conexión con el servidor: el enlace y el token los genera la base de '+
+      'datos, no el navegador. Entra con tu cuenta y comprueba la instalación en '+
+      '<strong>Configuración → Base de datos</strong>. Mientras tanto, envía el PDF y que te lo devuelvan '+
       'firmado.</p>';
   } else if(e.error){
     cuerpo = '<p class="tiny muted" style="line-height:1.65;margin:8px 0 0">No se pudo generar el '+
-      'enlace: '+esc(e.error)+'. Comprueba que <code>05-firma-contratos.sql</code> está '+
-      'ejecutado en Supabase.</p>';
+      'enlace: '+esc(e.error)+'.</p>';
   } else {
     cuerpo = '<p class="tiny muted" style="line-height:1.65;margin:8px 0 12px">Envíale este enlace '+
       'al cliente. Al abrirlo verá el contrato, completa sus datos, firma con el dedo y queda '+
@@ -11549,28 +11509,20 @@ function ctrEnlaceEventos(){
 
 /* ==========================================================================
    DIAGNÓSTICO DE CONEXIÓN
-   Cuando el acceso falla hay cinco causas posibles y desde fuera se parecen
-   todas: configuración guardada mal en ESTE navegador, proyecto inalcanzable,
-   clave rechazada, esquema sin crear, o cuenta que todavía no existe. Esto las
-   separa una por una y dice cuál es, en vez de dejar a quien entra adivinando
-   delante de un «credenciales incorrectas».
+   Cuando el acceso falla, las causas desde fuera se parecen todas: servidor
+   sin PHP o sin la carpeta api/, base de datos mal configurada, tablas sin
+   crear o cuenta raíz sin contraseña. Esto las separa una por una y dice cuál
+   es, en vez de dejar a quien entra adivinando delante de un «credenciales
+   incorrectas».
    ========================================================================== */
 
 var DIAG = null;   // {pasos:[{t, estado, txt}], hecho:bool, reparable:bool}
 
-/* Lo que hay guardado en ESTE navegador, tal cual, sin mezclarlo con los
-   valores por defecto. Es lo que puede estar estropeando el acceso. */
-function diagGuardado(){
-  try{
-    var g = JSON.parse(localStorage.getItem('labs24k.supabase') || 'null');
-    return g && typeof g === 'object' ? g : null;
-  }catch(e){ return null; }
-}
-
-/* Borra la configuración guardada y recarga. El panel vuelve al proyecto que
-   viene de fábrica en el propio archivo. */
+/* Borra la sesión guardada en este navegador y recarga. */
 function diagRestablece(){
   try{
+    localStorage.removeItem(SB_LS_SES);
+    localStorage.removeItem(VC_LS);
     localStorage.removeItem('labs24k.supabase');
     localStorage.removeItem('labs24k.sesion');
   }catch(e){}
@@ -11585,79 +11537,55 @@ function sbDiagnostico(correo){
   };
   var acaba = function(){ DIAG.hecho = true; renderLogin(); };
 
-  /* 1 · ¿La configuración de ESTE navegador es utilizable? ---------------- */
-  if(!sbConfigurado()){
-    var g = diagGuardado();
-    var motivo;
-    if(g && g.activo === false){
-      motivo = 'Este navegador tiene la conexión con Supabase APAGADA. Es una '
-        + 'preferencia guardada aquí, no un problema del servidor.';
-    } else if(g && g.url && !/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(String(g.url).trim())){
-      motivo = 'Este navegador tiene guardada una URL que no es válida: «' + g.url + '».';
-    } else if(g && g.clave && String(g.clave).length <= 20){
-      motivo = 'Este navegador tiene guardada una clave demasiado corta para ser válida.';
-    } else {
-      motivo = 'La configuración de conexión no es utilizable. URL: «'
-        + (SB.url || '(vacía)') + '». Clave: '
-        + (SB.clave ? String(SB.clave).slice(0, 18) + '…' : '(vacía)') + '.';
-    }
-    apunta('Configuración de este navegador', 'mal', motivo);
-    DIAG.reparable = true;      // se arregla con el botón de restablecer
-    return acaba();
-  }
-  apunta('Configuración', 'ok', SB.url);
-
-  /* 2 · ¿Se llega al proyecto y la clave vale? --------------------------- */
-  sbFetch('/auth/v1/settings', {conSesion: false}).then(function(r){
-    if(r.estado === 0){
-      apunta('Conexión con Supabase', 'mal',
-        'El navegador no obtiene respuesta. Suele ser el proyecto en pausa, la URL '
-        + 'mal escrita, la CSP del .htaccess apuntando a otro dominio, o falta de red. '
-        + 'Desde aquí no se puede distinguir cuál de ellas es.');
-      DIAG.reparable = true;
+  /* 1 · ¿Responde el servidor y conecta con MySQL? ------------------------ */
+  sbFetch('/estado', {conSesion: false}).then(function(r){
+    var e = r.datos || {};
+    if(r.estado === 0 || typeof e.bd === 'undefined'){
+      apunta('Servidor', 'mal',
+        'No responde api/index.php. Comprueba que la carpeta api/ está subida junto a '
+        + 'index.html y que el hosting ejecuta PHP.');
       return acaba();
     }
-    if(r.estado === 401 || r.estado === 403){
-      apunta('Clave publicable', 'mal',
-        'Supabase rechaza la clave. Cópiala de nuevo en Project Settings → API keys.');
-      DIAG.reparable = true;
+    apunta('Servidor', 'ok', 'PHP ' + (e.php || '') + ' responde.');
+    if(!e.bd){
+      apunta('Base de datos MySQL', 'mal',
+        'El servidor no conecta con MySQL. Revisa los datos de api/config.local.php.');
       return acaba();
     }
-    apunta('Conexión con Supabase', 'ok', 'El proyecto responde y acepta la clave.');
+    apunta('Base de datos MySQL', 'ok', 'Conectada.');
+    if(!e.tablas){
+      apunta('Tablas del panel', 'mal', 'Faltan las tablas: importa sql/base-de-datos.sql en phpMyAdmin.');
+      return acaba();
+    }
+    apunta('Tablas del panel', 'ok', 'El esquema está creado.');
+    if(!e.raiz_con_clave){
+      apunta('Cuenta raíz', 'mal', 'La cuenta raíz aún no tiene contraseña: ábrela en api/instalar.php.');
+      return acaba();
+    }
+    apunta('Cuenta raíz', 'ok', 'Lista para entrar.');
+    if(!e.almacen){
+      apunta('Carpeta de archivos', 'aviso', 'No se puede escribir en storage/: no se podrán subir documentos.');
+    }
 
-    /* 3 · ¿Están creadas las tablas? ------------------------------------ */
-    return sbFetch('/rest/v1/perfiles?select=id&limit=1', {conSesion: false}).then(function(t){
-      if(t.estado === 404 || (t.datos && t.datos.code === '42P01')){
-        apunta('Tablas del panel', 'mal',
-          'La tabla «perfiles» no existe: falta ejecutar 01-esquema.sql en el editor SQL.');
-        return acaba();
+    /* 2 · ¿Contesta el servicio de acceso? ------------------------------- */
+    var mail = normalizaMail(correo || RAIZ_MAIL);
+    /* Contraseña imposible a propósito: el servidor responde igual exista o
+       no la cuenta, así que solo se comprueba que el servicio contesta. */
+    return sbFetch('/auth/v1/token?grant_type=password', {
+      method: 'POST', conSesion: false,
+      body: {email: mail, password: '-comprobacion-que-no-vale-'}
+    }).then(function(a){
+      if(a.estado === 400){
+        apunta('Servicio de acceso', 'ok',
+          'Responde correctamente. Si tu contraseña tampoco entra, pide al administrador que la restablezca.');
+      } else if(a.estado === 429){
+        apunta('Servicio de acceso', 'aviso',
+          'Demasiados intentos fallidos con esa cuenta: espera 15 minutos y vuelve a probar.');
+      } else {
+        apunta('Servicio de acceso', 'aviso', 'Respuesta inesperada del servidor: ' + a.estado + '.');
       }
-      apunta('Tablas del panel', 'ok', 'El esquema está creado.');
-
-      /* 4 · ¿Contesta el servicio de acceso? ----------------------------- */
-      var mail = normalizaMail(correo || RAIZ_MAIL);
-      /* Se prueba con una contraseña imposible a propósito. Supabase responde
-         igual exista o no la cuenta —y hace bien, así no se puede averiguar
-         quién está dado de alta—, de modo que lo que se comprueba aquí es que
-         el servicio contesta, no el resultado. */
-      return sbFetch('/auth/v1/token?grant_type=password', {
-        method: 'POST', conSesion: false,
-        body: {email: mail, password: '-comprobacion-que-no-vale-'}
-      }).then(function(a){
-        if(a.estado === 400){
-          apunta('Servicio de acceso', 'ok',
-            'Responde correctamente. Si tu contraseña real tampoco entra, es que la '
-            + 'cuenta ' + mail + ' aún no está creada: ejecuta 02-cuenta-raiz.sql.');
-        } else if(a.estado === 422){
-          apunta('Servicio de acceso', 'aviso',
-            'El acceso por correo y contraseña está desactivado en Supabase '
-            + '(Authentication → Providers → Email).');
-        } else {
-          apunta('Servicio de acceso', 'aviso',
-            'Respuesta inesperada del servidor: ' + a.estado + '.');
-        }
-        acaba();
-      });
+      DIAG.reparable = true;
+      acaba();
     });
   }).catch(function(e){
     apunta('Diagnóstico', 'mal', (e && e.message) || 'Error inesperado.');
@@ -11681,8 +11609,8 @@ function diagHTML(){
     + (DIAG.hecho && DIAG.reparable
         ? '<button type="button" class="lg-reset" id="lg-reset">' + ic('refresh', 14)
           + ' Restablecer la conexión y recargar</button>'
-          + '<div class="dg-esp" style="margin-top:7px">Borra la configuración guardada en '
-          + 'este navegador y vuelve a la que trae el archivo de fábrica.</div>'
+          + '<div class="dg-esp" style="margin-top:7px">Borra la sesión guardada en '
+          + 'este navegador y vuelve a la pantalla de acceso.</div>'
         : '')
     + '</div>';
 }

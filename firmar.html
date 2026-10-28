@@ -883,19 +883,14 @@ function renderApp(){
 }
 
 /* ==========================================================================
-   PROYECTO DE SUPABASE  ·  fuente unica
-   Lo usan index.html (el panel) y firmar.html (la pagina que abre el cliente).
-
-   La clave publicable va en el navegador a proposito: no da acceso a nada por
-   si sola. Quien decide que se puede leer o escribir son las politicas RLS y
-   las funciones SECURITY DEFINER de la base de datos.
-
-   La clave de servicio (sb_secret_...) NUNCA se pone aqui: vive solo en la
-   Edge Function.
+   SERVIDOR  ·  fuente unica
+   La pagina de firma llama a api/index.php, en la misma carpeta que este
+   archivo. El cliente no inicia sesion: el unico permiso que tiene es el
+   token de un solo uso del enlace.
    ========================================================================== */
 var SB_DEFECTO = {
-  url:   'https://ezwhkpfqnzyfulivlows.supabase.co',
-  clave: 'sb_publishable_7ZLE8i6zn7AlcaubIBaBrA_rkGvYBsG',
+  url:   'api/index.php',
+  clave: '',
   activo: true
 };
 
@@ -1287,20 +1282,17 @@ var F = {
    origen. En el móvil de un cliente esa preferencia no existe y se usa el
    proyecto de producción. */
 function firmaProyecto(){
-  try{
-    var g = JSON.parse(localStorage.getItem('labs24k.supabase') || 'null');
-    if(g && g.url && g.clave) return g;
-  }catch(e){}
   return SB_DEFECTO;
 }
 
+/* Llamada a una función del servidor. El cliente no tiene sesión: el único
+   permiso que lleva es el token de un solo uso del enlace. */
 function firmaRpc(fn, args){
   var P = firmaProyecto();
-  return fetch(P.url + '/rest/v1/rpc/' + fn, {
+  return fetch(P.url + '?ruta=' + encodeURIComponent('/rest/v1/rpc/' + fn), {
     method:'POST',
-    headers:{'Content-Type':'application/json',
-             'apikey': P.clave,
-             'Authorization':'Bearer ' + P.clave},
+    credentials:'omit',
+    headers:{'Content-Type':'application/json'},
     body: JSON.stringify(args || {})
   }).then(function(r){
     return r.text().then(function(t){
