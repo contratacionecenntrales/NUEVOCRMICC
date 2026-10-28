@@ -176,6 +176,7 @@ enchufes, y el panel lo dice claramente:
 
 | Síntoma | Qué mirar |
 |---|---|
+| Error 403 y el dominio no tiene certificado SSL | Sube `.htaccess.SIN-SSL-TEMPORAL.txt` renombrado a `.htaccess` y entra por `http://`; cuando actives el SSL, vuelve al `.htaccess` normal |
 | Página en blanco | Sube `test.html` y ábrelo. Si carga, el problema está en el `.htaccess` |
 | Error 500 al entrar | El `.htaccess` no le gusta a tu Apache: renómbralo a `htaccess.txt` y avisa |
 | «Sin conexión con el servidor» | Abre `api/instalar.php`: dice qué paso falta |

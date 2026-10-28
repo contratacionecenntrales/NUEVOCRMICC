@@ -1,0 +1,46 @@
+# =============================================================================
+# LABS COMMAND CENTER 360 - Configuracion SIN SSL (TEMPORAL)
+# Fuerza HTTPS, cabeceras estrictas y bloqueo de ficheros sensibles.
+# Si esta version diera error 500, renombra este archivo a htaccess.txt:
+# la aplicacion funciona igual sin el (pero sin estas protecciones) mientras
+# se investiga que directiva no admite tu plan de alojamiento.
+# NOTA: se han eliminado a proposito RequestReadTimeout, Options y
+# ServerSignature porque muchos alojamientos compartidos los prohiben en
+# .htaccess y devuelven error 500.
+# =============================================================================
+
+DirectoryIndex index.html
+
+# --- SIN forzar HTTPS ---------------------------------------------------------
+# VERSIÓN TEMPORAL mientras el dominio no tiene certificado SSL. En cuanto lo
+# tenga, sustituye este archivo por el .htaccess normal (el que fuerza https).
+
+# --- Cabeceras de seguridad ---------------------------------------------------
+<IfModule mod_headers.c>
+  Header always set Content-Security-Policy "default-src 'none'; script-src 'self' 'sha256-Mj+LF5O5ZPwFq3KRCY12b/0L3ROPFrb0gya1hjcSrMc=' 'sha256-SaSrWhVfOZm1MVEesmffC1AsSrgLwaJvUUZ9Etf4DCE='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; form-action 'none'; frame-ancestors 'none'; base-uri 'none'; object-src 'none'"
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "DENY"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Cross-Origin-Opener-Policy "same-origin"
+  Header always set Cross-Origin-Resource-Policy "same-origin"
+  Header always set Permissions-Policy "geolocation=(), camera=(), microphone=(), payment=(), usb=()"
+  Header always set X-Permitted-Cross-Domain-Policies "none"
+  Header unset X-Powered-By
+  Header set Cache-Control "no-store"
+</IfModule>
+
+# --- Bloqueo de ficheros sensibles (sintaxis doble 2.2 / 2.4) ----------------
+<FilesMatch "(^\.|\.(md|zip|log|bak|sql|env|ini|yml|py|sh)$)">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+# --- Compresion ---------------------------------------------------------------
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css application/javascript
+</IfModule>
