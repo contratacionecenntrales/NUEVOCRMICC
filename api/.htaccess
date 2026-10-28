@@ -1,23 +1,8 @@
-# Solo se puede abrir desde fuera la puerta de entrada (index.php) y la
-# página de puesta en marcha (instalar.php). El resto son piezas internas.
-<FilesMatch "\.php$">
-  <IfModule mod_authz_core.c>
-    Require all denied
-  </IfModule>
-  <IfModule !mod_authz_core.c>
-    Order allow,deny
-    Deny from all
-  </IfModule>
-</FilesMatch>
-<FilesMatch "^(index|instalar)\.php$">
-  <IfModule mod_authz_core.c>
-    Require all granted
-  </IfModule>
-  <IfModule !mod_authz_core.c>
-    Order allow,deny
-    Allow from all
-  </IfModule>
-</FilesMatch>
+# Carpeta del backend. No se bloquea nada por nombre de archivo: en algunos
+# Apache de alojamiento compartido ese bloqueo acababa cerrando también
+# index.php (error 403 al entrar). Las piezas internas (nucleo.php, rest.php...)
+# no hacen nada si se abren directamente: salen sin ejecutar código.
+
 # Hostalia (FastCGI) a veces no pasa la cabecera Authorization a PHP.
 <IfModule mod_rewrite.c>
   RewriteEngine On
