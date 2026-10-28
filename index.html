@@ -7307,8 +7307,9 @@ function normalizaUsuario(u, i){
    cualquiera de ellas.
    ======================================================================= */
 var RAIZ_MAIL = 'jalvarez@labs24k.com';
+/* admin@labs24k.com ya no es alias de la raíz: es una cuenta de administrador propia. */
 var RAIZ_ALIAS = ['jálvarez@labs24k.com', 'j.alvarez@labs24k.com',
-                  'juan.alvarez@labs24k.com', 'admin@labs24k.com'];
+                  'juan.alvarez@labs24k.com'];
 function normalizaMail(m){
   var t = String(m||'').trim().toLowerCase();
   return RAIZ_ALIAS.indexOf(t) > -1 ? RAIZ_MAIL : t;
