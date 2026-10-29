@@ -8,7 +8,7 @@
  */
 defined('LABS') || exit;
 
-define('LABS_VERSION_ESQUEMA', 3);
+define('LABS_VERSION_ESQUEMA', 4);
 
 function labs_columna_existe(PDO $db, $tabla, $col)
 {
@@ -96,6 +96,11 @@ function labs_migra(PDO $db)
         array('bitacora', 'cadena', 'ALTER TABLE bitacora ADD COLUMN cadena CHAR(64) NULL'),
         // Bloqueo de datos (art. 32 LOPDGDD): el contrato se conserva por obligación legal pero queda apartado.
         array('contratos', 'bloqueado', 'ALTER TABLE contratos ADD COLUMN bloqueado TINYINT(1) NOT NULL DEFAULT 0'),
+        // --- Fichas de contacto (versión 4) ---------------------------------
+        array('contactos', 'etiquetas', "ALTER TABLE contactos ADD COLUMN etiquetas VARCHAR(500) NOT NULL DEFAULT ''"),
+        array('contactos', 'ref_externa', 'ALTER TABLE contactos ADD COLUMN ref_externa VARCHAR(64) NULL, ADD UNIQUE KEY contactos_ref_uq (ref_externa)'),
+        array('contactos', 'ultima_actividad', 'ALTER TABLE contactos ADD COLUMN ultima_actividad DATETIME(6) NULL'),
+        array('contactos', 'proximo_contacto', 'ALTER TABLE contactos ADD COLUMN proximo_contacto DATETIME(6) NULL'),
     );
     foreach ($columnas as $c) {
         if (!labs_columna_existe($db, $c[0], $c[1])) {

@@ -9,7 +9,7 @@ function labs_rpc($fn, $a)
 {
     $publicas = array('contrato_para_firma', 'firma_contrato');
     $todas = array('alta_usuario', 'restablece_clave', 'borra_usuario', 'escala_ticket',
-        'nuevo_enlace_firma', 'contrato_para_firma', 'firma_contrato', 'puedo', 'mi_rol', 'soy_admin');
+        'nuevo_enlace_firma', 'contrato_para_firma', 'firma_contrato', 'puedo', 'mi_rol', 'soy_admin', 'importa_contactos');
     if (!in_array($fn, $todas, true)) {
         throw new ErrorApi('No existe la función «' . $fn . '».', 404, 'PGRST202');
     }
@@ -46,6 +46,8 @@ function labs_rpc($fn, $a)
             return labs_rpc_contrato_para_firma($arg('p_token'));
         case 'firma_contrato':
             return labs_rpc_firma_contrato($arg);
+        case 'importa_contactos':
+            return labs_rpc_importa_contactos($arg);
     }
     return null;
 }

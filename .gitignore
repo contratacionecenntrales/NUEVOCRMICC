@@ -3,3 +3,6 @@ api/config.local.php
 storage/*
 !storage/.htaccess
 !storage/index.html
+# Datos personales que se cargan al desplegar: nunca al repositorio
+api/importacion-pendiente.php
+*.csv

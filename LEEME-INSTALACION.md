@@ -218,3 +218,15 @@ enchufes, y el panel lo dice claramente:
 ---
 
 *Labs24k · Labs Command Center 360™ · Grupo Evolvix Global, S.L. · CIF B21779673*
+
+## Importar contactos
+
+En **Contactos → Importar CSV** (administración y jefatura) se sube la
+exportación de otro CRM (GoHighLevel, Excel, Google…). Reconoce nombre,
+apellidos, teléfono, correo, empresa, fechas y etiquetas, y no duplica: si el
+contacto ya existe (mismo id, correo o teléfono) solo completa lo que falte.
+
+Para cargar contactos al desplegar sin entrar al panel, el zip puede llevar
+`api/importacion-pendiente.php`: se importa la primera vez que alguien entra y
+el archivo se borra solo. Ese archivo contiene datos personales y nunca va al
+repositorio.

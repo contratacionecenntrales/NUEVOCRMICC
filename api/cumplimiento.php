@@ -750,7 +750,7 @@ function labs_conservacion($aplicar)
         labs_q('DELETE FROM contacto_documentos WHERE contacto_id = ?', array($id));
         labs_q('DELETE FROM contacto_comentarios WHERE contacto_id = ?', array($id));
         labs_q('DELETE FROM contacto_eventos WHERE contacto_id = ?', array($id));
-        labs_q("UPDATE contactos SET nombre = ?, empresa = '', email = '', telefono = '', origen = '', especificaciones = '', actualizado = ? WHERE id = ?",
+        labs_q("UPDATE contactos SET nombre = ?, empresa = '', email = '', telefono = '', origen = '', especificaciones = '', etiquetas = '', ref_externa = NULL, actualizado = ? WHERE id = ?",
             array('Anónimo #' . $id, labs_ahora(), $id));
     }
     labs_q('DELETE FROM registro_accesos WHERE ts < ?', array(labs_hace($dias * 86400)));

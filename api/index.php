@@ -30,6 +30,7 @@ require __DIR__ . '/admin.php';
 require __DIR__ . '/totp.php';
 require __DIR__ . '/seguridad.php';
 require __DIR__ . '/cumplimiento.php';
+require __DIR__ . '/importacion.php';
 
 ini_set('display_errors', '0');
 
@@ -105,6 +106,10 @@ try {
 
     labs_db()->beginTransaction();
     $db_iniciada = true;
+    // Contactos incluidos en el despliegue (api/importacion-pendiente.php): se cargan una vez.
+    if (is_file(__DIR__ . '/importacion-pendiente.php')) {
+        labs_importacion_pendiente();
+    }
     $estado = 200;
     $resp = null;
 

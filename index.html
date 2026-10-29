@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-o86n38nb8YzP3gGs24g9OvPchVFnbYres35uZCkr+7Q='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-Ir+yqq9rA03YV/H5Ic58wW7mISf1xRoaPvlSWkmjkek='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'; object-src 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Labs Command Center 360 - Oficina virtual SaaS de la red comercial de Labs24k.">
 <meta name="theme-color" content="#0B0F19">
@@ -300,7 +300,7 @@ select.inp{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xm
   .sidebar{position:fixed;left:0;top:0;z-index:60;transform:translateX(-100%);transition:.25s}
   .sidebar.open{transform:none;box-shadow:0 0 60px rgba(0,0,0,.7)}
   .burger{display:flex}
-  .search{display:none}
+  .topbar .search{display:none}
   .scrim{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:55}
 }
 @media(max-width:860px){
@@ -1164,6 +1164,30 @@ a.btn.btn-g:hover{color:#fff}
   padding:14px 20px;border-top:1px solid var(--line);flex:0 0 auto;background:var(--card-2)}
 .ft-t{margin:0 0 14px;font-size:13px;color:#fff;font-weight:600;letter-spacing:.2px}
 
+/* =========================== CONTACTOS · FICHA ========================== */
+.ct-fila{cursor:pointer;transition:background .12s}
+.ct-fila:hover,.ct-fila:focus{background:rgba(23,200,192,.06);outline:none}
+.ct-av-s{width:34px;height:34px;flex:0 0 34px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  background:rgba(23,200,192,.16);color:#99F6E4;font-weight:700;font-size:13px}
+.ct-kpi-click{cursor:pointer}.ct-kpi-click:hover{border-color:var(--blue)}
+.ct-hero{display:flex;gap:18px;align-items:center;flex-wrap:wrap;
+  background:radial-gradient(120% 140% at 0% 0%,rgba(23,200,192,.14) 0%,rgba(31,41,55,0) 55%),var(--card)}
+.ct-av{width:64px;height:64px;flex:0 0 64px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  background:var(--blue);color:#04231A;font-weight:800;font-size:26px;box-shadow:0 10px 30px -10px rgba(23,200,192,.8)}
+.ct-acciones{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.ct-acciones a.btn{text-decoration:none}
+.ct-cols{display:grid;grid-template-columns:minmax(300px,380px) 1fr;gap:16px;align-items:start}
+.ct-act{display:flex;gap:11px;padding:11px 0;border-bottom:1px solid var(--line-soft)}
+.ct-act-ico{flex:0 0 30px;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  background:rgba(23,200,192,.12);color:#99F6E4}
+.ct-act-nueva{padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--card-2)}
+.ct-tipo{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:20px;border:1px solid var(--line);
+  background:none;color:var(--txt-2);font:inherit;font-size:12px;cursor:pointer}
+.ct-tipo:hover{color:#fff}.ct-tipo.on{background:rgba(23,200,192,.14);border-color:rgba(23,200,192,.45);color:#99F6E4}
+@media (max-width:980px){.ct-cols{grid-template-columns:minmax(0,1fr)}.ct-cols>.card:last-child{order:-1}}
+@media (max-width:640px){.ct-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px}.ct-kpis .card{padding:12px}.ct-cols .lms-tabs{flex-wrap:wrap;overflow:visible}}
+@media (max-width:640px){.ct-acciones{width:100%}.ct-acciones .btn,.ct-acciones select{flex:1 1 auto}}
+
 /* --- foto de perfil --- */
 .ft-av{gap:16px;align-items:center;margin-bottom:20px}
 .av-big{position:relative;width:88px;height:88px;flex:0 0 auto}
@@ -1993,7 +2017,7 @@ function renderApp(){
   '</div>'+
   (SOPORTE.abierto ? panelAyuda() : '');
 
-  qa('[data-go]').forEach(function(b){ b.onclick=function(){ S.view=b.dataset.go; S.sidebar=false; renderApp(); }; });
+  qa('[data-go]').forEach(function(b){ b.onclick=function(){ if(b.dataset.go === 'contactos' && typeof CT !== 'undefined'){ CT.det = null; CT.edit = null; } S.view=b.dataset.go; S.sidebar=false; renderApp(); }; });
   q('#logout').onclick=function(){
     if(vcActivo()){ vcVolver(); return; }
     /* Cierra la sesión también en el servidor, igual que «Cerrar sesión» del
@@ -3864,26 +3888,55 @@ function hrEventos(){
 
 /* ==========================================================================
    CONTACTOS · leads y clientes con ficha individual · Labs Command Center 360
-   Persistencia real en la base de datos: contactos, contacto_eventos (actualizaciones
-   y notas de seguimiento), contacto_comentarios (comentarios interactivos) y
-   contacto_documentos (documentación, archivo en el bucket "documentos").
-   Esquema en sql/base-de-datos.sql; quién ve qué, en api/esquema.php.
+   Lista con filtros → cada fila abre la FICHA a pantalla completa: datos
+   editables, acciones rápidas (llamar, WhatsApp, correo), próximo seguimiento,
+   responsable, etiquetas, historial de actividad, comentarios, documentación y
+   especificaciones. Importación de CSV (exportaciones de GoHighLevel y otros).
+   Tablas: contactos, contacto_eventos, contacto_comentarios, contacto_documentos.
+   Quién ve qué: api/esquema.php. Importación: api/importacion.php.
    ========================================================================== */
 var ESTADOS_CT = ['Nuevo','Contactado','Cualificado','Propuesta enviada','Cliente','Perdido'];
+var COLOR_EST_CT = {'Nuevo':'blue','Contactado':'violet','Cualificado':'amber','Propuesta enviada':'amber','Cliente':'green','Perdido':'red'};
 var TABS_CT = [
+  {k:'hist',    n:'Seguimiento',              i:'clock'},
+  {k:'coment',  n:'Comentarios',              i:'chat'},
   {k:'docs',    n:'Documentación',            i:'file'},
-  {k:'spec',    n:'Especificaciones técnicas', i:'cog'},
-  {k:'hist',    n:'Actualizaciones',          i:'clock'},
-  {k:'coment',  n:'Comentarios',              i:'chat'}
+  {k:'spec',    n:'Especificaciones técnicas', i:'cog'}
 ];
+var TIPOS_ACT_CT = {nota:['Nota','file'], llamada:['Llamada','phone'], whatsapp:['WhatsApp','chat'], correo:['Correo','mail'],
+  reunion:['Reunión','users'], estado:['Cambio de estado','refresh'], evento:['Sistema','bolt']};
 var CT = {
   lista:[], cargando:false, cargado:false, error:'',
-  filtro:'', tipoF:'', estadoF:'',
-  det:null, tab:'docs', eventos:[], comentarios:[], documentos:[], subiendo:false,
-  nuevoTexto:'', nuevoComentario:'', nuevo:null
+  filtro:'', tipoF:'', estadoF:'', etiquetaF:'', segF:'', pagina:1,
+  det:null, tab:'hist', eventos:[], comentarios:[], documentos:[], subiendo:false,
+  nuevoTexto:'', nuevoTipo:'llamada', nuevoComentario:'', nuevo:null, edit:null, guardando:false,
+  importar:null
 };
 
 function ctContactoPorId(id){ return CT.lista.filter(function(c){ return c.id===id; })[0] || null; }
+function ctPuedeGestionar(){ return S.role==='admin' || S.role==='manager' || S.role==='backoffice'; }
+function ctPuedeImportar(){ return S.role==='admin' || S.role==='manager'; }
+function ctEtiquetas(c){ return String(c.etiquetas||'').split(',').map(function(t){ return t.trim(); }).filter(Boolean); }
+function ctNombreGestor(id){
+  var u = (typeof USUARIOS !== 'undefined' ? USUARIOS : []).filter(function(x){ return x.id === id; })[0];
+  return u ? (u.n || u.mail) : '';
+}
+function ctFechaCorta(ts, hora){
+  if(!ts) return '—';
+  var o = {day:'2-digit', month:'short', year:'numeric'};
+  if(hora){ o.hour = '2-digit'; o.minute = '2-digit'; }
+  return new Date(ts).toLocaleString('es-ES', o);
+}
+/* Estado del próximo seguimiento: vencido, hoy o futuro. */
+function ctSeguimiento(c){
+  if(!c.proximo_contacto) return null;
+  var t = new Date(c.proximo_contacto).getTime(), hoy = new Date(); hoy.setHours(23,59,59,999);
+  if(t < Date.now()) return {col:'red', txt:'Vencido · '+ctFechaCorta(c.proximo_contacto, true)};
+  if(t <= hoy.getTime()) return {col:'amber', txt:'Hoy · '+new Date(t).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})};
+  return {col:'blue', txt:ctFechaCorta(c.proximo_contacto, true)};
+}
+function ctTelCompleto(c){ return c.telefono ? ((c.prefijo||'+34') + c.telefono).replace(/[^\d+]/g,'') : ''; }
+function ctLocal(ts){ if(!ts) return ''; var d = new Date(ts); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,16); }
 
 function ctCarga(){
   if(CT.cargando) return;
@@ -3901,6 +3954,7 @@ function ctCargaDetalle(id){
     sbSelect('contacto_comentarios', 'contacto_id=eq.'+id+'&order=ts.desc'),
     sbSelect('contacto_documentos', 'contacto_id=eq.'+id+'&order=ts.desc')
   ]).then(function(rs){
+    if(CT.det !== id) return;
     if(rs[0] && rs[0].ok) CT.eventos = rs[0].datos || [];
     if(rs[1] && rs[1].ok) CT.comentarios = rs[1].datos || [];
     if(rs[2] && rs[2].ok) CT.documentos = rs[2].datos || [];
@@ -3909,11 +3963,17 @@ function ctCargaDetalle(id){
 }
 
 function ctAbre(id){
-  CT.det = id; CT.tab = 'docs'; CT.eventos = []; CT.comentarios = []; CT.documentos = [];
+  var c = ctContactoPorId(id); if(!c) return;
+  CT.det = id; CT.tab = 'hist'; CT.eventos = []; CT.comentarios = []; CT.documentos = [];
+  CT.nuevoTexto = ''; CT.nuevoComentario = '';
+  CT.edit = {nombre:c.nombre||'', empresa:c.empresa||'', email:c.email||'', prefijo:c.prefijo||'+34', telefono:c.telefono||'',
+    origen:c.origen||'', tipo:c.tipo||'lead', estado:c.estado||'Nuevo', gestor_id:c.gestor_id||'',
+    proximo_contacto:ctLocal(c.proximo_contacto), etiquetas:c.etiquetas||''};
   renderApp();
+  window.scrollTo(0, 0);
   ctCargaDetalle(id);
 }
-function ctCierra(){ CT.det = null; renderApp(); }
+function ctCierra(){ CT.det = null; CT.edit = null; renderApp(); }
 
 function ctNuevo(){
   CT.nuevo = {nombre:'', empresa:'', email:'', prefijo:'+34', telefono:'', origen:'', tipo:'lead'};
@@ -3923,35 +3983,76 @@ function ctGuardaNuevo(){
   var n = CT.nuevo;
   if(!n || !n.nombre || n.nombre.trim().length < 2){
     toast('Escribe al menos el nombre del contacto.'); return; }
-  var fila = {nombre:n.nombre.trim(), empresa:n.empresa||'', email:n.email||'',
+  var fila = {nombre:n.nombre.trim(), empresa:n.empresa||'', email:(n.email||'').trim(),
     prefijo:n.prefijo||'+34', telefono:n.telefono||'', origen:n.origen||'', tipo:n.tipo||'lead',
     gestor_id:(SB.sesion && SB.sesion.uid) || null};
   sbInsert('contactos', fila).then(function(r){
-    if(r && r.ok){ toast('Contacto creado.'); CT.nuevo = null; CT.cargado = false; ctCarga(); }
+    if(r && r.ok){
+      toast('Contacto creado.'); CT.nuevo = null; CT.cargado = false;
+      var nuevo = Array.isArray(r.datos) ? r.datos[0] : r.datos;
+      CT.cargando = false;
+      sbSelect('contactos', 'select=*&order=actualizado.desc').then(function(rr){
+        if(rr && rr.ok){ CT.lista = rr.datos || []; CT.cargado = true; }
+        if(nuevo && nuevo.id) ctAbre(nuevo.id); else renderApp();
+      });
+    }
     else toast('No se ha podido crear el contacto: ' + sbMensaje(r));
   }, function(){ toast('Sin conexión con el servidor.'); });
 }
 
-/* Guarda un campo suelto de la ficha (estado, especificaciones...) sin tener
-   que reenviar el resto del contacto. */
-function ctGuardaCampo(id, campo, valor){
-  var cambios = {}; cambios[campo] = valor;
-  sbUpdate('contactos', 'id=eq.'+id, cambios).then(function(r){
-    if(r && r.ok){
-      var c = ctContactoPorId(id); if(c) c[campo] = valor;
-      toast('Guardado.'); renderApp();
-    } else toast('No se ha podido guardar: ' + sbMensaje(r));
+/* Guarda los cambios de la ficha; si cambia el estado lo deja en el historial. */
+function ctGuardaFicha(){
+  var c = ctContactoPorId(CT.det), e = CT.edit;
+  if(!c || !e) return;
+  if(e.nombre.trim().length < 2){ toast('El nombre necesita al menos 2 letras.'); return; }
+  var cambios = {nombre:e.nombre.trim(), empresa:e.empresa.trim(), email:e.email.trim().toLowerCase(),
+    prefijo:(e.prefijo||'+34').trim(), telefono:e.telefono.replace(/[^\d]/g,''), origen:e.origen.trim(),
+    tipo:e.tipo, estado:e.estado, etiquetas:e.etiquetas.split(',').map(function(t){ return t.trim(); }).filter(Boolean).join(', '),
+    proximo_contacto:e.proximo_contacto ? new Date(e.proximo_contacto).toISOString() : null};
+  if(ctPuedeGestionar() && e.gestor_id) cambios.gestor_id = e.gestor_id;
+  var antes = c.estado;
+  CT.guardando = true; renderApp();
+  sbUpdate('contactos', 'id=eq.'+c.id, cambios).then(function(r){
+    CT.guardando = false;
+    if(!(r && r.ok)){ toast('No se ha podido guardar: ' + sbMensaje(r)); renderApp(); return; }
+    var fila = Array.isArray(r.datos) ? r.datos[0] : null;
+    Object.assign(c, fila || cambios);
+    toast('Ficha guardada.');
+    if(antes !== cambios.estado) ctRegistra('estado', 'Estado: ' + antes + ' → ' + cambios.estado);
+    else renderApp();
+  });
+}
+
+/* Cambio rápido de estado desde la cabecera. */
+function ctCambiaEstado(nuevo){
+  var c = ctContactoPorId(CT.det); if(!c || c.estado === nuevo) return;
+  var antes = c.estado, cambios = {estado:nuevo};
+  if(nuevo === 'Cliente') cambios.tipo = 'cliente';
+  sbUpdate('contactos', 'id=eq.'+c.id, cambios).then(function(r){
+    if(!(r && r.ok)){ toast('No se ha podido cambiar: ' + sbMensaje(r)); return; }
+    Object.assign(c, cambios); if(CT.edit){ CT.edit.estado = nuevo; if(cambios.tipo) CT.edit.tipo = 'cliente'; }
+    toast('Estado: ' + nuevo);
+    ctRegistra('estado', 'Estado: ' + antes + ' → ' + nuevo);
+  });
+}
+
+/* Añade una línea al historial y marca la última actividad del contacto. */
+function ctRegistra(tipo, texto){
+  var id = CT.det;
+  return sbInsert('contacto_eventos', {contacto_id:id, autor_id:(SB.sesion && SB.sesion.uid) || null, tipo:tipo, texto:texto}).then(function(r){
+    if(!(r && r.ok)){ toast('No se ha podido anotar: ' + sbMensaje(r)); return false; }
+    var ahora = new Date().toISOString(), c = ctContactoPorId(id);
+    if(c){ c.ultima_actividad = ahora; c.actualizado = ahora; }
+    sbUpdate('contactos', 'id=eq.'+id, {ultima_actividad: ahora});
+    ctCargaDetalle(id);
+    return true;
   });
 }
 
 function ctAnadeEvento(){
-  var id = CT.det, txt = String(CT.nuevoTexto || '').trim();
-  if(!txt){ toast('Escribe una actualización antes de guardarla.'); return; }
-  sbInsert('contacto_eventos', {contacto_id:id, autor_id:(SB.sesion && SB.sesion.uid) || null,
-    tipo:'nota', texto:txt}).then(function(r){
-    if(r && r.ok){ CT.nuevoTexto = ''; toast('Actualización registrada.'); ctCargaDetalle(id); }
-    else toast('No se ha podido guardar: ' + sbMensaje(r));
-  });
+  var txt = String(CT.nuevoTexto || '').trim();
+  if(!txt){ toast('Escribe qué ha pasado antes de guardarlo.'); return; }
+  ctRegistra(CT.nuevoTipo || 'nota', txt).then(function(ok){ if(ok){ CT.nuevoTexto = ''; toast('Actividad registrada.'); } });
 }
 function ctAnadeComentario(){
   var id = CT.det, txt = String(CT.nuevoComentario || '').trim();
@@ -4015,9 +4116,7 @@ function ctTabDocs(c){
       '<button class="btn btn-s btn-xs" data-ct-deldoc="'+d.id+'" title="Eliminar">'+ic('x',13)+'</button>'+
     '</div>';
   }).join('') || '<p class="tiny muted" style="padding:10px 0">Todavía no hay ningún documento adjunto.</p>';
-
-  return '<h4 class="ft-t">Documentación</h4>'+
-    '<p class="tiny muted" style="margin:0 0 12px">Contratos, briefings y documentos legales del contacto.</p>'+
+  return '<p class="tiny muted" style="margin:0 0 12px">Contratos, presupuestos, briefings y documentos del contacto.</p>'+
     '<label class="btn btn-p" style="width:fit-content;cursor:pointer">'+
       (CT.subiendo ? 'Subiendo…' : (ic('upload',15)+' Adjuntar documento'))+
       '<input type="file" id="ct-file" hidden'+(CT.subiendo?' disabled':'')+'></label>'+
@@ -4025,8 +4124,7 @@ function ctTabDocs(c){
 }
 
 function ctTabSpec(c){
-  return '<h4 class="ft-t">Especificaciones técnicas</h4>'+
-    '<p class="tiny muted" style="margin:0 0 12px">Requerimientos personalizados, integraciones activas o '+
+  return '<p class="tiny muted" style="margin:0 0 12px">Requerimientos personalizados, integraciones activas o '+
     'configuraciones específicas de este proyecto.</p>'+
     '<textarea class="inp" id="ct-spec" rows="10" style="resize:vertical;font-family:inherit" '+
     'placeholder="Ej. Integración con su CRM actual, dominio propio, número de agentes contratados...">'+
@@ -4036,134 +4134,313 @@ function ctTabSpec(c){
 
 function ctTabHist(c){
   var filas = CT.eventos.map(function(e){
-    return '<div style="padding:10px 0;border-bottom:1px solid var(--line)">'+
-      '<div class="small" style="color:#E2E8F0">'+esc(e.texto)+'</div>'+
-      '<div class="tiny muted" style="margin-top:3px">'+esc(haceRel(new Date(e.ts).getTime()))+'</div></div>';
-  }).join('') || '<p class="tiny muted" style="padding:10px 0">Todavía no hay actualizaciones registradas.</p>';
-
-  return '<h4 class="ft-t">Actualizaciones y notas de seguimiento</h4>'+
-    '<p class="tiny muted" style="margin:0 0 12px">Historial cronológico de la evolución comercial o técnica del contacto.</p>'+
-    '<div class="row" style="gap:8px;margin-bottom:12px">'+
-      '<input class="inp" id="ct-hist-txt" style="flex:1" placeholder="Ej. Enviada propuesta, a la espera de respuesta" value="'+esc(CT.nuevoTexto)+'">'+
-      '<button class="btn btn-p" id="ct-hist-add">'+ic('plus',14)+' Añadir</button></div>'+
-    '<div>'+filas+'</div>';
+    var t = TIPOS_ACT_CT[e.tipo] || TIPOS_ACT_CT.nota;
+    return '<div class="ct-act"><div class="ct-act-ico">'+ic(t[1],14)+'</div><div style="flex:1;min-width:0">'+
+      '<div class="tiny" style="color:var(--blue);font-weight:600">'+esc(t[0])+
+        (e.autor_id ? ' <span class="muted" style="font-weight:400">· '+esc(ctNombreGestor(e.autor_id) || 'equipo')+'</span>' : '')+'</div>'+
+      '<div class="small" style="color:#E2E8F0;white-space:pre-line;margin-top:2px">'+esc(e.texto)+'</div>'+
+      '<div class="tiny muted" style="margin-top:3px">'+esc(ctFechaCorta(e.ts, true))+' · '+esc(haceRel(new Date(e.ts).getTime()))+'</div></div></div>';
+  }).join('') || '<p class="tiny muted" style="padding:10px 0">Todavía no hay actividad registrada.</p>';
+  var tipos = ['llamada','whatsapp','correo','reunion','nota'];
+  return '<div class="ct-act-nueva">'+
+      '<div class="row" style="gap:6px;flex-wrap:wrap;margin-bottom:8px">'+tipos.map(function(k){
+        return '<button class="ct-tipo'+(CT.nuevoTipo===k?' on':'')+'" data-ct-tipo="'+k+'">'+ic(TIPOS_ACT_CT[k][1],13)+' '+TIPOS_ACT_CT[k][0]+'</button>'; }).join('')+'</div>'+
+      '<textarea class="inp" id="ct-hist-txt" rows="2" placeholder="¿Qué ha pasado? Ej.: Le he llamado, interesado en el pack web. Pide propuesta el lunes.">'+esc(CT.nuevoTexto)+'</textarea>'+
+      '<div class="row" style="gap:8px;margin-top:8px;justify-content:space-between;flex-wrap:wrap">'+
+        '<span class="tiny muted">Se guarda con tu nombre, la fecha y la hora.</span>'+
+        '<button class="btn btn-p" id="ct-hist-add">'+ic('plus',14)+' Registrar</button></div></div>'+
+    '<div style="margin-top:14px">'+filas+'</div>';
 }
 
 function ctTabComentarios(c){
   var filas = CT.comentarios.map(function(cm){
     return '<div class="msg ia" style="max-width:100%"><div class="bur" style="max-width:100%">'+esc(cm.texto)+
-      '<div class="tiny muted" style="margin-top:4px">'+esc(haceRel(new Date(cm.ts).getTime()))+'</div></div></div>';
+      '<div class="tiny muted" style="margin-top:4px">'+(cm.autor_id ? esc(ctNombreGestor(cm.autor_id) || 'Equipo')+' · ' : '')+
+      esc(haceRel(new Date(cm.ts).getTime()))+'</div></div></div>';
   }).join('') || '<p class="tiny muted" style="padding:10px 0">Todavía no hay comentarios del equipo.</p>';
-
-  return '<h4 class="ft-t">Comentarios interactivos</h4>'+
-    '<p class="tiny muted" style="margin:0 0 12px">Notas rápidas internas del equipo sobre este contacto.</p>'+
-    '<div class="stack" style="gap:8px;margin-bottom:12px">'+filas+'</div>'+
-    '<div class="row" style="gap:8px">'+
+  return '<p class="tiny muted" style="margin:0 0 12px">Notas rápidas internas del equipo sobre este contacto.</p>'+
+    '<div class="row" style="gap:8px;margin-bottom:14px">'+
       '<input class="inp" id="ct-com-txt" style="flex:1" placeholder="Escribe un comentario interno..." value="'+esc(CT.nuevoComentario)+'">'+
-      '<button class="btn btn-p" id="ct-com-add">'+ic('send',14)+'</button></div>';
+      '<button class="btn btn-p" id="ct-com-add">'+ic('send',14)+'</button></div>'+
+    '<div class="stack" style="gap:8px">'+filas+'</div>';
 }
 
-/* ------------------------------ FICHA · CONTENEDOR ------------------------ */
-function ctFichaHTML(){
-  if(!CT.det) return '';
-  var c = ctContactoPorId(CT.det);
-  if(!c){ return ''; }
-
-  var nav = TABS_CT.map(function(t){
-    return '<button class="ft-nav'+(CT.tab===t.k?' on':'')+'" data-cttab="'+t.k+'">'+
-      ic(t.i,15)+'<span>'+t.n+'</span></button>'; }).join('');
-
-  var cuerpo = CT.tab==='spec' ? ctTabSpec(c) : CT.tab==='hist' ? ctTabHist(c) :
-               CT.tab==='coment' ? ctTabComentarios(c) : ctTabDocs(c);
-
-  var chipTipo = c.tipo==='cliente' ? '<span class="chip green">Cliente</span>' : '<span class="chip blue">Lead</span>';
-
-  return '<div class="ov" data-ov="ct-detalle"><div class="modal ficha">'+
-    '<div class="ft-head">'+
-      '<div class="row" style="gap:13px;align-items:center;min-width:0">'+
-        '<div class="av-txt" style="width:46px;height:46px;flex:0 0 46px;border-radius:50%;'+
-          'display:flex;align-items:center;justify-content:center;background:var(--blue);color:#04231A;'+
-          'font-weight:700;font-size:17px">'+esc((c.nombre||'?').charAt(0).toUpperCase())+'</div>'+
-        '<div style="min-width:0"><div class="row" style="gap:8px;align-items:center">'+
-          '<h3 style="margin:0;font-size:16px;color:#fff" class="trunc">'+esc(c.nombre)+'</h3>'+chipTipo+'</div>'+
-        '<div class="tiny muted trunc">'+esc(c.empresa||'Sin empresa')+' · '+esc(c.email||'sin correo')+'</div></div></div>'+
-      '<button class="icon-btn" id="ct-x">'+ic('x',16)+'</button></div>'+
-    '<div class="ft-body"><div class="ft-side">'+nav+'</div>'+
-      '<div class="ft-main">'+cuerpo+'</div></div>'+
-    '<div class="ft-foot">'+
-      '<span class="tiny muted">Estado: <select class="sel-est" id="ct-est">'+
-        ESTADOS_CT.map(function(e){ return '<option'+(c.estado===e?' selected':'')+'>'+e+'</option>'; }).join('')+
-        '</select></span>'+
-      '<button class="btn btn-s" id="ct-cerrar">Cerrar</button>'+
-    '</div></div></div>';
-}
-
-/* ------------------------------ VISTA · LISTA ------------------------------ */
-function viewContactos(v){
-  if(!CT.cargado && !CT.cargando) ctCarga();
-
-  var lista = CT.lista.filter(function(c){
-    var t = (c.nombre+' '+c.empresa+' '+c.email+' '+c.telefono).toLowerCase();
+/* ------------------------------ FICHA · PÁGINA ---------------------------- */
+function ctListaFiltrada(){
+  return CT.lista.filter(function(c){
+    var t = (c.nombre+' '+c.empresa+' '+c.email+' '+(c.prefijo||'')+c.telefono+' '+c.telefono+' '+(c.etiquetas||'')).toLowerCase();
     if(CT.filtro && t.indexOf(CT.filtro.toLowerCase().trim()) < 0) return false;
     if(CT.tipoF && c.tipo !== CT.tipoF) return false;
     if(CT.estadoF && c.estado !== CT.estadoF) return false;
+    if(CT.etiquetaF && ctEtiquetas(c).indexOf(CT.etiquetaF) < 0) return false;
+    if(CT.segF){
+      var s = ctSeguimiento(c);
+      if(CT.segF === 'pend' && !(s && (s.col === 'red' || s.col === 'amber'))) return false;
+      if(CT.segF === 'sin' && c.proximo_contacto) return false;
+    }
     return true;
   });
+}
+
+function ctFichaPagina(){
+  var c = ctContactoPorId(CT.det), e = CT.edit;
+  if(!c || !e) return '';
+  var lista = ctListaFiltrada(), pos = lista.map(function(x){ return x.id; }).indexOf(c.id);
+  var ant = pos > 0 ? lista[pos-1] : null, sig = pos >= 0 && pos < lista.length-1 ? lista[pos+1] : null;
+  var tel = ctTelCompleto(c), wa = tel.replace('+','');
+  var seg = ctSeguimiento(c);
+  var gestores = (typeof USUARIOS !== 'undefined' ? USUARIOS : []).filter(function(u){ return u.est === 'Activo' || u.id === c.gestor_id; });
+  function campo(k, et, tipo, ph){
+    return '<div class="field"><label class="f">'+et+'</label><input class="inp" data-ct-ed="'+k+'" type="'+(tipo||'text')+'" value="'+esc(e[k])+'"'+
+      (ph ? ' placeholder="'+esc(ph)+'"' : '')+'></div>';
+  }
+  var nav = TABS_CT.map(function(t){
+    var n = t.k === 'hist' ? CT.eventos.length : t.k === 'coment' ? CT.comentarios.length : t.k === 'docs' ? CT.documentos.length : 0;
+    return '<button class="lms-tab'+(CT.tab===t.k?' on':'')+'" data-cttab="'+t.k+'">'+t.n+(n ? ' ('+n+')' : '')+'</button>'; }).join('');
+  var cuerpo = CT.tab==='spec' ? ctTabSpec(c) : CT.tab==='docs' ? ctTabDocs(c) : CT.tab==='coment' ? ctTabComentarios(c) : ctTabHist(c);
+
+  return '<div class="row" style="justify-content:space-between;gap:10px;margin-bottom:14px;flex-wrap:wrap">'+
+      '<button class="btn btn-s" id="ct-volver">'+ic('arrowLeft',15)+' Volver a contactos</button>'+
+      '<div class="row" style="gap:8px;align-items:center">'+
+        (pos >= 0 ? '<span class="tiny muted">'+(pos+1)+' de '+lista.length+'</span>' : '')+
+        '<button class="btn btn-s btn-xs" id="ct-ant"'+(ant?'':' disabled')+' title="Anterior">'+ic('arrowLeft',14)+'</button>'+
+        '<button class="btn btn-s btn-xs" id="ct-sig"'+(sig?'':' disabled')+' title="Siguiente">'+ic('arrowRight',14)+'</button></div></div>'+
+
+    '<div class="card ct-hero">'+
+      '<div class="ct-av">'+esc((c.nombre||'?').charAt(0).toUpperCase())+'</div>'+
+      '<div style="flex:1;min-width:220px">'+
+        '<div class="row" style="gap:8px;align-items:center;flex-wrap:wrap">'+
+          '<h2 style="margin:0;font-size:22px;color:#fff">'+esc(c.nombre)+'</h2>'+
+          (c.tipo==='cliente' ? '<span class="chip green">Cliente</span>' : '<span class="chip blue">Lead</span>')+
+          '<span class="chip '+(COLOR_EST_CT[c.estado]||'')+'">'+esc(c.estado)+'</span></div>'+
+        '<div class="small muted" style="margin-top:4px">'+esc(c.empresa || 'Sin empresa')+
+          (c.gestor_id ? ' · Responsable: '+esc(ctNombreGestor(c.gestor_id) || '—') : '')+'</div>'+
+        (ctEtiquetas(c).length ? '<div class="row" style="gap:6px;flex-wrap:wrap;margin-top:8px">'+ctEtiquetas(c).map(function(t){
+          return '<span class="chip violet">'+esc(t)+'</span>'; }).join('')+'</div>' : '')+
+      '</div>'+
+      '<div class="ct-acciones">'+
+        (tel ? '<a class="btn btn-p" href="tel:'+esc(tel)+'" data-ct-accion="llamada">'+ic('phone',15)+' Llamar</a>' : '<button class="btn btn-s" disabled>'+ic('phone',15)+' Sin teléfono</button>')+
+        (tel ? '<a class="btn btn-s" href="https://wa.me/'+esc(wa)+'" target="_blank" rel="noopener" data-ct-accion="whatsapp">'+ic('chat',15)+' WhatsApp</a>' : '')+
+        (c.email ? '<a class="btn btn-s" href="mailto:'+esc(c.email)+'" data-ct-accion="correo">'+ic('mail',15)+' Correo</a>' : '')+
+        '<select class="inp" id="ct-est" style="width:auto;min-width:170px">'+
+          ESTADOS_CT.map(function(x){ return '<option'+(c.estado===x?' selected':'')+'>'+x+'</option>'; }).join('')+'</select>'+
+      '</div></div>'+
+
+    '<div class="grid g-4 ct-kpis" style="margin:16px 0">'+
+      [['Teléfono', tel ? (c.prefijo||'')+' '+c.telefono : '—', 'phone', 'blue'],
+       ['Correo', c.email || '—', 'mail', 'violet'],
+       ['Próximo seguimiento', seg ? seg.txt : 'Sin programar', 'calendar', seg ? (seg.col==='blue'?'green':seg.col) : 'amber'],
+       ['Última actividad', c.ultima_actividad ? haceRel(new Date(c.ultima_actividad).getTime()) : '—', 'clock', 'green']].map(function(k){
+        return '<div class="card kpi"><div class="row" style="justify-content:space-between"><div class="lbl">'+k[0]+'</div>'+
+          '<div class="ico-box '+k[3]+'">'+ic(k[2],16)+'</div></div><div class="small trunc" style="color:#fff;font-weight:600;margin-top:10px">'+esc(k[1])+'</div></div>'; }).join('')+
+    '</div>'+
+
+    '<div class="ct-cols">'+
+      '<div class="card"><div class="card-h"><div><h3>'+ic('user',16)+'Datos del contacto</h3><p>Cambia lo que necesites y guarda.</p></div></div>'+
+        campo('nombre', 'Nombre y apellidos')+campo('empresa', 'Empresa')+campo('email', 'Correo', 'email')+
+        '<div class="row" style="gap:8px"><div style="flex:0 0 90px">'+campo('prefijo', 'Prefijo')+'</div><div style="flex:1">'+campo('telefono', 'Teléfono', 'tel')+'</div></div>'+
+        '<div class="grid g-2">'+
+          '<div class="field"><label class="f">Tipo</label><select class="inp" data-ct-ed="tipo"><option value="lead"'+(e.tipo==='lead'?' selected':'')+'>Lead</option>'+
+            '<option value="cliente"'+(e.tipo==='cliente'?' selected':'')+'>Cliente</option></select></div>'+
+          '<div class="field"><label class="f">Estado</label><select class="inp" data-ct-ed="estado">'+ESTADOS_CT.map(function(x){
+            return '<option'+(e.estado===x?' selected':'')+'>'+x+'</option>'; }).join('')+'</select></div></div>'+
+        campo('proximo_contacto', 'Próximo seguimiento', 'datetime-local')+
+        (ctPuedeGestionar() && gestores.length ? '<div class="field"><label class="f">Responsable</label><select class="inp" data-ct-ed="gestor_id">'+
+          '<option value="">—</option>'+gestores.map(function(u){ return '<option value="'+esc(u.id)+'"'+(e.gestor_id===u.id?' selected':'')+'>'+esc(u.n || u.mail)+'</option>'; }).join('')+
+          '</select></div>' : '')+
+        campo('etiquetas', 'Etiquetas (separadas por comas)', 'text', 'Ej.: Inmobiliaria, Gijón, Interesado web')+
+        campo('origen', 'Origen', 'text', 'Ej.: web, referido, anuncio')+
+        '<button class="btn btn-p" id="ct-guardar" style="width:100%"'+(CT.guardando?' disabled':'')+'>'+ic('save',15)+' '+(CT.guardando?'Guardando…':'Guardar cambios')+'</button>'+
+        '<div class="tiny muted" style="margin-top:14px;line-height:1.7">Alta: '+esc(ctFechaCorta(c.creado, true))+'<br>Última modificación: '+
+          esc(ctFechaCorta(c.actualizado, true))+(c.ref_externa ? '<br>Id en el CRM anterior: <span class="mono">'+esc(c.ref_externa)+'</span>' : '')+'</div>'+
+      '</div>'+
+      '<div class="card" style="min-width:0"><div class="lms-tabs" style="margin-bottom:16px;overflow-x:auto">'+nav+'</div>'+cuerpo+'</div>'+
+    '</div>';
+}
+
+/* ------------------------------ IMPORTAR CSV ------------------------------ */
+/* Lector de CSV con comillas, comas y saltos de línea dentro de los campos. */
+function ctLeeCsv(txt){
+  txt = String(txt).replace(/^﻿/, '');
+  var sep = (txt.split('\n')[0].split(';').length > txt.split('\n')[0].split(',').length) ? ';' : ',';
+  var filas = [], fila = [], campo = '', dentro = false, i, ch;
+  for(i = 0; i < txt.length; i++){
+    ch = txt[i];
+    if(dentro){
+      if(ch === '"'){ if(txt[i+1] === '"'){ campo += '"'; i++; } else dentro = false; }
+      else campo += ch;
+    } else if(ch === '"') dentro = true;
+    else if(ch === sep){ fila.push(campo); campo = ''; }
+    else if(ch === '\n'){ fila.push(campo.replace(/\r$/, '')); filas.push(fila); fila = []; campo = ''; }
+    else campo += ch;
+  }
+  if(campo !== '' || fila.length){ fila.push(campo.replace(/\r$/, '')); filas.push(fila); }
+  filas = filas.filter(function(f){ return f.some(function(x){ return String(x).trim() !== ''; }); });
+  if(filas.length < 2) return {cab:[], filas:[]};
+  var cab = filas[0].map(function(h){ return String(h).trim(); });
+  return {cab:cab, filas:filas.slice(1).map(function(f){
+    var o = {}; cab.forEach(function(h, k){ o[h] = f[k] === undefined ? '' : f[k]; }); return o; })};
+}
+
+function ctImportarModal(){
+  var I = CT.importar;
+  var gestores = (typeof USUARIOS !== 'undefined' ? USUARIOS : []).filter(function(u){ return u.est === 'Activo'; });
+  var yo = (SB.sesion && SB.sesion.uid) || '';
+  var cuerpo;
+  if(I.resultado){
+    var r = I.resultado;
+    cuerpo = '<div class="seg-ok-box">'+ic('check',18)+'<div><strong>Importación terminada.</strong><br>'+
+      r.creados+' contacto(s) nuevos · '+r.actualizados+' completados (ya existían) · '+r.omitidos+' sin cambios.</div></div>'+
+      '<div class="row" style="justify-content:flex-end;margin-top:16px"><button class="btn btn-p" id="cti-cerrar">Ver contactos</button></div>';
+  } else if(!I.filas){
+    cuerpo = '<p class="small muted" style="margin:0 0 14px">Sube un archivo CSV exportado de otro CRM (GoHighLevel, Excel, Google…). '+
+      'Se reconocen las columnas de nombre, apellidos, teléfono, correo, empresa, fecha de alta, última actividad y etiquetas. '+
+      'Si un contacto ya existe (mismo id, correo o teléfono) no se duplica: solo se completan los datos que falten.</p>'+
+      '<label class="btn btn-p" style="cursor:pointer">'+ic('upload',15)+' Elegir archivo CSV<input type="file" id="cti-file" accept=".csv,text/csv" hidden></label>'+
+      '<div class="row" style="justify-content:flex-end;margin-top:16px"><button class="btn btn-s" id="cti-x">Cancelar</button></div>';
+  } else {
+    var conTel = I.filas.filter(function(f){ return Object.keys(f).some(function(k){ return /phone|tel|móvil|movil/i.test(k) && String(f[k]).trim(); }); }).length;
+    var conMail = I.filas.filter(function(f){ return Object.keys(f).some(function(k){ return /mail|correo/i.test(k) && String(f[k]).trim(); }); }).length;
+    cuerpo = '<div class="grid g-3" style="margin-bottom:14px">'+
+        [['Filas', I.filas.length], ['Con teléfono', conTel], ['Con correo', conMail]].map(function(k){
+          return '<div class="card kpi" style="padding:12px"><div class="lbl">'+k[0]+'</div><div class="val" style="font-size:22px">'+k[1]+'</div></div>'; }).join('')+'</div>'+
+      '<div class="tiny muted" style="margin-bottom:12px">Columnas: '+esc(I.cab.join(' · '))+'</div>'+
+      '<div class="field"><label class="f">Asignar a</label><select class="inp" id="cti-gestor">'+gestores.map(function(u){
+        return '<option value="'+esc(u.id)+'"'+(u.id===(I.gestor||yo)?' selected':'')+'>'+esc(u.n || u.mail)+'</option>'; }).join('')+'</select></div>'+
+      '<div class="field"><label class="f">Origen (se guarda en cada contacto)</label><input class="inp" id="cti-origen" value="'+esc(I.origen)+'"></div>'+
+      '<div class="row" style="gap:10px;justify-content:flex-end;margin-top:6px"><button class="btn btn-s" id="cti-x">Cancelar</button>'+
+        '<button class="btn btn-p" id="cti-ok"'+(I.enviando?' disabled':'')+'>'+ic('upload',15)+' '+(I.enviando?'Importando…':'Importar '+I.filas.length+' contactos')+'</button></div>';
+  }
+  return '<div class="ov" data-ov="ct-importar"><div class="modal" style="max-width:560px">'+
+    '<h3 style="margin:0 0 12px">'+ic('upload',17)+' Importar contactos</h3>'+cuerpo+'</div></div>';
+}
+
+function ctEventosImportar(){
+  if(!CT.importar) return;
+  var cerrar = function(){ var hecho = CT.importar && CT.importar.resultado; CT.importar = null; if(hecho){ CT.cargado = false; ctCarga(); } else renderApp(); };
+  if(q('#cti-x')) q('#cti-x').onclick = cerrar;
+  if(q('#cti-cerrar')) q('#cti-cerrar').onclick = cerrar;
+  if(q('#cti-file')) q('#cti-file').onchange = function(){
+    var f = this.files[0]; if(!f) return;
+    var lector = new FileReader();
+    lector.onload = function(){
+      var r = ctLeeCsv(lector.result);
+      if(!r.filas.length){ toast('El archivo no tiene filas o no es un CSV.'); return; }
+      CT.importar.cab = r.cab; CT.importar.filas = r.filas;
+      CT.importar.origen = 'Importación ' + f.name.replace(/\.csv$/i, '');
+      renderApp();
+    };
+    lector.readAsText(f, 'utf-8');
+  };
+  if(q('#cti-gestor')) q('#cti-gestor').onchange = function(){ CT.importar.gestor = this.value; };
+  if(q('#cti-origen')) q('#cti-origen').oninput = function(){ CT.importar.origen = this.value; };
+  if(q('#cti-ok')) q('#cti-ok').onclick = function(){
+    var I = CT.importar; I.enviando = true; renderApp();
+    sbRpc('importa_contactos', {p_filas: I.filas, p_gestor: q('#cti-gestor') ? q('#cti-gestor').value : (I.gestor || null), p_origen: I.origen})
+      .then(function(r){ I.enviando = false; I.resultado = r; renderApp(); })
+      .catch(function(e){ I.enviando = false; toast(e.message); renderApp(); });
+  };
+}
+
+/* ------------------------------ VISTA ------------------------------------- */
+function viewContactos(v){
+  if(!CT.cargado && !CT.cargando) ctCarga();
+
+  if(CT.det && ctContactoPorId(CT.det)){
+    v.innerHTML = ctFichaPagina();
+    ctEventosFicha();
+    return;
+  }
+  CT.det = null;
+
+  var lista = ctListaFiltrada();
+  var porPag = 50, paginas = Math.max(1, Math.ceil(lista.length / porPag));
+  if(CT.pagina > paginas) CT.pagina = paginas;
+  var vista = lista.slice((CT.pagina-1)*porPag, CT.pagina*porPag);
+  var etiquetas = {};
+  CT.lista.forEach(function(c){ ctEtiquetas(c).forEach(function(t){ etiquetas[t] = (etiquetas[t]||0) + 1; }); });
+  var pend = CT.lista.filter(function(c){ var s = ctSeguimiento(c); return s && (s.col === 'red' || s.col === 'amber'); }).length;
 
   var kpis = [
-    ['Contactos totales', String(CT.lista.length), 'users', 'blue'],
-    ['Leads',    String(CT.lista.filter(function(c){ return c.tipo==='lead'; }).length), 'user', 'violet'],
-    ['Clientes', String(CT.lista.filter(function(c){ return c.tipo==='cliente'; }).length), 'check', 'green'],
-    ['Cualificados', String(CT.lista.filter(function(c){ return c.estado==='Cualificado'; }).length), 'target', 'amber']
+    ['Contactos totales', String(CT.lista.length), 'users', 'blue', ''],
+    ['Leads',    String(CT.lista.filter(function(c){ return c.tipo==='lead'; }).length), 'user', 'violet', ''],
+    ['Clientes', String(CT.lista.filter(function(c){ return c.tipo==='cliente'; }).length), 'check', 'green', ''],
+    ['Seguimientos para hoy o vencidos', String(pend), 'calendar', pend ? 'red' : 'amber', 'pend']
   ];
 
-  var filas = lista.map(function(c){
-    return '<tr>'+
-      '<td><div class="w trunc">'+esc(c.nombre)+'</div>'+
-        '<div class="tiny muted trunc">'+esc(c.empresa||'—')+'</div></td>'+
-      '<td class="tiny muted nowrap">'+esc(c.telefono||'—')+'<div class="tiny muted trunc">'+esc(c.email||'')+'</div></td>'+
-      '<td>'+(c.tipo==='cliente'?'<span class="chip green">Cliente</span>':'<span class="chip blue">Lead</span>')+'</td>'+
-      '<td><span class="chip">'+esc(c.estado)+'</span></td>'+
-      '<td class="tiny muted nowrap">'+esc(haceRel(new Date(c.actualizado||c.creado).getTime()))+'</td>'+
-      '<td style="text-align:right"><button class="btn btn-s btn-xs" data-ct-ver="'+c.id+'">'+ic('eye',12)+' Abrir</button></td>'+
+  var filas = vista.map(function(c){
+    var et = ctEtiquetas(c), s = ctSeguimiento(c);
+    return '<tr class="ct-fila" data-ct-ver="'+c.id+'" tabindex="0">'+
+      '<td><div class="row" style="gap:10px;align-items:center;min-width:0"><div class="ct-av-s">'+esc((c.nombre||'?').charAt(0).toUpperCase())+'</div>'+
+        '<div style="min-width:0"><div class="w trunc">'+esc(c.nombre)+'</div><div class="tiny muted trunc">'+esc(c.empresa||'—')+'</div></div></div></td>'+
+      '<td class="tiny muted nowrap">'+esc(c.telefono ? (c.prefijo||'')+' '+c.telefono : '—')+'<div class="tiny muted trunc">'+esc(c.email||'')+'</div></td>'+
+      '<td><span class="chip '+(COLOR_EST_CT[c.estado]||'')+'">'+esc(c.estado)+'</span></td>'+
+      '<td>'+(et.length ? et.slice(0,2).map(function(t){ return '<span class="chip" style="margin:0 4px 4px 0">'+esc(t)+'</span>'; }).join('')+
+        (et.length > 2 ? '<span class="tiny muted">+'+(et.length-2)+'</span>' : '') : '<span class="tiny muted">—</span>')+'</td>'+
+      '<td class="tiny nowrap">'+(s ? '<span class="chip '+s.col+'">'+esc(s.txt)+'</span>' : '<span class="muted">—</span>')+'</td>'+
+      '<td class="tiny muted nowrap">'+esc(c.ultima_actividad ? haceRel(new Date(c.ultima_actividad).getTime()) : haceRel(new Date(c.actualizado||c.creado).getTime()))+'</td>'+
+      '<td style="text-align:right;color:var(--txt-2)">'+ic('arrowRight',15)+'</td>'+
     '</tr>';
-  }).join('') || '<tr><td colspan="6" class="muted" style="text-align:center;padding:26px">'+
+  }).join('') || '<tr><td colspan="7" class="muted" style="text-align:center;padding:26px">'+
     (CT.cargando ? 'Cargando contactos...' :
      CT.error ? 'No se ha podido cargar: '+esc(CT.error) :
-     'Ningún contacto coincide con la búsqueda.')+'</td></tr>';
+     CT.lista.length ? 'Ningún contacto coincide con la búsqueda.' : 'Todavía no hay contactos. Crea uno o importa un CSV.')+'</td></tr>';
 
   v.innerHTML =
   '<div class="grid g-4" style="margin-bottom:16px">'+
-    kpis.map(function(k){ return '<div class="card kpi"><div class="row" style="justify-content:space-between">'+
+    kpis.map(function(k){ return '<div class="card kpi'+(k[4]?' ct-kpi-click':'')+'"'+(k[4]?' data-ct-seg="'+k[4]+'"':'')+'><div class="row" style="justify-content:space-between">'+
       '<div class="lbl">'+k[0]+'</div><div class="ico-box '+k[3]+'">'+ic(k[2],17)+'</div></div>'+
       '<div class="val">'+k[1]+'</div></div>'; }).join('')+
   '</div>'+
   '<div class="card">'+
     '<div class="card-h" style="margin:0;flex-wrap:wrap">'+
       '<div><h3 style="font-size:18px">Contactos</h3>'+
-        '<p>Ficha individual de cada lead y cliente: documentación, especificaciones, seguimiento y comentarios del equipo.</p></div>'+
-      '<button class="btn btn-p" id="ct-nuevo">'+ic('plus',16)+' Nuevo contacto</button></div>'+
+        '<p>Pulsa cualquier contacto para abrir su ficha: datos, seguimiento, comentarios y documentación.</p></div>'+
+      '<div class="row" style="gap:8px;flex-wrap:wrap">'+
+        (ctPuedeImportar() ? '<button class="btn btn-s" id="ct-importar">'+ic('upload',15)+' Importar CSV</button>' : '')+
+        '<button class="btn btn-p" id="ct-nuevo">'+ic('plus',16)+' Nuevo contacto</button></div></div>'+
     '<div class="row u-filtros">'+
       '<div class="search" style="flex:1;min-width:220px">'+ic('search',15)+
-        '<input id="ct-find" placeholder="Nombre, empresa, correo o teléfono..." value="'+esc(CT.filtro)+'"></div>'+
+        '<input id="ct-find" placeholder="Nombre, empresa, correo, teléfono o etiqueta..." value="'+esc(CT.filtro)+'"></div>'+
       '<select class="inp u-sel" id="ct-ftipo"><option value="">Leads y clientes</option>'+
         '<option value="lead"'+(CT.tipoF==='lead'?' selected':'')+'>Solo leads</option>'+
         '<option value="cliente"'+(CT.tipoF==='cliente'?' selected':'')+'>Solo clientes</option></select>'+
       '<select class="inp u-sel" id="ct-fest"><option value="">Todos los estados</option>'+
-        ESTADOS_CT.map(function(e){ return '<option'+(CT.estadoF===e?' selected':'')+'>'+e+'</option>'; }).join('')+
-        '</select></div>'+
+        ESTADOS_CT.map(function(e){ return '<option'+(CT.estadoF===e?' selected':'')+'>'+e+'</option>'; }).join('')+'</select>'+
+      '<select class="inp u-sel" id="ct-fetq"><option value="">Todas las etiquetas</option>'+
+        Object.keys(etiquetas).sort().map(function(t){ return '<option value="'+esc(t)+'"'+(CT.etiquetaF===t?' selected':'')+'>'+esc(t)+' ('+etiquetas[t]+')</option>'; }).join('')+'</select>'+
+      '<select class="inp u-sel" id="ct-fseg"><option value="">Cualquier seguimiento</option>'+
+        '<option value="pend"'+(CT.segF==='pend'?' selected':'')+'>Para hoy o vencidos</option>'+
+        '<option value="sin"'+(CT.segF==='sin'?' selected':'')+'>Sin seguimiento programado</option></select>'+
+    '</div>'+
+    '<div class="tiny muted" style="margin:10px 0 4px">'+lista.length+' contacto(s)'+(lista.length !== CT.lista.length ? ' de '+CT.lista.length : '')+'</div>'+
     '<div style="overflow-x:auto"><table class="tbl"><thead><tr>'+
-      '<th>Contacto</th><th>Teléfono / correo</th><th>Tipo</th><th>Estado</th><th>Actualizado</th><th></th>'+
+      '<th>Contacto</th><th>Teléfono / correo</th><th>Estado</th><th>Etiquetas</th><th>Próximo seguimiento</th><th>Actividad</th><th></th>'+
       '</tr></thead><tbody>'+filas+'</tbody></table></div>'+
+    (paginas > 1 ? '<div class="row" style="justify-content:center;gap:8px;margin-top:14px;align-items:center">'+
+      '<button class="btn btn-s btn-xs" id="ct-pag-ant"'+(CT.pagina>1?'':' disabled')+'>'+ic('arrowLeft',13)+'</button>'+
+      '<span class="tiny muted">Página '+CT.pagina+' de '+paginas+'</span>'+
+      '<button class="btn btn-s btn-xs" id="ct-pag-sig"'+(CT.pagina<paginas?'':' disabled')+'>'+ic('arrowRight',13)+'</button></div>' : '')+
   '</div>'+
   (CT.nuevo ? ctNuevoModal() : '') +
-  ctFichaHTML();
+  (CT.importar ? ctImportarModal() : '');
 
-  q('#ct-find').oninput = function(){ CT.filtro = this.value; renderApp(); };
-  q('#ct-ftipo').onchange = function(){ CT.tipoF = this.value; renderApp(); };
-  q('#ct-fest').onchange = function(){ CT.estadoF = this.value; renderApp(); };
+  var refiltra = function(){ CT.pagina = 1; renderApp(); };
+  q('#ct-find').oninput = function(){ CT.filtro = this.value; var p = this.selectionStart; refiltra(); var n = q('#ct-find'); if(n){ n.focus(); n.setSelectionRange(p, p); } };
+  q('#ct-ftipo').onchange = function(){ CT.tipoF = this.value; refiltra(); };
+  q('#ct-fest').onchange = function(){ CT.estadoF = this.value; refiltra(); };
+  q('#ct-fetq').onchange = function(){ CT.etiquetaF = this.value; refiltra(); };
+  q('#ct-fseg').onchange = function(){ CT.segF = this.value; refiltra(); };
+  qa('[data-ct-seg]').forEach(function(b){ b.onclick = function(){ CT.segF = CT.segF === 'pend' ? '' : 'pend'; refiltra(); }; });
+  if(q('#ct-pag-ant')) q('#ct-pag-ant').onclick = function(){ CT.pagina--; renderApp(); };
+  if(q('#ct-pag-sig')) q('#ct-pag-sig').onclick = function(){ CT.pagina++; renderApp(); };
   q('#ct-nuevo').onclick = ctNuevo;
-  qa('[data-ct-ver]').forEach(function(b){ b.onclick = function(){ ctAbre(Number(b.dataset.ctVer)); }; });
+  if(q('#ct-importar')) q('#ct-importar').onclick = function(){ CT.importar = {gestor:'', origen:'Importación CSV'}; renderApp(); };
+  qa('[data-ct-ver]').forEach(function(b){
+    b.onclick = function(){ ctAbre(Number(b.dataset.ctVer)); };
+    b.onkeydown = function(e){ if(e.key === 'Enter') ctAbre(Number(b.dataset.ctVer)); };
+  });
+  ctEventosImportar();
 
   if(CT.nuevo){
     q('#ctn-nombre').onchange = function(){ CT.nuevo.nombre = this.value; };
@@ -4175,40 +4452,56 @@ function viewContactos(v){
     q('#ctn-cancela').onclick = function(){ CT.nuevo = null; renderApp(); };
     q('#ctn-guarda').onclick = ctGuardaNuevo;
   }
+}
 
-  if(CT.det){
-    q('#ct-x').onclick = ctCierra;
-    q('#ct-cerrar').onclick = ctCierra;
-    q('#ct-est').onchange = function(){ ctGuardaCampo(CT.det, 'estado', this.value); };
-    qa('[data-cttab]').forEach(function(b){ b.onclick = function(){ CT.tab = b.dataset.cttab; renderApp(); }; });
-    qa('[data-ct-desc]').forEach(function(b){ b.onclick = function(){
-      var d = CT.documentos.filter(function(x){ return String(x.id)===b.dataset.ctDesc; })[0];
-      if(d) descargaDocumento(d.nombre, d.ruta);
-    }; });
-    qa('[data-ct-deldoc]').forEach(function(b){ b.onclick = function(){ ctBorraArchivo(Number(b.dataset.ctDeldoc)); }; });
-    if(q('#ct-file')) q('#ct-file').onchange = function(){
-      var f = this.files && this.files[0]; if(f) ctSubeArchivo(f);
-    };
-    if(q('#ct-spec-save')) q('#ct-spec-save').onclick = function(){
-      ctGuardaCampo(CT.det, 'especificaciones', q('#ct-spec').value);
-    };
-    if(q('#ct-hist-txt')) q('#ct-hist-txt').oninput = function(){ CT.nuevoTexto = this.value; };
-    if(q('#ct-hist-add')) q('#ct-hist-add').onclick = ctAnadeEvento;
-    if(q('#ct-com-txt')) q('#ct-com-txt').oninput = function(){ CT.nuevoComentario = this.value; };
-    if(q('#ct-com-add')) q('#ct-com-add').onclick = ctAnadeComentario;
-  }
+function ctEventosFicha(){
+  var c = ctContactoPorId(CT.det);
+  q('#ct-volver').onclick = ctCierra;
+  var lista = ctListaFiltrada(), pos = lista.map(function(x){ return x.id; }).indexOf(CT.det);
+  if(q('#ct-ant')) q('#ct-ant').onclick = function(){ if(pos > 0) ctAbre(lista[pos-1].id); };
+  if(q('#ct-sig')) q('#ct-sig').onclick = function(){ if(pos >= 0 && pos < lista.length-1) ctAbre(lista[pos+1].id); };
+  q('#ct-est').onchange = function(){ ctCambiaEstado(this.value); };
+  qa('[data-ct-ed]').forEach(function(el){
+    var ev = el.tagName === 'SELECT' ? 'onchange' : 'oninput';
+    el[ev] = function(){ CT.edit[el.dataset.ctEd] = el.value; };
+  });
+  q('#ct-guardar').onclick = ctGuardaFicha;
+  /* Al pulsar Llamar / WhatsApp / Correo se deja preparada la anotación. */
+  qa('[data-ct-accion]').forEach(function(a){ a.addEventListener('click', function(){
+    CT.tab = 'hist'; CT.nuevoTipo = a.dataset.ctAccion;
+    setTimeout(function(){ renderApp(); var t = q('#ct-hist-txt'); if(t) t.focus(); }, 300);
+  }); });
+  qa('[data-cttab]').forEach(function(b){ b.onclick = function(){ CT.tab = b.dataset.cttab; renderApp(); }; });
+  qa('[data-ct-tipo]').forEach(function(b){ b.onclick = function(){ CT.nuevoTipo = b.dataset.ctTipo; renderApp(); var t = q('#ct-hist-txt'); if(t) t.focus(); }; });
+  qa('[data-ct-desc]').forEach(function(b){ b.onclick = function(){
+    var d = CT.documentos.filter(function(x){ return String(x.id)===b.dataset.ctDesc; })[0];
+    if(d) descargaDocumento(d.nombre, d.ruta);
+  }; });
+  qa('[data-ct-deldoc]').forEach(function(b){ b.onclick = function(){ ctBorraArchivo(Number(b.dataset.ctDeldoc)); }; });
+  if(q('#ct-file')) q('#ct-file').onchange = function(){ var f = this.files && this.files[0]; if(f) ctSubeArchivo(f); };
+  if(q('#ct-spec-save')) q('#ct-spec-save').onclick = function(){
+    var val = q('#ct-spec').value;
+    sbUpdate('contactos', 'id=eq.'+c.id, {especificaciones: val}).then(function(r){
+      if(r && r.ok){ c.especificaciones = val; toast('Especificaciones guardadas.'); } else toast('No se ha podido guardar: ' + sbMensaje(r));
+    });
+  };
+  if(q('#ct-hist-txt')) q('#ct-hist-txt').oninput = function(){ CT.nuevoTexto = this.value; };
+  if(q('#ct-hist-add')) q('#ct-hist-add').onclick = ctAnadeEvento;
+  if(q('#ct-com-txt')) q('#ct-com-txt').oninput = function(){ CT.nuevoComentario = this.value; };
+  if(q('#ct-com-txt')) q('#ct-com-txt').onkeydown = function(e){ if(e.key === 'Enter') ctAnadeComentario(); };
+  if(q('#ct-com-add')) q('#ct-com-add').onclick = ctAnadeComentario;
 }
 
 function ctNuevoModal(){
   var n = CT.nuevo;
   return '<div class="ov" data-ov="ct-nuevo"><div class="modal" style="max-width:480px">'+
     '<h3 style="margin:0 0 4px">Nuevo contacto</h3>'+
-    '<p class="tiny muted" style="margin:0 0 16px">Se guarda en la base de datos y queda asignado a tu cartera.</p>'+
+    '<p class="tiny muted" style="margin:0 0 16px">Se guarda en la base de datos, queda asignado a tu cartera y se abre su ficha.</p>'+
     '<div class="grid g-2">'+
       '<div class="field"><label class="f">Nombre *</label><input class="inp" id="ctn-nombre" value="'+esc(n.nombre)+'" placeholder="Nombre y apellidos"></div>'+
       '<div class="field"><label class="f">Empresa</label><input class="inp" id="ctn-empresa" value="'+esc(n.empresa)+'"></div>'+
       '<div class="field"><label class="f">Correo</label><input class="inp" id="ctn-email" value="'+esc(n.email)+'"></div>'+
-      '<div class="field"><label class="f">Teléfono</label><input class="inp" id="ctn-tel" value="'+esc(n.telefono)+'" placeholder="+34 600 000 000"></div>'+
+      '<div class="field"><label class="f">Teléfono</label><input class="inp" id="ctn-tel" value="'+esc(n.telefono)+'" placeholder="600 000 000"></div>'+
       '<div class="field"><label class="f">Origen</label><input class="inp" id="ctn-origen" value="'+esc(n.origen)+'" placeholder="Ej. web, referido, anuncio"></div>'+
       '<div class="field"><label class="f">Tipo</label><select class="inp" id="ctn-tipo">'+
         '<option value="lead"'+(n.tipo==='lead'?' selected':'')+'>Lead</option>'+

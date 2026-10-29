@@ -533,7 +533,9 @@ function labs_tablas()
         'cols' => array('id' => array('i'), 'tipo' => array('t', 'lead'), 'nombre' => array('t'), 'empresa' => array('t', ''),
             'email' => array('t', ''), 'prefijo' => array('t', '+34'), 'telefono' => array('t', ''), 'origen' => array('t', ''),
             'estado' => array('t', 'Nuevo'), 'especificaciones' => array('t', ''), 'gestor_id' => array('u'),
-            'expediente_id' => array('i'), 'creado' => array('s', $AHORA), 'actualizado' => array('s', $AHORA)),
+            'expediente_id' => array('i'), 'etiquetas' => array('t', ''), 'ref_externa' => array('t'),
+            'ultima_actividad' => array('s'), 'proximo_contacto' => array('s'),
+            'creado' => array('s', $AHORA), 'actualizado' => array('s', $AHORA)),
         'actualizado' => true,
         'leer' => function () {
             if (!labs_puedo('contactos.ver')) {
@@ -570,6 +572,12 @@ function labs_tablas()
             if (!labs_en($f['estado'], array('Nuevo', 'Contactado', 'Cualificado', 'Propuesta enviada', 'Cliente', 'Perdido'))) {
                 return 'Estado de contacto no válido.';
             }
+            if (mb_strlen((string) $f['etiquetas']) > 500) {
+                return 'Demasiadas etiquetas (máximo 500 caracteres).';
+            }
+            if ($f['email'] !== '' && !filter_var($f['email'], FILTER_VALIDATE_EMAIL)) {
+                return 'El correo no es válido.';
+            }
             return null;
         },
     );
@@ -590,7 +598,7 @@ function labs_tablas()
             return $f['autor_id'] === labs_uid() && labs_puedo('contactos.notas') && labs_contacto_visible_id($f['contacto_id']);
         },
         'valida' => function ($f) use ($texto_corto) {
-            if (!labs_en($f['tipo'], array('estado', 'evento', 'nota'))) {
+            if (!labs_en($f['tipo'], array('estado', 'evento', 'nota', 'llamada', 'whatsapp', 'correo', 'reunion'))) {
                 return 'Tipo de anotación no válido.';
             }
             return $texto_corto($f);
