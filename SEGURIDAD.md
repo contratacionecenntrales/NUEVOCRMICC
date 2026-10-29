@@ -34,6 +34,8 @@ factor y sus sesiones.
 | **Saturar el servidor** | Peticiones de más de 2 MB y archivos de más de 25 MB rechazados. La página pública de firma frena a quien la martillee (60 peticiones / 10 min por IP) |
 | **Buscar fallos conocidos** de la versión de PHP | No se publica la versión ni `X-Powered-By` |
 | **Inyección SQL** | Consultas preparadas y nombres de columna contra lista blanca |
+| **Robar datos en masa** con una cuenta robada | Más de 30 descargas de documentos en 10 minutos generan una alerta por correo; a partir de 100 se cortan |
+| **Borrar o cifrar los datos** (ransomware, error humano) | Copia diaria cifrada (AES-256) fuera de la web, restaurable desde el panel. Ver `CUMPLIMIENTO-RGPD.md` |
 | **Página de instalación** como puerta trasera | Solo funciona mientras la cuenta raíz no tiene contraseña, pide la clave de instalación y frena los intentos |
 
 ## 2. Lo que depende de ti
@@ -48,10 +50,11 @@ factor y sus sesiones.
 
 ## 3. Cómo se ha probado
 
+- **60 pruebas de cumplimiento RGPD** (copias, restauración, brechas, derechos) y **27** del módulo en el navegador.
 - **52 ataques automáticos** contra el servidor en Apache real, incluido un
   Apache que ignora el `.htaccess` (como nginx) para comprobar que la prueba de
   exposición detecta el peligro de verdad.
-- **93 pruebas** de permisos y funcionamiento del CRM, **23** del panel completo
+- **95 pruebas** de permisos y funcionamiento del CRM, **26** del panel completo
   en navegador, **10** de gestión de usuarios y **16** del Centro de Seguridad y
   el doble factor (activación por QR y entrada con código).
 - Doble factor verificado con los vectores oficiales de la norma RFC 6238.

@@ -127,6 +127,15 @@ En el menú **Sistema → Centro de Seguridad** (administración):
 Las tablas nuevas que necesita se crean solas la primera vez: no hace falta
 volver a importar SQL. El detalle de cada defensa está en `SEGURIDAD.md`.
 
+## 3 ter. Cumplimiento RGPD
+
+En **Sistema → Cumplimiento RGPD**: copias cifradas diarias, registro de
+brechas con plazo de 72 h, alertas por correo, derechos de las personas,
+plazos de conservación y documentación. Para que la copia diaria se haga
+aunque nadie entre, crea en Plesk una **tarea programada → Obtener una URL →
+Diariamente** con la dirección que aparece en *Ajustes*. Detalle en
+`CUMPLIMIENTO-RGPD.md`.
+
 ## 4. Contratos y firma del cliente
 
 El módulo **Contratos y Facturación** genera vuestro contrato real —el de

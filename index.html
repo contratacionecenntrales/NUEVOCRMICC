@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-UU6xoFzZnw9rrNqE2Waf+slR0PeGrQgRn+vsfcvAqsk='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-o86n38nb8YzP3gGs24g9OvPchVFnbYres35uZCkr+7Q='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'; object-src 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Labs Command Center 360 - Oficina virtual SaaS de la red comercial de Labs24k.">
 <meta name="theme-color" content="#0B0F19">
@@ -1784,6 +1784,7 @@ var MENU = [
   {id:'integrations',label:'Webmail y MetaTok',          icon:'plug',      sec:'Sistema',   roles:['admin','manager']},
   {id:'users',       label:'Usuarios y Accesos',         icon:'userPlus',  sec:'Sistema',   roles:['admin']},
   {id:'rolesadmin',  label:'Roles y Permisos',           icon:'shield',    sec:'Sistema',   roles:['admin']},
+  {id:'cumplimiento',label:'Cumplimiento RGPD',          icon:'check',     sec:'Sistema',   roles:['admin']},
   {id:'seguridad',   label:'Centro de Seguridad',        icon:'shield',    sec:'Sistema',   roles:['admin','manager','commercial','backoffice']},
   {id:'settings',    label:'Configuración del Sistema',  icon:'cog',       sec:'Sistema',   roles:['admin','manager','commercial','backoffice']}
 ];
@@ -2019,7 +2020,7 @@ function renderApp(){
     backoffice:viewBackoffice, voice_wa:viewVoice, integrations:viewIntegrations,
     interviews:viewInterviews, users:viewUsers, settings:viewSettings, contactos:viewContactos,
     rolesadmin:viewRolesAdmin, resources:viewResources, support:viewSupport,
-    adminsupport:viewAdminSupportDesk, equipo:viewEquipo, mificha:viewMiFicha, seguridad:viewSeguridad};
+    adminsupport:viewAdminSupportDesk, equipo:viewEquipo, mificha:viewMiFicha, seguridad:viewSeguridad, cumplimiento:viewCumplimiento};
   (VIEWS[S.view]||viewDashboard)(v);
   reponerToasts();
   vcBanda();
@@ -6652,7 +6653,7 @@ function renderLogin(){
       cuerpo+
       '<div class="lg-cerrado">'+ic('shield',13)+
         '<span>Acceso privado. Las cuentas las crea el administrador de Labs24k: '+
-        'no existe registro público.</span></div>'+
+        'no existe registro público. Por seguridad se registran la fecha, la IP y el navegador de cada acceso.</span></div>'+
     '</div>'+
     '<div class="lg-pie" id="lg-pie"></div>'+
     (typeof diagHTML === 'function' ? diagHTML() : '')+
@@ -9087,6 +9088,7 @@ function sbRegistraEntrada(){
 function sbAbrePanel(){
   if(typeof SEG !== 'undefined'){
     SEG.cargado = false; SEG.estado = null; SEG.alta = null; SEG.exposicion = null; SEG.bitacora = null; SEG.mi2fa = null;
+    CUM.cargado = false; CUM.estado = null; CUM.tab = 'resumen'; CUM.resultados = null; CUM.sel = {}; CUM.clave = null; CUM.editInc = null;
   }
   return sbCargaPerfil().then(function(r){
     if(!r.ok) return r;
@@ -12121,6 +12123,678 @@ function segEventos(){
   if(q('#seg-verificar')) q('#seg-verificar').onclick = function(){
     segApi('/bitacora').then(function(d){ SEG.bitacora = d; renderApp(); toast(d.ok ? 'Bitácora íntegra.' : 'La bitácora ha sido manipulada.'); })
       .catch(function(e){ toast(e.message); });
+  };
+}
+
+/* ==========================================================================
+   CUMPLIMIENTO RGPD · Labs Command Center 360™
+   Copias cifradas, registro de brechas (72 h), alertas, derechos de las
+   personas, plazos de conservación y documentación. Lo hace el servidor
+   (api/cumplimiento.php); aquí solo se pinta y se generan los documentos.
+   Ayuda a cumplir: no sustituye el criterio de un asesor o DPO.
+   ========================================================================== */
+var CUM = {
+  cargando:false, cargado:false, error:'', tab:'resumen',
+  estado:null, alertas:[], incidentes:[], solicitudes:[],
+  q:'', resultados:null, sel:{}, editInc:null, nuevaSol:false, ocupado:'', docUsuario:''
+};
+
+function cumApi(ruta, metodo, cuerpo){
+  return sbConSesion(function(){
+    return sbFetch('/rgpd' + ruta, {method: metodo || 'GET', body: cuerpo});
+  }).then(function(r){
+    if(!r.ok) throw new Error(sbMensaje(r));
+    return r.datos;
+  });
+}
+
+/* Descargas con sesión (copias y exportaciones): fetch + blob. */
+function cumDescarga(ruta, nombre){
+  var hacer = function(){
+    var cab = sbCabeceras(true); delete cab['Content-Type'];
+    return fetch(sbUrl('/rgpd' + ruta), {headers: cab, credentials: 'same-origin'});
+  };
+  return hacer().then(function(r){
+    if(r.status === 401 && SB.sesion && SB.sesion.refresh_token) return sbRefresca().then(function(){ return hacer(); });
+    return r;
+  }).then(function(r){
+    if(!r.ok) return r.json().then(function(d){ throw new Error((d && (d.message || d.error)) || ('Error ' + r.status)); });
+    return r.blob();
+  }).then(function(b){ cumGuarda(b, nombre); });
+}
+
+function cumGuarda(blob, nombre){
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = nombre;
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 2000);
+}
+
+function cumCarga(){
+  CUM.cargando = true; CUM.error = '';
+  return Promise.all([cumApi('/estado'), cumApi('/alertas'), cumApi('/incidentes'), cumApi('/solicitudes')]).then(function(r){
+    CUM.estado = r[0]; CUM.alertas = r[1] || []; CUM.incidentes = r[2] || []; CUM.solicitudes = r[3] || [];
+    CUM.cargando = false; CUM.cargado = true; renderApp();
+  }).catch(function(e){
+    CUM.cargando = false; CUM.cargado = true; CUM.error = e.message || 'Sin conexión con el servidor.'; renderApp();
+  });
+}
+
+function cumFecha(ts, conHora){
+  if(!ts) return '—';
+  var o = {day:'2-digit', month:'2-digit', year:'numeric'};
+  if(conHora !== false){ o.hour = '2-digit'; o.minute = '2-digit'; }
+  return new Date(ts).toLocaleString('es-ES', o);
+}
+function cumTam(n){ return n > 1048576 ? (n/1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n/1024)) + ' KB'; }
+function cumLocal(ts){        // ISO → valor de <input type="datetime-local">
+  if(!ts) return '';
+  var d = new Date(ts); d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+  return d.toISOString().slice(0, 16);
+}
+function cumIso(v){ return v ? new Date(v).toISOString() : null; }
+
+/* Plazo de 72 h para avisar a la AEPD (art. 33 RGPD). */
+function cumPlazo(i){
+  if(i.estado === 'cerrado') return {txt:'Cerrada', col:'green'};
+  if(i.notificado_aepd) return {txt:'Notificada a la AEPD', col:'green'};
+  if(i.riesgo === 'sin_riesgo') return {txt:'Sin riesgo · no se notifica', col:'blue'};
+  var limite = new Date(i.detectado).getTime() + 72*3600*1000, h = (limite - Date.now())/3600000;
+  if(h <= 0) return {txt:'Plazo vencido hace ' + Math.ceil(-h) + ' h', col:'red', vencido:true};
+  return {txt:'Quedan ' + Math.floor(h) + ' h ' + Math.floor((h % 1)*60) + ' min', col: h < 24 ? 'red' : 'amber', h:h};
+}
+function cumDiasSol(s){
+  if(s.estado === 'resuelta' || s.estado === 'denegada') return {txt: s.estado === 'resuelta' ? 'Resuelta' : 'Denegada', col:'green'};
+  var d = Math.ceil((new Date(s.vence).getTime() - Date.now())/86400000);
+  return d < 0 ? {txt:'Vencida hace ' + (-d) + ' día(s)', col:'red'} : {txt:'Quedan ' + d + ' día(s)', col: d <= 7 ? 'amber' : 'blue'};
+}
+
+var CUM_TIPOS_SOL = {acceso:'Acceso', rectificacion:'Rectificación', supresion:'Supresión', oposicion:'Oposición',
+  limitacion:'Limitación', portabilidad:'Portabilidad'};
+var CUM_RIESGO = {pendiente:'Sin evaluar', sin_riesgo:'Improbable que haya riesgo', riesgo:'Riesgo (notificar a la AEPD)', alto:'Alto riesgo (AEPD y afectados)'};
+var CUM_ESTADO = {abierto:'Abierta', evaluando:'Evaluando', notificado:'Notificada', cerrado:'Cerrada'};
+var CUM_TIPO_INC = {confidencialidad:'Confidencialidad (acceso o fuga)', integridad:'Integridad (datos alterados)', disponibilidad:'Disponibilidad (datos perdidos)'};
+
+/* --- Vista ---------------------------------------------------------------- */
+function viewCumplimiento(v){
+  if(S.role !== 'admin'){ v.innerHTML = '<div class="card"><p class="muted">Este módulo es de administración.</p></div>'; return; }
+  if(!CUM.cargado && !CUM.cargando) cumCarga();
+  if(CUM.error && !CUM.estado){
+    v.innerHTML = '<div class="card"><div class="nota">'+ic('alert',15)+'<span>No se ha podido cargar el cumplimiento RGPD: '+esc(CUM.error)+
+      '</span></div><button class="btn btn-s" id="cum-recargar" style="margin-top:12px">'+ic('refresh',14)+' Reintentar</button></div>';
+    q('#cum-recargar').onclick = function(){ CUM.cargado = false; renderApp(); };
+    return;
+  }
+  if(!CUM.estado){ v.innerHTML = '<div class="card"><p class="muted">Revisando el cumplimiento…</p></div>'; return; }
+
+  var E = CUM.estado, nAl = CUM.alertas.filter(function(a){ return !a.vista; }).length;
+  var tabs = [['resumen','Resumen'],['brechas','Brechas'+(E.incidentes_abiertos?' ('+E.incidentes_abiertos+')':'')],
+    ['alertas','Alertas'+(nAl?' ('+nAl+')':'')],['copias','Copias de seguridad'],['derechos','Derechos'+(E.solicitudes_abiertas?' ('+E.solicitudes_abiertas+')':'')],
+    ['conservacion','Conservación'],['documentos','Documentos'],['ajustes','Ajustes']];
+  var html =
+    '<div class="card seg-hero" style="margin-bottom:16px">'+
+      '<div class="ico-box green" style="width:58px;height:58px">'+ic('shield',28)+'</div>'+
+      '<div style="flex:1;min-width:240px">'+
+        '<div class="tiny" style="letter-spacing:.14em;text-transform:uppercase;color:var(--blue)">RGPD · LOPDGDD</div>'+
+        '<h2 style="margin:6px 0 6px;font-size:24px;color:#fff">Cumplimiento y protección de datos</h2>'+
+        '<p class="small muted" style="margin:0;max-width:700px">Copias cifradas, brechas con su plazo de 72 h, derechos de las personas y '+
+          'documentación. Te ayuda a cumplir y a demostrarlo; no sustituye el consejo de un asesor o delegado de protección de datos.</p></div></div>'+
+    '<div class="lms-tabs cum-tabs" style="margin-bottom:16px;overflow-x:auto">'+tabs.map(function(t){
+      return '<button class="lms-tab'+(CUM.tab===t[0]?' on':'')+'" data-cum-tab="'+t[0]+'">'+esc(t[1])+'</button>'; }).join('')+'</div>';
+
+  var f = {resumen:cumResumen, brechas:cumBrechas, alertas:cumAlertas, copias:cumCopias, derechos:cumDerechos,
+           conservacion:cumConservacion, documentos:cumDocumentos, ajustes:cumAjustes}[CUM.tab] || cumResumen;
+  v.innerHTML = html + f();
+  cumEventos();
+}
+
+function cumFila(estado, titulo, detalle, extra){
+  return '<div class="seg-fila"><div class="seg-dot '+estado+'"></div><div style="flex:1;min-width:0">'+
+    '<div class="small" style="color:#fff;font-weight:600">'+esc(titulo)+'</div>'+
+    '<div class="tiny muted" style="margin-top:3px;line-height:1.55">'+detalle+'</div></div>'+(extra ? '<div class="seg-acc">'+extra+'</div>' : '')+'</div>';
+}
+
+function cumResumen(){
+  var E = CUM.estado, ult = E.copias[0];
+  var tarde = CUM.incidentes.filter(function(i){ return cumPlazo(i).vencido; }).length;
+  var solTarde = CUM.solicitudes.filter(function(s){ return cumDiasSol(s).col === 'red'; }).length;
+  var html = '<div class="grid g-4" style="margin-bottom:16px">'+
+    [['Alertas sin revisar', CUM.alertas.filter(function(a){ return !a.vista; }).length, 'bell', 'amber'],
+     ['Brechas abiertas', E.incidentes_abiertos, 'alert', E.incidentes_abiertos ? 'red' : 'green'],
+     ['Solicitudes de derechos abiertas', E.solicitudes_abiertas, 'users', 'blue'],
+     ['Copias guardadas', E.copias.length, 'save', E.copias.length ? 'green' : 'red']].map(function(k){
+      return '<div class="card kpi"><div class="row" style="justify-content:space-between"><div class="lbl">'+k[0]+'</div>'+
+        '<div class="ico-box '+k[3]+'">'+ic(k[2],17)+'</div></div><div class="val">'+k[1]+'</div></div>'; }).join('')+'</div>';
+
+  var copiaOk = ult && (Date.now() - new Date(ult.creado).getTime()) < 48*3600*1000;
+  html += '<div class="card" style="margin-bottom:16px"><div class="card-h"><div><h3>'+ic('check',16)+'Obligaciones, revisadas ahora</h3>'+
+    '<p>Lo que pediría la AEPD en una inspección y cómo está hoy.</p></div></div>'+
+    cumFila(E.https ? 'ok' : 'mal', 'Datos cifrados en tránsito (art. 32)', E.https ? 'El panel funciona por https.' :
+      'Sin certificado SSL los datos viajan sin cifrar. Actívalo gratis en Hostalia (Let\'s Encrypt): es la medida más urgente.')+
+    cumFila(copiaOk ? 'ok' : 'mal', 'Copias de seguridad (art. 32.1.c)', copiaOk ? 'Última copia cifrada: '+cumFecha(ult.creado)+'. Se hace una al día sola.' :
+      'No hay copia de las últimas 48 h. Crea una en «Copias de seguridad».', copiaOk ? '' : '<button class="btn btn-p btn-xs" data-cum-ir="copias">Ir</button>')+
+    cumFila(E.copias_privadas ? 'ok' : 'aviso', 'Copias fuera de la web', E.copias_privadas ? 'Se guardan en la carpeta privada del hosting.' :
+      'Se guardan en storage/ protegidas por .htaccess (el hosting no ofrece carpeta privada).')+
+    cumFila(tarde ? 'mal' : 'ok', 'Brechas notificadas en plazo (art. 33)', tarde ? tarde+' brecha(s) han superado las 72 h sin decidir. Resuélvelo ya.' :
+      'Ninguna brecha fuera de plazo.', tarde ? '<button class="btn btn-p btn-xs" data-cum-ir="brechas">Ir</button>' : '')+
+    cumFila(solTarde ? 'mal' : 'ok', 'Derechos atendidos en un mes (art. 12.3)', solTarde ? solTarde+' solicitud(es) vencida(s).' : 'Ninguna solicitud vencida.',
+      solTarde ? '<button class="btn btn-p btn-xs" data-cum-ir="derechos">Ir</button>' : '')+
+    cumFila('ok', 'Plazos de conservación (art. 5.1.e)', 'Leads sin actividad en '+E.conservacion.meses+' meses: se anonimizan solos. Registros de acceso: '+
+      E.conservacion.dias+' días. Pendientes ahora: '+E.conservacion.leads+' lead(s).')+
+    cumFila('ok', 'Registro de actividades y documentación (art. 30)', 'Genera el registro, el protocolo de brechas y los compromisos de confidencialidad en «Documentos».',
+      '<button class="btn btn-s btn-xs" data-cum-ir="documentos">Abrir</button>')+
+    cumFila(E.url_tarea ? 'aviso' : 'ok', 'Tarea diaria en Hostalia (recomendado)', 'El CRM hace la copia diaria cuando alguien lo usa. Para que se haga aunque nadie entre, '+
+      'crea una tarea programada en Plesk con la URL de «Ajustes».', '<button class="btn btn-s btn-xs" data-cum-ir="ajustes">Ver</button>')+
+    '</div>';
+
+  var pend = CUM.incidentes.filter(function(i){ return i.estado !== 'cerrado'; });
+  if(pend.length){
+    html += '<div class="card"><div class="card-h"><div><h3>'+ic('clock',16)+'Brechas en curso</h3></div></div>'+pend.map(function(i){
+      var p = cumPlazo(i);
+      return cumFila(p.col === 'red' ? 'mal' : p.col === 'green' ? 'ok' : 'aviso', i.codigo+' · '+i.titulo, 'Detectada '+cumFecha(i.detectado),
+        '<span class="chip '+p.col+'">'+esc(p.txt)+'</span>');
+    }).join('')+'</div>';
+  }
+  return html;
+}
+
+/* --- Brechas -------------------------------------------------------------- */
+function cumBrechas(){
+  if(CUM.editInc) return cumFormInc();
+  return '<div class="card"><div class="card-h"><div><h3>'+ic('alert',16)+'Registro de brechas de seguridad</h3>'+
+    '<p>Todas se documentan (art. 33.5), aunque no se notifiquen. Si hay riesgo para las personas, se avisa a la AEPD en 72 h desde que se detecta; '+
+    'si el riesgo es alto, también a los afectados (art. 34).</p></div>'+
+    '<button class="btn btn-p btn-xs" id="cum-inc-nueva">'+ic('plus',13)+' Registrar brecha</button></div>'+
+    (CUM.incidentes.length ? '<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Código</th><th>Brecha</th><th>Detectada</th>'+
+      '<th>Riesgo</th><th>Plazo AEPD</th><th></th></tr></thead><tbody>'+
+      CUM.incidentes.map(function(i){
+        var p = cumPlazo(i);
+        return '<tr><td class="mono tiny">'+esc(i.codigo)+'</td><td><div class="w">'+esc(i.titulo)+'</div><div class="tiny muted">'+
+          esc(CUM_ESTADO[i.estado]||i.estado)+(i.origen !== 'manual' ? ' · detectada automáticamente' : '')+'</div></td>'+
+          '<td class="tiny nowrap">'+cumFecha(i.detectado)+'</td><td class="tiny">'+esc(CUM_RIESGO[i.riesgo]||i.riesgo)+'</td>'+
+          '<td><span class="chip '+p.col+'">'+esc(p.txt)+'</span></td>'+
+          '<td style="text-align:right"><button class="btn btn-s btn-xs" data-cum-inc="'+i.id+'">Abrir</button></td></tr>';
+      }).join('')+'</tbody></table></div>'
+      : '<p class="tiny muted">No hay ninguna brecha registrada.</p>')+'</div>';
+}
+
+function cumFormInc(){
+  var i = CUM.editInc === 'nuevo' ? {titulo:'', descripcion:'', tipo:'confidencialidad', riesgo:'pendiente', estado:'abierto', detectado:new Date().toISOString()}
+        : CUM.incidentes.filter(function(x){ return x.id === CUM.editInc; })[0] || {};
+  var p = i.id ? cumPlazo(i) : null;
+  function campo(id, etiqueta, valor, tipo, ayuda){
+    return '<div class="field"><label class="f">'+etiqueta+'</label>'+(tipo === 'area' ?
+      '<textarea class="inp" id="inc-'+id+'" rows="3">'+esc(valor||'')+'</textarea>' :
+      '<input class="inp" id="inc-'+id+'" type="'+(tipo||'text')+'" value="'+esc(valor === null || valor === undefined ? '' : valor)+'">')+
+      (ayuda ? '<div class="tiny muted" style="margin-top:5px">'+ayuda+'</div>' : '')+'</div>';
+  }
+  function lista(id, etiqueta, mapa, valor){
+    return '<div class="field"><label class="f">'+etiqueta+'</label><select class="inp" id="inc-'+id+'">'+Object.keys(mapa).map(function(k){
+      return '<option value="'+k+'"'+(k === valor ? ' selected' : '')+'>'+esc(mapa[k])+'</option>'; }).join('')+'</select></div>';
+  }
+  return '<div class="card"><div class="card-h"><div><h3>'+ic('alert',16)+(i.id ? esc(i.codigo)+' · '+esc(i.titulo) : 'Registrar una brecha')+'</h3>'+
+    '<p>'+(p ? 'Plazo AEPD: <strong>'+esc(p.txt)+'</strong> (72 h desde la detección).' : 'Anótala en cuanto se detecte: el plazo empieza a contar entonces.')+'</p></div>'+
+    '<button class="btn btn-s btn-xs" id="cum-inc-volver">'+ic('arrowLeft',13)+' Volver</button></div>'+
+    '<div class="grid g-2">'+
+      '<div>'+campo('titulo', 'Qué ha pasado (título)', i.titulo)+
+        campo('detectado', 'Cuándo se detectó', cumLocal(i.detectado), 'datetime-local', 'Desde aquí cuentan las 72 h.')+
+        campo('inicio', 'Cuándo empezó (si se sabe)', cumLocal(i.inicio), 'datetime-local')+
+        lista('tipo', 'Tipo', CUM_TIPO_INC, i.tipo)+
+        campo('medio', 'Cómo ocurrió', i.medio, 'text', 'Ej.: correo enviado a otra persona, contraseña robada, portátil perdido, ataque informático…')+
+        campo('descripcion', 'Descripción detallada', i.descripcion, 'area')+
+        campo('categorias_datos', 'Datos afectados', i.categorias_datos, 'text', 'Ej.: nombre, teléfono, DNI, datos bancarios, firma.')+
+        campo('categorias_interesados', 'Personas afectadas', i.categorias_interesados, 'text', 'Ej.: clientes, leads, empleados, candidatos.')+
+        '<div class="grid g-2">'+campo('num_interesados', 'Nº de personas (aprox.)', i.num_interesados, 'number')+
+          campo('num_registros', 'Nº de registros (aprox.)', i.num_registros, 'number')+'</div></div>'+
+      '<div>'+campo('consecuencias', 'Consecuencias posibles', i.consecuencias, 'area', 'Ej.: suplantación, fraude, pérdida de confidencialidad, daño reputacional.')+
+        campo('medidas', 'Medidas tomadas y previstas', i.medidas, 'area', 'Ej.: contraseñas cambiadas, sesiones cerradas, aviso al destinatario para que borre el correo.')+
+        lista('riesgo', 'Evaluación del riesgo', CUM_RIESGO, i.riesgo)+
+        campo('decision', 'Por qué se decide así', i.decision, 'area', 'Si no se notifica, deja escrito el motivo: es lo que pedirá la AEPD.')+
+        lista('estado', 'Estado', CUM_ESTADO, i.estado)+
+        '<div class="grid g-2">'+campo('notificado_aepd', 'Notificada a la AEPD el', cumLocal(i.notificado_aepd), 'datetime-local')+
+          campo('registro_aepd', 'Nº de registro AEPD', i.registro_aepd)+'</div>'+
+        campo('comunicado_afectados', 'Comunicada a los afectados el', cumLocal(i.comunicado_afectados), 'datetime-local')+
+        campo('resuelto', 'Resuelta el', cumLocal(i.resuelto), 'datetime-local')+'</div>'+
+    '</div>'+
+    '<div class="row" style="gap:9px;flex-wrap:wrap;margin-top:6px">'+
+      '<button class="btn btn-p" id="cum-inc-guardar"'+(CUM.ocupado?' disabled':'')+'>'+ic('save',14)+' Guardar</button>'+
+      (i.id ? '<button class="btn btn-s" data-cum-doc-inc="aepd">'+ic('file',14)+' Borrador para la AEPD</button>'+
+        '<button class="btn btn-s" data-cum-doc-inc="afectados">'+ic('mail',14)+' Carta a los afectados</button>'+
+        '<button class="btn btn-s" data-cum-doc-inc="ficha">'+ic('download',14)+' Ficha del registro</button>' : '')+'</div>'+
+    (i.id ? '<div class="nota" style="margin-top:14px">'+ic('help',15)+'<span>La notificación se presenta en la sede electrónica de la AEPD '+
+      '(sedeagpd.gob.es → «Notificación de brechas de datos personales»), con certificado digital. El borrador te deja todas las respuestas preparadas.</span></div>' : '')+
+  '</div>';
+}
+
+/* --- Alertas -------------------------------------------------------------- */
+function cumAlertas(){
+  var G = {critica:['red','Crítica'], alta:['red','Alta'], media:['amber','Media'], baja:['blue','Baja']};
+  return '<div class="card"><div class="card-h"><div><h3>'+ic('bell',16)+'Alertas automáticas</h3>'+
+    '<p>El servidor vigila solo: ataques de fuerza bruta, cuentas de administración atacadas, entradas desde conexiones nuevas, doble factor quitado, '+
+    'descargas masivas, archivos expuestos, bitácora manipulada y copias que fallan. Las graves llegan también por correo a '+esc(CUM.estado.ajustes.email_alertas)+'.</p></div></div>'+
+    (CUM.alertas.length ? CUM.alertas.map(function(a){
+      var g = G[a.gravedad] || ['blue', a.gravedad];
+      return '<div class="seg-fila" style="'+(a.vista ? 'opacity:.6' : '')+'"><div class="seg-dot '+(g[0] === 'red' ? 'mal' : g[0] === 'amber' ? 'aviso' : 'ok')+'"></div>'+
+        '<div style="flex:1;min-width:0"><div class="small" style="color:#fff;font-weight:600">'+esc(a.titulo)+' <span class="chip '+g[0]+'">'+g[1]+'</span></div>'+
+        '<div class="tiny muted" style="margin-top:3px;line-height:1.55;white-space:pre-line">'+esc(a.detalle || '')+'</div>'+
+        '<div class="tiny muted" style="margin-top:3px">'+cumFecha(a.ts)+(a.incidente_id ? ' · registrada como brecha' : '')+'</div></div>'+
+        '<div class="seg-acc">'+(a.vista ? '' : '<button class="btn btn-s btn-xs" data-cum-al-vista="'+a.id+'">Revisada</button>')+
+        (a.incidente_id ? '' : '<button class="btn btn-p btn-xs" data-cum-al-inc="'+a.id+'">Es una brecha</button>')+'</div></div>';
+    }).join('') : '<p class="tiny muted">Sin alertas. Todo tranquilo.</p>')+'</div>';
+}
+
+/* --- Copias --------------------------------------------------------------- */
+function cumCopias(){
+  var E = CUM.estado;
+  return '<div class="card" style="margin-bottom:16px"><div class="card-h"><div><h3>'+ic('save',16)+'Copias de seguridad cifradas</h3>'+
+    '<p>Base de datos y documentos, cifrados con AES-256 y guardados '+(E.copias_privadas ? 'en la carpeta privada del hosting' : 'en storage/ (protegido)')+
+    '. Se hace una al día sola y se guardan las '+esc(E.ajustes.copias_guardar)+' últimas. Descarga una de vez en cuando y guárdala fuera del hosting.</p></div>'+
+    '<div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn btn-p btn-xs" id="cum-copia-crear"'+(CUM.ocupado?' disabled':'')+'>'+
+      ic(CUM.ocupado === 'copia' ? 'refresh' : 'plus',13)+' '+(CUM.ocupado === 'copia' ? 'Creando…' : 'Crear copia ahora')+'</button>'+
+    '<label class="btn btn-s btn-xs" style="cursor:pointer">'+ic('upload',13)+' Subir copia<input type="file" id="cum-copia-subir" accept=".labsbak" hidden></label></div></div>'+
+    (E.copias.length ? '<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Copia</th><th>Fecha</th><th>Tamaño</th><th></th></tr></thead><tbody>'+
+      E.copias.map(function(c){
+        var tipo = /-auto\./.test(c.nombre) ? 'Automática' : /-previa\./.test(c.nombre) ? 'Antes de restaurar' : /subida/.test(c.nombre) ? 'Subida' : 'Manual';
+        return '<tr><td><div class="mono tiny">'+esc(c.nombre)+'</div><div class="tiny muted">'+tipo+'</div></td><td class="tiny nowrap">'+cumFecha(c.creado)+'</td>'+
+          '<td class="tiny">'+cumTam(c.tamano)+'</td><td style="text-align:right;white-space:nowrap">'+
+          '<button class="btn btn-s btn-xs" data-cum-bajar="'+esc(c.nombre)+'">'+ic('download',12)+' Descargar</button> '+
+          (E.raiz ? '<button class="btn btn-s btn-xs" data-cum-restaurar="'+esc(c.nombre)+'">'+ic('refresh',12)+' Restaurar</button>' : '')+'</td></tr>';
+      }).join('')+'</tbody></table></div>' : '<p class="tiny muted">Todavía no hay copias.</p>')+'</div>'+
+    '<div class="card"><div class="card-h"><div><h3>'+ic('shield',16)+'Clave de cifrado</h3>'+
+      '<p>Sin esta clave las copias no se pueden abrir: ni un ladrón ni nadie. Guárdala fuera del servidor (gestor de contraseñas o papel en lugar seguro). '+
+      'Restaurar y ver la clave es solo de la cuenta raíz y pide el código del doble factor si está activado.</p></div></div>'+
+      (E.raiz ? (CUM.clave ? '<div class="seg-clave mono">'+esc(CUM.clave)+'</div>' :
+        '<button class="btn btn-s" id="cum-clave">'+ic('eye',14)+' Ver la clave</button>') : '<p class="tiny muted">Solo la cuenta raíz.</p>')+'</div>';
+}
+
+/* --- Derechos ------------------------------------------------------------- */
+function cumDerechos(){
+  var r = CUM.resultados, nSel = Object.keys(CUM.sel).length;
+  var html = '<div class="card" style="margin-bottom:16px"><div class="card-h"><div><h3>'+ic('search',16)+'Buscar los datos de una persona</h3>'+
+    '<p>Por nombre, correo, teléfono o DNI. Busca en contactos, contratos, candidaturas y cuentas del CRM.</p></div></div>'+
+    '<div class="row" style="gap:9px;flex-wrap:wrap"><input class="inp" id="cum-q" placeholder="Ej.: pedro@correo.es o 12345678Z" value="'+esc(CUM.q)+'" style="max-width:420px">'+
+    '<button class="btn btn-p" id="cum-buscar">'+ic('search',14)+' Buscar</button></div>';
+  if(r){
+    html += r.length ? '<div style="margin-top:12px">'+r.map(function(x){
+      var k = x.tipo + ':' + x.id;
+      var accion = x.tipo === 'contrato' ? (x.bloqueado ? '<span class="chip violet">Bloqueado</span>' :
+          '<button class="btn btn-s btn-xs" data-cum-sup="'+esc(k)+'">Bloquear</button>') :
+        x.tipo === 'usuario' ? '<span class="tiny muted">Se gestiona en Usuarios</span>' :
+        '<button class="btn btn-s btn-xs" data-cum-sup="'+esc(k)+'">'+ic('x',12)+' Suprimir</button>';
+      return '<div class="seg-fila"><input type="checkbox" data-cum-sel="'+esc(k)+'"'+(CUM.sel[k]?' checked':'')+' style="margin-top:4px">'+
+        '<div style="flex:1;min-width:0"><div class="small" style="color:#fff;font-weight:600">'+esc(x.titulo)+' <span class="chip blue">'+esc(x.tipo)+'</span></div>'+
+        '<div class="tiny muted">'+esc(x.detalle)+'</div></div><div class="seg-acc">'+accion+'</div></div>';
+    }).join('')+'</div><div class="row" style="gap:9px;margin-top:12px;flex-wrap:wrap">'+
+      '<button class="btn btn-p" id="cum-exportar"'+(nSel?'':' disabled')+'>'+ic('download',14)+' Exportar lo marcado ('+nSel+')</button>'+
+      '<span class="tiny muted">Zip con un informe legible y un datos.json (acceso y portabilidad, arts. 15 y 20).</span></div>'
+      : '<p class="tiny muted" style="margin-top:12px">Nada encontrado con «'+esc(CUM.q)+'».</p>';
+    html += '<div class="nota" style="margin-top:12px">'+ic('help',15)+'<span><strong>Suprimir</strong> borra contactos y candidaturas con su historial y documentos. '+
+      'Los <strong>contratos</strong> no se borran: hay obligación legal de guardarlos (6 años, Código de Comercio), así que se <strong>bloquean</strong> '+
+      '(art. 32 LOPDGDD): desaparecen para todo el equipo y solo administración los ve.</span></div>';
+  }
+  html += '</div>';
+
+  html += '<div class="card"><div class="card-h"><div><h3>'+ic('clock',16)+'Solicitudes de derechos</h3>'+
+    '<p>Plazo para responder: 1 mes desde que se recibe, ampliable 2 meses más si es complejo avisando a la persona (art. 12.3).</p></div>'+
+    '<button class="btn btn-p btn-xs" id="cum-sol-nueva">'+ic('plus',13)+' Registrar solicitud</button></div>';
+  if(CUM.nuevaSol){
+    html += '<div class="grid g-2" style="margin-bottom:12px">'+
+      '<div class="field"><label class="f">Qué pide</label><select class="inp" id="sol-tipo">'+Object.keys(CUM_TIPOS_SOL).map(function(k){
+        return '<option value="'+k+'">'+CUM_TIPOS_SOL[k]+'</option>'; }).join('')+'</select></div>'+
+      '<div class="field"><label class="f">Recibida el</label><input class="inp" id="sol-recibida" type="date" value="'+new Date().toISOString().slice(0,10)+'"></div>'+
+      '<div class="field"><label class="f">Persona</label><input class="inp" id="sol-persona" placeholder="Nombre y apellidos"></div>'+
+      '<div class="field"><label class="f">Contacto</label><input class="inp" id="sol-contacto" placeholder="Correo o teléfono"></div></div>'+
+      '<div class="field"><label class="f">Notas</label><textarea class="inp" id="sol-notas" rows="2"></textarea></div>'+
+      '<div class="row" style="gap:8px;margin-bottom:14px"><button class="btn btn-p" id="cum-sol-guardar">'+ic('save',14)+' Guardar</button>'+
+      '<button class="btn btn-s" id="cum-sol-x">Cancelar</button></div>';
+  }
+  html += CUM.solicitudes.length ? '<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Código</th><th>Persona</th><th>Derecho</th><th>Recibida</th><th>Plazo</th><th></th></tr></thead><tbody>'+
+    CUM.solicitudes.map(function(s){
+      var d = cumDiasSol(s), abierta = s.estado === 'abierta' || s.estado === 'prorrogada';
+      return '<tr><td class="mono tiny">'+esc(s.codigo)+'</td><td><div class="w">'+esc(s.persona)+'</div><div class="tiny muted">'+esc(s.contacto||'')+'</div></td>'+
+        '<td class="tiny">'+esc(CUM_TIPOS_SOL[s.tipo]||s.tipo)+(s.estado === 'prorrogada' ? ' · prorrogada' : '')+'</td><td class="tiny nowrap">'+cumFecha(s.recibida, false)+'</td>'+
+        '<td><span class="chip '+d.col+'">'+esc(d.txt)+'</span><div class="tiny muted">vence '+cumFecha(s.vence, false)+'</div></td>'+
+        '<td style="text-align:right;white-space:nowrap">'+(abierta ? (s.estado === 'abierta' ? '<button class="btn btn-s btn-xs" data-cum-sol="'+s.id+'" data-est="prorrogada">Prorrogar</button> ' : '')+
+          '<button class="btn btn-p btn-xs" data-cum-sol="'+s.id+'" data-est="resuelta">Resuelta</button> '+
+          '<button class="btn btn-s btn-xs" data-cum-sol="'+s.id+'" data-est="denegada">Denegar</button>' : '<span class="tiny muted">'+esc(s.respuesta||'')+'</span>')+'</td></tr>';
+    }).join('')+'</tbody></table></div>' : '<p class="tiny muted">No hay solicitudes registradas.</p>';
+  return html + '</div>';
+}
+
+/* --- Conservación --------------------------------------------------------- */
+function cumConservacion(){
+  var c = CUM.estado.conservacion;
+  return '<div class="card"><div class="card-h"><div><h3>'+ic('clock',16)+'Plazos de conservación</h3>'+
+    '<p>Los datos no se guardan para siempre (art. 5.1.e). El CRM aplica estos plazos solo, cada día. Puedes cambiarlos en «Ajustes».</p></div></div>'+
+    cumFila(c.leads ? 'aviso' : 'ok', 'Leads sin actividad en '+c.meses+' meses', c.leads ? c.leads+' lead(s) listos para anonimizar: se borran nombre, empresa, correo, teléfono, historial y documentos. '+
+      'Queda solo «Anónimo #número» para que las estadísticas cuadren.' : 'Ninguno pendiente.')+
+    cumFila(c.accesos ? 'aviso' : 'ok', 'Registro de accesos de más de '+c.dias+' días', c.accesos ? c.accesos+' registro(s) para borrar.' : 'Ninguno pendiente.')+
+    cumFila('ok', 'Contratos y facturación', 'Se conservan 6 años (art. 30 Código de Comercio) y 4 años a efectos fiscales. No se borran solos: si alguien pide la supresión, se bloquean.')+
+    cumFila('ok', 'Clientes con relación activa', 'Se conservan mientras dure la relación.')+
+    cumFila('ok', 'Bitácora de auditoría', 'Se conserva como prueba de las medidas de seguridad (responsabilidad proactiva, art. 5.2).')+
+    '<button class="btn btn-p" id="cum-conservar" style="margin-top:12px"'+((c.leads || c.accesos) && !CUM.ocupado ? '' : ' disabled')+'>'+ic('check',14)+' Aplicar ahora</button></div>';
+}
+
+/* --- Documentos ----------------------------------------------------------- */
+function cumDocumentos(){
+  var docs = [
+    ['rat', 'Registro de actividades de tratamiento', 'Obligatorio (art. 30). Qué datos se tratan, para qué, con qué base legal, cuánto tiempo y con qué medidas.'],
+    ['medidas', 'Anexo de medidas de seguridad', 'Las medidas técnicas y organizativas que aplica este CRM, descritas para una inspección.'],
+    ['protocolo', 'Protocolo de actuación ante brechas', 'Qué hacer en la primera hora, en las 72 h y después. Para que todo el equipo lo conozca.'],
+    ['clausula', 'Cláusula informativa', 'Texto de información para formularios, correos y presupuestos (arts. 13 y 14).'],
+    ['confidencialidad', 'Compromiso de confidencialidad', 'Para que lo firme cada persona del equipo con acceso al CRM.']
+  ];
+  var opts = (typeof USUARIOS !== 'undefined' ? USUARIOS : []).map(function(u){
+    return '<option value="'+esc(u.id)+'">'+esc(u.n || u.mail)+'</option>'; }).join('');
+  return '<div class="card"><div class="card-h"><div><h3>'+ic('file',16)+'Documentación RGPD</h3>'+
+    '<p>Se generan con los datos de «Ajustes». Ábrelos, revísalos con tu asesor y guárdalos en PDF (Imprimir → Guardar como PDF).</p></div></div>'+
+    docs.map(function(d){
+      return cumFila('ok', d[1], esc(d[2]), (d[0] === 'confidencialidad' ? '<select class="inp" id="cum-doc-usr" style="max-width:190px;padding:6px 30px 6px 10px">'+
+        '<option value="">En blanco</option>'+opts+'</select>' : '')+'<button class="btn btn-s btn-xs" data-cum-doc="'+d[0]+'">'+ic('download',12)+' Generar</button>');
+    }).join('')+'</div>';
+}
+
+/* --- Ajustes -------------------------------------------------------------- */
+function cumAjustes(){
+  var A = CUM.estado.ajustes;
+  function c(k, et, tipo, ayuda){
+    return '<div class="field"><label class="f">'+et+'</label><input class="inp" data-cum-aj="'+k+'" type="'+(tipo||'text')+'" value="'+esc(A[k]||'')+'">'+
+      (ayuda ? '<div class="tiny muted" style="margin-top:5px">'+ayuda+'</div>' : '')+'</div>';
+  }
+  return '<div class="grid g-2" style="align-items:start"><div class="card"><div class="card-h"><div><h3>'+ic('building',16)+'Responsable del tratamiento</h3>'+
+    '<p>Sale en el aviso de privacidad de la firma, en los documentos y en las exportaciones.</p></div></div>'+
+    c('responsable_nombre','Razón social')+c('responsable_cif','CIF')+c('responsable_direccion','Dirección')+
+    c('email_privacidad','Correo para ejercer derechos','email')+c('dpo','Delegado de protección de datos (si lo hay)','text','Nombre y contacto. Déjalo vacío si no tenéis.')+
+    '</div><div class="card"><div class="card-h"><div><h3>'+ic('cog',16)+'Avisos, copias y plazos</h3></div></div>'+
+    c('email_alertas','Correo que recibe las alertas graves','email')+
+    '<div class="grid g-2">'+c('conservar_leads_meses','Leads: meses sin actividad','number')+c('conservar_accesos_dias','Accesos: días','number')+'</div>'+
+    '<div class="grid g-2">'+c('copias_guardar','Copias que se guardan','number')+
+      '<div class="field"><label class="f">Copia diaria automática</label><select class="inp" data-cum-aj="copias_activas">'+
+      '<option value="1"'+(A.copias_activas === '1' ? ' selected' : '')+'>Activada</option><option value="0"'+(A.copias_activas !== '1' ? ' selected' : '')+'>Desactivada</option></select></div></div>'+
+    '<button class="btn btn-p" id="cum-aj-guardar">'+ic('save',14)+' Guardar ajustes</button></div></div>'+
+    (CUM.estado.url_tarea ? '<div class="card" style="margin-top:16px"><div class="card-h"><div><h3>'+ic('clock',16)+'Tarea diaria en Hostalia</h3>'+
+      '<p>Así la copia y los plazos se aplican aunque nadie entre al CRM. En Plesk: <strong>Sitios web y dominios → Tareas programadas → Añadir tarea → '+
+      'Tipo «Obtener una URL»</strong>, pega esta dirección y elige «Diariamente».</p></div></div>'+
+      '<div class="seg-clave mono" style="color:#fff">'+esc(CUM.estado.url_tarea)+'</div>'+
+      '<button class="btn btn-s btn-xs" id="cum-url-copiar" style="margin-top:10px">'+ic('link',12)+' Copiar</button>'+
+      '<div class="tiny muted" style="margin-top:8px">La dirección lleva una clave secreta: no la compartas.</div></div>' : '');
+}
+
+/* --- Documentos generados ------------------------------------------------- */
+function cumHtmlDoc(titulo, cuerpo){
+  var A = CUM.estado.ajustes;
+  return '<!doctype html><html lang="es"><head><meta charset="utf-8"><title>'+esc(titulo)+'</title><style>'+
+    'body{font-family:Arial,Helvetica,sans-serif;max-width:860px;margin:32px auto;padding:0 20px;color:#111;font-size:13.5px;line-height:1.55}'+
+    'h1{font-size:21px;margin:0 0 4px}h2{font-size:15.5px;margin:24px 0 8px;border-bottom:1px solid #bbb;padding-bottom:4px}'+
+    'table{border-collapse:collapse;width:100%;margin:8px 0}td,th{border:1px solid #ccc;padding:6px 8px;text-align:left;vertical-align:top}'+
+    'th{background:#f2f2f2;width:32%}.pie{margin-top:30px;font-size:11px;color:#666}.firma{margin-top:60px;display:flex;gap:60px}'+
+    '.firma div{flex:1;border-top:1px solid #333;padding-top:6px}@media print{body{margin:0}}</style></head><body>'+
+    '<h1>'+esc(titulo)+'</h1><div>'+esc(A.responsable_nombre)+' · CIF '+esc(A.responsable_cif)+' · '+esc(A.responsable_direccion)+'</div>'+
+    '<div>Generado el '+new Date().toLocaleDateString('es-ES')+'</div>'+cuerpo+
+    '<div class="pie">Documento generado por Labs Command Center 360. Revísalo con tu asesor antes de usarlo.</div></body></html>';
+}
+function cumTabla(filas){
+  return '<table>'+filas.map(function(f){ return '<tr><th>'+esc(f[0])+'</th><td>'+esc(f[1] === null || f[1] === undefined || f[1] === '' ? '—' : String(f[1]))+'</td></tr>'; }).join('')+'</table>';
+}
+
+function cumGeneraDoc(tipo){
+  var A = CUM.estado.ajustes, H, nombre;
+  var resp = A.responsable_nombre + ' (CIF ' + A.responsable_cif + '), ' + A.responsable_direccion + '. Contacto: ' + A.email_privacidad + (A.dpo ? '. DPO: ' + A.dpo : '');
+  var conserv = CUM.estado.conservacion;
+  if(tipo === 'rat'){
+    var acts = [
+      ['Clientes y contratos', 'Gestión comercial, elaboración de presupuestos, formalización y ejecución de contratos, facturación y firma electrónica.',
+        'Ejecución de un contrato (art. 6.1.b) y obligaciones legales mercantiles y fiscales (art. 6.1.c).', 'Clientes y sus representantes.',
+        'Identificativos (nombre, DNI/NIE, firma), contacto, datos de la empresa, datos económicos y bancarios del contrato; IP, navegador y fecha de la firma como evidencia.',
+        'Agencia Tributaria y administraciones públicas cuando lo exija la ley; entidades bancarias para el cobro.',
+        'Durante la relación y 6 años después (art. 30 Código de Comercio); 4 años a efectos fiscales. Después, supresión; si se pide antes, bloqueo (art. 32 LOPDGDD).'],
+      ['Contactos comerciales (leads)', 'Gestión de oportunidades comerciales y seguimiento de contactos interesados en los servicios.',
+        'Interés legítimo en la prospección B2B (art. 6.1.f y considerando 47) o consentimiento (art. 6.1.a) cuando lo haya dado la persona.', 'Personas de contacto de empresas y particulares interesados.',
+        'Nombre, empresa, correo, teléfono, origen del contacto, notas de seguimiento y documentos que aporten.', 'No se ceden.',
+        'Mientras haya actividad comercial; si pasan ' + conserv.meses + ' meses sin actividad se anonimizan automáticamente.'],
+      ['Selección de personal', 'Gestión de candidaturas y entrevistas.', 'Medidas precontractuales a petición del interesado (art. 6.1.b) y consentimiento.',
+        'Candidatos.', 'Nombre, contacto, puesto, notas de la entrevista, fase del proceso.', 'No se ceden.', 'Durante el proceso y hasta 1 año después si la persona lo consiente; si no, al terminar.'],
+      ['Usuarios del CRM y seguridad', 'Gestión de las cuentas del equipo, control de accesos, seguridad de la información y auditoría.',
+        'Ejecución de la relación laboral o mercantil (art. 6.1.b), obligación legal de seguridad (art. 32 RGPD) e interés legítimo (art. 6.1.f).', 'Empleados, colaboradores y agentes.',
+        'Nombre, correo, teléfono, rol, registro de accesos (fecha, IP, navegador), bitácora de acciones.', 'No se ceden.',
+        'Mientras la cuenta esté activa. Registro de accesos: ' + conserv.dias + ' días. Bitácora: como prueba de las medidas de seguridad.']
+    ];
+    H = '<p>Registro de las actividades de tratamiento del responsable (art. 30.1 RGPD y art. 31 LOPDGDD).</p>'+
+      cumTabla([['Responsable', resp], ['Encargado del tratamiento', 'Proveedor de alojamiento web y base de datos (Hostalia / Grupo Dinahosting-Hostalia), con servidores en la Unión Europea. Contrato de encargo (art. 28) aceptado con las condiciones del servicio.'],
+        ['Transferencias internacionales', 'No se realizan.']])+
+      acts.map(function(a){ return '<h2>' + esc(a[0]) + '</h2>' + cumTabla([['Finalidad', a[1]], ['Base jurídica', a[2]], ['Interesados', a[3]], ['Categorías de datos', a[4]],
+        ['Destinatarios', a[5]], ['Plazo de conservación', a[6]], ['Medidas de seguridad', 'Ver «Anexo de medidas de seguridad».']]); }).join('');
+    nombre = 'registro-actividades-tratamiento.html';
+  } else if(tipo === 'medidas'){
+    var M = [
+      ['Control de acceso', 'Cuentas personales e intransferibles creadas solo por administración; sin registro público. Contraseñas robustas obligatorias, guardadas con Argon2id/bcrypt. Doble factor (TOTP) disponible y recomendado para administración, con códigos de recuperación de un solo uso.'],
+      ['Permisos', 'Roles (administración, jefatura, comercial, back office) y permisos individuales comprobados en el servidor en cada lectura y escritura. Cada comercial solo ve sus datos.'],
+      ['Sesiones', 'Acceso de 1 hora renovable; cierre tras 72 h sin uso y como máximo a los 30 días. Suspender una cuenta cierra al momento todas sus sesiones.'],
+      ['Protección frente a ataques', 'Freno a la fuerza bruta por cuenta e IP con bloqueos automáticos; respuestas idénticas exista o no la cuenta; consultas preparadas contra inyección SQL; política de seguridad de contenidos (CSP) contra XSS; protección contra clickjacking; comprobación del contenido real de los archivos subidos.'],
+      ['Cifrado', (CUM.estado.https ? 'Comunicaciones cifradas con HTTPS/TLS.' : 'PENDIENTE: activar el certificado SSL (HTTPS).') + ' Copias de seguridad cifradas con AES-256-GCM.'],
+      ['Almacenamiento', 'Documentos y configuración fuera de la carpeta pública de la web (carpeta privada del hosting); descarga solo con sesión y permiso.'],
+      ['Copias de seguridad', 'Copia diaria automática cifrada de la base de datos y los documentos; se conservan las ' + A.copias_guardar + ' últimas; restauración probada desde el panel.'],
+      ['Trazabilidad', 'Bitácora encadenada con huellas SHA-256 que detecta cualquier modificación o borrado; registro de cada intento de acceso con IP y navegador.'],
+      ['Vigilancia', 'Alertas automáticas por correo ante ataques, descargas masivas, archivos expuestos, manipulación de la bitácora o fallos de copia. Prueba periódica de exposición desde el exterior.'],
+      ['Minimización y conservación', 'Plazos de conservación aplicados automáticamente; anonimización de leads inactivos; bloqueo de contratos cuya supresión se solicita.'],
+      ['Organizativas', 'Compromiso de confidencialidad firmado por el personal; protocolo de actuación ante brechas; registro de brechas y de solicitudes de derechos.']
+    ];
+    H = '<p>Medidas técnicas y organizativas aplicadas (art. 32 RGPD) en el CRM Labs Command Center 360.</p>' + cumTabla(M);
+    nombre = 'anexo-medidas-seguridad.html';
+  } else if(tipo === 'protocolo'){
+    H = '<h2>1. En cuanto se detecte (primera hora)</h2><ul><li>Avisar a administración (' + esc(A.email_alertas) + ') y a ' + esc(A.email_privacidad) + '.</li>'+
+      '<li>Contener: cambiar contraseñas, cerrar sesiones (Centro de Seguridad), suspender cuentas afectadas, pedir el borrado de un correo enviado por error.</li>'+
+      '<li>Registrar la brecha en el CRM (Cumplimiento RGPD → Brechas) con la hora de detección: ahí empiezan las 72 h.</li>'+
+      '<li>No borrar pruebas (registros, correos, la bitácora).</li></ul>'+
+      '<h2>2. Evaluar (primeras 24-48 h)</h2><ul><li>Qué datos, cuántas personas, si estaban cifrados, si se pueden recuperar.</li>'+
+      '<li>Riesgo para las personas: <b>improbable</b> (se documenta y no se notifica), <b>riesgo</b> (notificar a la AEPD) o <b>alto riesgo</b> (AEPD y personas afectadas). '+
+      'Ayuda: herramienta «Comunica-Brecha RGPD» de la AEPD.</li><li>Escribir el motivo de la decisión en el registro.</li></ul>'+
+      '<h2>3. Notificar (antes de 72 h desde la detección)</h2><ul><li>Sede electrónica de la AEPD → Notificación de brechas, con certificado digital. '+
+      'El CRM prepara el borrador con todas las respuestas.</li><li>Si no se tiene toda la información, notificar lo que se sepa y completar después (art. 33.4).</li>'+
+      '<li>Si hay alto riesgo, comunicarlo a los afectados sin dilación, en lenguaje claro (el CRM genera la carta).</li></ul>'+
+      '<h2>4. Después</h2><ul><li>Restaurar desde la copia si se perdieron datos.</li><li>Medidas para que no se repita y anotarlas en el registro.</li>'+
+      '<li>Cerrar la brecha en el CRM con fecha de resolución.</li></ul>'+
+      '<h2>Contactos</h2>' + cumTabla([['Responsable', resp], ['Alertas', A.email_alertas], ['AEPD', 'www.aepd.es · sedeagpd.gob.es · 901 100 099 / 91 266 35 17']]);
+    nombre = 'protocolo-brechas.html';
+  } else if(tipo === 'clausula'){
+    H = '<h2>Información básica sobre protección de datos</h2>' + cumTabla([
+      ['Responsable', resp], ['Finalidad', 'Atender tu solicitud, enviarte la información o el presupuesto pedido y, si contratas, gestionar el contrato y la facturación.'],
+      ['Legitimación', 'Tu solicitud y la ejecución del contrato (art. 6.1.b RGPD); obligaciones legales (art. 6.1.c); interés legítimo para el seguimiento comercial (art. 6.1.f).'],
+      ['Destinatarios', 'No se ceden datos a terceros salvo obligación legal. El proveedor de alojamiento los trata por nuestra cuenta, dentro de la UE.'],
+      ['Conservación', 'Mientras haya relación comercial; los contactos sin actividad se anonimizan a los ' + conserv.meses + ' meses; los contratos, durante los plazos legales.'],
+      ['Derechos', 'Acceso, rectificación, supresión, oposición, limitación y portabilidad escribiendo a ' + A.email_privacidad + '. Puedes reclamar ante la AEPD (www.aepd.es).']])+
+      '<h2>Versión corta para correos</h2><p>Responsable: ' + esc(A.responsable_nombre) + '. Finalidad: gestionar la relación comercial. Derechos: ' + esc(A.email_privacidad) +
+      '. Más información: solicítala en esa dirección. Este mensaje es confidencial; si lo has recibido por error, avísanos y bórralo.</p>';
+    nombre = 'clausula-informativa.html';
+  } else if(tipo === 'confidencialidad'){
+    var uid = q('#cum-doc-usr') ? q('#cum-doc-usr').value : '';
+    var u = (typeof USUARIOS !== 'undefined' ? USUARIOS : []).filter(function(x){ return x.id === uid; })[0];
+    var quien = u ? (u.n || u.mail) : '______________________________';
+    H = '<p>D./Dña. <b>' + esc(quien) + '</b>, con DNI ________________, como persona con acceso a datos personales tratados por ' + esc(A.responsable_nombre) + ', se compromete a:</p><ol>'+
+      '<li>Guardar secreto sobre los datos personales que conozca por su trabajo, también después de terminar la relación (art. 5 LOPDGDD).</li>'+
+      '<li>Usarlos solo para las tareas encomendadas y según las instrucciones del responsable.</li>'+
+      '<li>No copiarlos, descargarlos ni enviarlos fuera de los sistemas de la empresa sin autorización.</li>'+
+      '<li>Mantener su contraseña en secreto, no compartir la cuenta y activar el doble factor cuando se le pida.</li>'+
+      '<li>Bloquear o cerrar la sesión al dejar el equipo y no usar el CRM desde equipos o redes no fiables.</li>'+
+      '<li>Comunicar de inmediato a ' + esc(A.email_privacidad) + ' cualquier incidente: pérdida de un dispositivo, correo enviado por error, acceso sospechoso.</li>'+
+      '<li>Devolver o destruir la información al terminar la relación.</li></ol>'+
+      '<p>Conoce que el incumplimiento puede dar lugar a responsabilidades disciplinarias, civiles o penales.</p>'+
+      '<div class="firma"><div>Firma de la persona</div><div>Por ' + esc(A.responsable_nombre) + '</div></div><p>En ______________, a ____ de ______________ de ______.</p>';
+    nombre = 'compromiso-confidencialidad' + (u ? '-' + String(quien).toLowerCase().replace(/[^a-z0-9]+/g, '-') : '') + '.html';
+  }
+  var titulos = {rat:'Registro de actividades de tratamiento', medidas:'Anexo de medidas de seguridad', protocolo:'Protocolo de actuación ante brechas de seguridad',
+    clausula:'Cláusula informativa de protección de datos', confidencialidad:'Compromiso de confidencialidad'};
+  cumGuarda(new Blob([cumHtmlDoc(titulos[tipo], H)], {type:'text/html'}), nombre);
+}
+
+function cumDocIncidente(tipo){
+  var i = CUM.incidentes.filter(function(x){ return x.id === CUM.editInc; })[0];
+  if(!i) return;
+  var A = CUM.estado.ajustes, H, t, n;
+  var base = [['Código', i.codigo], ['Detectada', cumFecha(i.detectado)], ['Inicio', cumFecha(i.inicio)], ['Resuelta', cumFecha(i.resuelto)],
+    ['Tipo', CUM_TIPO_INC[i.tipo]], ['Cómo ocurrió', i.medio], ['Descripción', i.descripcion], ['Datos afectados', i.categorias_datos],
+    ['Personas afectadas', i.categorias_interesados], ['Nº personas (aprox.)', i.num_interesados], ['Nº registros (aprox.)', i.num_registros],
+    ['Consecuencias', i.consecuencias], ['Medidas', i.medidas]];
+  if(tipo === 'aepd'){
+    t = 'Borrador de notificación de brecha a la AEPD';
+    H = '<p>Respuestas preparadas para el formulario de la sede electrónica de la AEPD (art. 33.3 RGPD). Plazo: 72 h desde la detección (' +
+      cumFecha(new Date(new Date(i.detectado).getTime() + 72*3600000).toISOString()) + ').</p>' +
+      '<h2>Responsable y contacto</h2>' + cumTabla([['Responsable', A.responsable_nombre + ' · ' + A.responsable_cif], ['Dirección', A.responsable_direccion],
+        ['Contacto', A.dpo || A.email_privacidad]]) +
+      '<h2>Descripción de la brecha</h2>' + cumTabla(base) + '<h2>Evaluación</h2>' + cumTabla([['Riesgo', CUM_RIESGO[i.riesgo]], ['Motivación', i.decision],
+        ['Comunicación a afectados', i.comunicado_afectados ? cumFecha(i.comunicado_afectados) : (i.riesgo === 'alto' ? 'Pendiente (obligatoria por alto riesgo)' : 'No necesaria')]]);
+    n = 'notificacion-aepd-' + i.codigo + '.html';
+  } else if(tipo === 'afectados'){
+    t = 'Comunicación de una brecha de seguridad';
+    H = '<p>Estimado/a cliente:</p><p>Te escribimos para informarte, como exige el artículo 34 del Reglamento General de Protección de Datos, de un incidente de seguridad que ha podido afectar a tus datos personales.</p>'+
+      '<h2>Qué ha pasado</h2><p>' + esc(i.descripcion || i.titulo) + '</p><p>Lo detectamos el ' + cumFecha(i.detectado) + '.</p>'+
+      '<h2>Qué datos pueden estar afectados</h2><p>' + esc(i.categorias_datos || '—') + '</p>'+
+      '<h2>Qué consecuencias puede tener</h2><p>' + esc(i.consecuencias || '—') + '</p>'+
+      '<h2>Qué hemos hecho</h2><p>' + esc(i.medidas || '—') + '</p>'+
+      '<h2>Qué te recomendamos</h2><ul><li>Desconfía de correos, mensajes o llamadas que digan venir de nosotros y te pidan datos o pagos.</li>'+
+      '<li>Si usabas la misma contraseña en otros sitios, cámbiala.</li><li>Revisa tus movimientos bancarios si se han visto afectados datos económicos.</li></ul>'+
+      '<h2>Contacto</h2><p>Para cualquier duda o para ejercer tus derechos: ' + esc(A.dpo || A.email_privacidad) + '. También puedes reclamar ante la Agencia Española de Protección de Datos (www.aepd.es).</p>'+
+      '<p>Lamentamos las molestias.</p><p>' + esc(A.responsable_nombre) + '</p>';
+    n = 'comunicacion-afectados-' + i.codigo + '.html';
+  } else {
+    t = 'Registro de brecha ' + i.codigo;
+    H = cumTabla(base.concat([['Riesgo', CUM_RIESGO[i.riesgo]], ['Decisión y motivo', i.decision], ['Estado', CUM_ESTADO[i.estado]],
+      ['Notificada a la AEPD', cumFecha(i.notificado_aepd)], ['Nº registro AEPD', i.registro_aepd], ['Comunicada a afectados', cumFecha(i.comunicado_afectados)],
+      ['Origen', i.origen], ['Registrada', cumFecha(i.creado)], ['Última modificación', cumFecha(i.actualizado)]]));
+    n = 'registro-brecha-' + i.codigo + '.html';
+  }
+  cumGuarda(new Blob([cumHtmlDoc(t, H)], {type:'text/html'}), n);
+}
+
+/* --- Eventos -------------------------------------------------------------- */
+function cumEventos(){
+  function recarga(){ CUM.cargado = false; CUM.estado = CUM.estado; cumCarga(); }
+  function hazlo(p, ok, marca){
+    CUM.ocupado = marca || 'si'; renderApp();
+    return p.then(function(d){ CUM.ocupado = ''; if(ok) toast(typeof ok === 'function' ? ok(d) : ok); recarga(); return d; })
+      .catch(function(e){ CUM.ocupado = ''; toast(e.message); renderApp(); });
+  }
+  qa('[data-cum-tab]').forEach(function(b){ b.onclick = function(){ CUM.tab = b.dataset.cumTab; CUM.editInc = null; renderApp(); }; });
+  qa('[data-cum-ir]').forEach(function(b){ b.onclick = function(){ CUM.tab = b.dataset.cumIr; renderApp(); }; });
+
+  /* Brechas */
+  if(q('#cum-inc-nueva')) q('#cum-inc-nueva').onclick = function(){ CUM.editInc = 'nuevo'; renderApp(); };
+  if(q('#cum-inc-volver')) q('#cum-inc-volver').onclick = function(){ CUM.editInc = null; renderApp(); };
+  qa('[data-cum-inc]').forEach(function(b){ b.onclick = function(){ CUM.editInc = Number(b.dataset.cumInc); renderApp(); window.scrollTo(0, 0); }; });
+  qa('[data-cum-doc-inc]').forEach(function(b){ b.onclick = function(){ cumDocIncidente(b.dataset.cumDocInc); }; });
+  if(q('#cum-inc-guardar')) q('#cum-inc-guardar').onclick = function(){
+    var d = {}, val = function(k){ var e = q('#inc-' + k); return e ? e.value : undefined; };
+    ['titulo','tipo','medio','descripcion','categorias_datos','categorias_interesados','consecuencias','medidas','riesgo','decision','estado','registro_aepd']
+      .forEach(function(k){ d[k] = val(k); });
+    ['num_interesados','num_registros'].forEach(function(k){ d[k] = val(k) === '' ? null : Number(val(k)); });
+    ['detectado','inicio','notificado_aepd','comunicado_afectados','resuelto'].forEach(function(k){ d[k] = cumIso(val(k)); });
+    if(!d.detectado) delete d.detectado;
+    if((d.titulo || '').trim().length < 4){ toast('Pon un título de al menos 4 letras.'); return; }
+    var nuevo = CUM.editInc === 'nuevo';
+    CUM.ocupado = 'si'; renderApp();
+    cumApi(nuevo ? '/incidentes' : '/incidentes/' + CUM.editInc, 'POST', d).then(function(r){
+      CUM.ocupado = ''; if(nuevo) CUM.editInc = r.id;
+      toast(nuevo ? 'Brecha registrada. El plazo de 72 h está en marcha.' : 'Guardado.'); recarga();
+    }).catch(function(e){ CUM.ocupado = ''; toast(e.message); renderApp(); });
+  };
+
+  /* Alertas */
+  qa('[data-cum-al-vista]').forEach(function(b){ b.onclick = function(){ hazlo(cumApi('/alertas/' + b.dataset.cumAlVista + '/vista', 'POST', {})); }; });
+  qa('[data-cum-al-inc]').forEach(function(b){ b.onclick = function(){
+    cumApi('/alertas/' + b.dataset.cumAlInc + '/incidente', 'POST', {}).then(function(d){
+      toast('Registrada como brecha. Complétala.'); CUM.tab = 'brechas'; CUM.editInc = d.id; recarga();
+    }).catch(function(e){ toast(e.message); });
+  }; });
+
+  /* Copias */
+  if(q('#cum-copia-crear')) q('#cum-copia-crear').onclick = function(){
+    hazlo(cumApi('/copias/crear', 'POST', {}), function(d){ return 'Copia creada: ' + d.documentos + ' documento(s) incluidos.'; }, 'copia');
+  };
+  qa('[data-cum-bajar]').forEach(function(b){ b.onclick = function(){
+    var n = b.dataset.cumBajar;
+    cumDescarga('/copias/descargar?nombre=' + encodeURIComponent(n), n).catch(function(e){ toast(e.message); });
+  }; });
+  if(q('#cum-copia-subir')) q('#cum-copia-subir').onchange = function(){
+    var f = this.files[0]; if(!f) return;
+    var cab = sbCabeceras(true); cab['Content-Type'] = 'application/octet-stream';
+    CUM.ocupado = 'si'; renderApp();
+    fetch(sbUrl('/rgpd/copias/subir'), {method:'POST', headers:cab, body:f, credentials:'same-origin'}).then(function(r){
+      return r.json().then(function(d){ if(!r.ok) throw new Error(d.message || 'No se ha podido subir.'); return d; });
+    }).then(function(d){ CUM.ocupado = ''; toast('Copia subida y comprobada: ' + d.nombre); recarga(); })
+      .catch(function(e){ CUM.ocupado = ''; toast(e.message); renderApp(); });
+  };
+  qa('[data-cum-restaurar]').forEach(function(b){ b.onclick = function(){
+    var n = b.dataset.cumRestaurar;
+    var c = window.prompt('Vas a sustituir TODOS los datos actuales por los de la copia ' + n + '.\nAntes se guardará una copia de lo actual y se cerrarán todas las sesiones.\n\nEscribe RESTAURAR para confirmar:');
+    if(c !== 'RESTAURAR'){ if(c !== null) toast('No se ha restaurado: hay que escribir RESTAURAR.'); return; }
+    var cod = window.prompt('Código del doble factor (déjalo vacío si no lo tienes activado):') || '';
+    toast('Restaurando… no cierres esta ventana.');
+    cumApi('/copias/restaurar', 'POST', {nombre: n, confirmacion: 'RESTAURAR', codigo: cod.trim()}).then(function(d){
+      window.alert('Copia restaurada (' + d.documentos + ' documento(s)). Por seguridad se han cerrado todas las sesiones: vuelve a entrar.');
+      sbSalir();
+    }).catch(function(e){ toast(e.message); });
+  }; });
+  if(q('#cum-clave')) q('#cum-clave').onclick = function(){
+    var cod = window.prompt('Código del doble factor (déjalo vacío si no lo tienes activado):');
+    if(cod === null) return;
+    cumApi('/copias/clave', 'POST', {codigo: cod.trim()}).then(function(d){ CUM.clave = d.clave; renderApp(); }).catch(function(e){ toast(e.message); });
+  };
+
+  /* Derechos */
+  var buscar = function(){
+    CUM.q = q('#cum-q').value.trim(); CUM.sel = {};
+    cumApi('/buscar?q=' + encodeURIComponent(CUM.q)).then(function(r){ CUM.resultados = r; renderApp(); }).catch(function(e){ toast(e.message); });
+  };
+  if(q('#cum-buscar')) q('#cum-buscar').onclick = buscar;
+  if(q('#cum-q')) q('#cum-q').onkeydown = function(e){ if(e.key === 'Enter') buscar(); };
+  qa('[data-cum-sel]').forEach(function(c){ c.onchange = function(){
+    if(c.checked) CUM.sel[c.dataset.cumSel] = 1; else delete CUM.sel[c.dataset.cumSel]; renderApp(); }; });
+  if(q('#cum-exportar')) q('#cum-exportar').onclick = function(){
+    cumDescarga('/exportar?items=' + encodeURIComponent(Object.keys(CUM.sel).join(',')), 'datos-personales.zip')
+      .then(function(){ toast('Exportación descargada. Entrégala a la persona por un medio seguro.'); }).catch(function(e){ toast(e.message); });
+  };
+  qa('[data-cum-sup]').forEach(function(b){ b.onclick = function(){
+    var p = b.dataset.cumSup.split(':'), contrato = p[0] === 'contrato';
+    if(!window.confirm(contrato ? '¿Bloquear este contrato? Dejará de verlo todo el equipo salvo administración. Se conserva por obligación legal.' :
+      '¿Suprimir definitivamente este registro con todo su historial y documentos? No se puede deshacer (salvo restaurando una copia).')) return;
+    cumApi('/suprimir', 'POST', {tipo: p[0], id: p[1]}).then(function(d){ toast(d.mensaje); buscar(); }).catch(function(e){ toast(e.message); });
+  }; });
+  if(q('#cum-sol-nueva')) q('#cum-sol-nueva').onclick = function(){ CUM.nuevaSol = true; renderApp(); };
+  if(q('#cum-sol-x')) q('#cum-sol-x').onclick = function(){ CUM.nuevaSol = false; renderApp(); };
+  if(q('#cum-sol-guardar')) q('#cum-sol-guardar').onclick = function(){
+    var d = {tipo: q('#sol-tipo').value, persona: q('#sol-persona').value.trim(), contacto: q('#sol-contacto').value.trim(),
+      notas: q('#sol-notas').value, recibida: q('#sol-recibida').value ? new Date(q('#sol-recibida').value + 'T12:00:00').toISOString() : null};
+    cumApi('/solicitudes', 'POST', d).then(function(){ CUM.nuevaSol = false; toast('Solicitud registrada. Tienes un mes para responder.'); recarga(); })
+      .catch(function(e){ toast(e.message); });
+  };
+  qa('[data-cum-sol]').forEach(function(b){ b.onclick = function(){
+    var est = b.dataset.est, resp = '';
+    if(est === 'resuelta' || est === 'denegada'){
+      resp = window.prompt(est === 'resuelta' ? '¿Cómo se ha atendido? (ej.: enviado zip con sus datos por correo el 3/11)' :
+        '¿Por qué se deniega? (hay que comunicárselo a la persona e indicarle que puede reclamar ante la AEPD)');
+      if(resp === null) return;
+    } else if(!window.confirm('¿Prorrogar 2 meses? Hay que avisar a la persona dentro del primer mes explicando el motivo.')) return;
+    hazlo(cumApi('/solicitudes/' + b.dataset.cumSol, 'POST', {estado: est, respuesta: resp}), 'Solicitud actualizada.');
+  }; });
+
+  /* Conservación */
+  if(q('#cum-conservar')) q('#cum-conservar').onclick = function(){
+    if(!window.confirm('Se anonimizarán los leads inactivos y se borrarán los registros de acceso antiguos. No se puede deshacer. ¿Continuar?')) return;
+    hazlo(cumApi('/conservacion/aplicar', 'POST', {}), function(d){ return d.leads + ' lead(s) anonimizados y ' + d.accesos + ' registro(s) eliminados.'; });
+  };
+
+  /* Documentos */
+  qa('[data-cum-doc]').forEach(function(b){ b.onclick = function(){ cumGeneraDoc(b.dataset.cumDoc); }; });
+
+  /* Ajustes */
+  if(q('#cum-aj-guardar')) q('#cum-aj-guardar').onclick = function(){
+    var d = {}; qa('[data-cum-aj]').forEach(function(e){ d[e.dataset.cumAj] = e.value; });
+    hazlo(cumApi('/ajustes', 'POST', d), 'Ajustes guardados.');
+  };
+  if(q('#cum-url-copiar')) q('#cum-url-copiar').onclick = function(){
+    var t = CUM.estado.url_tarea;
+    (navigator.clipboard && window.isSecureContext ? navigator.clipboard.writeText(t) : Promise.reject()).then(function(){ toast('Copiada.'); },
+      function(){ if(typeof copiaAntigua === 'function') copiaAntigua(t); toast('Copiada.'); });
   };
 }
 
