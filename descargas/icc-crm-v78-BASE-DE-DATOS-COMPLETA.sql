@@ -1,11 +1,11 @@
 -- =============================================================================
--- ICC CRM v74 · BASE DE DATOS COMPLETA (instalar o actualizar en un solo paso)
+-- ICC CRM v78 · BASE DE DATOS COMPLETA (instalar o actualizar en un solo paso)
 --
 -- Cómo usarlo: phpMyAdmin > tu base de datos > Importar > este archivo > Continuar.
 --
 -- - Si la base de datos YA TIENE datos (tu CRM actual): NO borra nada.
 --   Solo crea las tablas, columnas e índices que falten y amplía lo necesario
---   para la versión v74. Sirve vengas de la versión que vengas (v55 en adelante).
+--   para la versión v78. Sirve vengas de la versión que vengas (v55 en adelante).
 -- - Si la base de datos está VACÍA: crea el CRM completo y un usuario
 --   Super Administrador inicial (ver el final del archivo).
 -- - Se puede ejecutar MÁS DE UNA VEZ sin errores ni duplicados.
@@ -581,6 +581,77 @@ CREATE TABLE IF NOT EXISTS `proformas` (
   KEY `idx_proformas_facturado_por` (`facturado_por`),
   KEY `idx_proformas_fecha` (`fecha`),
   CONSTRAINT `fk_proforma_comercial` FOREIGN KEY (`comercial_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `seg_2fa` (
+  `usuario_id` int(10) unsigned NOT NULL,
+  `secreto` varchar(64) NOT NULL,
+  `activo` tinyint(1) NOT NULL DEFAULT 0,
+  `ultimo_paso` bigint(20) NOT NULL DEFAULT 0,
+  `recuperacion` text DEFAULT NULL,
+  `activado` datetime DEFAULT NULL,
+  `creado` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`usuario_id`),
+  CONSTRAINT `fk_seg_2fa_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `seg_accesos` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `ts` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `usuario_id` int(10) unsigned DEFAULT NULL,
+  `email` varchar(190) DEFAULT NULL,
+  `ip` varchar(64) DEFAULT NULL,
+  `agente` varchar(255) DEFAULT NULL,
+  `resultado` varchar(20) NOT NULL,
+  `detalle` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_seg_accesos_ts` (`ts`),
+  KEY `idx_seg_accesos_ip` (`ip`,`ts`),
+  KEY `idx_seg_accesos_usuario` (`usuario_id`,`resultado`),
+  CONSTRAINT `fk_seg_accesos_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `seg_ajustes` (
+  `clave` varchar(60) NOT NULL,
+  `valor` text DEFAULT NULL,
+  PRIMARY KEY (`clave`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `seg_bitacora` (
+  `seq` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `ts` datetime NOT NULL,
+  `actor_id` int(10) unsigned DEFAULT NULL,
+  `actor_nombre` varchar(190) NOT NULL DEFAULT '',
+  `destino_id` int(10) unsigned DEFAULT NULL,
+  `accion` varchar(200) NOT NULL,
+  `detalle` text DEFAULT NULL,
+  `ip` varchar(64) DEFAULT NULL,
+  `cadena` char(64) NOT NULL,
+  PRIMARY KEY (`seq`),
+  KEY `idx_seg_bitacora_ts` (`ts`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `seg_bloqueos` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `tipo` varchar(10) NOT NULL,
+  `valor` varchar(190) NOT NULL,
+  `hasta` datetime NOT NULL,
+  `motivo` varchar(255) NOT NULL DEFAULT '',
+  `creado` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_seg_bloqueo` (`tipo`,`valor`),
+  KEY `idx_seg_bloqueos_hasta` (`hasta`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `seg_intentos` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `email` varchar(190) NOT NULL,
+  `ip` varchar(64) DEFAULT NULL,
+  `ts` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_seg_intentos_ts` (`ts`),
+  KEY `idx_seg_intentos_email` (`email`,`ts`),
+  KEY `idx_seg_intentos_ip` (`ip`,`ts`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `tarifas_novedades` (
@@ -1447,6 +1518,84 @@ PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'proformas' AND column_name = 'created_at'), 'ALTER TABLE `proformas` ADD COLUMN `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'seg_2fa' AND column_name = 'usuario_id'), 'ALTER TABLE `seg_2fa` ADD COLUMN `usuario_id` int(10) unsigned NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'seg_2fa' AND column_name = 'secreto'), 'ALTER TABLE `seg_2fa` ADD COLUMN `secreto` varchar(64) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'seg_2fa' AND column_name = 'activo'), 'ALTER TABLE `seg_2fa` ADD COLUMN `activo` tinyint(1) NOT NULL DEFAULT 0', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'seg_2fa' AND column_name = 'ultimo_paso'), 'ALTER TABLE `seg_2fa` ADD COLUMN `ultimo_paso` bigint(20) NOT NULL DEFAULT 0', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'seg_2fa' AND column_name = 'recuperacion'), 'ALTER TABLE `seg_2fa` ADD COLUMN `recuperacion` text DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'seg_2fa' AND column_name = 'activado'), 'ALTER TABLE `seg_2fa` ADD COLUMN `activado` datetime DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'seg_2fa' AND column_name = 'creado'), 'ALTER TABLE `seg_2fa` ADD COLUMN `creado` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'seg_accesos' AND column_name = 'id'), 'ALTER TABLE `seg_accesos` ADD COLUMN `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'seg_accesos' AND column_name = 'ts'), 'ALTER TABLE `seg_accesos` ADD COLUMN `ts` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'seg_accesos' AND column_name = 'usuario_id'), 'ALTER TABLE `seg_accesos` ADD COLUMN `usuario_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'seg_accesos' AND column_name = 'email'), 'ALTER TABLE `seg_accesos` ADD COLUMN `email` varchar(190) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'seg_accesos' AND column_name = 'ip'), 'ALTER TABLE `seg_accesos` ADD COLUMN `ip` varchar(64) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'seg_accesos' AND column_name = 'agente'), 'ALTER TABLE `seg_accesos` ADD COLUMN `agente` varchar(255) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'seg_accesos' AND column_name = 'resultado'), 'ALTER TABLE `seg_accesos` ADD COLUMN `resultado` varchar(20) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'seg_accesos' AND column_name = 'detalle'), 'ALTER TABLE `seg_accesos` ADD COLUMN `detalle` varchar(255) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'seg_ajustes' AND column_name = 'clave'), 'ALTER TABLE `seg_ajustes` ADD COLUMN `clave` varchar(60) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'seg_ajustes' AND column_name = 'valor'), 'ALTER TABLE `seg_ajustes` ADD COLUMN `valor` text DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'seg_bitacora' AND column_name = 'seq'), 'ALTER TABLE `seg_bitacora` ADD COLUMN `seq` bigint(20) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'seg_bitacora' AND column_name = 'ts'), 'ALTER TABLE `seg_bitacora` ADD COLUMN `ts` datetime NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'seg_bitacora' AND column_name = 'actor_id'), 'ALTER TABLE `seg_bitacora` ADD COLUMN `actor_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'seg_bitacora' AND column_name = 'actor_nombre'), 'ALTER TABLE `seg_bitacora` ADD COLUMN `actor_nombre` varchar(190) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'seg_bitacora' AND column_name = 'destino_id'), 'ALTER TABLE `seg_bitacora` ADD COLUMN `destino_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'seg_bitacora' AND column_name = 'accion'), 'ALTER TABLE `seg_bitacora` ADD COLUMN `accion` varchar(200) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'seg_bitacora' AND column_name = 'detalle'), 'ALTER TABLE `seg_bitacora` ADD COLUMN `detalle` text DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'seg_bitacora' AND column_name = 'ip'), 'ALTER TABLE `seg_bitacora` ADD COLUMN `ip` varchar(64) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'seg_bitacora' AND column_name = 'cadena'), 'ALTER TABLE `seg_bitacora` ADD COLUMN `cadena` char(64) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'seg_bloqueos' AND column_name = 'id'), 'ALTER TABLE `seg_bloqueos` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'seg_bloqueos' AND column_name = 'tipo'), 'ALTER TABLE `seg_bloqueos` ADD COLUMN `tipo` varchar(10) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'seg_bloqueos' AND column_name = 'valor'), 'ALTER TABLE `seg_bloqueos` ADD COLUMN `valor` varchar(190) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'seg_bloqueos' AND column_name = 'hasta'), 'ALTER TABLE `seg_bloqueos` ADD COLUMN `hasta` datetime NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'seg_bloqueos' AND column_name = 'motivo'), 'ALTER TABLE `seg_bloqueos` ADD COLUMN `motivo` varchar(255) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'seg_bloqueos' AND column_name = 'creado'), 'ALTER TABLE `seg_bloqueos` ADD COLUMN `creado` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'seg_intentos' AND column_name = 'id'), 'ALTER TABLE `seg_intentos` ADD COLUMN `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'seg_intentos' AND column_name = 'email'), 'ALTER TABLE `seg_intentos` ADD COLUMN `email` varchar(190) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'seg_intentos' AND column_name = 'ip'), 'ALTER TABLE `seg_intentos` ADD COLUMN `ip` varchar(64) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'seg_intentos' AND column_name = 'ts'), 'ALTER TABLE `seg_intentos` ADD COLUMN `ts` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'tarifas_novedades' AND column_name = 'id'), 'ALTER TABLE `tarifas_novedades` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'tarifas_novedades' AND column_name = 'tipo'), 'ALTER TABLE `tarifas_novedades` ADD COLUMN `tipo` varchar(20) NOT NULL', 'DO 0'));
@@ -1903,6 +2052,24 @@ SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHER
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'proformas' AND index_name = 'idx_proformas_fecha'), 'CREATE INDEX `idx_proformas_fecha` ON `proformas` (`fecha`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'seg_accesos' AND index_name = 'idx_seg_accesos_ip'), 'CREATE INDEX `idx_seg_accesos_ip` ON `seg_accesos` (`ip`, `ts`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'seg_accesos' AND index_name = 'idx_seg_accesos_ts'), 'CREATE INDEX `idx_seg_accesos_ts` ON `seg_accesos` (`ts`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'seg_accesos' AND index_name = 'idx_seg_accesos_usuario'), 'CREATE INDEX `idx_seg_accesos_usuario` ON `seg_accesos` (`usuario_id`, `resultado`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'seg_bitacora' AND index_name = 'idx_seg_bitacora_ts'), 'CREATE INDEX `idx_seg_bitacora_ts` ON `seg_bitacora` (`ts`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'seg_bloqueos' AND index_name = 'idx_seg_bloqueos_hasta'), 'CREATE INDEX `idx_seg_bloqueos_hasta` ON `seg_bloqueos` (`hasta`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'seg_bloqueos' AND index_name = 'uq_seg_bloqueo'), 'CREATE UNIQUE INDEX `uq_seg_bloqueo` ON `seg_bloqueos` (`tipo`, `valor`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'seg_intentos' AND index_name = 'idx_seg_intentos_email'), 'CREATE INDEX `idx_seg_intentos_email` ON `seg_intentos` (`email`, `ts`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'seg_intentos' AND index_name = 'idx_seg_intentos_ip'), 'CREATE INDEX `idx_seg_intentos_ip` ON `seg_intentos` (`ip`, `ts`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'seg_intentos' AND index_name = 'idx_seg_intentos_ts'), 'CREATE INDEX `idx_seg_intentos_ts` ON `seg_intentos` (`ts`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'tarifas_novedades' AND index_name = 'fk_tarifa_novedad_autor'), 'CREATE INDEX `fk_tarifa_novedad_autor` ON `tarifas_novedades` (`autor_id`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'tarifas_novedades' AND index_name = 'idx_tarifas_novedades_fecha'), 'CREATE INDEX `idx_tarifas_novedades_fecha` ON `tarifas_novedades` (`created_at`)', 'DO 0'));
@@ -2062,6 +2229,10 @@ PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'presupuestos' AND constraint_name = 'fk_presupuesto_contrato' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `presupuestos` ADD CONSTRAINT `fk_presupuesto_contrato` FOREIGN KEY (`contrato_id`) REFERENCES `contratos` (`id`) ON DELETE SET NULL', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'proformas' AND constraint_name = 'fk_proforma_comercial' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `proformas` ADD CONSTRAINT `fk_proforma_comercial` FOREIGN KEY (`comercial_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'seg_2fa' AND constraint_name = 'fk_seg_2fa_usuario' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `seg_2fa` ADD CONSTRAINT `fk_seg_2fa_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'seg_accesos' AND constraint_name = 'fk_seg_accesos_usuario' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `seg_accesos` ADD CONSTRAINT `fk_seg_accesos_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'tarifas_novedades' AND constraint_name = 'fk_tarifa_novedad_autor' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `tarifas_novedades` ADD CONSTRAINT `fk_tarifa_novedad_autor` FOREIGN KEY (`autor_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
@@ -2303,4 +2474,4 @@ UPDATE usuarios SET numero_relacion = CONCAT('ICC-', LPAD(id, 5, '0')) WHERE num
 SET FOREIGN_KEY_CHECKS = 1;
 SET SESSION sql_mode = @icc_modo_anterior;
 
--- Listo. Base de datos al dia para ICC CRM v74.
+-- Listo. Base de datos al dia para ICC CRM v78.
