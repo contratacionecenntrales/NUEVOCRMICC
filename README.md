@@ -219,7 +219,7 @@ propio CRM — ya no hace falta volver a tocar la base de datos a mano.
 
 ## Base de datos en un solo paso
 
-`sql/base-de-datos-completa-v74.sql` deja cualquier base de datos al día para la v74 importándolo una sola vez en phpMyAdmin:
+`sql/base-de-datos-completa-v78.sql` deja cualquier base de datos al día para la v78 importándolo una sola vez en phpMyAdmin:
 - Con datos (v55 en adelante): no borra nada; crea solo las tablas, columnas, índices y relaciones que falten y amplía los roles. Deja a Daniela con todo el equipo de María y las agendas de Juan y María.
 - Vacía: crea el CRM completo y un Super Administrador inicial (info@integralconnectionconsulting.es, contraseña provisional `CambiaEsta-2026`, que el CRM obliga a cambiar).
 - Se puede ejecutar varias veces sin errores ni duplicados. Los datos de ejemplo de los comparadores solo se cargan si esas tablas están vacías.
@@ -437,6 +437,18 @@ esa carpeta del servidor. Pasos a seguir, en este orden:
 - **Celebración a pantalla completa** (`js/estelar.js`): cada anuncio se abre una vez en cada navegador con fuegos artificiales y la foto del protagonista (la subida en el anuncio o, si no, su foto de perfil). Las ventas nuevas que entran mientras se trabaja también se celebran (foto solo si es de tu equipo). Clic en un anuncio de la cinta o de la sala para volver a verlo; en modo TV se repiten cada 5 minutos.
 - **Novedades de tarifas** (`#/comparador/novedades`) y **Oficinas** (`#/oficinas`): ver `sql/migracion_tarifas_novedades.sql` y `sql/migracion_oficinas.sql` (las dos van incluidas en la base de datos completa).
 
+## Centro de Seguridad (blindaje, adaptado del CRM de Labs)
+
+Menú **Seguridad → Centro de Seguridad** (`#/seguridad`, `api/seguridad.php`, `api/seguridad_lib.php`, tablas de `sql/migracion_seguridad.sql`, incluidas en la base de datos completa).
+
+- **Doble factor (2FA)**: contraseña + código de 6 cifras de Google o Microsoft Authenticator (QR propio, sin librerías externas: `js/qr.js`). Cada código sirve una vez; 10 códigos de recuperación de un solo uso. Dirección puede quitárselo a quien pierda el móvil (el del Super Admin, solo el propio Super Admin). Cada persona lo activa desde Mi ficha → Seguridad avanzada.
+- **Freno contra fuerza bruta** sin que un atacante pueda dejar fuera a nadie: 8 fallos cuenta+IP en 15 min frenan esa IP para esa cuenta; 30 fallos de una IP en 15 min la bloquean 1 h; 100 en 24 h, 24 h; 40 fallos repartidos contra una cuenta la frenan 15 min. Mismo tiempo de respuesta exista o no la cuenta.
+- **Registro de accesos** (180 días), conexiones sospechosas, bloqueos con botón para quitarlos y aviso a la persona cuando entra desde una conexión nueva.
+- **Bitácora sellada**: cada evento de cuenta lleva la huella del anterior; si alguien lo cambia o borra desde phpMyAdmin, se detecta.
+- **Revisión del servidor** con puntuación: SSL, configuración y documentos fuera de la web (se mueven a la carpeta privada `private/` de Hostalia con un clic), archivos sobrantes (zips, SQL, la carpeta `ACTUALIZAR-BASE-DE-DATOS`…) que se borran con un clic, versión de PHP e intentos de entrada.
+- **Prueba de ataque desde fuera**: el servidor deja archivos cebo y trata de descargarlos como un atacante.
+- Sesiones que caducan solas (72 h sin uso, 30 días como máximo), contraseñas con Argon2id o bcrypt reforzado (se actualizan al entrar), cabeceras de seguridad también desde PHP y `.htaccess` que bloquea más tipos de archivo y las piezas internas de la API.
+
 ## Enlace rápido de subida de facturas
 
 Cada cliente tiene un `upload_token` único (UUID). Desde su ficha en el CRM
@@ -460,7 +472,7 @@ Montarla (por ejemplo en `demo.crm.tudominio.es`):
 1. Crea el subdominio en Hostalia apuntando a una carpeta nueva y sube ahí el
    mismo zip del CRM.
 2. Crea una base de datos **nueva y vacía** e importa
-   `sql/base-de-datos-completa-v74.sql` (más las migraciones nuevas si las hay).
+   `sql/base-de-datos-completa-v78.sql` (más las migraciones nuevas si las hay).
 3. Crea `api/config.local.php` de esa carpeta con los datos de la BD nueva y
    añade `define('ICC_MODO_DEMO', true);`.
 4. Rellena la demo por SSH (el generador no se puede abrir desde el navegador):

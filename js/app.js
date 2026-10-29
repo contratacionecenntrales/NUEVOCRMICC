@@ -68,6 +68,11 @@
       '<input id="login-password" name="password" type="password" autocomplete="current-password" minlength="6" placeholder="••••••••" required>' +
       '<button type="button" class="icc-pass-ver" id="btn-ver-password" aria-label="Mostrar contraseña" aria-pressed="false" title="Mostrar contraseña">👁</button></div>' +
       '<p class="icc-login-mayus" id="login-mayus" hidden>⇪ Bloq Mayús está activado</p></div>' +
+      // Paso del doble factor: solo aparece si la cuenta lo tiene activado.
+      '<div class="icc-login-campo icc-login-2fa" id="login-2fa" hidden><label for="login-codigo">Código de verificación</label>' +
+      '<div class="icc-login-input"><span aria-hidden="true">📱</span>' +
+      '<input id="login-codigo" name="codigo" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="9" placeholder="123456"></div>' +
+      '<p class="icc-login-2fa-ayuda">Abre Google o Microsoft Authenticator y escribe el código de 6 cifras de <b>ICC CRM</b>. ¿Sin móvil? Usa un código de recuperación (XXXX-XXXX).</p></div>' +
       '<label class="icc-recordar"><input type="checkbox" name="recordar" id="login-recordar"> Recordar mi email en este equipo</label>' +
       '<button type="submit" class="icc-login-btn" id="btn-submit-auth"><span class="icc-login-btn-txt">Entrar</span><span class="icc-login-btn-flecha" aria-hidden="true">→</span></button>' +
       "</form>" +
@@ -137,17 +142,25 @@
 
     var btn = document.getElementById("btn-submit-auth");
     var txtBtn = btn.querySelector(".icc-login-btn-txt");
+    // Con las 6 cifras escritas se envía solo.
+    document.getElementById("login-codigo").addEventListener("input", function (e) {
+      if (/^\d{6}$/.test(e.target.value.trim()) && !btn.disabled) {
+        if (formAuth.requestSubmit) formAuth.requestSubmit(); else btn.click();
+      }
+    });
     formAuth.addEventListener("submit", async function (e) {
       e.preventDefault();
       var email = campoEmail.value.trim();
       var password = campoPass.value;
+      var campoCodigo = document.getElementById("login-codigo");
+      var codigo = campoCodigo && !document.getElementById("login-2fa").hidden ? campoCodigo.value.trim() : "";
       btn.disabled = true;
       btn.classList.add("is-cargando");
       txtBtn.textContent = "Entrando…";
       // Antes de enviar se vuelve a "password" para que el navegador lo reconozca.
       if (campoPass.type !== "password") btnVer.click();
       try {
-        await window.icc.auth.signIn(email, password);
+        await window.icc.auth.signIn(email, password, codigo);
         try {
           if (casillaRecordar.checked) localStorage.setItem("icc_login_email", email);
           else localStorage.removeItem("icc_login_email");
@@ -161,10 +174,29 @@
           }
         } catch (e3) { /* navegador sin soporte */ }
       } catch (err) {
-        U.toast(err.message || "No se pudo iniciar sesion", "error");
         btn.disabled = false;
         btn.classList.remove("is-cargando");
         txtBtn.textContent = "Entrar";
+        // La cuenta tiene doble factor: se pide el código del móvil.
+        if (err.datos && err.datos.mfa) {
+          var bloque = document.getElementById("login-2fa");
+          var cc = document.getElementById("login-codigo");
+          var primeraVez = bloque.hidden;
+          bloque.hidden = false;
+          txtBtn.textContent = "Verificar y entrar";
+          if (primeraVez) {
+            U.toast("Tu cuenta tiene doble factor: escribe el código del móvil", "info");
+          } else {
+            U.toast(err.message, "error");
+            tarjeta.classList.remove("is-error");
+            void tarjeta.offsetWidth;
+            tarjeta.classList.add("is-error");
+          }
+          cc.value = "";
+          cc.focus();
+          return;
+        }
+        U.toast(err.message || "No se pudo iniciar sesion", "error");
         tarjeta.classList.remove("is-error");
         void tarjeta.offsetWidth;
         tarjeta.classList.add("is-error");
@@ -237,6 +269,17 @@
         { href: "#/informes?ver=sector", label: "Contratos por sector" },
         { href: "#/informes?ver=tarifa", label: "Contratos por tarifa" },
         { href: "#/informes?ver=compania", label: "Contratos por compañía" },
+      ],
+    });
+
+    // Centro de Seguridad: dirección lo ve entero. El resto entra a su doble
+    // factor y sus sesiones desde «Mi ficha → Seguridad avanzada».
+    if (window.icc.auth.esAdminOSuperior()) items.push({
+      label: "Seguridad",
+      href: "#/seguridad",
+      submenu: [
+        { href: "#/seguridad", label: "🛡️ Centro de Seguridad" },
+        { href: "#/copias-seguridad", label: "💾 Copias de seguridad" },
       ],
     });
 
@@ -605,6 +648,8 @@
         var carpetaIdTxt = ruta.replace("#/ficheros", "").replace(/^\//, "");
         var carpetaId = carpetaIdTxt && /^\d+$/.test(carpetaIdTxt) ? parseInt(carpetaIdTxt, 10) : null;
         await window.icc.views.viewFicheros(carpetaId);
+      } else if (ruta === "#/seguridad") {
+        await window.icc.seguridad.view();
       } else if (ruta === "#/proformas") {
         await window.icc.views.viewProformas();
       } else if (ruta === "#/informes") {

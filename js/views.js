@@ -2911,9 +2911,21 @@ window.icc.views = (function () {
       "</div>" +
       '<div class="icc-seg-opcion">' +
       "<div><strong>Protección contra accesos indebidos</strong>" +
-      '<span class="icc-muted">Tras 5 intentos fallidos en 15 minutos la cuenta se bloquea temporalmente. Contraseñas de 8+ caracteres con letras y números.</span></div>' +
+      '<span class="icc-muted">Tras varios intentos fallidos se frena esa conexión (y, si el ataque viene de muchas, la cuenta durante 15 minutos), sin dejar fuera a la persona desde otro dispositivo. Contraseñas de 8+ caracteres con letras y números.</span></div>' +
       badgeColor(sinMigracion ? "Pendiente" : "Activa", sinMigracion ? "#94a3b8" : "#34d399") +
       "</div>" +
+      (seg.doble_factor === null || seg.doble_factor === undefined
+        ? ""
+        : '<div class="icc-seg-opcion"><div><strong>Doble factor (código del móvil)</strong>' +
+          '<span class="icc-muted">' + (seg.doble_factor
+            ? "Para entrar hace falta la contraseña y el código de 6 cifras de la aplicación del móvil."
+            : "La cuenta entra solo con contraseña. Con el doble factor, quien la averigüe no podrá entrar sin el móvil.") + "</span>" +
+          (datos.es_propia
+            ? '<a class="icc-btn icc-btn-' + (seg.doble_factor ? "ghost" : "primary") + '" href="#/seguridad" style="margin-top:8px;align-self:flex-start">🛡️ ' + (seg.doble_factor ? "Gestionar mi doble factor" : "Activar doble factor") + "</a>"
+            : seg.doble_factor && seg.puede_quitar_2fa
+              ? '<button type="button" class="icc-btn icc-btn-ghost" id="btn-quitar-2fa" style="margin-top:8px;align-self:flex-start">Quitar doble factor (móvil perdido)</button>'
+              : "") +
+          "</div>" + badgeColor(seg.doble_factor ? "Activado" : "Sin activar", seg.doble_factor ? "#34d399" : "#f59e0b") + "</div>") +
       (u.password_actualizada_en !== undefined
         ? '<p class="icc-muted">Última actualización de la contraseña: ' + (u.password_actualizada_en ? U.formatFechaHora(u.password_actualizada_en) : "sin registrar") + "</p>"
         : "") +
@@ -2984,6 +2996,20 @@ window.icc.views = (function () {
           recargarFicha();
         } catch (err) {
           U.toast(err.message || "No se pudo restablecer", "error");
+        }
+      });
+    }
+    var btnQuitar2fa = document.getElementById("btn-quitar-2fa");
+    if (btnQuitar2fa) {
+      btnQuitar2fa.addEventListener("click", async function () {
+        if (!confirm("¿Quitar el doble factor de esta persona? Se cerrarán sus sesiones y tendrá que volver a activarlo.")) return;
+        try {
+          await window.icc.api.post("api/seguridad.php?action=2fa_reiniciar", { usuario_id: u.id });
+          U.toast("Doble factor quitado y sesiones cerradas", "success");
+          btnQuitar2fa.closest(".icc-seg-opcion").querySelector(".icc-muted").textContent = "Quitado. La cuenta entra solo con contraseña hasta que lo vuelva a activar.";
+          btnQuitar2fa.remove();
+        } catch (err) {
+          U.toast(err.message || "No se pudo quitar", "error");
         }
       });
     }

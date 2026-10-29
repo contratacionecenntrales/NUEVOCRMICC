@@ -78,8 +78,10 @@ window.icc.auth = (function () {
     notify();
   }
 
-  async function signIn(email, password) {
-    var data = await API.post("api/auth.php?action=login", { email: email, password: password });
+  async function signIn(email, password, codigo) {
+    var cuerpo = { email: email, password: password };
+    if (codigo) cuerpo.codigo = codigo;
+    var data = await API.post("api/auth.php?action=login", cuerpo);
     aplicarUsuario(data.user, data.csrf, data.impersonando, data.demo);
     notify();
   }

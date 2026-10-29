@@ -68,6 +68,9 @@ window.ICC_CONST = {
     disponibilidad_actualizada: "Disponibilidad actualizada",
     avisos_actualizados: "Notificaciones actualizadas",
     ver_como: "Acceso con \"Ver como\"",
+    doble_factor_activado: "Doble factor activado",
+    doble_factor_desactivado: "Doble factor desactivado",
+    doble_factor_reiniciado: "Doble factor quitado por dirección",
   },
 
   ESTADOS: {

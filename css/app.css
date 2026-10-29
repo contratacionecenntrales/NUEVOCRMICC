@@ -1504,6 +1504,7 @@ a.icc-ag-kpi:hover{transform:translateY(-2px);box-shadow:0 14px 30px -16px var(-
 .icc-login-input input::placeholder{color:#5B6B84}
 .icc-login-input input:-webkit-autofill{-webkit-text-fill-color:#fff;-webkit-box-shadow:0 0 0 1000px #0B1220 inset;caret-color:#fff;transition:background-color 9999s}
 .icc-login-input .icc-pass-ver{position:static;transform:none;margin-right:6px;flex:0 0 40px}
+.icc-login-2fa{animation:icc-login-2fa-entra .35s ease-out}.icc-login-2fa .icc-login-input{border-color:rgba(52,211,153,.55)}.icc-login-2fa input{letter-spacing:.3em;font-size:18px;font-weight:700}.icc-login-2fa-ayuda{margin:7px 0 0;font-size:12.5px;line-height:1.45;color:#9FB0C6}@keyframes icc-login-2fa-entra{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}@media (prefers-reduced-motion:reduce){.icc-login-2fa{animation:none}}
 .icc-login-mayus{margin:7px 0 0;font-size:12.5px;font-weight:700;color:#FCD34D}
 .icc-login-form .icc-recordar{margin:0}
 .icc-login-btn{position:relative;display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:54px;margin-top:4px;border:0;border-radius:14px;cursor:pointer;overflow:hidden;

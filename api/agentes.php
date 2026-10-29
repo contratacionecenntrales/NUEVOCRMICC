@@ -139,7 +139,7 @@ if ($metodo === 'POST' && $id === null) {
     $nombre,
     trim($body['apellidos'] ?? ''),
     $email,
-    password_hash($password, PASSWORD_DEFAULT),
+    icc_hash_password($password),
     trim($body['telefono'] ?? ''),
     trim($body['empresa'] ?? ''),
     trim($body['cif'] ?? ''),
@@ -268,7 +268,7 @@ if ($metodo === 'PUT' && $id !== null) {
   if (!empty($body['password'])) {
     if (strlen($body['password']) < 6) icc_json(['error' => 'La contrasena debe tener al menos 6 caracteres'], 400);
     $sets[] = 'password_hash = ?';
-    $valores[] = password_hash($body['password'], PASSWORD_DEFAULT);
+    $valores[] = icc_hash_password($body['password']);
   }
 
   if (!$sets) icc_json(['ok' => true]);

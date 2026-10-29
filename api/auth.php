@@ -89,20 +89,33 @@ if ($metodo === 'GET' && $accion === 'historial_impersonacion') {
 
 if ($metodo === 'POST' && $accion === 'login') {
   $body = icc_body();
-  $email = trim($body['email'] ?? '');
+  $email = trim((string)($body['email'] ?? ''));
   $password = (string)($body['password'] ?? '');
+  $codigo = trim((string)($body['codigo'] ?? ''));
   if ($email === '' || $password === '') {
     icc_json(['error' => 'Indica email y contrasena'], 400);
   }
+  if (mb_strlen($email) > 190 || strlen($password) > 400) icc_json(['error' => 'Email o contraseña incorrectos'], 401);
+  $emailMin = mb_strtolower($email);
 
   $db = icc_db();
+  $seg = icc_seg_ok();
+
+  // Freno contra fuerza bruta (por IP y por cuenta, sin que un atacante pueda
+  // dejar fuera a la persona legitima). Sin la migracion, el freno antiguo.
+  if ($seg) {
+    $freno = icc_seg_freno($emailMin);
+    if ($freno) {
+      icc_seg_registra(null, $emailMin, 'bloqueado', $freno);
+      icc_json(['error' => $freno], 429);
+    }
+  }
+
   $stmt = $db->prepare('SELECT * FROM usuarios WHERE email = ?');
   $stmt->execute([$email]);
   $user = $stmt->fetch();
 
-  // Proteccion contra fuerza bruta: 5 intentos fallidos en 15 minutos
-  // bloquean temporalmente el acceso a esa cuenta.
-  if ($user && icc_v52()) {
+  if (!$seg && $user && icc_v52()) {
     $stmt = $db->prepare(
       "SELECT COUNT(*) AS total FROM usuarios_auditoria
        WHERE usuario_id = ? AND accion = 'login_fallido' AND created_at > (NOW() - INTERVAL 15 MINUTE)
@@ -114,12 +127,49 @@ if ($metodo === 'POST' && $accion === 'login') {
     }
   }
 
-  if (!$user || !password_verify($password, $user['password_hash'])) {
+  // Mismo tiempo de respuesta exista o no la cuenta: no delata quien esta dado de alta.
+  $ok = $user ? password_verify($password, $user['password_hash']) : password_verify($password, '$2y$12$6U0T9Y21YnFldgApGehliuxYye5pfCs0r66s3nzLqJbWUf5tm1EQW');
+  if (!$user || !$ok) {
     if ($user) icc_auditar((int)$user['id'], null, 'login_fallido', 'Contrasena incorrecta');
+    if ($seg) icc_seg_fallo($emailMin, $user ? (int)$user['id'] : null, 'fallo', $user ? 'Contraseña incorrecta' : 'Cuenta inexistente');
     icc_json(['error' => 'Email o contraseña incorrectos'], 401);
   }
   if ((int)$user['bloqueado'] === 1) {
+    if ($seg) icc_seg_registra((int)$user['id'], $emailMin, 'inactiva', 'Cuenta bloqueada');
     icc_json(['error' => 'Tu cuenta esta bloqueada. Contacta con administracion.'], 403);
+  }
+
+  // Doble factor: con la contrasena sola no basta.
+  if ($seg && icc_2fa_activo((int)$user['id'])) {
+    if ($codigo === '') {
+      icc_seg_registra((int)$user['id'], $emailMin, 'mfa_pedido');
+      icc_json(['error' => 'Introduce el código de 6 cifras de tu aplicación de autenticación.', 'mfa' => true], 401);
+    }
+    $r = icc_2fa_comprueba((int)$user['id'], $codigo);
+    if (!$r) {
+      icc_seg_fallo($emailMin, (int)$user['id'], 'mfa_fallo', 'Código de doble factor incorrecto');
+      icc_json(['error' => 'El código no es correcto o ya se ha usado. Espera al siguiente y vuelve a probar.', 'mfa' => true], 401);
+    }
+    if ($r === 'recuperacion') {
+      icc_seg_anota('Entrada con código de recuperación', 'Se ha gastado uno de los códigos de recuperación del doble factor.', (int)$user['id'], (int)$user['id']);
+    }
+  }
+
+  // Contrasena con cifrado antiguo: se refuerza al entrar.
+  if (icc_password_anticuada((string)$user['password_hash'])) {
+    $db->prepare('UPDATE usuarios SET password_hash = ? WHERE id = ?')->execute([icc_hash_password($password), $user['id']]);
+  }
+
+  if ($seg) {
+    icc_seg_q('DELETE FROM seg_intentos WHERE email = ? AND ip <=> ?', [$emailMin, icc_ip()]);
+    // Aviso si entra desde una conexion que nunca habia usado.
+    $conocida = icc_seg_fila("SELECT 1 FROM seg_accesos WHERE usuario_id = ? AND resultado = 'ok' AND ip <=> ? LIMIT 1", [$user['id'], icc_ip()]);
+    $alguna = icc_seg_fila("SELECT 1 FROM seg_accesos WHERE usuario_id = ? AND resultado = 'ok' LIMIT 1", [$user['id']]);
+    if ($alguna && !$conocida) {
+      icc_seg_anota('Acceso desde una conexión nueva', 'IP ' . icc_ip() . ' · ' . mb_substr((string)icc_seg_navegador(), 0, 120), (int)$user['id'], (int)$user['id']);
+      icc_notificar((int)$user['id'], 'seguridad', 'seguridad', 'Se ha entrado en tu cuenta desde una conexión nueva (IP ' . icc_ip() . '). Si no has sido tú, cambia la contraseña y avisa a dirección.');
+    }
+    icc_seg_registra((int)$user['id'], $emailMin, 'ok');
   }
 
   session_regenerate_id(true);
@@ -153,7 +203,7 @@ if ($metodo === 'POST' && $accion === 'cambiar_password') {
     icc_json(['error' => 'La nueva contrasena debe ser distinta de la actual'], 400);
   }
   $sets = 'password_hash = ?' . (icc_v52() ? ', debe_cambiar_password = 0, password_actualizada_en = NOW()' : '');
-  $db->prepare("UPDATE usuarios SET $sets WHERE id = ?")->execute([password_hash($nueva, PASSWORD_DEFAULT), $user['id']]);
+  $db->prepare("UPDATE usuarios SET $sets WHERE id = ?")->execute([icc_hash_password($nueva), $user['id']]);
   $cerradas = icc_sesiones_cerrar((int)$user['id'], (int)$user['id'], 'cambio_password', icc_sesion_actual_id());
   icc_auditar((int)$user['id'], (int)$user['id'], 'password_cambiada', 'Cambiada por el propio usuario' . ($cerradas ? '; ' . icc_n_sesiones($cerradas) : ''));
   icc_json(['ok' => true, 'user' => icc_current_user(true)]);

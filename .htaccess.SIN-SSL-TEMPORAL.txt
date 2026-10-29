@@ -43,7 +43,7 @@ AddType "image/svg+xml; charset=UTF-8" .svg
 </IfModule>
 
 # --- Bloqueo de ficheros sensibles (sintaxis doble 2.2 / 2.4) ----------------
-<FilesMatch "(^\.|\.(md|zip|log|bak|sql|env|ini|yml|py|sh)$)">
+<FilesMatch "(^\.|\.(md|zip|log|bak|old|orig|swp|sql|env|ini|yml|py|sh|txt|7z|rar|tar|gz|tgz)$)">
   <IfModule mod_authz_core.c>
     Require all denied
   </IfModule>
@@ -53,7 +53,7 @@ AddType "image/svg+xml; charset=UTF-8" .svg
   </IfModule>
 </FilesMatch>
 
-<FilesMatch "^config\.php$">
+<FilesMatch "^(config|config\.local|seguridad_lib|anuncios_lib|tarifas_novedades_lib|cmp_comun)\.php$">
   <IfModule mod_authz_core.c>
     Require all denied
   </IfModule>

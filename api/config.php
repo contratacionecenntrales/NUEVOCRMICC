@@ -8,8 +8,24 @@
 // Las credenciales reales NO se guardan en el repositorio: van en
 // api/config.local.php (ignorado por git; copia config.local.example.php).
 // Ese archivo puede definir cualquiera de las constantes ICC_* de abajo.
-if (is_file(__DIR__ . '/config.local.php')) {
+//
+// Blindaje: si el hosting tiene carpeta privada (en Hostalia, "private", junto
+// a la carpeta del dominio), la configuracion se busca primero alli, fuera del
+// alcance de cualquier navegador. El Centro de Seguridad la mueve con un clic.
+defined('ICC_DIR_WEB') || define('ICC_DIR_WEB', dirname(__DIR__));
+if (!defined('ICC_DIR_PRIVADO')) {
+  $iccPriv = dirname(ICC_DIR_WEB) . '/private';
+  define('ICC_DIR_PRIVADO', (@is_dir($iccPriv) && @is_writable($iccPriv)) ? $iccPriv . '/icc-crm' : '');
+  unset($iccPriv);
+}
+if (ICC_DIR_PRIVADO !== '' && @is_file(ICC_DIR_PRIVADO . '/config.php')) {
+  require ICC_DIR_PRIVADO . '/config.php';
+  define('ICC_CONFIG_EN', 'privada');
+} elseif (is_file(__DIR__ . '/config.local.php')) {
   require __DIR__ . '/config.local.php';
+  define('ICC_CONFIG_EN', 'web');
+} else {
+  define('ICC_CONFIG_EN', 'ninguna');
 }
 defined('ICC_DB_HOST') || define('ICC_DB_HOST', 'localhost');
 defined('ICC_DB_NAME') || define('ICC_DB_NAME', 'icc_crm');
@@ -18,7 +34,15 @@ defined('ICC_DB_PASS') || define('ICC_DB_PASS', '');
 
 // Carpeta (fuera de acceso publico directo, protegida por storage/.htaccess)
 // donde se guardan los archivos subidos. Ruta absoluta en el servidor.
-defined('ICC_STORAGE_DIR') || define('ICC_STORAGE_DIR', __DIR__ . '/../storage');
+// Si los documentos ya se llevaron a la carpeta privada (Centro de Seguridad),
+// se usan desde alli.
+defined('ICC_STORAGE_WEB') || define('ICC_STORAGE_WEB', ICC_DIR_WEB . '/storage');
+defined('ICC_STORAGE_DIR') || define('ICC_STORAGE_DIR',
+  (ICC_DIR_PRIVADO !== '' && @is_dir(ICC_DIR_PRIVADO . '/storage')) ? ICC_DIR_PRIVADO . '/storage' : __DIR__ . '/../storage');
+
+// Sesiones: se cierran solas tras estas horas sin uso y, como mucho, a los dias indicados.
+defined('ICC_INACTIVIDAD_HORAS') || define('ICC_INACTIVIDAD_HORAS', 72);
+defined('ICC_SESION_MAX_DIAS') || define('ICC_SESION_MAX_DIAS', 30);
 
 // Token secreto para que una tarea programada (cron) pueda pedir una copia
 // de seguridad de storage/ sin necesitar sesion de usuario (ver
@@ -63,7 +87,15 @@ session_name('icc_sesion');
 session_start();
 
 header('Content-Type: application/json; charset=utf-8');
+// Cabeceras de seguridad puestas por el propio PHP: siguen ahi aunque el
+// hosting ignore el .htaccess.
+if (function_exists('header_remove')) header_remove('X-Powered-By');
 header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: DENY');
+header('Referrer-Policy: strict-origin-when-cross-origin');
+header('Cross-Origin-Resource-Policy: same-origin');
+header('Cache-Control: no-store, max-age=0');
+header('Permissions-Policy: geolocation=(), camera=(), microphone=(), payment=(), usb=()');
 
 // Algunos hostings compartidos bloquean el metodo HTTP DELETE (y a veces
 // PUT) a nivel de servidor, antes de que llegue a este script, devolviendo
@@ -221,8 +253,21 @@ function icc_generar_password(): string {
   return str_shuffle($pwd);
 }
 
+/**
+ * IP de quien hace la peticion. Solo si llega a traves del proxy del propio
+ * hosting (direccion interna) se mira X-Forwarded-For, y de esa lista se toma
+ * el ULTIMO valor, el que anade el proxy: los primeros los puede inventar
+ * cualquiera para esquivar los bloqueos por IP.
+ */
 function icc_ip(): ?string {
-  return $_SERVER['REMOTE_ADDR'] ?? null;
+  $ip = $_SERVER['REMOTE_ADDR'] ?? null;
+  if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])
+    && ($ip === null || !filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE))) {
+    $lista = array_map('trim', explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']));
+    $ultima = end($lista);
+    if (filter_var($ultima, FILTER_VALIDATE_IP)) $ip = $ultima;
+  }
+  return $ip ? substr($ip, 0, 64) : null;
 }
 
 /** Id del usuario real que abrio la sesion (el admin, si esta en "Ver como"). */
@@ -258,10 +303,18 @@ function icc_sesion_valida(): bool {
     icc_sesion_crear(icc_usuario_real_id());
     return true;
   }
-  $stmt = $db->prepare('SELECT id, cerrada_en, ultima_actividad < (NOW() - INTERVAL 1 MINUTE) AS refrescar FROM usuarios_sesiones WHERE token_hash = ?');
-  $stmt->execute([hash('sha256', $_SESSION['sesion_token'])]);
+  $stmt = $db->prepare('SELECT id, cerrada_en, ultima_actividad < (NOW() - INTERVAL 1 MINUTE) AS refrescar,
+      ultima_actividad < (NOW() - INTERVAL ? HOUR) AS inactiva, creada_en < (NOW() - INTERVAL ? DAY) AS vieja
+    FROM usuarios_sesiones WHERE token_hash = ?');
+  $stmt->execute([ICC_INACTIVIDAD_HORAS, ICC_SESION_MAX_DIAS, hash('sha256', $_SESSION['sesion_token'])]);
   $sesion = $stmt->fetch();
   if (!$sesion || $sesion['cerrada_en'] !== null) return false;
+  // Caducidad: tras dias sin uso, o al llegar a la duracion maxima.
+  if ((int)$sesion['inactiva'] === 1 || (int)$sesion['vieja'] === 1) {
+    $db->prepare('UPDATE usuarios_sesiones SET cerrada_en = NOW(), motivo_cierre = ? WHERE id = ?')
+      ->execute([(int)$sesion['inactiva'] === 1 ? 'inactividad' : 'duracion_maxima', $sesion['id']]);
+    return false;
+  }
   if ((int)$sesion['refrescar'] === 1) {
     $db->prepare('UPDATE usuarios_sesiones SET ultima_actividad = NOW() WHERE id = ?')->execute([$sesion['id']]);
     $db->prepare('UPDATE usuarios SET ultimo_acceso = NOW() WHERE id = ?')->execute([icc_usuario_real_id()]);
@@ -293,6 +346,10 @@ function icc_auditar(int $usuarioId, ?int $autorId, string $accion, string $deta
   try {
     icc_db()->prepare('INSERT INTO usuarios_auditoria (usuario_id, autor_id, accion, detalle, ip) VALUES (?, ?, ?, ?, ?)')
       ->execute([$usuarioId, $autorId, $accion, substr($detalle, 0, 500), icc_ip()]);
+    // Copia sellada en la bitacora del Centro de Seguridad (detecta manipulaciones).
+    if (function_exists('icc_seg_anota') && $accion !== 'login_fallido') {
+      icc_seg_anota(str_replace('_', ' ', ucfirst($accion)), $detalle, $autorId, $usuarioId);
+    }
   } catch (Exception $e) {
     error_log('ICC auditoria: ' . $e->getMessage());
   }
@@ -898,3 +955,5 @@ function icc_generar_xlsx(array $cabeceras, array $filas, string $nombreHoja = '
   unlink($tmp);
   return $contenido;
 }
+
+require_once __DIR__ . '/seguridad_lib.php';

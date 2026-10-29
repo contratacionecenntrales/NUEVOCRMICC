@@ -179,6 +179,10 @@ if ($metodo === 'GET') {
     $respuesta['seguridad'] = [
       'sesiones' => $sesiones,
       'historial' => $stmt->fetchAll(),
+      // Doble factor (Centro de Seguridad): null si falta la migracion.
+      'doble_factor' => icc_seg_ok() ? icc_2fa_activo($id) : null,
+      'puede_quitar_2fa' => icc_seg_ok() && icc_es_rol_admin((string)$user['rol']) && $id !== icc_usuario_real_id()
+        && ($objetivo['rol'] !== 'super_admin' || $user['rol'] === 'super_admin'),
     ];
   }
 
@@ -385,7 +389,7 @@ if ($accion === 'reset_password') {
   usu_requiere_migracion();
   $nueva = icc_generar_password();
   $db->prepare('UPDATE usuarios SET password_hash = ?, debe_cambiar_password = 1, password_actualizada_en = NOW() WHERE id = ?')
-    ->execute([password_hash($nueva, PASSWORD_DEFAULT), $id]);
+    ->execute([icc_hash_password($nueva), $id]);
   $n = icc_sesiones_cerrar($id, $autorId, 'password_restablecida');
   icc_auditar($id, $autorId, 'password_restablecida', 'Debera cambiarla en el proximo acceso' . ($n ? '; ' . icc_n_sesiones($n) : ''));
   // La contrasena solo se devuelve en esta respuesta: no queda guardada en claro.

@@ -26,6 +26,7 @@ window.icc.api = (function () {
       }
       var err = new Error((data && data.error) || "Error inesperado (" + res.status + ")");
       err.status = res.status;
+      err.datos = data || {};
       throw err;
     }
     return data;
