@@ -6495,13 +6495,25 @@ function hubEventos(){
   };
 }
 
+/* Copia por el método antiguo: funciona también sin certificado SSL (http),
+   donde el navegador no deja usar navigator.clipboard. */
+function copiaAntigua(txt){
+  try {
+    var t = document.createElement('textarea');
+    t.value = txt; t.setAttribute('readonly', ''); t.style.position = 'fixed'; t.style.opacity = '0';
+    document.body.appendChild(t); t.select();
+    var ok = document.execCommand('copy');
+    document.body.removeChild(t);
+    return ok;
+  } catch(e){ return false; }
+}
 function copia(txt, msg){
   try {
     if(navigator.clipboard && navigator.clipboard.writeText){
       navigator.clipboard.writeText(txt).then(function(){ toast(msg); },
-        function(){ toast('Copia manualmente: '+txt); });
-    } else toast('Copia manualmente: '+txt);
-  } catch(e){ toast('Copia manualmente: '+txt); }
+        function(){ toast(copiaAntigua(txt) ? msg : 'Copia manualmente: '+txt); });
+    } else toast(copiaAntigua(txt) ? msg : 'Copia manualmente: '+txt);
+  } catch(e){ toast(copiaAntigua(txt) ? msg : 'Copia manualmente: '+txt); }
 }
 
 /* ==========================================================================
@@ -11493,8 +11505,8 @@ function ctrEnlaceEventos(){
   if(q('#fx-copiar')) q('#fx-copiar').onclick = function(){
     if(navigator.clipboard && navigator.clipboard.writeText)
       navigator.clipboard.writeText(url).then(function(){ toast('Enlace copiado.'); },
-        function(){ toast('No se pudo copiar; selecciónalo a mano.'); });
-    else toast('Selecciona el enlace y cópialo a mano.');
+        function(){ toast(copiaAntigua(url) ? 'Enlace copiado.' : 'No se pudo copiar; selecciónalo a mano.'); });
+    else toast(copiaAntigua(url) ? 'Enlace copiado.' : 'Selecciona el enlace y cópialo a mano.');
   };
   if(q('#fx-wsp')) q('#fx-wsp').onclick = function(){
     var tel = telLimpio(c.tel);
