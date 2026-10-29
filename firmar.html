@@ -364,6 +364,12 @@ body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-
 .fx-check{display:flex!important;gap:11px;align-items:flex-start;margin:18px 0;
   font-size:12.5px;font-weight:400!important;color:#475569;line-height:1.6}
 .fx-check input{width:20px;height:20px;flex:0 0 auto;margin-top:1px;accent-color:#0F766E}
+.fx-priv{margin:18px 0 4px;border:1px solid #CBD5E1;border-radius:10px;background:#F8FAFC;
+  font-size:12px;color:#334155;line-height:1.55}
+.fx-priv summary{cursor:pointer;padding:11px 14px;font-weight:700;color:#0F172A;font-size:13px}
+.fx-priv table{border-collapse:collapse;width:100%;margin:0 0 4px}
+.fx-priv th,.fx-priv td{text-align:left;vertical-align:top;padding:7px 14px;border-top:1px solid #E2E8F0}
+.fx-priv th{width:118px;color:#0F172A;font-weight:600}
 
 .fx-boton{display:block;width:100%;padding:15px;font:inherit;font-size:15.5px;
   font-weight:700;color:#FFFFFF;background:#0F766E;border:none;border-radius:11px;
@@ -1281,7 +1287,7 @@ function contratoHTML(C, o){
 var F = {
   token:null, datos:null, error:null, cargando:true,
   paso:'contrato',          // contrato · datos · firma · hecho
-  nombre:'', dni:'', acepta:false, trazos:0, enviando:false, ts:null
+  nombre:'', dni:'', acepta:false, privacidad:false, trazos:0, enviando:false, ts:null
 };
 
 /* --------------------------- CONEXIÓN ---------------------------------- */
@@ -1422,7 +1428,7 @@ function cabeceraFirma(){
 
 function panelFirma(){
   var listo = F.nombre.trim().length > 2 && F.dni.trim().length > 7 &&
-              F.trazos > 0 && F.acepta;
+              F.trazos > 0 && F.acepta && F.privacidad;
   return '<div class="fx-panel">'+
     '<h2>Firmar el contrato</h2>'+
     '<div class="fx-campos">'+
@@ -1445,14 +1451,41 @@ function panelFirma(){
       'y que quedarán registrados la fecha, la hora y mi dirección IP como prueba de la firma.'+
       '</span></label>'+
 
+    avisoPrivacidad()+
+    '<label class="fx-check"><input type="checkbox" id="fx-privacidad"'+(F.privacidad?' checked':'')+'>'+
+      '<span>He leído la información sobre protección de datos.</span></label>'+
+
     '<button type="button" id="fx-firmar" class="fx-boton"'+(listo && !F.enviando?'':' disabled')+'>'+
       (F.enviando ? 'Enviando...' : 'Firmar el contrato')+'</button>'+
     (F.aviso ? '<div class="fx-aviso">'+esc(F.aviso)+'</div>' : '')+
-    '<div class="fx-mini" style="margin-top:12px">Tus datos se envían cifrados a '+
-      'Grupo Evolvix Global, S.L. y se usan únicamente para formalizar este contrato. '+
-      'Puedes ejercer tus derechos de acceso, rectificación y supresión escribiendo a la '+
-      'dirección de contacto que figura en el documento.</div>'+
+    '<div class="fx-mini" style="margin-top:12px">'+
+      (location.protocol === 'https:' ? 'La conexión con esta página está cifrada (HTTPS). ' : '')+
+      'Tus datos se usan únicamente para formalizar y gestionar este contrato.</div>'+
   '</div>';
+}
+
+/* Información básica de protección de datos (art. 13 RGPD y art. 11 LOPDGDD). */
+function avisoPrivacidad(){
+  var p = (F.datos && F.datos.privacidad) || {};
+  var resp = p.responsable || 'GRUPO EVOLVIX GLOBAL, S.L.';
+  var cif = p.cif || 'B21779673';
+  var dir = p.direccion || '';
+  var mail = p.email || '';
+  var filas = [
+    ['Responsable', resp+' · CIF '+cif+(dir ? ' · '+dir : '')+(mail ? ' · '+mail : '')+
+      (p.dpo ? ' · Delegado de protección de datos: '+p.dpo : '')],
+    ['Finalidad', 'Formalizar, ejecutar y gestionar el contrato que vas a firmar, y conservar la prueba de la firma.'],
+    ['Legitimación', 'Ejecución de un contrato (art. 6.1.b RGPD) y cumplimiento de obligaciones legales mercantiles y fiscales (art. 6.1.c).'],
+    ['Datos', 'Nombre y apellidos, DNI/NIE, firma manuscrita digital, los datos del contrato y, como prueba de la firma, fecha, hora, dirección IP y navegador.'],
+    ['Destinatarios', 'No se ceden a terceros salvo obligación legal (Agencia Tributaria, juzgados). El proveedor de alojamiento trata los datos por cuenta del responsable, dentro de la Unión Europea.'],
+    ['Conservación', 'Mientras dure la relación y, después, durante los plazos legales (6 años, art. 30 del Código de Comercio). Pasado ese tiempo, se suprimen.'],
+    ['Derechos', 'Acceso, rectificación, supresión, oposición, limitación y portabilidad, escribiendo a '+(mail || 'la dirección del responsable')+
+      ' con copia de tu DNI. Si crees que no se respetan, puedes reclamar ante la Agencia Española de Protección de Datos (www.aepd.es).']
+  ];
+  return '<details class="fx-priv" id="fx-priv">'+
+    '<summary>Información sobre protección de datos</summary><table>'+
+    filas.map(function(f){ return '<tr><th>'+esc(f[0])+'</th><td>'+esc(f[1])+'</td></tr>'; }).join('')+
+    '</table></details>';
 }
 
 function cajaMensaje(titulo, texto, clase){
@@ -1543,7 +1576,7 @@ function refrescaBoton(){
   var b = document.getElementById('fx-firmar');
   if(!b) return;
   b.disabled = !(F.nombre.trim().length > 2 && F.dni.trim().length > 7 &&
-                 F.trazos > 0 && F.acepta) || F.enviando;
+                 F.trazos > 0 && F.acepta && F.privacidad) || F.enviando;
 }
 
 /* ------------------------------ EVENTOS --------------------------------- */
@@ -1555,6 +1588,8 @@ function eventosFirma(){
   if(n) n.oninput = function(){ F.nombre = n.value; refrescaBoton(); };
   if(d) d.oninput = function(){ F.dni = d.value; refrescaBoton(); };
   if(a) a.onchange = function(){ F.acepta = a.checked; refrescaBoton(); };
+  var pv = document.getElementById('fx-privacidad');
+  if(pv) pv.onchange = function(){ F.privacidad = pv.checked; refrescaBoton(); };
 
   var b = document.getElementById('fx-firmar');
   if(b) b.onclick = function(){
@@ -1565,7 +1600,7 @@ function eventosFirma(){
     huellaTexto(doc ? doc.innerText : '').then(function(huella){
       return firmaRpc('firma_contrato', {
         p_token: F.token, p_nombre: F.nombre.trim(), p_dni: F.dni.trim(),
-        p_firma: F.firmaImg, p_huella: huella, p_datos: {}
+        p_firma: F.firmaImg, p_huella: huella, p_datos: {}, p_privacidad: F.privacidad === true
       });
     }).then(function(r){
       F.enviando = false;
@@ -1585,6 +1620,7 @@ function mensajeError(e){
   var M = {'falta-nombre':'Escribe tu nombre y apellidos completos.',
            'falta-dni':'Revisa el DNI: parece incompleto.',
            'falta-firma':'Dibuja tu firma en el recuadro antes de enviar.',
+           'falta-privacidad':'Marca la casilla de la información sobre protección de datos.',
            'firma-demasiado-grande':'La firma ha salido demasiado grande. Bórrala y hazla más simple.',
            'ya-firmado':'Este contrato ya estaba firmado.',
            'caducado':'El enlace ha caducado. Pide uno nuevo a Labs24k.',

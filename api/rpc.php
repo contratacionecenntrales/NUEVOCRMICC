@@ -237,6 +237,9 @@ function labs_rpc_nuevo_enlace($codigo, $dias)
     if ($c['estado'] === 'Anulado') {
         throw new ErrorApi('El contrato ' . $codigo . ' está anulado.', 400, 'P0001');
     }
+    if ((int) $c['bloqueado'] === 1) {
+        throw new ErrorApi('El contrato ' . $codigo . ' está bloqueado por protección de datos.', 400, 'P0001');
+    }
     $tok = labs_uuid();
     $exp = new DateTime('now', new DateTimeZone('UTC'));
     $exp->modify('+' . $dias . ' days');
@@ -253,7 +256,7 @@ function labs_rpc_contrato_para_firma($token)
     if (!labs_es_uuid($token)) {
         return array('error' => $token ? 'no-existe' : 'sin-token');
     }
-    $c = labs_fila('SELECT * FROM contratos WHERE token = ?', array(strtolower($token)));
+    $c = labs_fila('SELECT * FROM contratos WHERE token = ? AND bloqueado = 0', array(strtolower($token)));
     if (!$c) {
         return array('error' => 'no-existe');
     }
@@ -274,7 +277,16 @@ function labs_rpc_contrato_para_firma($token)
         'mail' => $c['email'], 'tel' => $c['telefono'], 'servicio' => $c['servicio'],
         'base' => 0 + $c['setup'], 'mensual' => 0 + $c['mensual'], 'iva' => 0 + $c['iva'],
         'fecha' => $c['inicio'], 'datos' => labs_json_objeto(is_array($datos) ? $datos : array()),
+        'privacidad' => labs_privacidad_publica(),
     );
+}
+
+/** Datos del responsable para la información de protección de datos (art. 13 RGPD). */
+function labs_privacidad_publica()
+{
+    $a = labs_rgpd_ajustes();
+    return array('responsable' => $a['responsable_nombre'], 'cif' => $a['responsable_cif'],
+        'direccion' => $a['responsable_direccion'], 'email' => $a['email_privacidad'], 'dpo' => $a['dpo']);
 }
 
 function labs_rpc_firma_contrato($arg)
@@ -288,7 +300,7 @@ function labs_rpc_firma_contrato($arg)
     if (!labs_es_uuid($token)) {
         return array('error' => 'no-existe');
     }
-    $c = labs_fila('SELECT * FROM contratos WHERE token = ? FOR UPDATE', array(strtolower($token)));
+    $c = labs_fila('SELECT * FROM contratos WHERE token = ? AND bloqueado = 0 FOR UPDATE', array(strtolower($token)));
     if (!$c) {
         return array('error' => 'no-existe');
     }
@@ -313,12 +325,17 @@ function labs_rpc_firma_contrato($arg)
     if (strlen($firma) > 400000) {
         return array('error' => 'firma-demasiado-grande');
     }
+    // La persona tiene que haber visto la información de protección de datos.
+    if ($arg('p_privacidad', false) !== true) {
+        return array('error' => 'falta-privacidad');
+    }
     $previos = json_decode($c['datos_contrato'], true);
     $previos = is_array($previos) ? $previos : array();
     if (is_array($datos)) {
         $previos = array_merge($previos, $datos);
     }
     $ahora = labs_ahora();
+    $previos['privacidad_informada'] = labs_sale('s', $ahora);
     labs_q('UPDATE contratos SET estado = ?, firma_img = ?, firma_nombre = ?, firma_dni = ?, firma_ip = ?, firma_ua = ?,
               firma_huella = ?, firmado_ts = ?, firmado_el = ?, representante = ?, datos_contrato = ?, token_usado = 1,
               actualizado = ? WHERE id = ?', array(
@@ -327,6 +344,6 @@ function labs_rpc_firma_contrato($arg)
         $huella === null ? null : mb_substr((string) $huella, 0, 128), $ahora, labs_hoy(),
         $nombre !== '' ? $nombre : $c['representante'],
         json_encode($previos ?: new stdClass(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), $ahora, $c['id']));
-    labs_firma_evento($c['id'], 'firmado', 'Firmado por ' . $nombre);
+    labs_firma_evento($c['id'], 'firmado', 'Firmado por ' . $nombre . ' · información de protección de datos aceptada');
     return array('ok' => true, 'codigo' => $c['codigo'], 'ts' => labs_sale('s', $ahora));
 }

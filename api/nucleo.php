@@ -102,7 +102,14 @@ function labs_db()
     $db->exec("SET SESSION sql_mode = 'STRICT_ALL_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION'");
     // Tablas y columnas nuevas de cada versión: se crean solas (migraciones.php).
     labs_migra($db);
+    $GLOBALS['labs_db_ok'] = true;
     return $db;
+}
+
+/** true si ya hay conexión con MySQL en esta petición. */
+function labs_db_lista()
+{
+    return !empty($GLOBALS['labs_db_ok']);
 }
 
 /**

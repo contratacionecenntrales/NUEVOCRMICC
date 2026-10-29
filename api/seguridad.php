@@ -58,6 +58,7 @@ function labs_seguridad($metodo, $sub, $b, $pares)
         }
         labs_2fa_quita($u['id']);
         labs_anota('Doble factor desactivado', 'La cuenta vuelve a entrar solo con contraseña.', $u);
+        labs_alerta('2fa', 'media', 'Doble factor desactivado: ' . ($u['email'] ?? ''), 'La cuenta vuelve a entrar solo con contraseña (desde ' . labs_ip() . ').', null, true);
         return array(200, array('ok' => true));
     }
 
@@ -177,6 +178,7 @@ function labs_seguridad($metodo, $sub, $b, $pares)
         labs_2fa_quita($el['id']);
         labs_q('DELETE FROM tokens_sesion WHERE usuario_id = ?', array($el['id']));
         labs_anota('Doble factor reiniciado', 'Lo ha quitado la administración (móvil perdido). Sesiones cerradas.', $el);
+        labs_alerta('2fa', 'media', 'Doble factor reiniciado a ' . trim($el['nombre'] . ' ' . $el['apellidos']), 'Lo ha quitado la administración desde ' . labs_ip() . '.', null, true);
         return array(200, array('ok' => true));
     }
     throw new ErrorApi('Operación de seguridad desconocida.', 404, 'RUTA_DESCONOCIDA');
@@ -478,6 +480,16 @@ function labs_prueba_exposicion()
             'detalle' => $faltan ? 'Llegan sin: ' . implode(', ', $faltan) . '. El panel lleva su propia política de respaldo, pero conviene revisar el .htaccess.'
                 : 'El navegador recibe la política de seguridad completa.');
     }
+    $expuestos = array_filter($pruebas, function ($x) {
+        return $x['resultado'] === 'expuesto';
+    });
+    if ($expuestos) {
+        labs_alerta('exposicion', 'alta', 'Hay archivos que se pueden descargar desde fuera',
+            implode("\n", array_map(function ($x) {
+                return '· ' . $x['prueba'] . ': ' . $x['detalle'];
+            }, $expuestos)) . "\nSi contienen datos personales y alguien los ha descargado, es una brecha: regístrala.",
+            'exposicion|' . md5(implode('|', array_column($expuestos, 'prueba'))) . '|' . gmdate('Y-m-d'));
+    }
     return array('comprobable' => $alguna, 'base' => $base, 'pruebas' => $pruebas,
         'mensaje' => $alguna ? '' : 'El servidor no ha podido llamarse a sí mismo: haz la prueba desde fuera.');
 }
@@ -532,6 +544,25 @@ function labs_seguridad_estado()
 
     $bit = labs_verifica_bitacora();
     $add('bitacora', 'Bitácora sin manipular', $bit['ok'] ? 'ok' : 'mal', $bit['mensaje'], null, 8);
+
+    // Copias de seguridad (art. 32.1.c RGPD: poder recuperar los datos tras un incidente).
+    $ultima = labs_ajuste('copia_ultima');
+    $copia_ok = $ultima && $ultima > labs_hace(48 * 3600);
+    $add('copias', 'Copias de seguridad cifradas', $copia_ok ? 'ok' : 'mal',
+        $copia_ok ? 'Última copia: ' . substr($ultima, 0, 16) . ' (UTC). Se hace una cada día, cifrada, en la carpeta privada.'
+            : ($ultima ? 'La última copia es de ' . substr($ultima, 0, 16) . ' (UTC): hace más de 2 días.' : 'Todavía no hay ninguna copia.') .
+              ' Hazla en Cumplimiento RGPD → Copias.', null, 10);
+
+    // Brechas abiertas cuyo plazo de 72 h para avisar a la AEPD ya ha vencido (art. 33).
+    try {
+        $tarde = (int) labs_fila("SELECT COUNT(*) n FROM incidentes WHERE estado IN ('abierto','evaluando') AND riesgo <> 'sin_riesgo'
+                                  AND notificado_aepd IS NULL AND detectado < ?", array(labs_hace(72 * 3600)))['n'];
+    } catch (PDOException $e) {
+        $tarde = 0;
+    }
+    $add('brechas', 'Brechas de seguridad dentro de plazo', $tarde ? 'mal' : 'ok',
+        $tarde ? $tarde . ' brecha(s) abierta(s) han pasado las 72 h sin decidir si se notifica a la AEPD. Resuélvelo en Cumplimiento RGPD → Brechas.'
+            : 'No hay brechas abiertas fuera de plazo.', null, 10);
 
     $v = PHP_VERSION;
     $add('php', 'Versión de PHP del hosting', version_compare($v, '8.1', '>=') ? 'ok' : (version_compare($v, '7.4', '>=') ? 'aviso' : 'mal'),

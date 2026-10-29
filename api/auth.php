@@ -69,11 +69,17 @@ function labs_freno_acceso($email)
         FROM intentos_acceso WHERE ts > ?', array($email, $ip, $ip, $email, $q15));
     if ((int) $n['ip15'] >= 30) {
         labs_bloquea('ip', $ip, 60, '30 intentos fallidos en 15 minutos');
+        labs_alerta('fuerza_bruta', 'media', 'IP bloqueada por fuerza bruta: ' . $ip,
+            '30 intentos de acceso fallidos en 15 minutos desde ' . $ip . '. Bloqueada 1 hora. Si se repite, revisa el Centro de Seguridad.',
+            'bloqueo|' . $ip . '|' . gmdate('Y-m-d-H'));
         return 'Demasiados intentos fallidos desde tu conexión. Vuelve a probar en una hora.';
     }
     $dia = labs_fila('SELECT COUNT(*) n FROM intentos_acceso WHERE ip <=> ? AND ts > ?', array($ip, labs_hace(86400)));
     if ((int) $dia['n'] >= 100) {
         labs_bloquea('ip', $ip, 24 * 60, '100 intentos fallidos en 24 horas');
+        labs_alerta('fuerza_bruta', 'alta', 'Ataque persistente bloqueado: ' . $ip,
+            '100 intentos de acceso fallidos en 24 horas desde ' . $ip . '. Bloqueada 24 horas. Es un ataque dirigido: activa el doble factor en todas las cuentas de administración.',
+            'bloqueo24|' . $ip . '|' . gmdate('Y-m-d'));
         return 'Demasiados intentos fallidos desde tu conexión. Vuelve a probar mañana.';
     }
     if ((int) $n['cuenta_ip'] >= 8) {
@@ -101,6 +107,16 @@ function labs_fallo_acceso($email, $c, $resultado, $detalle)
     labs_registra_acceso($c ? $c['id'] : null, $email, $resultado, $detalle);
     if ($email === mb_strtolower(LABS_RAIZ_EMAIL)) {
         labs_registra_raiz('FALLIDO', $c ? $c['id'] : null, $email, $detalle);
+    }
+    // Muchos fallos contra una cuenta de administración: alguien la está atacando.
+    if ($c) {
+        $n = (int) labs_fila('SELECT COUNT(*) n FROM intentos_acceso WHERE email = ? AND ts > ?', array($email, labs_hace(86400)))['n'];
+        $rol = labs_fila('SELECT rol, raiz FROM perfiles WHERE id = ?', array($c['id']));
+        if ($n >= 20 && $rol && ((int) $rol['raiz'] === 1 || $rol['rol'] === 'admin')) {
+            labs_alerta('ataque_cuenta', 'alta', 'Ataque contra la cuenta ' . $email,
+                $n . ' intentos fallidos en 24 horas contra una cuenta de administración (último desde ' . labs_ip() . '). ' .
+                'Si no eres tú, activa el doble factor y cambia la contraseña.', 'ataque-cuenta|' . $email . '|' . gmdate('Y-m-d'));
+        }
     }
 }
 
@@ -150,6 +166,9 @@ function labs_auth_token($tipo, $cuerpo)
             }
             if ($r === 'recuperacion') {
                 labs_anota('Entrada con código de recuperación', 'Se ha gastado uno de los códigos de recuperación del doble factor.', $p ?: null, null);
+                labs_alerta('2fa', 'media', 'Entrada con código de recuperación: ' . $email,
+                    'Se ha entrado sin el móvil, con un código de recuperación, desde ' . labs_ip() . '. Si no ha sido la persona titular, cierra sus sesiones.',
+                    null, true);
             }
         }
 
@@ -163,6 +182,11 @@ function labs_auth_token($tipo, $cuerpo)
         $alguna = labs_fila("SELECT 1 FROM registro_accesos WHERE usuario_id = ? AND resultado = 'ok' LIMIT 1", array($c['id']));
         if ($alguna && !$conocida && $p) {
             labs_anota('Acceso desde una conexión nueva', 'IP ' . labs_ip() . ' · ' . mb_substr((string) labs_navegador(), 0, 120), $p, null);
+            if ((int) $p['raiz'] === 1 || $p['rol'] === 'admin') {
+                labs_alerta('conexion_nueva', 'media', 'Administración ha entrado desde una conexión nueva: ' . $email,
+                    'IP ' . labs_ip() . ' · ' . mb_substr((string) labs_navegador(), 0, 160) . '. Si no lo reconoces, cierra esa sesión en el Centro de Seguridad.',
+                    'conexion|' . $c['id'] . '|' . labs_ip(), true);
+            }
         }
         labs_registra_acceso($c['id'], $email, 'ok', null);
 

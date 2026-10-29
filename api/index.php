@@ -11,6 +11,9 @@
  *   /storage/v1/object[/authenticated]/documentos/...  archivos
  *   /functions/v1/admin-usuarios[/id[/acción]]         administración de usuarios
  *   /estado                                            comprobación de la instalación
+ *   /seguridad/...                                     Centro de Seguridad y doble factor
+ *   /rgpd/...                                          Cumplimiento RGPD (copias, brechas, derechos)
+ *   /mantenimiento?clave=...                           tarea programada diaria (Plesk)
  *
  * Hostalia bloquea a veces PATCH y DELETE: el panel los manda como POST con
  * la cabecera X-HTTP-Method-Override, igual que en el CRM de IC.
@@ -26,6 +29,7 @@ require __DIR__ . '/almacen.php';
 require __DIR__ . '/admin.php';
 require __DIR__ . '/totp.php';
 require __DIR__ . '/seguridad.php';
+require __DIR__ . '/cumplimiento.php';
 
 ini_set('display_errors', '0');
 
@@ -168,6 +172,26 @@ try {
         $r = labs_seguridad($metodo, isset($m[1]) ? $m[1] : '', $metodo === 'GET' ? array() : labs_cuerpo_json(), $pares);
         $estado = $r[0];
         $resp = $r[1];
+    } elseif (preg_match('#^/rgpd(/[a-z0-9/_-]*)?$#', $ruta, $m)) {
+        /* --- Cumplimiento RGPD -------------------------------------------- */
+        $sub = isset($m[1]) ? $m[1] : '';
+        $crudo = $sub === '/copias/subir';
+        $r = labs_rgpd($metodo, $sub, ($metodo === 'GET' || $crudo) ? array() : labs_cuerpo_json(), $pares);
+        $estado = $r[0];
+        $resp = $r[1];
+    } elseif ($ruta === '/mantenimiento') {
+        /* --- Tarea programada (Plesk → Tareas programadas → URL) ---------- */
+        if (labs_freno('mant|' . labs_ip(), 20, 3600)) {
+            throw new ErrorApi('Demasiadas peticiones.', 429, 'FRENO');
+        }
+        $clave = labs_ajuste('clave_cron');
+        if (!$clave || !hash_equals($clave, (string) $param('clave'))) {
+            labs_db()->commit();
+            $db_iniciada = false;
+            labs_json(array('ok' => false), 403);
+        }
+        $r = labs_mantenimiento(true);
+        $resp = array('ok' => true, 'copia' => $r['copia'] ? $r['copia']['nombre'] : null, 'bitacora' => $r['bitacora']);
     } elseif (preg_match('#^/functions/v1/admin-usuarios(?:/([0-9a-fA-F-]{36}))?(?:/([a-z-]+))?/?$#', $ruta, $m)) {
         /* --- Administración de usuarios ---------------------------------- */
         $r = labs_admin($metodo, isset($m[1]) ? $m[1] : null, isset($m[2]) ? $m[2] : null,
@@ -180,6 +204,10 @@ try {
 
     labs_db()->commit();
     $db_iniciada = false;
+    // Copia diaria, plazos de conservación y vigilancia: tras responder, si toca.
+    if ($ruta !== '/mantenimiento') {
+        register_shutdown_function('labs_mantenimiento_diferido');
+    }
     labs_json($resp, $estado);
 } catch (ErrorApi $e) {
     if ($db_iniciada && labs_db()->inTransaction()) {

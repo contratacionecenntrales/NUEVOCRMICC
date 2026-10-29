@@ -8,7 +8,7 @@
  */
 defined('LABS') || exit;
 
-define('LABS_VERSION_ESQUEMA', 2);
+define('LABS_VERSION_ESQUEMA', 3);
 
 function labs_columna_existe(PDO $db, $tabla, $col)
 {
@@ -59,6 +59,32 @@ function labs_migra(PDO $db)
            creado DATETIME(6) NOT NULL, activado DATETIME(6) NULL,
            PRIMARY KEY (usuario_id),
            CONSTRAINT cuentas_2fa_fk FOREIGN KEY (usuario_id) REFERENCES cuentas(id) ON DELETE CASCADE) $opc",
+        // --- RGPD (versión 3) ---------------------------------------------
+        // Registro de brechas de seguridad (art. 33.5 RGPD: se documentan todas).
+        "CREATE TABLE IF NOT EXISTS incidentes (
+           id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, codigo VARCHAR(30) NOT NULL,
+           detectado DATETIME(6) NOT NULL, inicio DATETIME(6) NULL, resuelto DATETIME(6) NULL,
+           titulo VARCHAR(200) NOT NULL, descripcion TEXT NOT NULL,
+           origen VARCHAR(20) NOT NULL DEFAULT 'manual', tipo VARCHAR(30) NOT NULL DEFAULT 'confidencialidad',
+           medio VARCHAR(60) NOT NULL DEFAULT '', categorias_datos TEXT NULL, categorias_interesados TEXT NULL,
+           num_interesados INT NULL, num_registros INT NULL, consecuencias TEXT NULL, medidas TEXT NULL,
+           riesgo VARCHAR(10) NOT NULL DEFAULT 'pendiente', estado VARCHAR(30) NOT NULL DEFAULT 'abierto',
+           notificado_aepd DATETIME(6) NULL, registro_aepd VARCHAR(60) NULL, comunicado_afectados DATETIME(6) NULL,
+           decision TEXT NULL, creado_por CHAR(36) NULL, creado DATETIME(6) NOT NULL, actualizado DATETIME(6) NOT NULL,
+           PRIMARY KEY (id), UNIQUE KEY incidentes_codigo_uq (codigo)) $opc",
+        // Alertas automáticas de posible brecha.
+        "CREATE TABLE IF NOT EXISTS alertas (
+           id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, ts DATETIME(6) NOT NULL,
+           tipo VARCHAR(40) NOT NULL, gravedad VARCHAR(10) NOT NULL, titulo VARCHAR(200) NOT NULL,
+           detalle TEXT NULL, clave VARCHAR(160) NULL, vista TINYINT(1) NOT NULL DEFAULT 0, incidente_id BIGINT UNSIGNED NULL,
+           PRIMARY KEY (id), KEY alertas_ts_idx (ts), UNIQUE KEY alertas_clave_uq (clave)) $opc",
+        // Solicitudes de derechos (acceso, supresión...): plazo de un mes (art. 12.3).
+        "CREATE TABLE IF NOT EXISTS solicitudes_rgpd (
+           id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, codigo VARCHAR(30) NOT NULL, tipo VARCHAR(20) NOT NULL,
+           persona VARCHAR(200) NOT NULL, contacto VARCHAR(190) NOT NULL DEFAULT '', recibida DATETIME(6) NOT NULL,
+           vence DATETIME(6) NOT NULL, estado VARCHAR(20) NOT NULL DEFAULT 'abierta', notas TEXT NULL,
+           respuesta TEXT NULL, resuelta DATETIME(6) NULL, creado_por CHAR(36) NULL, creado DATETIME(6) NOT NULL,
+           PRIMARY KEY (id), UNIQUE KEY solicitudes_codigo_uq (codigo)) $opc",
     );
     foreach ($pasos as $sql) {
         $db->exec($sql);
@@ -68,6 +94,8 @@ function labs_migra(PDO $db)
         array('tokens_sesion', 'ultimo_uso', 'ALTER TABLE tokens_sesion ADD COLUMN ultimo_uso DATETIME(6) NULL'),
         array('bitacora', 'seq', 'ALTER TABLE bitacora ADD COLUMN seq BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, ADD UNIQUE KEY bitacora_seq_uq (seq)'),
         array('bitacora', 'cadena', 'ALTER TABLE bitacora ADD COLUMN cadena CHAR(64) NULL'),
+        // Bloqueo de datos (art. 32 LOPDGDD): el contrato se conserva por obligación legal pero queda apartado.
+        array('contratos', 'bloqueado', 'ALTER TABLE contratos ADD COLUMN bloqueado TINYINT(1) NOT NULL DEFAULT 0'),
     );
     foreach ($columnas as $c) {
         if (!labs_columna_existe($db, $c[0], $c[1])) {

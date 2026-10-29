@@ -448,11 +448,15 @@ function labs_tablas()
         },
     );
 
+    // Contratos bloqueados (art. 32 LOPDGDD): solo los ve administración.
     $contratos_ve = function () {
-        if (in_array(labs_mi_rol(), array('admin', 'manager', 'backoffice'), true)) {
+        if (labs_mi_rol() === 'admin') {
             return '1=1';
         }
-        return 'gestor_id = ' . labs_uidq();
+        if (in_array(labs_mi_rol(), array('manager', 'backoffice'), true)) {
+            return 'bloqueado = 0';
+        }
+        return 'gestor_id = ' . labs_uidq() . ' AND bloqueado = 0';
     };
     $T['contratos'] = array(
         'pk' => 'id', 'gen' => 'auto', 'ops' => array('select', 'insert', 'update', 'delete'),
@@ -470,6 +474,7 @@ function labs_tablas()
             'token_usado' => array('b', false), 'firma_img' => array('t'), 'firma_nombre' => array('t'),
             'firma_dni' => array('t'), 'firma_ip' => array('t'), 'firma_ua' => array('t'),
             'firma_huella' => array('t'), 'firmado_ts' => array('s'), 'datos_contrato' => array('j', array()),
+            'bloqueado' => array('b', false),
             'creado' => array('s', $AHORA), 'actualizado' => array('s', $AHORA)),
         'actualizado' => true,
         'leer' => $contratos_ve,
@@ -485,6 +490,7 @@ function labs_tablas()
                 $n[$k] = null;
             }
             $n['token_usado'] = false;
+            $n['bloqueado'] = false;
         },
         'editar' => $contratos_ve,
         'editar_ok' => function ($f) {
@@ -509,10 +515,13 @@ function labs_tablas()
         'cols' => array('id' => array('i'), 'contrato_id' => array('i'), 'ts' => array('s', $AHORA), 'evento' => array('t'),
             'ip' => array('t'), 'ua' => array('t'), 'detalle' => array('t', '')),
         'leer' => function () {
-            if (in_array(labs_mi_rol(), array('admin', 'manager', 'backoffice'), true)) {
+            if (labs_mi_rol() === 'admin') {
                 return '1=1';
             }
-            return 'EXISTS (SELECT 1 FROM contratos c WHERE c.id = firma_eventos.contrato_id AND c.gestor_id = ' . labs_uidq() . ')';
+            if (in_array(labs_mi_rol(), array('manager', 'backoffice'), true)) {
+                return 'EXISTS (SELECT 1 FROM contratos c WHERE c.id = firma_eventos.contrato_id AND c.bloqueado = 0)';
+            }
+            return 'EXISTS (SELECT 1 FROM contratos c WHERE c.id = firma_eventos.contrato_id AND c.bloqueado = 0 AND c.gestor_id = ' . labs_uidq() . ')';
         },
     );
 

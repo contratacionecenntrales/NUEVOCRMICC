@@ -142,7 +142,19 @@ function labs_almacen_subir($ruta)
 
 function labs_almacen_descargar($ruta)
 {
-    labs_usuario(true);
+    $u = labs_usuario(true);
+    // Descargas masivas: señal típica de robo de datos con una cuenta robada.
+    if (labs_freno('descargas100|' . $u['id'], 100, 600)) {
+        labs_alerta('descarga_masiva', 'alta', 'Descargas bloqueadas: más de 100 documentos en 10 minutos',
+            'La cuenta ' . ($u['email'] ?? $u['id']) . ' ha intentado descargar más de 100 documentos en 10 minutos desde ' . labs_ip() .
+            '. Se han frenado las descargas. Si no es normal, suspende la cuenta y valora si es una brecha.', 'descarga100|' . $u['id'] . '|' . gmdate('Y-m-d-H'));
+        throw new ErrorApi('Demasiadas descargas seguidas. Espera unos minutos.', 429, 'FRENO');
+    }
+    if (labs_freno('descargas30|' . $u['id'], 30, 600)) {
+        labs_alerta('descarga_masiva', 'alta', 'Muchas descargas de documentos seguidas',
+            'La cuenta ' . ($u['email'] ?? $u['id']) . ' ha descargado más de 30 documentos en 10 minutos desde ' . labs_ip() . '. Comprueba que es un uso normal.',
+            'descarga30|' . $u['id'] . '|' . gmdate('Y-m-d-H'));
+    }
     $ruta = labs_almacen_ruta($ruta);
     if (!labs_almacen_permiso($ruta, 'leer')) {
         throw new ErrorApi('No tienes permiso para descargar este archivo.', 403, 'Unauthorized');
