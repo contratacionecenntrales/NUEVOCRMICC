@@ -14,6 +14,7 @@ que en el CRM de IC.
 | Archivos subidos (cerrada al público) | `storage/` |
 | Seguridad del hosting (CSP, HTTPS) | `.htaccess` |
 | Paquete listo para subir | `descargas/labs-crm-hostalia-mysql.zip` |
+| Cómo está blindado (y cómo se ha atacado) | [`SEGURIDAD.md`](SEGURIDAD.md) |
 
 **Instalación:** ver [`LEEME-INSTALACION.md`](LEEME-INSTALACION.md). En resumen:
 crear la base MySQL → importar `sql/base-de-datos.sql` → rellenar

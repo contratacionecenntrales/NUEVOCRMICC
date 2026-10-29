@@ -31,7 +31,7 @@ $bd_ok = false;
 try {
     labs_db();
     $bd_ok = true;
-    $pasos[] = array(true, 'Conexión con MySQL', 'Base de datos «' . LABS_DB_NAME . '» en ' . LABS_DB_HOST . '.');
+    $pasos[] = array(true, 'Conexión con MySQL', 'Conectada.');
 } catch (ErrorApi $e) {
     $pasos[] = array(false, 'Conexión con MySQL', 'No conecta. ' . ($e->pista ?: 'Revisa los datos de api/config.local.php.'));
 }
@@ -49,7 +49,7 @@ if ($bd_ok) {
 
 $dir = rtrim(LABS_STORAGE_DIR, '/');
 $alm_ok = (is_dir($dir) || @mkdir($dir, 0750, true)) && is_writable($dir);
-$pasos[] = array($alm_ok, 'Carpeta de archivos', $alm_ok ? 'Se puede escribir en ella.' : 'No se puede escribir en ' . $dir . '. Dale permisos de escritura.');
+$pasos[] = array($alm_ok, 'Carpeta de archivos', $alm_ok ? 'Se puede escribir en ella.' : 'PHP no puede escribir en la carpeta de archivos. Dale permisos de escritura.');
 
 $clave_ok = strlen(LABS_CLAVE_INSTALACION) >= 12 && LABS_CLAVE_INSTALACION !== 'cambia-esto-por-una-clave-larga-y-tuya';
 $puede = $raiz && !$raiz['clave_hash'] && $clave_ok;
@@ -58,7 +58,10 @@ if ($puede && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $clave_inst = (string) ($_POST['instalacion'] ?? '');
     $p1 = (string) ($_POST['clave'] ?? '');
     $p2 = (string) ($_POST['clave2'] ?? '');
-    if (!hash_equals(LABS_CLAVE_INSTALACION, $clave_inst)) {
+    $frenado = labs_freno('instalar|' . labs_ip(), 10, 3600);
+    if ($frenado) {
+        $error = 'Demasiados intentos. Espera una hora.';
+    } elseif (!hash_equals(LABS_CLAVE_INSTALACION, $clave_inst)) {
         sleep(2);
         $error = 'La clave de instalación no coincide con la de api/config.local.php.';
     } elseif ($p1 !== $p2) {
@@ -69,7 +72,7 @@ if ($puede && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $db = labs_db();
         $db->beginTransaction();
         labs_q('UPDATE cuentas SET clave_hash = ?, actualizado = ? WHERE id = ? AND clave_hash IS NULL',
-            array(password_hash($p1, PASSWORD_DEFAULT), labs_ahora(), $raiz['id']));
+            array(labs_hash_clave($p1), labs_ahora(), $raiz['id']));
         labs_q('UPDATE perfiles SET debe_cambiar = 0, api_token = COALESCE(api_token, ?) WHERE id = ?', array(labs_token_api(), $raiz['id']));
         labs_sincroniza_raiz();
         labs_anota('Instalación completada', 'Contraseña de la cuenta raíz establecida desde api/instalar.php.', $raiz, null);

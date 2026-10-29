@@ -110,6 +110,23 @@ datos → Comprobar la instalación**.
 
 ---
 
+## 3 bis. Centro de Seguridad
+
+En el menú **Sistema → Centro de Seguridad** (administración):
+
+- **Nivel de blindaje** de 0 a 100 y la lista de puertas revisadas en tu servidor.
+- **Lanzar prueba de ataque**: el servidor intenta descargarse a sí mismo archivos
+  cebo desde fuera y dice si algo queda expuesto.
+- Botones de un clic para **llevar la configuración de MySQL a la carpeta
+  privada** del hosting, **mover los documentos** fuera de la web y **eliminar los
+  archivos sobrantes** (zips, SQL, notas) que hayan quedado en la carpeta pública.
+- **Doble factor** con Google o Microsoft Authenticator (código QR en pantalla).
+- Sesiones abiertas, intentos de entrada, IPs bloqueadas y verificación de la
+  bitácora sellada.
+
+Las tablas nuevas que necesita se crean solas la primera vez: no hace falta
+volver a importar SQL. El detalle de cada defensa está en `SEGURIDAD.md`.
+
 ## 4. Contratos y firma del cliente
 
 El módulo **Contratos y Facturación** genera vuestro contrato real —el de

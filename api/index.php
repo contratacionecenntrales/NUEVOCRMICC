@@ -24,6 +24,8 @@ require __DIR__ . '/rpc.php';
 require __DIR__ . '/auth.php';
 require __DIR__ . '/almacen.php';
 require __DIR__ . '/admin.php';
+require __DIR__ . '/totp.php';
+require __DIR__ . '/seguridad.php';
 
 ini_set('display_errors', '0');
 
@@ -50,7 +52,14 @@ $param = function ($k) use ($pares) {
 /** Cuerpo JSON de la petición (las subidas de archivos lo leen aparte). */
 function labs_cuerpo_json()
 {
-    $raw = file_get_contents('php://input');
+    $largo = isset($_SERVER['CONTENT_LENGTH']) ? (int) $_SERVER['CONTENT_LENGTH'] : 0;
+    if ($largo > LABS_MAX_JSON) {
+        throw new ErrorApi('La petición es demasiado grande.', 413, 'PGRST413');
+    }
+    $raw = file_get_contents('php://input', false, null, 0, LABS_MAX_JSON + 1);
+    if ($raw !== false && strlen($raw) > LABS_MAX_JSON) {
+        throw new ErrorApi('La petición es demasiado grande.', 413, 'PGRST413');
+    }
     if ($raw === '' || $raw === false) {
         return array();
     }
@@ -69,8 +78,9 @@ try {
 
     /* --- Comprobación de la instalación (sin sesión) --------------------- */
     if ($ruta === '/estado') {
+        // Solo sí/no: ni versiones ni rutas, que darían pistas a un atacante.
         $out = array('ok' => false, 'bd' => false, 'tablas' => false, 'raiz' => false, 'raiz_con_clave' => false,
-            'php' => PHP_VERSION, 'almacen' => false);
+            'almacen' => false);
         try {
             labs_db();
             $out['bd'] = true;
@@ -81,7 +91,7 @@ try {
                 $out['raiz_con_clave'] = $r && $r['clave_hash'];
             }
         } catch (ErrorApi $e) {
-            $out['detalle'] = $e->getMessage();
+            $out['detalle'] = 'Sin conexión con la base de datos.';
         }
         $dir = rtrim(LABS_STORAGE_DIR, '/');
         $out['almacen'] = (is_dir($dir) || @mkdir($dir, 0750, true)) && is_writable($dir);
@@ -153,6 +163,11 @@ try {
         } else {
             throw new ErrorApi('Método no admitido.', 405, 'PGRST000');
         }
+    } elseif (preg_match('#^/seguridad(/[a-z0-9/_-]*)?$#', $ruta, $m)) {
+        /* --- Centro de Seguridad y doble factor --------------------------- */
+        $r = labs_seguridad($metodo, isset($m[1]) ? $m[1] : '', $metodo === 'GET' ? array() : labs_cuerpo_json(), $pares);
+        $estado = $r[0];
+        $resp = $r[1];
     } elseif (preg_match('#^/functions/v1/admin-usuarios(?:/([0-9a-fA-F-]{36}))?(?:/([a-z-]+))?/?$#', $ruta, $m)) {
         /* --- Administración de usuarios ---------------------------------- */
         $r = labs_admin($metodo, isset($m[1]) ? $m[1] : null, isset($m[2]) ? $m[2] : null,

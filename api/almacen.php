@@ -34,6 +34,54 @@ function labs_almacen_fichero($ruta)
     return rtrim(LABS_STORAGE_DIR, '/') . '/documentos/' . $ruta;
 }
 
+/**
+ * Dónde está de verdad un archivo. Si se subió antes de existir la carpeta
+ * privada (en storage/ dentro de la web), se traslada allí la primera vez que
+ * se pide, para que deje de estar en la carpeta pública.
+ */
+function labs_almacen_localiza($ruta)
+{
+    $nuevo = labs_almacen_fichero($ruta);
+    if (is_file($nuevo)) {
+        return $nuevo;
+    }
+    $viejo = rtrim(LABS_STORAGE_WEB, '/') . '/documentos/' . $ruta;
+    if ($viejo !== $nuevo && is_file($viejo)) {
+        $dir = dirname($nuevo);
+        if ((is_dir($dir) || @mkdir($dir, 0750, true)) && @rename($viejo, $nuevo)) {
+            return $nuevo;
+        }
+        return $viejo;
+    }
+    return null;
+}
+
+/** Comprueba que el contenido es de verdad del tipo que dice su extensión. */
+function labs_almacen_contenido_ok($ext, $datos)
+{
+    $ini = substr($datos, 0, 16);
+    switch ($ext) {
+        case 'pdf':
+            return strpos($ini, '%PDF-') === 0 || strpos(substr($datos, 0, 1024), '%PDF-') !== false;
+        case 'png':
+            return strpos($ini, "\x89PNG\r\n\x1a\n") === 0;
+        case 'jpg':
+        case 'jpeg':
+            return strpos($ini, "\xFF\xD8\xFF") === 0;
+        case 'webp':
+            return strpos($ini, 'RIFF') === 0 && substr($ini, 8, 4) === 'WEBP';
+        case 'docx':
+        case 'xlsx':
+        case 'pptx':
+            return strpos($ini, "PK\x03\x04") === 0;
+        case 'csv':
+        case 'txt':
+            // Texto: nada de código que un navegador pudiera ejecutar.
+            return !preg_match('/<\s*(script|html|svg|iframe|object|embed|\?php)/i', substr($datos, 0, 65536));
+    }
+    return false;
+}
+
 /** ¿Puede el usuario hacer $accion (leer · subir · borrar) sobre esta ruta? */
 function labs_almacen_permiso($ruta, $accion)
 {
@@ -63,12 +111,19 @@ function labs_almacen_subir($ruta)
     if (!isset($tipos[$ext])) {
         throw new ErrorApi('Ese tipo de archivo no está permitido.', 415, 'InvalidMimeType');
     }
-    $datos = file_get_contents('php://input');
+    $declarado = isset($_SERVER['CONTENT_LENGTH']) ? (int) $_SERVER['CONTENT_LENGTH'] : 0;
+    if ($declarado > LABS_MAX_ARCHIVO) {
+        throw new ErrorApi('El archivo supera el tamaño máximo.', 413, 'EntityTooLarge');
+    }
+    $datos = file_get_contents('php://input', false, null, 0, LABS_MAX_ARCHIVO + 1);
     if ($datos === false || $datos === '') {
         throw new ErrorApi('El archivo ha llegado vacío. Si pesa mucho, revisa el límite de subida de PHP en el hosting.', 400, 'EmptyBody');
     }
     if (strlen($datos) > LABS_MAX_ARCHIVO) {
         throw new ErrorApi('El archivo supera el tamaño máximo.', 413, 'EntityTooLarge');
+    }
+    if (!labs_almacen_contenido_ok($ext, $datos)) {
+        throw new ErrorApi('El contenido del archivo no corresponde a un .' . $ext . ' válido.', 415, 'InvalidMimeType');
     }
     $fichero = labs_almacen_fichero($ruta);
     $upsert = strtolower((string) labs_cabecera('x-upsert')) === 'true';
@@ -92,12 +147,13 @@ function labs_almacen_descargar($ruta)
     if (!labs_almacen_permiso($ruta, 'leer')) {
         throw new ErrorApi('No tienes permiso para descargar este archivo.', 403, 'Unauthorized');
     }
-    $fichero = labs_almacen_fichero($ruta);
-    if (!is_file($fichero)) {
+    $fichero = labs_almacen_localiza($ruta);
+    if (!$fichero) {
         throw new ErrorApi('El archivo no está en el almacén.', 404, 'NoSuchKey');
     }
     $tipos = labs_almacen_tipos();
     $ext = strtolower(pathinfo($ruta, PATHINFO_EXTENSION));
+    labs_cabeceras_seguras();
     header('Content-Type: ' . (isset($tipos[$ext]) ? $tipos[$ext] : 'application/octet-stream'));
     header('Content-Length: ' . filesize($fichero));
     header('Content-Disposition: attachment; filename="' . basename($ruta) . '"');
@@ -126,8 +182,9 @@ function labs_almacen_borra_archivo($ruta)
     } catch (ErrorApi $e) {
         return;
     }
-    $f = labs_almacen_fichero($ruta);
-    if (is_file($f)) {
-        @unlink($f);
+    foreach (array(labs_almacen_fichero($ruta), rtrim(LABS_STORAGE_WEB, '/') . '/documentos/' . $ruta) as $f) {
+        if (is_file($f)) {
+            @unlink($f);
+        }
     }
 }

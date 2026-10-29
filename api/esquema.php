@@ -178,6 +178,16 @@ function labs_tablas()
             if (mb_strlen((string) $f['empresa']) > 120) {
                 return 'El nombre de la empresa es demasiado largo.';
             }
+            // Foto de perfil: solo una imagen incrustada o una dirección https, y de tamaño razonable.
+            $av = $f['avatar_url'];
+            if ($av !== null && $av !== '') {
+                if (strlen($av) > 400000) {
+                    return 'La foto de perfil es demasiado grande (máximo unos 300 KB).';
+                }
+                if (!preg_match('#^(data:image/(png|jpeg|jpg|webp|gif);base64,[A-Za-z0-9+/=]+|https://[^\s"\'<>]+)$#', $av)) {
+                    return 'La foto de perfil tiene que ser una imagen PNG, JPG, WEBP o GIF.';
+                }
+            }
             return null;
         },
         'antes_crear' => function (&$n) {
@@ -185,6 +195,12 @@ function labs_tablas()
             labs_perfil_valida_superior(null, $n, array('superior_id', 'rol', 'raiz'));
         },
         'antes_editar' => function ($v, &$n, $cols) {
+            // El correo es también el usuario de acceso: solo se cambia por
+            // la administración de usuarios, que lo cambia a la vez en la
+            // identidad. Por aquí se podría dejar desincronizado.
+            if ($n['email'] !== $v['email']) {
+                throw new ErrorApi('El correo se cambia desde Usuarios y Accesos (administración).', 403, '42501', 'CORREO_SOLO_ADMIN');
+            }
             // Mismo orden en que Postgres lanzaba los disparadores.
             labs_perfil_limita_jefe($v, $n);
             labs_perfil_protege_raiz($v, $n);
@@ -203,6 +219,10 @@ function labs_tablas()
         },
         'despues_editar' => function ($v, $n) {
             labs_perfil_anota($v, $n);
+            // Suspender o dar de baja corta en el acto todas sus sesiones abiertas.
+            if ($n['estado'] !== 'Activo' && $v['estado'] === 'Activo') {
+                labs_q('DELETE FROM tokens_sesion WHERE usuario_id = ?', array($n['id']));
+            }
         },
         'despues_borrar' => function ($v) {
             labs_perfil_anota($v, null);

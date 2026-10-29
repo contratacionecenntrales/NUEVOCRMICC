@@ -15,6 +15,10 @@ function labs_rpc($fn, $a)
     }
     if (!in_array($fn, $publicas, true)) {
         labs_usuario(true);
+    } elseif (labs_freno('firma|' . labs_ip(), 60, 600)) {
+        // La página de firma es pública: se frena a quien la martillee
+        // (probar tokens al azar o llenar el registro de eventos).
+        throw new ErrorApi('Demasiadas peticiones seguidas. Espera unos minutos.', 429, 'FRENO');
     }
     $a = is_array($a) ? $a : array();
     $arg = function ($k, $def = null) use ($a) {
@@ -120,7 +124,7 @@ function labs_crea_usuario($d, $clave)
     $id = labs_uuid();
     $ahora = labs_ahora();
     labs_q('INSERT INTO cuentas (id, email, clave_hash, creado, actualizado) VALUES (?,?,?,?,?)',
-        array($id, $d['email'], password_hash($clave, PASSWORD_DEFAULT), $ahora, $ahora));
+        array($id, $d['email'], labs_hash_clave($clave), $ahora, $ahora));
     $def = labs_tabla('perfiles');
     $fila = labs_inserta_fila('perfiles', $def, array(
         'id' => $id, 'nombre' => $d['nombre'], 'apellidos' => $d['apellidos'], 'email' => $d['email'],
@@ -152,7 +156,7 @@ function labs_rpc_restablece_clave($id, $clave)
 function labs_pon_clave($id, $clave)
 {
     labs_q('UPDATE cuentas SET clave_hash = ?, actualizado = ? WHERE id = ?',
-        array(password_hash($clave, PASSWORD_DEFAULT), labs_ahora(), $id));
+        array(labs_hash_clave($clave), labs_ahora(), $id));
     labs_q('UPDATE perfiles SET debe_cambiar = 1 WHERE id = ?', array($id));
     labs_q('DELETE FROM sesiones WHERE usuario_id = ?', array($id));
     labs_q('DELETE FROM tokens_sesion WHERE usuario_id = ?', array($id));

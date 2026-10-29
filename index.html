@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-UU6xoFzZnw9rrNqE2Waf+slR0PeGrQgRn+vsfcvAqsk='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'; object-src 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Labs Command Center 360 - Oficina virtual SaaS de la red comercial de Labs24k.">
 <meta name="theme-color" content="#0B0F19">
@@ -1458,12 +1459,52 @@ a.btn.btn-g:hover{color:#fff}
   .doc-sign{grid-template-columns:1fr}
   .pod{max-width:none}
 }
+
+/* ---------------------------- CENTRO DE SEGURIDAD ---------------------------- */
+.seg-hero{display:flex;gap:24px;align-items:center;flex-wrap:wrap;
+  background:radial-gradient(120% 140% at 0% 0%,rgba(23,200,192,.16) 0%,rgba(31,41,55,0) 55%),var(--card)}
+.seg-anillo{flex:0 0 auto}
+.seg-fila{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--line-soft)}
+.seg-fila:last-child{border-bottom:0}
+.seg-dot{flex:0 0 10px;width:10px;height:10px;border-radius:50%;margin-top:6px}
+.seg-dot.ok{background:#4ADE80;box-shadow:0 0 10px rgba(74,222,128,.6)}
+.seg-dot.aviso{background:#FBBF24;box-shadow:0 0 10px rgba(251,191,36,.55)}
+.seg-dot.mal{background:#F87171;box-shadow:0 0 10px rgba(248,113,113,.65);animation:segLatido 1.6s ease-in-out infinite}
+@keyframes segLatido{0%,100%{opacity:1}50%{opacity:.45}}
+.seg-acc{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;flex:0 0 auto}
+.seg-lista{margin-top:8px;padding:8px 10px;border-radius:9px;background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.22);font-size:12px;line-height:1.7}
+.seg-ok-box,.seg-alerta{display:flex;gap:11px;align-items:flex-start;padding:12px 14px;border-radius:12px;font-size:13px;line-height:1.55}
+.seg-ok-box{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.28);color:#D1FAE5}
+.seg-ok-box svg{color:#4ADE80;flex:0 0 auto;margin-top:1px}
+.seg-alerta{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.3);color:#FEE2E2}
+.seg-alerta svg{color:#F87171;flex:0 0 auto;margin-top:1px}
+.seg-codigos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px}
+.seg-codigos span{padding:8px 10px;border-radius:9px;background:var(--card-2);border:1px solid var(--line);text-align:center;letter-spacing:1.5px;color:#fff}
+.seg-alta{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start}
+.seg-qr{flex:0 0 auto;background:#fff;padding:10px;border-radius:14px;line-height:0;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.seg-pasos{margin:0 0 12px;padding-left:18px;font-size:13px;line-height:1.6;color:var(--txt)}
+.seg-pasos li{margin-bottom:6px}
+.seg-clave{margin-top:6px;padding:7px 10px;border-radius:8px;background:var(--card-2);border:1px dashed var(--line);color:#99F6E4;letter-spacing:1px;word-break:break-all}
+.seg-scroll{max-height:440px;overflow-y:auto;margin-right:-6px;padding-right:6px}
+.seg-acceso{display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line-soft)}
+.seg-acceso .chip{flex:0 0 auto;min-width:104px;text-align:center}
+@media (max-width:640px){
+  .seg-fila{flex-wrap:wrap}.seg-acc{width:100%;justify-content:flex-start;padding-left:22px}
+  .seg-codigos{grid-template-columns:1fr}.seg-hero{gap:14px}
+}
 </style>
 </head>
 <body>
 <noscript><div style="padding:40px;text-align:center;color:#94A3B8">
 Esta aplicacion necesita JavaScript activado en el navegador.</div></noscript>
 <script>
+/* Nadie puede meter esta página dentro de otra web para engañar a quien la usa
+   (clickjacking). Si llega dentro de un marco, se sale o no se muestra. */
+if(window.top !== window.self){
+  try { window.top.location.href = window.self.location.href; }
+  catch(e){ document.documentElement.style.display = 'none'; }
+}
+
 var BUILD = '2026-10-28 · MySQL';
 /* ==========================================================================
    LABS COMMAND CENTER 360 - Nucleo de la aplicación
@@ -1743,6 +1784,7 @@ var MENU = [
   {id:'integrations',label:'Webmail y MetaTok',          icon:'plug',      sec:'Sistema',   roles:['admin','manager']},
   {id:'users',       label:'Usuarios y Accesos',         icon:'userPlus',  sec:'Sistema',   roles:['admin']},
   {id:'rolesadmin',  label:'Roles y Permisos',           icon:'shield',    sec:'Sistema',   roles:['admin']},
+  {id:'seguridad',   label:'Centro de Seguridad',        icon:'shield',    sec:'Sistema',   roles:['admin','manager','commercial','backoffice']},
   {id:'settings',    label:'Configuración del Sistema',  icon:'cog',       sec:'Sistema',   roles:['admin','manager','commercial','backoffice']}
 ];
 
@@ -1977,7 +2019,7 @@ function renderApp(){
     backoffice:viewBackoffice, voice_wa:viewVoice, integrations:viewIntegrations,
     interviews:viewInterviews, users:viewUsers, settings:viewSettings, contactos:viewContactos,
     rolesadmin:viewRolesAdmin, resources:viewResources, support:viewSupport,
-    adminsupport:viewAdminSupportDesk, equipo:viewEquipo, mificha:viewMiFicha};
+    adminsupport:viewAdminSupportDesk, equipo:viewEquipo, mificha:viewMiFicha, seguridad:viewSeguridad};
   (VIEWS[S.view]||viewDashboard)(v);
   reponerToasts();
   vcBanda();
@@ -6583,6 +6625,12 @@ function renderLogin(){
         'autocomplete="current-password" placeholder="••••••••" value="'+esc(LOGIN.pass)+'">'+
       '<button type="button" class="lg-ojo" id="lg-ver" aria-label="Mostrar contraseña">'+
         ic('eye',15)+'</button></div></div>'+
+    (LOGIN.mfa ? '<div class="field"><label class="f">Código del doble factor</label>'+
+      '<div class="lg-inp">'+ic('phone',15)+
+      '<input class="inp mono" id="lg-codigo" inputmode="numeric" autocomplete="one-time-code" maxlength="9" '+
+        'placeholder="123456" style="letter-spacing:3px"></div>'+
+      '<div class="tiny muted" style="margin-top:6px">Ábrelo en tu aplicación de autenticación. Si has perdido el móvil, '+
+        'escribe uno de tus códigos de recuperación (XXXX-XXXX).</div></div>' : '')+
     err+
     '<button class="btn btn-p lg-btn" id="lg-entrar" type="submit">'+
       ic('logout',16)+' Entrar al Command Center</button>'+
@@ -6795,16 +6843,15 @@ function viewUsers(v){
       '<th>Usuario</th><th>Rol</th><th>N.º relación</th><th>Google</th><th>Estado</th>'+
       '<th>Último acceso</th><th></th></tr></thead><tbody>'+filas+'</tbody></table></div></div>'+
 
-  '<div class="card" style="margin-top:16px;border-left:3px solid var(--amber)">'+
+  '<div class="card" style="margin-top:16px;border-left:3px solid #4ADE80">'+
     '<div class="row" style="gap:11px;align-items:flex-start">'+
-      '<span style="color:#FDE68A;flex:0 0 auto">'+ic('alert',18)+'</span>'+
-      '<div><div class="small" style="color:#FDE68A;font-weight:600;margin-bottom:6px">'+
-        'Esta pantalla gestiona los accesos; no los protege por sí sola</div>'+
-      '<p class="tiny muted" style="margin:0;line-height:1.65">La aplicación es un archivo estático: quien la abra '+
-      'puede ver su código y saltarse esta comprobación. El bloqueo real del registro, la validación de contraseñas '+
-      'con bcrypt y la lista blanca de Google los ejecuta la API del paquete '+
-      '<span class="mono">labs24k-api-blindada</span>, que necesita alojamiento con Node.js. '+
-      'Hasta desplegarla, trata este portal como una recepción, no como una cerradura.</p></div></div>'+
+      '<span style="color:#86EFAC;flex:0 0 auto">'+ic('shield',18)+'</span>'+
+      '<div><div class="small" style="color:#86EFAC;font-weight:600;margin-bottom:6px">'+
+        'La seguridad la aplica el servidor, no esta pantalla</div>'+
+      '<p class="tiny muted" style="margin:0;line-height:1.65">Cada permiso, alta, baja y cambio de rol lo comprueba el '+
+      'servidor PHP antes de tocar la base de datos, aunque alguien manipule esta página. Las contraseñas se guardan '+
+      'cifradas con Argon2id, la bitácora va sellada para que nadie la retoque, y los intentos de entrada se frenan y se '+
+      'registran. Revisa el estado completo y activa el doble factor en el <strong>Centro de Seguridad</strong>.</p></div></div>'+
   '</div>'+ alta + creado;
 
   /* eventos */
@@ -7673,16 +7720,15 @@ function viewUsers(v){
   (jefe ? '' : raizHTML())+
   bitacoraHTML()+
 
-  '<div class="card" style="margin-top:16px;border-left:3px solid var(--amber)">'+
+  '<div class="card" style="margin-top:16px;border-left:3px solid #4ADE80">'+
     '<div class="row" style="gap:11px;align-items:flex-start">'+
-      '<span style="color:#FDE68A;flex:0 0 auto">'+ic('alert',18)+'</span>'+
-      '<div><div class="small" style="color:#FDE68A;font-weight:600;margin-bottom:6px">'+
-        'Esta pantalla gestiona los accesos; no los protege por sí sola</div>'+
-      '<p class="tiny muted" style="margin:0;line-height:1.65">La aplicación es un archivo estático: quien la abra '+
-      'puede ver su código y saltarse esta comprobación. El cifrado de contraseñas con bcrypt, la lista blanca '+
-      'de Google, el bloqueo del registro y el registro de auditoría inalterable los ejecuta la API del paquete '+
-      '<span class="mono">labs24k-api-blindada</span>, que necesita alojamiento con Node.js. '+
-      'Hasta desplegarla, trata este portal como una recepción, no como una cerradura.</p></div></div>'+
+      '<span style="color:#86EFAC;flex:0 0 auto">'+ic('shield',18)+'</span>'+
+      '<div><div class="small" style="color:#86EFAC;font-weight:600;margin-bottom:6px">'+
+        'La seguridad la aplica el servidor, no esta pantalla</div>'+
+      '<p class="tiny muted" style="margin:0;line-height:1.65">Cada permiso, alta, baja y cambio de rol lo comprueba el '+
+      'servidor PHP antes de tocar la base de datos, aunque alguien manipule esta página. Las contraseñas se guardan '+
+      'cifradas con Argon2id, la bitácora va sellada para que nadie la retoque, y los intentos de entrada se frenan y se '+
+      'registran. Revisa el estado completo y activa el doble factor en el <strong>Centro de Seguridad</strong>.</p></div></div>'+
   '</div>'+
   altaHTML() + credencialesHTML() + borradoHTML() + detalleHTML() + vchHTML();
 
@@ -8772,10 +8818,16 @@ function sbBorraSesion(){
   try { localStorage.removeItem(SB_LS_SES); } catch(e){}
 }
 
-function sbEntrar(email, password){
+function sbEntrar(email, password, codigo){
+  var cuerpo = {email:email, password:password};
+  if(codigo) cuerpo.codigo = String(codigo).replace(/\s/g, '');
   return sbFetch('/auth/v1/token?grant_type=password', {
-    method:'POST', conSesion:false, body:{email:email, password:password}
+    method:'POST', conSesion:false, body:cuerpo
   }).then(function(r){
+    /* Doble factor: la contraseña es buena, falta (o no vale) el código del móvil. */
+    if(!r.ok && r.datos && r.datos.mfa){
+      return {ok:false, mfa:true, pedido: r.datos.error === 'mfa_required', mensaje: sbMensaje(r)};
+    }
     if(!r.ok || !sbGuardaSesion(r.datos)){
       return {ok:false, mensaje: r.estado === 400
         ? 'Credenciales incorrectas. Si no recuerdas tu acceso, avisa al administrador.'
@@ -9033,6 +9085,9 @@ function sbRegistraEntrada(){
 
 /* ------------------------ ENTRADA COMPLETA AL PANEL --------------------- */
 function sbAbrePanel(){
+  if(typeof SEG !== 'undefined'){
+    SEG.cargado = false; SEG.estado = null; SEG.alta = null; SEG.exposicion = null; SEG.bitacora = null; SEG.mi2fa = null;
+  }
   return sbCargaPerfil().then(function(r){
     if(!r.ok) return r;
     return sbCargaDatos().then(function(){
@@ -9113,18 +9168,29 @@ function loginEventos(){
     }
 
     ocupado(true);
+    var codigo = (LOGIN.mfa && q('#lg-codigo')) ? q('#lg-codigo').value.trim() : '';
     /* normalizaMail resuelve los alias de la cuenta de raíz. */
-    sbEntrar(normalizaMail(m), p).then(function(r){
+    sbEntrar(normalizaMail(m), p, codigo).then(function(r){
+      if(!r.ok && r.mfa){
+        /* Contraseña correcta: se pide el código sin borrar lo ya escrito. */
+        ocupado(false);
+        LOGIN.mfa = true;
+        LOGIN.error = r.pedido ? '' : r.mensaje;
+        renderLogin();
+        if(q('#lg-codigo')) q('#lg-codigo').focus();
+        return;
+      }
       if(!r.ok){
         ocupado(false);
         LOGIN.error = r.mensaje;
         LOGIN.pass = '';
+        LOGIN.mfa = false;
         /* Deja rastro del intento fallido contra la cuenta que lo puede todo. */
         if(normalizaMail(m) === RAIZ_MAIL) registraRaiz('FALLIDO');
         renderLogin();
         return;
       }
-      LOGIN.error = ''; LOGIN.pass = '';
+      LOGIN.error = ''; LOGIN.pass = ''; LOGIN.mfa = false;
       return sbAbrePanel().then(function(res){
         if(!res.ok){ ocupado(false); sbBorraSesion(); LOGIN.error = res.mensaje; renderLogin(); }
       });
@@ -11521,6 +11587,544 @@ function ctrEnlaceEventos(){
 }
 
 /* ==========================================================================
+   CÓDIGO QR (ISO/IEC 18004) · sin librerías externas
+   Modo byte, corrección de errores nivel M, versiones 1 a 10. Basta para el
+   enlace otpauth:// del doble factor. Devuelve una matriz de true/false.
+   ========================================================================== */
+function qrMatriz(texto, mascaraForzada){
+  var datos = Array.prototype.slice.call(new TextEncoder().encode(texto));
+  var ECC = [0,10,16,26,18,24,16,18,22,22,26];      // códigos de corrección por bloque (nivel M)
+  var BLQ = [0,1,1,1,2,2,4,4,4,5,5];                 // número de bloques (nivel M)
+  function modulosDatos(v){
+    var r = (16*v + 128)*v + 64;
+    if(v >= 2){ var n = Math.floor(v/7) + 2; r -= (25*n - 10)*n - 55; if(v >= 7) r -= 36; }
+    return r;
+  }
+  var ver = 0, capacidad = 0;
+  for(var v = 1; v <= 10; v++){
+    capacidad = Math.floor(modulosDatos(v)/8) - ECC[v]*BLQ[v];
+    var bitsNecesarios = 4 + (v < 10 ? 8 : 16) + datos.length*8;
+    if(bitsNecesarios <= capacidad*8){ ver = v; break; }
+  }
+  if(!ver) throw new Error('Texto demasiado largo para el código QR');
+
+  /* Bits de datos: modo byte (0100), longitud, bytes, terminador y relleno. */
+  var bits = [];
+  function pon(val, n){ for(var i = n-1; i >= 0; i--) bits.push((val >>> i) & 1); }
+  pon(4, 4); pon(datos.length, ver < 10 ? 8 : 16);
+  datos.forEach(function(b){ pon(b, 8); });
+  pon(0, Math.min(4, capacidad*8 - bits.length));
+  pon(0, (8 - bits.length % 8) % 8);
+  for(var relleno = 0xEC; bits.length < capacidad*8; relleno ^= 0xEC ^ 0x11) pon(relleno, 8);
+  var cw = [];
+  for(var i = 0; i < bits.length; i += 8){
+    var b = 0; for(var j = 0; j < 8; j++) b = (b << 1) | bits[i+j]; cw.push(b);
+  }
+
+  /* Reed-Solomon sobre GF(256), polinomio 0x11D. */
+  function mult(x, y){ var z = 0; for(var i = 7; i >= 0; i--){ z = (z << 1) ^ ((z >>> 7) * 0x11D); z ^= ((y >>> i) & 1) * x; } return z; }
+  function divisor(grado){
+    var r = []; for(var i = 0; i < grado-1; i++) r.push(0); r.push(1);
+    var raiz = 1;
+    for(var i = 0; i < grado; i++){
+      for(var j = 0; j < r.length; j++){ r[j] = mult(r[j], raiz); if(j+1 < r.length) r[j] ^= r[j+1]; }
+      raiz = mult(raiz, 0x02);
+    }
+    return r;
+  }
+  function resto(d, div){
+    var r = div.map(function(){ return 0; });
+    d.forEach(function(b){
+      var f = b ^ r.shift(); r.push(0);
+      div.forEach(function(c, i){ r[i] ^= mult(c, f); });
+    });
+    return r;
+  }
+
+  /* Bloques, corrección e intercalado. */
+  var nBlq = BLQ[ver], nEcc = ECC[ver], crudos = Math.floor(modulosDatos(ver)/8);
+  var cortos = nBlq - crudos % nBlq, largoCorto = Math.floor(crudos / nBlq);
+  var div = divisor(nEcc), bloques = [];
+  for(var i = 0, k = 0; i < nBlq; i++){
+    var dat = cw.slice(k, k + largoCorto - nEcc + (i < cortos ? 0 : 1));
+    k += dat.length;
+    var ec = resto(dat, div);
+    if(i < cortos) dat.push(0);
+    bloques.push(dat.concat(ec));
+  }
+  var final = [];
+  for(var i = 0; i < bloques[0].length; i++){
+    bloques.forEach(function(bl, j){
+      if(i !== largoCorto - nEcc || j >= cortos) final.push(bl[i]);
+    });
+  }
+
+  /* Dibujo de los patrones fijos. */
+  var n = ver*4 + 17, m = [], fijo = [];
+  for(var y = 0; y < n; y++){ m.push([]); fijo.push([]); for(var x = 0; x < n; x++){ m[y].push(false); fijo[y].push(false); } }
+  function pinta(x, y, on){ m[y][x] = on; fijo[y][x] = true; }
+  for(var i = 0; i < n; i++){ pinta(6, i, i % 2 === 0); pinta(i, 6, i % 2 === 0); }
+  function buscador(cx, cy){
+    for(var dy = -4; dy <= 4; dy++) for(var dx = -4; dx <= 4; dx++){
+      var d = Math.max(Math.abs(dx), Math.abs(dy)), xx = cx+dx, yy = cy+dy;
+      if(xx >= 0 && xx < n && yy >= 0 && yy < n) pinta(xx, yy, d !== 2 && d !== 4);
+    }
+  }
+  buscador(3, 3); buscador(n-4, 3); buscador(3, n-4);
+  var al = [];
+  if(ver > 1){
+    var na = Math.floor(ver/7) + 2, paso = Math.ceil((ver*4 + 4) / (na*2 - 2)) * 2;
+    al = [6];
+    for(var p = ver*4 + 10; al.length < na; p -= paso) al.splice(1, 0, p);
+  }
+  al.forEach(function(ay, i){ al.forEach(function(ax, j){
+    if((i === 0 && j === 0) || (i === 0 && j === al.length-1) || (i === al.length-1 && j === 0)) return;
+    for(var dy = -2; dy <= 2; dy++) for(var dx = -2; dx <= 2; dx++)
+      pinta(ax+dx, ay+dy, Math.max(Math.abs(dx), Math.abs(dy)) !== 1);
+  }); });
+  function formato(mask){
+    var dat = (0 << 3) | mask, r = dat;               // nivel M = 00
+    for(var i = 0; i < 10; i++) r = (r << 1) ^ ((r >>> 9) * 0x537);
+    var bitsF = ((dat << 10) | r) ^ 0x5412;
+    function bt(i){ return ((bitsF >>> i) & 1) !== 0; }
+    for(var i = 0; i <= 5; i++) pinta(8, i, bt(i));
+    pinta(8, 7, bt(6)); pinta(8, 8, bt(7)); pinta(7, 8, bt(8));
+    for(var i = 9; i < 15; i++) pinta(14 - i, 8, bt(i));
+    for(var i = 0; i < 8; i++) pinta(n - 1 - i, 8, bt(i));
+    for(var i = 8; i < 15; i++) pinta(8, n - 15 + i, bt(i));
+    pinta(8, n - 8, true);
+  }
+  formato(0);
+  if(ver >= 7){
+    var r = ver;
+    for(var i = 0; i < 12; i++) r = (r << 1) ^ ((r >>> 11) * 0x1F25);
+    var bv = (ver << 12) | r;
+    for(var i = 0; i < 18; i++){
+      var on = ((bv >>> i) & 1) !== 0, a = n - 11 + i % 3, bb = Math.floor(i / 3);
+      pinta(a, bb, on); pinta(bb, a, on);
+    }
+  }
+
+  /* Datos en zigzag. */
+  var bi = 0;
+  for(var der = n - 1; der >= 1; der -= 2){
+    if(der === 6) der = 5;
+    for(var vv = 0; vv < n; vv++) for(var jj = 0; jj < 2; jj++){
+      var x = der - jj, sube = ((der + 1) & 2) === 0, y = sube ? n - 1 - vv : vv;
+      if(!fijo[y][x] && bi < final.length*8){ m[y][x] = ((final[bi >>> 3] >>> (7 - (bi & 7))) & 1) !== 0; bi++; }
+    }
+  }
+
+  /* Máscaras: se prueba cada una y se queda la de menor penalización. */
+  function aplica(mask){
+    for(var y = 0; y < n; y++) for(var x = 0; x < n; x++){
+      if(fijo[y][x]) continue;
+      var inv;
+      switch(mask){
+        case 0: inv = (x + y) % 2 === 0; break;
+        case 1: inv = y % 2 === 0; break;
+        case 2: inv = x % 3 === 0; break;
+        case 3: inv = (x + y) % 3 === 0; break;
+        case 4: inv = (Math.floor(x/3) + Math.floor(y/2)) % 2 === 0; break;
+        case 5: inv = x*y % 2 + x*y % 3 === 0; break;
+        case 6: inv = (x*y % 2 + x*y % 3) % 2 === 0; break;
+        default: inv = ((x + y) % 2 + x*y % 3) % 2 === 0;
+      }
+      if(inv) m[y][x] = !m[y][x];
+    }
+  }
+  function penaliza(){
+    var p = 0, oscuros = 0;
+    for(var y = 0; y < n; y++){
+      var cf = 1, cc = 1;
+      for(var x = 0; x < n; x++){
+        if(m[y][x]) oscuros++;
+        if(x > 0){
+          if(m[y][x] === m[y][x-1]) cf++; else { if(cf >= 5) p += cf - 2; cf = 1; }
+          if(m[x][y] === m[x-1][y]) cc++; else { if(cc >= 5) p += cc - 2; cc = 1; }
+        }
+        if(x > 0 && y > 0 && m[y][x] === m[y][x-1] && m[y][x] === m[y-1][x] && m[y][x] === m[y-1][x-1]) p += 3;
+      }
+      if(cf >= 5) p += cf - 2;
+      if(cc >= 5) p += cc - 2;
+    }
+    p += Math.floor(Math.abs(oscuros*20 - n*n*10) / (n*n)) * 10;
+    return p;
+  }
+  var mejor = mascaraForzada, minimo = Infinity;
+  if(mejor === undefined){
+    for(var k = 0; k < 8; k++){
+      aplica(k); formato(k);
+      var pp = penaliza();
+      if(pp < minimo){ minimo = pp; mejor = k; }
+      aplica(k);
+    }
+  }
+  aplica(mejor); formato(mejor);
+  return {version: ver, mascara: mejor, matriz: m};
+}
+
+/* El código QR como SVG (en blanco y negro, con margen), listo para escanear. */
+function qrSvg(texto, px){
+  var q = qrMatriz(texto), n = q.matriz.length, borde = 4, t = n + borde*2, d = '';
+  q.matriz.forEach(function(fila, y){ fila.forEach(function(on, x){
+    if(on) d += 'M' + (x + borde) + ' ' + (y + borde) + 'h1v1h-1z';
+  }); });
+  return '<svg xmlns="http://www.w3.org/2000/svg" width="' + px + '" height="' + px + '" viewBox="0 0 ' + t + ' ' + t +
+    '" shape-rendering="crispEdges" role="img" aria-label="Código QR"><rect width="' + t + '" height="' + t +
+    '" fill="#fff"/><path d="' + d + '" fill="#000"/></svg>';
+}
+
+
+/* ==========================================================================
+   CENTRO DE SEGURIDAD · Labs Command Center 360™
+   Todo lo que aquí se ve lo comprueba el servidor (api/seguridad.php): la
+   puntuación, la prueba de ataque desde fuera, las sesiones, los intentos de
+   entrada, los bloqueos y la cadena de la bitácora. El navegador solo pinta.
+   Administración ve todo; el resto del equipo, su doble factor y sus sesiones.
+   ========================================================================== */
+var SEG = {
+  cargando:false, cargado:false, error:'',
+  estado:null, sesiones:[], accesos:null, bloqueos:[], mi2fa:null,
+  exposicion:null, probando:false, bitacora:null,
+  alta:null,          // activación del doble factor en curso: {secreto, otpauth, codigos}
+  ocupado:''
+};
+
+function segApi(ruta, metodo, cuerpo){
+  return sbConSesion(function(){
+    return sbFetch('/seguridad' + ruta, {method: metodo || 'GET', body: cuerpo});
+  }).then(function(r){
+    if(!r.ok) throw new Error(sbMensaje(r));
+    return r.datos;
+  });
+}
+
+function segEsAdmin(){ return S.role === 'admin'; }
+
+function segCarga(){
+  SEG.cargando = true; SEG.error = '';
+  var tareas = [segApi('/2fa'), segApi(segEsAdmin() ? '/sesiones' : '/mis-sesiones')];
+  if(segEsAdmin()) tareas.push(segApi('/estado'), segApi('/accesos'), segApi('/bloqueos'));
+  return Promise.all(tareas).then(function(r){
+    SEG.mi2fa = r[0]; SEG.sesiones = r[1] || [];
+    if(segEsAdmin()){ SEG.estado = r[2]; SEG.accesos = r[3]; SEG.bloqueos = r[4] || []; }
+    SEG.cargando = false; SEG.cargado = true; renderApp();
+  }).catch(function(e){
+    SEG.cargando = false; SEG.cargado = true; SEG.error = e.message || 'Sin conexión con el servidor.'; renderApp();
+  });
+}
+
+function segFecha(ts){
+  if(!ts) return '—';
+  var d = new Date(ts), ms = Date.now() - d.getTime();
+  if(ms < 60000) return 'ahora mismo';
+  if(ms < 3600000) return 'hace ' + Math.round(ms/60000) + ' min';
+  if(ms < 86400000) return 'hace ' + Math.round(ms/3600000) + ' h';
+  return d.toLocaleString('es-ES', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'});
+}
+
+function segNavegador(ua){
+  ua = String(ua || '');
+  var nav = /Edg\//.test(ua) ? 'Edge' : /OPR\//.test(ua) ? 'Opera' : /Chrome\//.test(ua) ? 'Chrome' :
+            /Firefox\//.test(ua) ? 'Firefox' : /Safari\//.test(ua) ? 'Safari' : 'Navegador';
+  var so = /Windows/.test(ua) ? 'Windows' : /Android/.test(ua) ? 'Android' : /iPhone|iPad/.test(ua) ? 'iPhone / iPad' :
+           /Mac OS/.test(ua) ? 'Mac' : /Linux/.test(ua) ? 'Linux' : '';
+  return nav + (so ? ' · ' + so : '');
+}
+
+/* Anillo de puntuación en SVG. */
+function segAnillo(p){
+  var r = 52, c = 2*Math.PI*r, col = p >= 85 ? '#4ADE80' : p >= 60 ? '#FBBF24' : '#F87171';
+  return '<svg class="seg-anillo" viewBox="0 0 130 130" width="130" height="130" aria-hidden="true">'+
+    '<circle cx="65" cy="65" r="'+r+'" fill="none" stroke="rgba(148,163,184,.14)" stroke-width="11"/>'+
+    '<circle cx="65" cy="65" r="'+r+'" fill="none" stroke="'+col+'" stroke-width="11" stroke-linecap="round" '+
+      'stroke-dasharray="'+(c*p/100).toFixed(1)+' '+c.toFixed(1)+'" transform="rotate(-90 65 65)" style="filter:drop-shadow(0 0 8px '+col+'66)"/>'+
+    '<text x="65" y="62" text-anchor="middle" fill="#fff" font-size="30" font-weight="700">'+p+'</text>'+
+    '<text x="65" y="84" text-anchor="middle" fill="#9CA3AF" font-size="11">de 100</text></svg>';
+}
+
+function segChipEstado(e){
+  return e === 'ok' ? '<span class="chip green">'+ic('check',11)+' Correcto</span>' :
+         e === 'aviso' ? '<span class="chip amber">'+ic('alert',11)+' Mejorable</span>' :
+                         '<span class="chip red">'+ic('alert',11)+' Riesgo</span>';
+}
+
+function segAccionBoton(c){
+  if(!c.accion) return '';
+  var t = {'proteger-config':'Llevar a la carpeta privada', 'mover-archivos':'Mover documentos',
+           'limpiar':'Revisar y eliminar', 'activar-2fa':'Activar ahora'}[c.accion] || 'Arreglar';
+  return '<button class="btn btn-p btn-xs" data-seg-accion="'+esc(c.accion)+'"'+(SEG.ocupado?' disabled':'')+'>'+ic('bolt',12)+' '+esc(t)+'</button>';
+}
+
+/* --- Tu doble factor ------------------------------------------------------ */
+function segMi2faHTML(){
+  var f = SEG.mi2fa || {};
+  if(SEG.alta && SEG.alta.codigos){
+    return '<div class="seg-ok-box">'+ic('check',18)+'<div><strong>Doble factor activado.</strong> Guarda estos códigos de '+
+      'recuperación en un sitio seguro (no en el móvil). Cada uno sirve <strong>una sola vez</strong> si pierdes el teléfono.</div></div>'+
+      '<div class="seg-codigos">'+SEG.alta.codigos.map(function(c){ return '<span class="mono">'+esc(c)+'</span>'; }).join('')+'</div>'+
+      '<div class="row" style="gap:9px;margin-top:12px;flex-wrap:wrap">'+
+        '<button class="btn btn-s" id="seg-cod-bajar">'+ic('download',14)+' Descargar códigos</button>'+
+        '<button class="btn btn-p" id="seg-cod-listo">'+ic('check',14)+' Ya los he guardado</button></div>';
+  }
+  if(SEG.alta){
+    var grupos = SEG.alta.secreto.replace(/(.{4})/g, '$1 ').trim();
+    return '<div class="seg-alta">'+
+      '<div class="seg-qr">'+qrSvg(SEG.alta.otpauth, 196)+'</div>'+
+      '<div style="flex:1;min-width:220px">'+
+        '<ol class="seg-pasos">'+
+          '<li>Instala <strong>Google Authenticator</strong> o <strong>Microsoft Authenticator</strong> en el móvil.</li>'+
+          '<li>Pulsa «+» y <strong>escanea este código</strong>. Si no puedes, elige «Introducir clave» y escribe:'+
+            '<div class="mono seg-clave">'+esc(grupos)+'</div></li>'+
+          '<li>Escribe el código de 6 cifras que te muestra la aplicación:</li></ol>'+
+        '<div class="row" style="gap:9px;flex-wrap:wrap">'+
+          '<input class="inp mono" id="seg-cod" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="123456" style="max-width:150px;letter-spacing:3px">'+
+          '<button class="btn btn-p" id="seg-activar"'+(SEG.ocupado?' disabled':'')+'>'+ic('shield',14)+' Confirmar y activar</button>'+
+          '<button class="btn btn-s" id="seg-alta-x">Cancelar</button></div>'+
+      '</div></div>';
+  }
+  if(f.activo){
+    return '<div class="seg-ok-box">'+ic('shield',18)+'<div><strong>Protegida con doble factor</strong> desde '+segFecha(f.activado)+
+      '. Al entrar se pide el código del móvil. Te quedan <strong>'+f.recuperacion_restantes+'</strong> códigos de recuperación.</div></div>'+
+      '<div class="row" style="gap:9px;margin-top:12px;flex-wrap:wrap;align-items:center">'+
+        '<input class="inp mono" id="seg-cod-off" inputmode="numeric" maxlength="9" placeholder="Código actual" style="max-width:160px">'+
+        '<button class="btn btn-s" id="seg-desactivar"'+(SEG.ocupado?' disabled':'')+'>'+ic('x',14)+' Quitar doble factor</button></div>';
+  }
+  return '<div class="seg-alerta">'+ic('alert',18)+'<div><strong>Tu cuenta entra solo con contraseña.</strong> Si alguien la '+
+    'adivina o la ve, entra. Con el doble factor necesitaría además tu móvil.</div></div>'+
+    '<button class="btn btn-p" id="seg-iniciar" style="margin-top:12px"'+(SEG.ocupado?' disabled':'')+'>'+ic('shield',15)+' Activar doble factor</button>';
+}
+
+/* --- Vista ---------------------------------------------------------------- */
+function viewSeguridad(v){
+  if(!SEG.cargado && !SEG.cargando) segCarga();
+  var admin = segEsAdmin(), E = SEG.estado;
+
+  if(SEG.error && !SEG.estado && !SEG.mi2fa){
+    v.innerHTML = '<div class="card"><div class="nota">'+ic('alert',15)+'<span>No se ha podido cargar el Centro de Seguridad: '+
+      esc(SEG.error)+'</span></div><button class="btn btn-s" id="seg-recargar" style="margin-top:12px">'+ic('refresh',14)+' Reintentar</button></div>';
+    q('#seg-recargar').onclick = function(){ SEG.cargado = false; renderApp(); };
+    return;
+  }
+  if(!SEG.cargado){ v.innerHTML = '<div class="card"><p class="muted">Analizando la seguridad del sistema…</p></div>'; return; }
+
+  var html = '';
+
+  if(admin && E){
+    var p = E.puntuacion, nivel = p >= 85 ? 'Blindado' : p >= 60 ? 'Protegido, con mejoras pendientes' : 'En riesgo';
+    var riesgos = E.comprobaciones.filter(function(c){ return c.estado === 'mal'; }).length;
+    html +=
+    '<div class="card seg-hero">'+
+      segAnillo(p)+
+      '<div style="flex:1;min-width:240px">'+
+        '<div class="tiny" style="letter-spacing:.14em;text-transform:uppercase;color:var(--blue)">Centro de Seguridad</div>'+
+        '<h2 style="margin:6px 0 6px;font-size:24px;color:#fff">Nivel de blindaje: '+esc(nivel)+'</h2>'+
+        '<p class="small muted" style="margin:0;max-width:640px">'+(riesgos ? riesgos+' punto(s) en riesgo. Arréglalos con los botones de abajo: cada uno '+
+          'lo hace el servidor en el momento.' : 'Sin riesgos abiertos. El servidor lo vigila en cada acceso.')+'</p>'+
+        '<div class="row" style="gap:9px;margin-top:14px;flex-wrap:wrap">'+
+          '<button class="btn btn-p" id="seg-atacar"'+(SEG.probando?' disabled':'')+'>'+ic(SEG.probando?'refresh':'bolt',15)+' '+
+            (SEG.probando ? 'Atacando…' : 'Lanzar prueba de ataque')+'</button>'+
+          '<button class="btn btn-s" id="seg-reanalizar">'+ic('refresh',15)+' Volver a analizar</button></div>'+
+      '</div>'+
+    '</div>'+
+
+    '<div class="grid g-4" style="margin:16px 0">'+
+      [['Sesiones abiertas', E.resumen.sesiones, 'users', 'blue'],
+       ['Intentos fallidos (24 h)', E.resumen.fallos24h, 'alert', E.resumen.fallos24h >= 30 ? 'red' : 'amber'],
+       ['Bloqueos activos', E.resumen.bloqueos, 'shield', 'violet'],
+       ['Apuntes de bitácora sellados', E.resumen.apuntes, 'check', 'green']].map(function(k){
+        return '<div class="card kpi"><div class="row" style="justify-content:space-between">'+
+          '<div class="lbl">'+k[0]+'</div><div class="ico-box '+k[3]+'">'+ic(k[2],17)+'</div></div>'+
+          '<div class="val">'+k[1]+'</div></div>'; }).join('')+
+    '</div>'+
+
+    '<div class="card" style="margin-bottom:16px">'+
+      '<div class="card-h"><div><h3>'+ic('shield',16)+'Puertas revisadas</h3>'+
+        '<p>Lo que un atacante probaría primero en un hosting como Hostalia, comprobado ahora mismo en tu servidor.</p></div></div>'+
+      E.comprobaciones.map(function(c){
+        return '<div class="seg-fila"><div class="seg-dot '+c.estado+'"></div>'+
+          '<div style="flex:1;min-width:0"><div class="small" style="color:#fff;font-weight:600">'+esc(c.titulo)+'</div>'+
+          '<div class="tiny muted" style="margin-top:3px;line-height:1.55">'+esc(c.detalle)+'</div>'+
+          (c.accion === 'limpiar' && E.peligrosos.length ? '<div class="seg-lista">'+E.peligrosos.map(function(x){
+              return '<div><span class="mono">'+esc(x.ruta)+'</span> <span class="muted">— '+esc(x.motivo)+'</span></div>'; }).join('')+'</div>' : '')+
+          '</div><div class="seg-acc">'+segChipEstado(c.estado)+segAccionBoton(c)+'</div></div>';
+      }).join('')+
+    '</div>';
+
+    if(SEG.exposicion){
+      var X = SEG.exposicion;
+      html += '<div class="card" style="margin-bottom:16px">'+
+        '<div class="card-h"><div><h3>'+ic('bolt',16)+'Prueba de ataque desde fuera</h3>'+
+        '<p>El servidor ha dejado archivos cebo con un secreto y ha intentado descargarlos como lo haría un atacante. Después los ha borrado.</p></div></div>'+
+        (X.comprobable ? X.pruebas.map(function(t){
+          var e = t.resultado === 'protegido' ? 'ok' : t.resultado === 'expuesto' ? 'mal' : 'aviso';
+          return '<div class="seg-fila"><div class="seg-dot '+e+'"></div><div style="flex:1;min-width:0">'+
+            '<div class="small" style="color:#fff;font-weight:600">'+esc(t.prueba)+'</div>'+
+            '<div class="tiny muted" style="margin-top:3px">'+esc(t.detalle)+'</div></div>'+
+            '<div class="seg-acc">'+(e === 'ok' ? '<span class="chip green">Bloqueado</span>' : e === 'mal' ?
+              '<span class="chip red">Expuesto</span>' : '<span class="chip amber">Revisar</span>')+'</div></div>';
+        }).join('') : '<div class="nota">'+ic('alert',15)+'<span>'+esc(X.mensaje)+'</span></div>')+
+      '</div>';
+    }
+  }
+
+  /* Doble factor propio + del equipo */
+  html += '<div class="grid g-2" style="margin-bottom:16px;align-items:start">'+
+    '<div class="card"><div class="card-h"><div><h3>'+ic('phone',16)+'Tu doble factor</h3>'+
+      '<p>Contraseña + un código de 6 cifras del móvil que cambia cada 30 segundos.</p></div></div>'+segMi2faHTML()+'</div>';
+  if(admin && E){
+    html += '<div class="card"><div class="card-h"><div><h3>'+ic('users',16)+'Doble factor del equipo de administración</h3>'+
+      '<p>Si alguien pierde el móvil, quítaselo aquí y que lo vuelva a activar.</p></div></div>'+
+      E.admins.map(function(a){
+        var yo = USUARIOS.filter(function(x){ return x.mail === S.email; })[0];
+        var propio = yo && yo.id === a.id;
+        return '<div class="seg-fila"><div class="seg-dot '+(a.con2fa?'ok':'mal')+'"></div><div style="flex:1;min-width:0">'+
+          '<div class="small" style="color:#fff;font-weight:600">'+esc(a.nombre)+(a.raiz?' <span class="chip violet">Raíz</span>':'')+'</div>'+
+          '<div class="tiny muted">'+(a.con2fa ? 'Pide el código del móvil al entrar.' : 'Entra solo con contraseña.')+'</div></div>'+
+          '<div class="seg-acc">'+(a.con2fa ? '<span class="chip green">Activado</span>' : '<span class="chip red">Sin activar</span>')+
+          (a.con2fa && !propio ? '<button class="btn btn-s btn-xs" data-seg-reset="'+esc(a.id)+'">Quitar</button>' : '')+'</div></div>';
+      }).join('')+'</div>';
+  }
+  html += '</div>';
+
+  /* Sesiones */
+  html += '<div class="card" style="margin-bottom:16px"><div class="card-h"><div><h3>'+ic('globe',16)+
+    (admin ? 'Sesiones abiertas en el sistema' : 'Tus sesiones abiertas')+'</h3>'+
+    '<p>Se cierran solas tras 3 días sin uso y, como mucho, a los 30 días.</p></div>'+
+    (!admin ? '<button class="btn btn-s btn-xs" id="seg-cerrar-otras">'+ic('logout',13)+' Cerrar las demás</button>' : '')+'</div>'+
+    '<div style="overflow-x:auto"><table class="tbl"><thead><tr>'+(admin?'<th>Persona</th>':'')+
+      '<th>Dispositivo</th><th>Conexión (IP)</th><th>Último uso</th><th>Desde</th><th></th></tr></thead><tbody>'+
+    (SEG.sesiones.map(function(s){
+      return '<tr>'+(admin ? '<td><div class="w trunc">'+esc(s.nombre||'—')+'</div><div class="tiny muted trunc">'+esc(s.email||'')+'</div></td>' : '')+
+        '<td class="small">'+esc(segNavegador(s.agente))+(s.actual?' <span class="chip blue">Esta</span>':'')+(s.ver_como?' <span class="chip violet">Ver como</span>':'')+'</td>'+
+        '<td class="mono tiny">'+esc(s.ip||'—')+'</td><td class="tiny muted nowrap">'+segFecha(s.ultimo_uso)+'</td>'+
+        '<td class="tiny muted nowrap">'+segFecha(s.creado)+'</td>'+
+        '<td style="text-align:right">'+(s.actual ? '' : '<button class="btn btn-s btn-xs" data-seg-ses="'+s.id+'">'+ic('x',12)+' Cerrar</button>')+'</td></tr>';
+    }).join('') || '<tr><td colspan="6" class="muted" style="text-align:center;padding:20px">Sin sesiones abiertas.</td></tr>')+
+    '</tbody></table></div></div>';
+
+  /* Accesos, atacantes y bloqueos */
+  if(admin && SEG.accesos){
+    var RES = {ok:['green','Entrada'], fallo:['red','Contraseña mala'], mfa_fallo:['red','Código malo'], mfa_pedido:['blue','Pidió código'],
+               bloqueado:['amber','Bloqueado'], inactiva:['amber','Cuenta inactiva']};
+    html += '<div class="grid g-2" style="margin-bottom:16px;align-items:start">'+
+      '<div class="card"><div class="card-h"><div><h3>'+ic('alert',16)+'Conexiones sospechosas (7 días)</h3>'+
+        '<p>IPs con intentos fallidos. A partir de 30 en 15 minutos se bloquean solas.</p></div></div>'+
+        (SEG.accesos.atacantes.length ? SEG.accesos.atacantes.map(function(a){
+          return '<div class="seg-fila"><div class="seg-dot '+(a.fallos >= 30 ? 'mal' : 'aviso')+'"></div><div style="flex:1;min-width:0">'+
+            '<div class="mono small" style="color:#fff">'+esc(a.ip||'—')+'</div><div class="tiny muted">'+a.fallos+' fallos contra '+a.cuentas+
+            ' cuenta(s) · último '+segFecha(a.ultimo)+'</div></div></div>'; }).join('')
+          : '<p class="tiny muted">Ningún intento sospechoso en los últimos 7 días.</p>')+
+        '<h4 class="ft-t" style="margin-top:16px">Bloqueos activos</h4>'+
+        (SEG.bloqueos.length ? SEG.bloqueos.map(function(b){
+          return '<div class="seg-fila"><div class="seg-dot mal"></div><div style="flex:1;min-width:0">'+
+            '<div class="mono small" style="color:#fff">'+esc(b.valor)+'</div><div class="tiny muted">'+esc(b.motivo)+' · hasta '+segFecha(b.hasta).replace('hace ','')+'</div></div>'+
+            '<div class="seg-acc"><button class="btn btn-s btn-xs" data-seg-desbloq="'+b.id+'">Desbloquear</button></div></div>'; }).join('')
+          : '<p class="tiny muted">No hay ninguna IP bloqueada ahora mismo.</p>')+
+      '</div>'+
+      '<div class="card"><div class="card-h"><div><h3>'+ic('clock',16)+'Últimos intentos de entrada</h3>'+
+        '<p>Cada intento, bueno o malo, queda registrado con su conexión y su navegador.</p></div></div>'+
+        '<div class="seg-scroll">'+SEG.accesos.accesos.slice(0, 60).map(function(a){
+          var r = RES[a.resultado] || ['blue', a.resultado];
+          return '<div class="seg-acceso"><span class="chip '+r[0]+'">'+esc(r[1])+'</span>'+
+            '<div style="flex:1;min-width:0"><div class="small trunc" style="color:#fff">'+esc(a.nombre || a.email || '—')+'</div>'+
+            '<div class="tiny muted trunc">'+esc(a.ip||'')+' · '+esc(segNavegador(a.agente))+(a.detalle?' · '+esc(a.detalle):'')+'</div></div>'+
+            '<span class="tiny muted nowrap">'+segFecha(a.ts)+'</span></div>'; }).join('')+'</div>'+
+      '</div></div>';
+  }
+
+  /* Bitácora sellada */
+  if(admin){
+    var B = SEG.bitacora;
+    html += '<div class="card"><div class="card-h"><div><h3>'+ic('file',16)+'Bitácora a prueba de manipulación</h3>'+
+      '<p>Cada apunte lleva la huella del anterior. Si alguien borra o retoca uno directamente en la base de datos, la cadena se rompe y aquí se ve.</p></div>'+
+      '<button class="btn btn-s btn-xs" id="seg-verificar">'+ic('check',13)+' Verificar ahora</button></div>'+
+      (B ? '<div class="'+(B.ok ? 'seg-ok-box' : 'seg-alerta')+'">'+ic(B.ok?'check':'alert',18)+'<div><strong>'+esc(B.mensaje)+'</strong>'+
+        (B.huella ? '<div class="tiny muted mono" style="margin-top:6px;word-break:break-all">Huella actual: '+esc(B.huella)+'</div>' : '')+'</div></div>'
+        : '<p class="tiny muted">Pulsa «Verificar ahora» para recorrer la cadena completa.</p>')+'</div>';
+  }
+
+  v.innerHTML = html;
+  segEventos();
+}
+
+function segEventos(){
+  function recarga(){ SEG.cargado = false; renderApp(); }
+  function hazlo(promesa, ok){
+    SEG.ocupado = 'si'; renderApp();
+    return promesa.then(function(d){ SEG.ocupado = ''; if(ok) toast(typeof ok === 'function' ? ok(d) : ok); recarga(); return d; })
+      .catch(function(e){ SEG.ocupado = ''; toast(e.message); renderApp(); });
+  }
+  if(q('#seg-reanalizar')) q('#seg-reanalizar').onclick = function(){ SEG.exposicion = null; recarga(); };
+  if(q('#seg-atacar')) q('#seg-atacar').onclick = function(){
+    SEG.probando = true; renderApp();
+    segApi('/exposicion').then(function(d){ SEG.exposicion = d; SEG.probando = false; renderApp();
+      var mal = (d.pruebas||[]).filter(function(p){ return p.resultado === 'expuesto'; }).length;
+      toast(mal ? mal + ' punto(s) expuesto(s): revisa el resultado.' : 'Prueba superada: nada expuesto desde fuera.');
+    }).catch(function(e){ SEG.probando = false; toast(e.message); renderApp(); });
+  };
+  qa('[data-seg-accion]').forEach(function(b){ b.onclick = function(){
+    var a = b.dataset.segAccion;
+    if(a === 'activar-2fa'){ var t = q('#seg-iniciar'); if(t){ t.scrollIntoView({behavior:'smooth', block:'center'}); t.focus(); } return; }
+    if(a === 'limpiar'){
+      var lista = (SEG.estado.peligrosos || []).map(function(x){ return x.ruta; });
+      if(!window.confirm('Se van a ELIMINAR del servidor:\n\n' + lista.join('\n') + '\n\nNo afecta al CRM ni a sus datos. ¿Continuar?')) return;
+      hazlo(segApi('/limpiar', 'POST', {rutas: lista}), function(d){ return d.borrados.length + ' elemento(s) eliminado(s).'; });
+      return;
+    }
+    if(a === 'proteger-config') hazlo(segApi('/proteger-config', 'POST', {}), function(d){ return d.mensaje; });
+    if(a === 'mover-archivos') hazlo(segApi('/mover-archivos', 'POST', {}), function(d){ return d.movidos + ' documento(s) protegido(s).'; });
+  }; });
+  if(q('#seg-iniciar')) q('#seg-iniciar').onclick = function(){
+    SEG.ocupado = 'si'; renderApp();
+    segApi('/2fa/iniciar', 'POST', {}).then(function(d){ SEG.ocupado = ''; SEG.alta = d; renderApp(); if(q('#seg-cod')) q('#seg-cod').focus(); })
+      .catch(function(e){ SEG.ocupado = ''; toast(e.message); renderApp(); });
+  };
+  if(q('#seg-alta-x')) q('#seg-alta-x').onclick = function(){ SEG.alta = null; renderApp(); };
+  if(q('#seg-activar')) q('#seg-activar').onclick = function(){
+    var c = (q('#seg-cod').value || '').replace(/\s/g, '');
+    if(!/^\d{6}$/.test(c)){ toast('Escribe las 6 cifras que muestra la aplicación.'); return; }
+    SEG.ocupado = 'si'; renderApp();
+    segApi('/2fa/activar', 'POST', {codigo: c}).then(function(d){
+      SEG.ocupado = ''; SEG.alta.codigos = d.codigos; SEG.mi2fa = {activo:true}; renderApp();
+    }).catch(function(e){ SEG.ocupado = ''; toast(e.message); renderApp(); });
+  };
+  if(q('#seg-cod-bajar')) q('#seg-cod-bajar').onclick = function(){
+    var txt = 'Labs24k CRM · códigos de recuperación del doble factor\nCuenta: ' + S.email + '\n\n' +
+      SEG.alta.codigos.join('\n') + '\n\nCada código sirve una sola vez. Guárdalos lejos del móvil.\n';
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([txt], {type:'text/plain'}));
+    a.download = 'codigos-recuperacion-labs24k.txt'; document.body.appendChild(a); a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+  };
+  if(q('#seg-cod-listo')) q('#seg-cod-listo').onclick = function(){ SEG.alta = null; recarga(); };
+  if(q('#seg-desactivar')) q('#seg-desactivar').onclick = function(){
+    var c = (q('#seg-cod-off').value || '').trim();
+    if(!c){ toast('Escribe el código actual de la aplicación para confirmarlo.'); return; }
+    if(!window.confirm('¿Quitar el doble factor? La cuenta volverá a entrar solo con contraseña.')) return;
+    hazlo(segApi('/2fa/desactivar', 'POST', {codigo: c}), 'Doble factor quitado.');
+  };
+  qa('[data-seg-reset]').forEach(function(b){ b.onclick = function(){
+    if(!window.confirm('¿Quitar el doble factor de esta persona? Se cerrarán sus sesiones y tendrá que volver a activarlo.')) return;
+    hazlo(segApi('/2fa/reiniciar', 'POST', {usuario_id: b.dataset.segReset}), 'Doble factor quitado. Pídele que lo vuelva a activar.');
+  }; });
+  qa('[data-seg-ses]').forEach(function(b){ b.onclick = function(){
+    hazlo(segApi(segEsAdmin() ? '/sesiones/cerrar' : '/mis-sesiones/cerrar', 'POST', {id: Number(b.dataset.segSes)}), 'Sesión cerrada.');
+  }; });
+  if(q('#seg-cerrar-otras')) q('#seg-cerrar-otras').onclick = function(){
+    hazlo(segApi('/mis-sesiones/cerrar', 'POST', {id: 'otras'}), function(d){ return d.cerradas + ' sesión(es) cerrada(s).'; });
+  };
+  qa('[data-seg-desbloq]').forEach(function(b){ b.onclick = function(){
+    hazlo(segApi('/bloqueos/quitar', 'POST', {id: Number(b.dataset.segDesbloq)}), 'Bloqueo retirado.');
+  }; });
+  if(q('#seg-verificar')) q('#seg-verificar').onclick = function(){
+    segApi('/bitacora').then(function(d){ SEG.bitacora = d; renderApp(); toast(d.ok ? 'Bitácora íntegra.' : 'La bitácora ha sido manipulada.'); })
+      .catch(function(e){ toast(e.message); });
+  };
+}
+
+/* ==========================================================================
    DIAGNÓSTICO DE CONEXIÓN
    Cuando el acceso falla, las causas desde fuera se parecen todas: servidor
    sin PHP o sin la carpeta api/, base de datos mal configurada, tablas sin
@@ -11559,7 +12163,7 @@ function sbDiagnostico(correo){
         + 'index.html y que el hosting ejecuta PHP.');
       return acaba();
     }
-    apunta('Servidor', 'ok', 'PHP ' + (e.php || '') + ' responde.');
+    apunta('Servidor', 'ok', 'El servidor responde.');
     if(!e.bd){
       apunta('Base de datos MySQL', 'mal',
         'El servidor no conecta con MySQL. Revisa los datos de api/config.local.php.');
