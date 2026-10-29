@@ -33,8 +33,7 @@ try {
     $bd_ok = true;
     $pasos[] = array(true, 'Conexión con MySQL', 'Base de datos «' . LABS_DB_NAME . '» en ' . LABS_DB_HOST . '.');
 } catch (ErrorApi $e) {
-    $pasos[] = array(false, 'Conexión con MySQL', 'No conecta. Revisa los datos de api/config.local.php.' .
-        (LABS_DEPURAR && $e->pista ? ' (' . $e->pista . ')' : ''));
+    $pasos[] = array(false, 'Conexión con MySQL', 'No conecta. ' . ($e->pista ?: 'Revisa los datos de api/config.local.php.'));
 }
 
 if ($bd_ok) {

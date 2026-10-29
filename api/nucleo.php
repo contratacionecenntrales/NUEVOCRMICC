@@ -74,13 +74,38 @@ function labs_db()
         ));
     } catch (PDOException $e) {
         throw new ErrorApi('No se ha podido conectar con la base de datos MySQL. Revisa api/config.local.php.',
-            503, 'BD_SIN_CONEXION', LABS_DEPURAR ? $e->getMessage() : null);
+            503, 'BD_SIN_CONEXION', LABS_DEPURAR ? $e->getMessage() : labs_causa_bd($e));
     }
     // Horas en UTC (el panel las convierte a la hora local) y modo estricto:
     // un dato que no cabe da error en vez de recortarse en silencio.
     $db->exec("SET time_zone = '+00:00'");
     $db->exec("SET SESSION sql_mode = 'STRICT_ALL_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION'");
     return $db;
+}
+
+/**
+ * Explica en claro por qué no conecta MySQL, sin mostrar ninguna contraseña.
+ * Lo usa api/instalar.php para que el fallo se pueda arreglar sin adivinar.
+ */
+function labs_causa_bd(PDOException $e)
+{
+    $m = $e->getMessage();
+    if (strpos($m, '[1044]') !== false || strpos($m, '[1049]') !== false || stripos($m, 'Unknown database') !== false) {
+        return 'La base de datos indicada no existe o ese usuario no tiene acceso: revisa LABS_DB_NAME.';
+    }
+    if (strpos($m, '[1045]') !== false || stripos($m, 'Access denied for user') !== false && stripos($m, 'to database') === false) {
+        return 'MySQL rechaza el usuario o la contraseña: revisa LABS_DB_USER y LABS_DB_PASS (¿has cambiado la contraseña en Hostalia?).';
+    }
+    if (strpos($m, '[2002]') !== false || strpos($m, '[2005]') !== false || stripos($m, 'getaddrinfo') !== false) {
+        return 'No se encuentra el servidor MySQL: revisa LABS_DB_HOST (sin «:3306», el puerto va aparte).';
+    }
+    if (strpos($m, '[1040]') !== false || strpos($m, '[1203]') !== false) {
+        return 'MySQL tiene demasiadas conexiones abiertas ahora mismo: espera un minuto y vuelve a probar.';
+    }
+    if (strpos($m, '[2006]') !== false || strpos($m, '[2013]') !== false) {
+        return 'Se ha cortado la conexión con MySQL: vuelve a probar en un momento.';
+    }
+    return 'Error de MySQL ' . (preg_match('/\[(\d{4})\]/', $m, $x) ? $x[1] : 'desconocido') . '.';
 }
 
 /** Ejecuta una consulta preparada y devuelve el PDOStatement. */
