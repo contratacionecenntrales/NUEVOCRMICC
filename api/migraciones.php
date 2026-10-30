@@ -8,7 +8,7 @@
  */
 defined('LABS') || exit;
 
-define('LABS_VERSION_ESQUEMA', 4);
+define('LABS_VERSION_ESQUEMA', 5);
 
 function labs_columna_existe(PDO $db, $tabla, $col)
 {
@@ -101,6 +101,8 @@ function labs_migra(PDO $db)
         array('contactos', 'ref_externa', 'ALTER TABLE contactos ADD COLUMN ref_externa VARCHAR(64) NULL, ADD UNIQUE KEY contactos_ref_uq (ref_externa)'),
         array('contactos', 'ultima_actividad', 'ALTER TABLE contactos ADD COLUMN ultima_actividad DATETIME(6) NULL'),
         array('contactos', 'proximo_contacto', 'ALTER TABLE contactos ADD COLUMN proximo_contacto DATETIME(6) NULL'),
+        // --- Cargo visible del usuario (versión 5): «Coordinador», etc. ------
+        array('perfiles', 'cargo', "ALTER TABLE perfiles ADD COLUMN cargo VARCHAR(60) NOT NULL DEFAULT ''"),
     );
     foreach ($columnas as $c) {
         if (!labs_columna_existe($db, $c[0], $c[1])) {
@@ -114,6 +116,41 @@ function labs_migra(PDO $db)
             }
         }
     }
+    if ($v < 5) {
+        labs_migra_traspasa_raiz($db);
+    }
     $db->prepare("INSERT INTO ajustes (clave, valor) VALUES ('version_esquema', ?) ON DUPLICATE KEY UPDATE valor = VALUES(valor)")
         ->execute(array((string) LABS_VERSION_ESQUEMA));
+}
+
+/**
+ * Versión 5: el Super Administrador (cuenta raíz) pasa a ser LABS_RAIZ_EMAIL
+ * (admin@labs24k.com). La raíz anterior (Juan) sigue siendo administrador con
+ * todos los permisos, con el cargo «Coordinador» y por debajo de la nueva raíz.
+ * Las contraseñas no se tocan. Si la cuenta nueva no existe, no se cambia nada.
+ */
+function labs_migra_traspasa_raiz(PDO $db)
+{
+    $st = $db->prepare('SELECT id, email FROM perfiles WHERE LOWER(email) = ?');
+    $st->execute(array(mb_strtolower(LABS_RAIZ_EMAIL)));
+    $nueva = $st->fetch();
+    $vieja = $db->query('SELECT id, email FROM perfiles WHERE raiz = 1')->fetch();
+    if (!$nueva || ($vieja && $vieja['id'] === $nueva['id'])) {
+        return;
+    }
+    $ahora = gmdate('Y-m-d H:i:s.000000');
+    $db->prepare('UPDATE perfiles SET raiz = 0 WHERE raiz = 1')->execute();
+    $db->prepare("UPDATE perfiles SET raiz = 1, rol = 'admin', estado = 'Activo', superior_id = NULL, cargo = '', actualizado = ? WHERE id = ?")
+        ->execute(array($ahora, $nueva['id']));
+    if ($vieja) {
+        $db->prepare("UPDATE perfiles SET rol = 'admin', estado = 'Activo', superior_id = ?, cargo = 'Coordinador', actualizado = ? WHERE id = ?")
+            ->execute(array($nueva['id'], $ahora, $vieja['id']));
+    }
+    // Permisos completos de administración para las dos (la raíz los fija también al entrar).
+    if (function_exists('labs_permisos_de_rol')) {
+        $p = json_encode(labs_permisos_de_rol('admin'));
+        $db->prepare("UPDATE perfiles SET permisos = ? WHERE id IN (?, ?)")->execute(array($p, $nueva['id'], $vieja ? $vieja['id'] : $nueva['id']));
+    }
+    $db->prepare("INSERT INTO ajustes (clave, valor) VALUES ('raiz_traspaso', ?) ON DUPLICATE KEY UPDATE valor = VALUES(valor)")
+        ->execute(array(json_encode(array('de' => $vieja ? $vieja['email'] : null, 'a' => $nueva['email'], 'cuando' => $ahora))));
 }

@@ -14,7 +14,7 @@
 --
 -- DESPUÉS DE IMPORTARLO
 --   Abre https://TU-DOMINIO/api/instalar.php y pon la contraseña de la cuenta
---   raíz (jalvarez@labs24k.com). Hasta entonces esa cuenta no puede entrar.
+--   raíz (admin@labs24k.com). Hasta entonces esa cuenta no puede entrar.
 --
 -- Compatible con MySQL 5.7 / 8.x y MariaDB 10.3 o superior.
 -- Fechas y horas en UTC (el backend fija la zona de la conexión).
@@ -584,23 +584,23 @@ CREATE TABLE IF NOT EXISTS agente_seguimiento (
 -- Se crea SIN contraseña: nadie puede entrar con ella hasta que pongas la tuya
 -- en api/instalar.php. Así no queda ninguna contraseña escrita en este archivo.
 -- =============================================================================
-SET @raiz_id = (SELECT id FROM cuentas WHERE email = 'jalvarez@labs24k.com');
+SET @raiz_id = (SELECT id FROM cuentas WHERE email = 'admin@labs24k.com');
 SET @raiz_id = COALESCE(@raiz_id, UUID());
 
 INSERT INTO cuentas (id, email, clave_hash, creado, actualizado)
-SELECT @raiz_id, 'jalvarez@labs24k.com', NULL, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
+SELECT @raiz_id, 'admin@labs24k.com', NULL, UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
 FROM DUAL
-WHERE NOT EXISTS (SELECT 1 FROM cuentas WHERE email = 'jalvarez@labs24k.com');
+WHERE NOT EXISTS (SELECT 1 FROM cuentas WHERE email = 'admin@labs24k.com');
 
 INSERT INTO perfiles (
   id, raiz, nombre, apellidos, email, prefijo, telefono, extension,
   rol, estado, rel, google, doble_factor, debe_cambiar,
   permisos, preferencias, api_token, alta, creado, actualizado
 )
-SELECT @raiz_id, 1, 'Juan', 'Álvarez', 'jalvarez@labs24k.com', '+34', '600 112 233', '101',
+SELECT @raiz_id, 1, 'Administración', 'Labs24k', 'admin@labs24k.com', '+34', '', '100',
   'admin', 'Activo', '0-413-936', 1, 1, 1,
   '{}',
-  '{"llamadas":{"extension":"101","desvio":"","grabar":true,"buzon":true,"saludo":"Has llamado a Labs24k. Deja tu mensaje y te devolvemos la llamada."},"disponibilidad":{"dias":{"L":true,"M":true,"X":true,"J":true,"V":true,"S":false,"D":false},"desde":"09:00","hasta":"18:00","zona":"Europe/Madrid"},"calendario":{"duracion":30,"margen":10,"antelacion":4,"enlace":""},"notificaciones":{"correo":true,"push":true,"whatsapp":false,"resumen":true,"altas":true,"incidencias":true}}',
+  '{"llamadas":{"extension":"100","desvio":"","grabar":true,"buzon":true,"saludo":"Has llamado a Labs24k. Deja tu mensaje y te devolvemos la llamada."},"disponibilidad":{"dias":{"L":true,"M":true,"X":true,"J":true,"V":true,"S":false,"D":false},"desde":"09:00","hasta":"18:00","zona":"Europe/Madrid"},"calendario":{"duracion":30,"margen":10,"antelacion":4,"enlace":""},"notificaciones":{"correo":true,"push":true,"whatsapp":false,"resumen":true,"altas":true,"incidencias":true}}',
   NULL, '2026-01-12', UTC_TIMESTAMP(6), UTC_TIMESTAMP(6)
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM perfiles WHERE raiz = 1);

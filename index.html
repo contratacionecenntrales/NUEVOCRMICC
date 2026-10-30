@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-2RFRQCtSBDBoukRSQoHEz0JI21+y9vaE7TflcdZL8bw='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-C9A/nmQVkTYE0BV4ohR5wQmlyO/Ailsl5D9QXRjx2r8='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Labs Command Center 360 - Oficina virtual SaaS de la red comercial de Labs24k.">
 <meta name="theme-color" content="#0B0F19">
@@ -3062,7 +3062,7 @@ function acadCreador(){
     '<div class="card">'+
       '<div class="card-h"><div><h3>Publicar nuevo curso en la Academia</h3>'+
         '<p>Sube material formativo y temario para toda la red comercial.</p></div>'+
-        '<span class="chip blue">'+esc(ROLES[S.role].label)+'</span></div>'+
+        '<span class="chip blue">'+esc(etiquetaYo())+'</span></div>'+
       '<div class="field"><label class="f">Título del curso</label>'+
         '<input class="inp" id="n-t" value="'+esc(N.t)+'" placeholder="Ej. Estrategia avanzada de cierre en inmobiliarias"></div>'+
       '<div class="grid g-3">'+
@@ -4646,7 +4646,8 @@ function dsPanelDescargasHTML(){
 var SB_ANTIGUO = {url:'https://ezwhkpfqnzyfulivlows.supabase.co', clave:'sb_publishable_7ZLE8i6zn7AlcaubIBaBrA_rkGvYBsG'};
 
 function dsMigraInicia(){
-  DS.migra = {paso:'login', email:S.email || '', error:'', items:[], hechos:0, fallos:[], saltados:0, otros:null, url:SB_ANTIGUO.url};
+  /* En el CRM anterior la cuenta principal era la de Juan. */
+  DS.migra = {paso:'login', email:'jalvarez@labs24k.com', error:'', items:[], hechos:0, fallos:[], saltados:0, otros:null, url:SB_ANTIGUO.url};
   renderApp();
 }
 
@@ -5976,7 +5977,7 @@ function cfgCuenta(){
     '<div class="avatar" style="width:58px;height:58px;font-size:21px;margin:0 auto 11px">'+
       esc(S.name.charAt(0).toUpperCase())+'</div>'+
     '<div style="font-size:16px;font-weight:600;color:#fff">'+esc(S.name)+'</div>'+
-    '<div class="small muted">'+esc(ROLES[S.role].label)+' · Labs24k</div>'+
+    '<div class="small muted">'+esc(etiquetaYo())+' · Labs24k</div>'+
     '<div class="row" style="justify-content:center;margin-top:10px">'+
       '<span class="chip blue">'+ic('phone',12)+' '+esc(S.phone)+'</span></div>'+
     '<div class="tiny muted" style="margin-top:7px">'+esc(S.email)+'</div>'+
@@ -6830,7 +6831,7 @@ function ayudaTicket(){
       '<textarea class="inp" id="tk-d" rows="5" placeholder="Qué ocurre, en qué módulo y qué esperabas que pasara.">'+esc(T.desc)+'</textarea></div>'+
     '<div class="card flat" style="padding:12px;margin-bottom:14px">'+
       '<div class="tiny muted">Se adjuntará automáticamente: número de relación '+esc(cuentaActiva().rel)+
-      ', perfil '+esc(ROLES[S.role].label)+' y módulo desde el que abres la incidencia.</div></div>'+
+      ', perfil '+esc(etiquetaYo())+' y módulo desde el que abres la incidencia.</div></div>'+
     '<button class="btn btn-g" id="tk-env" style="width:100%;justify-content:center">'+
       ic('send',15)+' Registrar incidencia</button>'+
 
@@ -7181,7 +7182,7 @@ function viewUsers(v){
       '<td><div class="row"><div class="ava sm">'+esc(u.n.charAt(0))+'</div>'+
         '<div style="min-width:0"><div class="w trunc">'+esc(u.n)+'</div>'+
         '<div class="tiny muted trunc">'+esc(u.mail)+'</div></div></div></td>'+
-      '<td><span class="chip blue">'+esc(ROLES[u.rol].label)+'</span></td>'+
+      '<td><span class="chip blue">'+esc(etiquetaRol(u))+'</span></td>'+
       '<td class="mono tiny">'+esc(u.rel)+'</td>'+
       '<td>'+(u.google
         ? '<span class="row" style="gap:6px">'+googleG(14)+'<span class="tiny">Autorizado</span></span>'
@@ -7799,13 +7800,13 @@ function normalizaUsuario(u, i){
    sin tilde y las demás grafías quedan como alias: se entra igual con
    cualquiera de ellas.
    ======================================================================= */
-var RAIZ_MAIL = 'jalvarez@labs24k.com';
-/* admin@labs24k.com ya no es alias de la raíz: es una cuenta de administrador propia. */
-var RAIZ_ALIAS = ['jálvarez@labs24k.com', 'j.alvarez@labs24k.com',
-                  'juan.alvarez@labs24k.com'];
+var RAIZ_MAIL = 'admin@labs24k.com';       // Super Administrador (cuenta raíz)
+/* Otras grafías del correo de Juan (Coordinador): se entra igual con cualquiera. */
+var ALIAS_MAIL = {'jálvarez@labs24k.com':'jalvarez@labs24k.com', 'j.alvarez@labs24k.com':'jalvarez@labs24k.com',
+                  'juan.alvarez@labs24k.com':'jalvarez@labs24k.com'};
 function normalizaMail(m){
   var t = String(m||'').trim().toLowerCase();
-  return RAIZ_ALIAS.indexOf(t) > -1 ? RAIZ_MAIL : t;
+  return ALIAS_MAIL[t] || t;
 }
 function esRaiz(u){ return !!u && u.raiz === true; }
 
@@ -7979,7 +7980,9 @@ function superioresPosibles(u){
     return x.id !== u.id && x.est === 'Activo' && rangoU(x) > rangoU(u);
   }).sort(function(a,b){ return rangoU(b) - rangoU(a) || a.n.localeCompare(b.n); });
 }
-function etiquetaRol(u){ return esRaiz(u) ? 'Super Administrador' : ROLES[u.rol].label; }
+function etiquetaRol(u){ return esRaiz(u) ? 'Super Administrador' : (u.cargo || ROLES[u.rol].label); }
+/* Cómo se llama el rol de quien está dentro (su cargo si lo tiene). */
+function etiquetaYo(){ return S.raiz ? 'Super Administrador' : (S.cargo || ROLES[S.role].label); }
 function yoUsuario(){
   var id = (typeof SB !== 'undefined' && SB.perfil) ? SB.perfil.id : null;
   return (id && usuarioPorId(id)) || usuarioPorMail(S.email || '') || null;
@@ -8042,7 +8045,7 @@ function viewUsers(v){
 
   var base = jefe ? equipoDe(yoUsuario()) : USUARIOS;
   var lista = base.filter(function(u){
-    var t = (u.n+' '+u.mail+' '+u.tel+' '+u.rel+' '+ROLES[u.rol].label+' '+(u.emp||'')+' '+(u.cif||'')).toLowerCase();
+    var t = (u.n+' '+u.mail+' '+u.tel+' '+u.rel+' '+etiquetaRol(u)+' '+(u.emp||'')+' '+(u.cif||'')).toLowerCase();
     if(USU.filtro && t.indexOf(USU.filtro.toLowerCase().trim()) < 0) return false;
     if(USU.rol && u.rol !== USU.rol) return false;
     if(USU.est && u.est !== USU.est) return false;
@@ -8056,6 +8059,7 @@ function viewUsers(v){
         '<div style="min-width:0"><div class="w trunc">'+esc(u.n)+
           (esRaiz(u)?' <span class="chip root tiny-chip" title="Super Administrador de raíz">'+
             ic('shield',10)+' ROOT</span>':'')+
+          (!esRaiz(u) && u.cargo ? ' <span class="chip violet tiny-chip" title="Cargo">'+esc(u.cargo)+'</span>' : '')+
           (u.cambiar?' <span class="chip amber tiny-chip">clave pendiente</span>':'')+'</div>'+
         '<div class="row" style="gap:6px;align-items:center">'+
           '<span class="tiny muted trunc">'+esc(u.mail)+'</span>'+
@@ -8579,7 +8583,7 @@ function detalleHTML(){
         '<div style="min-width:0"><div class="row" style="gap:8px;align-items:center">'+
           '<h3 style="margin:0;font-size:16px;color:#fff" class="trunc">'+esc(u.n||'Sin nombre')+'</h3>'+
           chipEstado(u.est)+'</div>'+
-        '<div class="tiny muted trunc">'+esc(u.mail)+' · '+esc(ROLES[u.rol].label)+
+        '<div class="tiny muted trunc">'+esc(u.mail)+' · '+esc(etiquetaRol(u))+
           ' · relación <span class="mono">'+esc(u.rel)+'</span></div></div></div>'+
       '<button class="icon-btn" id="ft-x">'+ic('x',16)+'</button></div>'+
     '<div class="ft-body"><div class="ft-side">'+nav+'</div>'+
@@ -8719,6 +8723,11 @@ function fichaInfo(u){
       '<input class="inp" id="fi-emp" value="'+esc(u.emp||'')+'" placeholder="Ej. Evolvix Global - Gijón"></div>'+
     '<div class="field"><label class="f">CIF</label>'+
       '<input class="inp mono" id="fi-cif" value="'+esc(u.cif||'')+'" placeholder="B12345678"></div></div>'+
+  (u.conCargo && !esRaiz(u) ? '<div class="field"><label class="f">Cargo (cómo aparece su rol)</label>'+
+    (S.role === 'admin' || S.raiz
+      ? '<input class="inp" id="fi-cargo" value="'+esc(u.cargo||'')+'" placeholder="'+esc(ROLES[u.rol].label)+'" maxlength="60">'+
+        '<div class="tiny muted" style="margin-top:6px">Opcional. Ej.: Coordinador. Solo cambia el nombre que se ve; los permisos son los de su rol.</div>'
+      : '<input class="inp" value="'+esc(u.cargo||ROLES[u.rol].label)+'" readonly>')+'</div>' : '')+
   '<div class="grid g-2">'+
     '<div class="field"><label class="f">Estado de la cuenta</label>'+
       (esRaiz(u)
@@ -8937,6 +8946,7 @@ function leeFicha(){
     if(q('#fi-mail')) u.mail = v('#fi-mail');
     if(q('#fi-est'))  u.est  = v('#fi-est');
     if(q('#fi-emp'))  u.emp  = v('#fi-emp');
+    if(q('#fi-cargo')) u.cargo = v('#fi-cargo');
     if(q('#fi-cif'))  u.cif  = v('#fi-cif');
   }
   if(q('#fl-ext')){
@@ -9073,6 +9083,7 @@ function detalleEventos(){
       cambios.push('superior → '+(sN ? sN.n : 'ninguno')); }
     if((real.emp||'') !== String(u.emp||'').trim() || (real.cif||'') !== String(u.cif||'').trim().toUpperCase())
       cambios.push('empresa / CIF');
+    if((real.cargo||'') !== String(u.cargo||'').trim()) cambios.push('cargo → '+(String(u.cargo||'').trim() || ROLES[u.rol].label));
     if(u.cif && !/^[A-Za-z0-9-]{0,20}$/.test(String(u.cif).trim())){
       toast('El CIF solo admite letras, números y guiones.'); return; }
     if(real.est !== u.est) cambios.push('estado → '+u.est);
@@ -9101,6 +9112,7 @@ function detalleEventos(){
     real.cambiar = u.cambiar; real.avatar = u.avatar; real.tok = u.tok;
     real.perms = u.perms; real.pref = u.pref;
     real.sup = u.sup || null; real.emp = String(u.emp||'').trim(); real.cif = String(u.cif||'').trim().toUpperCase();
+    real.cargo = String(u.cargo||'').trim();
     real.ses = (real.est === 'Activo') ? u.ses : [];
 
     /* Con el servidor conectado, la base de datos manda: si un disparador
@@ -9392,6 +9404,7 @@ function deFila(f, i){
     modvis: Array.isArray(f.modulos_visibles) ? f.modulos_visibles : null,
     sup: f.superior_id || null, conSup: Object.prototype.hasOwnProperty.call(f, 'superior_id'),
     emp: f.empresa || '', cif: f.cif || '', conEmp: Object.prototype.hasOwnProperty.call(f, 'empresa'),
+    cargo: f.cargo || '', conCargo: Object.prototype.hasOwnProperty.call(f, 'cargo'),
     rolPersId: f.rol_personalizado_id || null,
     alta: f.alta ? new Date(f.alta).toLocaleDateString('es-ES') : '',
     ultMs: f.ultimo_acceso ? new Date(f.ultimo_acceso).getTime() : null,
@@ -9449,6 +9462,7 @@ function aFila(u){
      guardado entero fallaría por un campo desconocido. */
   if(u.conSup) fila.superior_id = u.sup || null;
   if(u.conEmp){ fila.empresa = String(u.emp || '').trim(); fila.cif = String(u.cif || '').trim().toUpperCase(); }
+  if(u.conCargo && (S.role === 'admin' || S.raiz)) fila.cargo = String(u.cargo || '').trim();
   return fila;
 }
 
@@ -9530,7 +9544,7 @@ function sbAbrePanel(){
       var u = deFila(SB.perfil, 0);
       var enLista = USUARIOS.filter(function(x){ return x.id === u.id; })[0];
       S.logged = true; S.name = u.n; S.phone = u.tel || (u.pre+' '+u.num).trim();
-      S.email = u.mail; S.role = u.rol; S.raiz = u.raiz; S.view = 'dashboard';
+      S.email = u.mail; S.role = u.rol; S.raiz = u.raiz; S.cargo = u.cargo || ''; S.view = 'dashboard';
       S.modulosVisibles = u.modvis;
       S.perms = u.perms;
       CUENTAS.forEach(function(c){ c.activa = false; });

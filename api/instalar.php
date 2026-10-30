@@ -3,7 +3,7 @@
  * LABS COMMAND CENTER 360™ · Puesta en marcha
  *
  * Comprueba la instalación y deja poner la contraseña de la cuenta raíz
- * (jalvarez@labs24k.com) UNA sola vez: en cuanto la cuenta tiene contraseña,
+ * (admin@labs24k.com) UNA sola vez: en cuanto la cuenta tiene contraseña,
  * esta página ya no deja cambiar nada. Pide la clave de instalación que
  * escribiste en api/config.local.php, para que nadie se adelante.
  */

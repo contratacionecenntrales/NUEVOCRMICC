@@ -44,7 +44,7 @@ factor y sus sesiones.
    él, las contraseñas viajan sin cifrar. Después, cambia el `.htaccess` por la
    versión con SSL (`htaccess-blindado.txt`).
 2. **Activar el doble factor** en todas las cuentas de administración.
-3. **No repetir contraseñas**: la de MySQL, la de Juan y la de admin, distintas.
+3. **No repetir contraseñas**: la de MySQL, la del Super Administrador (admin@) y la de Juan (Coordinador), distintas.
 4. Lanzar la **prueba de ataque** del Centro de Seguridad tras cada cambio en el
    hosting.
 

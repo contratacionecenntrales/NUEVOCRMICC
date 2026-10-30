@@ -67,7 +67,7 @@ defined('LABS_MAX_TROZO') || define('LABS_MAX_TROZO', 6 * 1024 * 1024);
 defined('LABS_MAX_JSON') || define('LABS_MAX_JSON', 2 * 1024 * 1024);
 
 // Correo de la cuenta raíz (Super Administrador).
-defined('LABS_RAIZ_EMAIL') || define('LABS_RAIZ_EMAIL', 'jalvarez@labs24k.com');
+defined('LABS_RAIZ_EMAIL') || define('LABS_RAIZ_EMAIL', 'admin@labs24k.com');
 
 // Muestra el detalle técnico de los errores del servidor. Solo para pruebas.
 defined('LABS_DEPURAR') || define('LABS_DEPURAR', false);

@@ -122,7 +122,7 @@ function labs_tablas()
             'debe_cambiar' => array('b', true), 'permisos' => array('j', array()), 'preferencias' => array('j', array()),
             'api_token' => array('t'), 'alta' => array('d', $HOY), 'ultimo_acceso' => array('s'),
             'modulos_visibles' => array('j'), 'rol_personalizado_id' => array('u'), 'superior_id' => array('u'),
-            'empresa' => array('t', ''), 'cif' => array('t', ''),
+            'empresa' => array('t', ''), 'cif' => array('t', ''), 'cargo' => array('t', ''),
             'creado' => array('s', $AHORA), 'actualizado' => array('s', $AHORA),
         ),
         'leer' => function () {
@@ -200,6 +200,17 @@ function labs_tablas()
             // identidad. Por aquí se podría dejar desincronizado.
             if ($n['email'] !== $v['email']) {
                 throw new ErrorApi('El correo se cambia desde Usuarios y Accesos (administración).', 403, '42501', 'CORREO_SOLO_ADMIN');
+            }
+            // El cargo (p. ej. «Coordinador») lo pone solo administración: nadie se pone títulos a sí mismo.
+            if ((string) $n['cargo'] !== (string) $v['cargo']) {
+                $yo = labs_usuario(true);
+                if (!$yo['raiz'] && labs_mi_rol() !== 'admin') {
+                    throw new ErrorApi('El cargo lo asigna administración.', 403, '42501', 'CARGO_SOLO_ADMIN');
+                }
+                if ((int) $v['raiz'] === 1 && !$yo['raiz']) {
+                    throw new ErrorApi('El cargo del Super Administrador solo lo cambia él mismo.', 403, '42501', 'RAIZ_PROTEGIDA');
+                }
+                $n['cargo'] = mb_substr(trim((string) $n['cargo']), 0, 60);
             }
             // Mismo orden en que Postgres lanzaba los disparadores.
             labs_perfil_limita_jefe($v, $n);

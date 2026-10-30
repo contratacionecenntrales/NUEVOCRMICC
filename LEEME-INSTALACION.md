@@ -43,7 +43,7 @@ y **contraseña**.
 En ese mismo apartado abre **phpMyAdmin** → elige tu base de datos → pestaña
 **Importar** → selecciona `sql/base-de-datos.sql` → **Continuar**.
 
-Crea todas las tablas y la cuenta raíz `jalvarez@labs24k.com`, **sin contraseña
+Crea todas las tablas y la cuenta raíz `admin@labs24k.com` (Super Administrador), **sin contraseña
 todavía** (así no queda ninguna contraseña escrita en ningún archivo). Se puede
 volver a importar sin romper nada.
 
@@ -75,7 +75,7 @@ comprobaciones (conexión, tablas, cuenta raíz, carpeta de archivos) y un
 formulario que pide:
 
 1. la **clave de instalación** que pusiste en `config.local.php`, y
-2. la **contraseña nueva** de `jalvarez@labs24k.com` (mínimo 10 caracteres, con
+2. la **contraseña nueva** de `admin@labs24k.com` (mínimo 10 caracteres, con
    mayúscula, minúscula, número y símbolo).
 
 Esa página solo funciona **una vez**: en cuanto la cuenta raíz tiene contraseña,
@@ -230,3 +230,15 @@ Para cargar contactos al desplegar sin entrar al panel, el zip puede llevar
 `api/importacion-pendiente.php`: se importa la primera vez que alguien entra y
 el archivo se borra solo. Ese archivo contiene datos personales y nunca va al
 repositorio.
+
+## Cuentas principales
+
+- **admin@labs24k.com** — Super Administrador (cuenta raíz): no se puede borrar
+  ni degradar; es la única que restaura copias y ve su clave.
+- **jalvarez@labs24k.com** — Juan Álvarez, administrador con todos los permisos y
+  cargo «Coordinador».
+
+En una instalación que ya existía con Juan como raíz, el cambio se hace solo la
+primera vez que alguien entra tras actualizar (versión 5 de la base de datos):
+las contraseñas no se tocan. El «cargo» de cada usuario (cómo aparece su rol) se
+cambia en su ficha y solo lo puede poner administración.
