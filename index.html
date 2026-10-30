@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-Ir+yqq9rA03YV/H5Ic58wW7mISf1xRoaPvlSWkmjkek='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-WPKkzt1bR0dJGf5+ZCdLlqnrNah6A046sguzn2Ie8LU='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Labs Command Center 360 - Oficina virtual SaaS de la red comercial de Labs24k.">
 <meta name="theme-color" content="#0B0F19">
@@ -4524,7 +4524,8 @@ var DS = {
   filtro:'', catF:'', subiendo:false,
   nuevo:null,           // {categoria, nombre, descripcion, tipo}
   panelDesc:null,       // id del recurso cuyo panel de descargas está abierto
-  descargas:[], descargasCargando:false
+  descargas:[], descargasCargando:false,
+  migra:null            // traída de dosieres desde el CRM anterior (Supabase)
 };
 
 function dsPuedeGestionar(){ return S.role==='admin' || S.role==='manager'; }
@@ -4648,6 +4649,154 @@ function dsPanelDescargasHTML(){
   '</div></div>';
 }
 
+/* --------------------------------------------------------------------------
+   TRAER LOS DOSIERES DEL CRM ANTERIOR (Supabase)
+   Se hace desde el navegador de quien lo pulsa: entra al Supabase antiguo con
+   su correo y contraseña de entonces, lee la tabla «recursos», descarga cada
+   archivo del almacén «documentos» y lo sube a este servidor. No duplica: si
+   ya hay un dosier con el mismo nombre y categoría, lo salta. La contraseña
+   solo se usa en ese momento y no se guarda en ningún sitio.
+   -------------------------------------------------------------------------- */
+var SB_ANTIGUO = {url:'https://ezwhkpfqnzyfulivlows.supabase.co', clave:'sb_publishable_7ZLE8i6zn7AlcaubIBaBrA_rkGvYBsG'};
+
+function dsMigraInicia(){
+  DS.migra = {paso:'login', email:S.email || '', error:'', items:[], hechos:0, fallos:[], saltados:0, otros:null, url:SB_ANTIGUO.url};
+  renderApp();
+}
+
+function dsMigraFetch(ruta, opc){
+  var M = DS.migra; opc = opc || {};
+  var cab = Object.assign({apikey:SB_ANTIGUO.clave}, opc.headers || {});
+  if(M.token) cab.Authorization = 'Bearer ' + M.token;
+  return fetch(M.url.replace(/\/+$/, '') + ruta, {method:opc.method || 'GET', headers:cab, body:opc.body});
+}
+
+function dsMigraConecta(email, clave){
+  var M = DS.migra; M.error = ''; M.cargando = true; M.token = null; renderApp();
+  dsMigraFetch('/auth/v1/token?grant_type=password', {method:'POST', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({email:email, password:clave})})
+  .then(function(r){ return r.json().then(function(d){ return {ok:r.ok, d:d}; }); })
+  .then(function(r){
+    if(!r.ok || !r.d.access_token) throw new Error(r.d && /invalid/i.test(r.d.error_description || r.d.msg || r.d.error || '') ?
+      'El CRM anterior dice que el correo o la contraseña no son correctos.' : 'El CRM anterior no ha dejado entrar: ' + (r.d.error_description || r.d.msg || r.d.error || 'error'));
+    M.token = r.d.access_token;
+    return dsMigraFetch('/rest/v1/recursos?select=*&order=categoria.asc,creado.asc');
+  })
+  .then(function(r){ return r.json().then(function(d){ if(!r.ok) throw new Error('No se han podido leer los dosieres: ' + (d.message || r.status)); return d; }); })
+  .then(function(lista){
+    var ya = {};
+    DS.lista.forEach(function(x){ ya[(x.categoria + '|' + x.nombre).toLowerCase()] = 1; });
+    M.items = (lista || []).map(function(x){ return Object.assign({}, x, {existe: !!ya[(x.categoria + '|' + x.nombre).toLowerCase()]}); });
+    M.cargando = false; M.paso = 'lista'; renderApp();
+    dsMigraCuenta();
+  })
+  .catch(function(e){
+    M.cargando = false;
+    M.error = (e && e.message && !/Failed to fetch|NetworkError|Load failed/i.test(e.message)) ? e.message :
+      'No se ha podido conectar con el CRM anterior. Comprueba tu conexión; si el proyecto de Supabase ya no existe, los dosieres habrá que subirlos a mano.';
+    renderApp();
+  });
+}
+
+/* Cuenta qué más hay en el CRM anterior, para saber si falta algo por traer. */
+function dsMigraCuenta(){
+  var M = DS.migra, tablas = [['contactos','contactos'],['contratos','contratos'],['presupuestos','presupuestos'],
+    ['expedientes','expedientes'],['candidatos','candidatos'],['tickets','tickets de soporte'],['agentes','agentes']];
+  Promise.all(tablas.map(function(t){
+    return dsMigraFetch('/rest/v1/' + t[0] + '?select=id&limit=1', {headers:{Prefer:'count=exact'}}).then(function(r){
+      var cr = r.headers.get('content-range') || '', n = Number((cr.split('/')[1]) || 0);
+      return r.ok ? [t[1], n] : [t[1], null];
+    }, function(){ return [t[1], null]; });
+  })).then(function(res){ if(DS.migra === M){ M.otros = res.filter(function(x){ return x[1]; }); renderApp(); } });
+}
+
+function dsMigraCopia(){
+  var M = DS.migra, cola = M.items.filter(function(x){ return !x.existe; });
+  M.paso = 'copiando'; M.hechos = 0; M.fallos = []; M.saltados = M.items.length - cola.length; M.total = cola.length; renderApp();
+  var i = 0;
+  function siguiente(){
+    if(i >= cola.length){ M.paso = 'hecho'; M.token = null; dsCarga(); return; }
+    var x = cola[i++]; M.actual = x.nombre; renderApp();
+    var rutaVieja = String(x.ruta || '').split('/').map(encodeURIComponent).join('/');
+    dsMigraFetch('/storage/v1/object/authenticated/documentos/' + rutaVieja)
+      .then(function(r){ if(!r.ok) throw new Error('no se ha podido descargar (' + r.status + ')'); return r.blob(); })
+      .then(function(blob){
+        if(blob.size > 25*1024*1024) throw new Error('pesa más de 25 MB');
+        var nombre = String(x.ruta || x.nombre).split('/').pop().replace(/^\d{10,}-/, '').replace(/[^A-Za-z0-9.\-_]/g, '_') || ('dosier.' + x.tipo);
+        var ruta = 'recursos/' + Date.now() + '-' + nombre;
+        return sbConSesion(function(){
+          return fetch(sbUrl('/storage/v1/object/' + BUCKET_DOCS + '/' + ruta), {method:'POST', credentials:'same-origin',
+            headers:{'X-Sesion':(SB.sesion||{}).access_token || '', 'Content-Type': x.tipo === 'pptx' ?
+              'application/vnd.openxmlformats-officedocument.presentationml.presentation' : 'application/pdf'}, body:blob})
+            .then(function(r){ return {ok:r.ok, estado:r.status}; }, function(){ return {ok:false, estado:0}; });
+        }).then(function(r){
+          if(!r.ok) throw new Error('el servidor no lo ha aceptado (' + r.estado + ')');
+          return sbInsert('recursos', {categoria:x.categoria || 'General', nombre:x.nombre, descripcion:x.descripcion || '',
+            tipo:x.tipo === 'pptx' ? 'pptx' : 'pdf', ruta:ruta, tamano_bytes:blob.size, subido_por:(SB.sesion && SB.sesion.uid) || null});
+        }).then(function(ri){ if(!(ri && ri.ok)) throw new Error('no se ha podido registrar: ' + sbMensaje(ri)); });
+      })
+      .then(function(){ M.hechos++; }, function(e){ M.fallos.push(x.nombre + ': ' + (e && e.message || 'error')); })
+      .then(siguiente);
+  }
+  siguiente();
+}
+
+function dsMigraModal(){
+  var M = DS.migra, c;
+  if(M.paso === 'login'){
+    c = '<p class="small muted" style="margin:0 0 14px">Entra con el correo y la contraseña que usabas en el CRM anterior (el de Supabase). '+
+        'Se copiarán aquí todos los dosieres con su categoría, nombre y descripción. La contraseña no se guarda.</p>'+
+      '<div class="field"><label class="f">Correo del CRM anterior</label><input class="inp" id="dsm-mail" type="email" value="'+esc(M.email)+'"></div>'+
+      '<div class="field"><label class="f">Contraseña del CRM anterior</label><input class="inp" id="dsm-pass" type="password" autocomplete="off"></div>'+
+      '<details class="tiny muted" style="margin-bottom:10px"><summary style="cursor:pointer">Opciones avanzadas</summary>'+
+        '<div class="field" style="margin-top:8px"><label class="f">Dirección del proyecto Supabase</label><input class="inp" id="dsm-url" value="'+esc(M.url)+'"></div></details>'+
+      (M.error ? '<div class="seg-alerta" style="margin-bottom:12px">'+ic('alert',16)+'<div>'+esc(M.error)+'</div></div>' : '')+
+      '<div class="row" style="gap:10px;justify-content:flex-end"><button class="btn btn-s" id="dsm-x">Cancelar</button>'+
+      '<button class="btn btn-p" id="dsm-entrar"'+(M.cargando?' disabled':'')+'>'+ic('plug',15)+' '+(M.cargando?'Conectando…':'Conectar')+'</button></div>';
+  } else if(M.paso === 'lista'){
+    var nuevos = M.items.filter(function(x){ return !x.existe; });
+    c = (M.items.length ? '<p class="small" style="margin:0 0 10px;color:#fff">Encontrados <strong>'+M.items.length+'</strong> dosieres'+
+          (M.items.length - nuevos.length ? ' ('+(M.items.length - nuevos.length)+' ya están aquí)' : '')+':</p>'+
+        '<div style="max-height:260px;overflow-y:auto;border:1px solid var(--line);border-radius:10px;padding:4px 12px">'+M.items.map(function(x){
+          return '<div class="row" style="gap:10px;padding:8px 0;border-bottom:1px solid var(--line-soft);align-items:center">'+ic('file',14)+
+            '<div style="flex:1;min-width:0"><div class="small trunc" style="color:#fff">'+esc(x.nombre)+'</div><div class="tiny muted">'+esc(x.categoria)+' · '+esc(String(x.tipo||'').toUpperCase())+
+            (x.tamano_bytes ? ' · '+Math.round(x.tamano_bytes/1024)+' KB' : '')+'</div></div>'+(x.existe ? '<span class="chip green">Ya está</span>' : '<span class="chip blue">Nuevo</span>')+'</div>';
+        }).join('')+'</div>'
+      : '<p class="small muted">El CRM anterior no tiene dosieres en el Centro de Recursos.</p>')+
+      (M.otros && M.otros.length ? '<div class="nota" style="margin-top:12px">'+ic('help',15)+'<span>En el CRM anterior también hay: '+
+        M.otros.map(function(o){ return o[1]+' '+o[0]; }).join(', ')+'. Si los necesitas aquí, dímelo y los traemos igual.</span></div>' : '')+
+      '<div class="row" style="gap:10px;justify-content:flex-end;margin-top:14px"><button class="btn btn-s" id="dsm-x">Cancelar</button>'+
+      (nuevos.length ? '<button class="btn btn-p" id="dsm-copiar">'+ic('download',15)+' Traer '+nuevos.length+' dosier(es)</button>' : '')+'</div>';
+  } else if(M.paso === 'copiando'){
+    var pct = M.total ? Math.round((M.hechos + M.fallos.length) * 100 / M.total) : 100;
+    c = '<p class="small" style="color:#fff;margin:0 0 10px">Copiando '+(M.hechos + M.fallos.length + 1 > M.total ? M.total : M.hechos + M.fallos.length + 1)+' de '+M.total+'…</p>'+
+      '<div style="height:10px;border-radius:6px;background:var(--card-2);overflow:hidden"><div style="height:100%;width:'+pct+'%;background:var(--blue);transition:width .3s"></div></div>'+
+      '<p class="tiny muted" style="margin-top:8px" id="dsm-actual">'+esc(M.actual || '')+'</p><p class="tiny muted">No cierres esta ventana hasta que termine.</p>';
+  } else {
+    c = '<div class="'+(M.fallos.length ? 'seg-alerta' : 'seg-ok-box')+'">'+ic(M.fallos.length ? 'alert' : 'check',18)+'<div><strong>'+M.hechos+' dosier(es) traídos'+
+        (M.saltados ? ', '+M.saltados+' ya estaban' : '')+(M.fallos.length ? ', '+M.fallos.length+' con problemas' : '')+'.</strong>'+
+        (M.fallos.length ? '<div class="tiny" style="margin-top:6px;line-height:1.6">'+M.fallos.map(esc).join('<br>')+'</div>' : '')+'</div></div>'+
+      '<div class="row" style="justify-content:flex-end;margin-top:14px">'+(M.fallos.length ? '<button class="btn btn-s" id="dsm-reintentar" style="margin-right:8px">'+ic('refresh',14)+' Reintentar</button>' : '')+
+      '<button class="btn btn-p" id="dsm-x">Ver los dosieres</button></div>';
+  }
+  return '<div class="ov" data-ov="ds-migra"><div class="modal" style="max-width:560px">'+
+    '<h3 style="margin:0 0 12px">'+ic('download',17)+' Traer dosieres del CRM anterior</h3>'+c+'</div></div>';
+}
+
+function dsMigraEventos(){
+  if(!DS.migra) return;
+  if(q('#dsm-x')) q('#dsm-x').onclick = function(){ if(DS.migra.paso !== 'copiando'){ DS.migra = null; renderApp(); } };
+  if(q('#dsm-entrar')) q('#dsm-entrar').onclick = function(){
+    var mail = q('#dsm-mail').value.trim(), pass = q('#dsm-pass').value;
+    DS.migra.email = mail; DS.migra.url = (q('#dsm-url') && q('#dsm-url').value.trim()) || SB_ANTIGUO.url;
+    if(!mail || !pass){ toast('Escribe el correo y la contraseña del CRM anterior.'); return; }
+    dsMigraConecta(mail, pass);
+  };
+  if(q('#dsm-pass')) q('#dsm-pass').onkeydown = function(e){ if(e.key === 'Enter') q('#dsm-entrar').click(); };
+  if(q('#dsm-copiar')) q('#dsm-copiar').onclick = dsMigraCopia;
+  if(q('#dsm-reintentar')) q('#dsm-reintentar').onclick = function(){ DS.migra.paso = 'login'; DS.migra.error = 'Vuelve a entrar para reintentar los que fallaron.'; renderApp(); };
+}
+
 function viewResources(v){
   if(!DS.cargado && !DS.cargando) dsCarga();
   var puedeGestionar = dsPuedeGestionar();
@@ -4698,8 +4847,12 @@ function viewResources(v){
     '<div class="card-h" style="margin:0 0 14px;flex-wrap:wrap">'+
       '<div><h3 style="font-size:18px">Centro de Descarga de Dosieres</h3>'+
         '<p>Documentación corporativa de Labs24k: dosieres de servicios, catálogos y material de apoyo para la red comercial.</p></div>'+
-      (puedeGestionar ? '<button class="btn btn-p" id="ds-nuevo">'+ic('plus',16)+' Subir dosier</button>' : '')+
+      (puedeGestionar ? '<div class="row" style="gap:8px;flex-wrap:wrap">'+
+        '<button class="btn btn-s" id="ds-migra">'+ic('download',15)+' Traer del CRM anterior</button>'+
+        '<button class="btn btn-p" id="ds-nuevo">'+ic('plus',16)+' Subir dosier</button></div>' : '')+
     '</div>'+
+    (puedeGestionar && DS.cargado && !DS.lista.length ? '<div class="nota" style="margin-bottom:12px">'+ic('help',15)+
+      '<span>¿Faltan los dosieres que tenías antes? Pulsa <strong>«Traer del CRM anterior»</strong> y se copian todos aquí con su categoría.</span></div>' : '')+
     '<div class="row u-filtros">'+
       '<div class="search" style="flex:1;min-width:220px">'+ic('search',15)+
         '<input id="ds-find" placeholder="Buscar por nombre, categoría o descripción..." value="'+esc(DS.filtro)+'"></div>'+
@@ -4709,7 +4862,8 @@ function viewResources(v){
   '</div>'+
   '<div style="margin-top:18px">'+bloques+'</div>'+
   (DS.nuevo ? dsNuevoModal() : '') +
-  (DS.panelDesc ? dsPanelDescargasHTML() : '');
+  (DS.panelDesc ? dsPanelDescargasHTML() : '') +
+  (DS.migra ? dsMigraModal() : '');
 
   q('#ds-find').oninput = function(){ DS.filtro = this.value; renderApp(); };
   q('#ds-fcat').onchange = function(){ DS.catF = this.value; renderApp(); };
@@ -4719,6 +4873,8 @@ function viewResources(v){
   }; });
   if(puedeGestionar){
     if(q('#ds-nuevo')) q('#ds-nuevo').onclick = dsNuevo;
+    if(q('#ds-migra')) q('#ds-migra').onclick = dsMigraInicia;
+    dsMigraEventos();
     qa('[data-ds-del]').forEach(function(b){ b.onclick = function(){
       if(confirm('¿Retirar este dosier del centro de recursos?')) dsBorra(Number(b.dataset.dsDel));
     }; });
@@ -12498,7 +12654,8 @@ function cumPlazo(i){
 }
 function cumDiasSol(s){
   if(s.estado === 'resuelta' || s.estado === 'denegada') return {txt: s.estado === 'resuelta' ? 'Resuelta' : 'Denegada', col:'green'};
-  var d = Math.ceil((new Date(s.vence).getTime() - Date.now())/86400000);
+  var v = new Date(s.vence), h = new Date(); v.setHours(0,0,0,0); h.setHours(0,0,0,0);
+  var d = Math.round((v.getTime() - h.getTime())/86400000);
   return d < 0 ? {txt:'Vencida hace ' + (-d) + ' día(s)', col:'red'} : {txt:'Quedan ' + d + ' día(s)', col: d <= 7 ? 'amber' : 'blue'};
 }
 
