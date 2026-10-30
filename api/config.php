@@ -61,6 +61,9 @@ defined('LABS_RENOVACION_DIAS') || define('LABS_RENOVACION_DIAS', 30);
 
 // Tamaño máximo de archivo (en bytes) y de cualquier otra petición.
 defined('LABS_MAX_ARCHIVO') || define('LABS_MAX_ARCHIVO', 25 * 1024 * 1024);
+// Archivos grandes (presentaciones): se suben por trozos de hasta LABS_MAX_TROZO.
+defined('LABS_MAX_GRANDE') || define('LABS_MAX_GRANDE', 300 * 1024 * 1024);
+defined('LABS_MAX_TROZO') || define('LABS_MAX_TROZO', 6 * 1024 * 1024);
 defined('LABS_MAX_JSON') || define('LABS_MAX_JSON', 2 * 1024 * 1024);
 
 // Correo de la cuenta raíz (Super Administrador).

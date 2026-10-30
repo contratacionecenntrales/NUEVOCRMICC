@@ -352,8 +352,20 @@ function labs_volcado_sql($fichero)
     fclose($f);
 }
 
+/**
+ * $motivo: manual · automatica · antes-de-restaurar.
+ * Las automáticas diarias son «ligeras»: base de datos y documentos de clientes,
+ * sin los dosieres del Centro de Recursos (pesan mucho y no son datos personales).
+ * Una vez por semana la automática es completa. Las manuales y la previa a una
+ * restauración son siempre completas.
+ */
 function labs_copia_crea($motivo = 'manual')
 {
+    $completa = true;
+    if ($motivo === 'automatica') {
+        $ult = labs_ajuste('copia_completa_ultima');
+        $completa = !$ult || $ult < labs_hace(7 * 86400 - 3600);
+    }
     if (!class_exists('ZipArchive') || !function_exists('openssl_encrypt')) {
         throw new ErrorApi('El hosting no tiene las extensiones zip y openssl de PHP: actívalas en Hostalia → Configuración de PHP.', 500, 'COPIAS');
     }
@@ -378,6 +390,9 @@ function labs_copia_crea($motivo = 'manual')
         foreach ($it as $a) {
             if ($a->isFile()) {
                 $rel = 'documentos/' . substr($a->getPathname(), strlen($base) + 1);
+                if (!$completa && strpos($rel, 'documentos/recursos/') === 0) {
+                    continue;
+                }
                 if ($z->locateName($rel) === false) {
                     $z->addFile($a->getPathname(), $rel);
                     $docs++;
@@ -386,21 +401,37 @@ function labs_copia_crea($motivo = 'manual')
         }
     }
     $z->addFromString('LEEME.txt', "Copia de seguridad de Labs Command Center 360.\nCreada: " . gmdate('Y-m-d H:i:s') .
-        " UTC\nMotivo: " . $motivo . "\nContiene la base de datos y " . $docs . " documento(s).\n");
+        " UTC\nMotivo: " . $motivo . "\nContiene la base de datos y " . $docs . " documento(s)" .
+        ($completa ? ", dosieres incluidos.\n" : ". Sin los dosieres del Centro de Recursos (van en la copia completa semanal).\n"));
+    $z->addFromString('contenido.json', json_encode(array('recursos' => $completa, 'version' => 1)));
     $z->close();
     @unlink($sql);
-    $nombre = 'copia-' . $sello . ($motivo === 'automatica' ? '-auto' : ($motivo === 'antes-de-restaurar' ? '-previa' : '')) . '.labsbak';
+    $nombre = 'copia-' . $sello . ($motivo === 'automatica' ? '-auto' : ($motivo === 'antes-de-restaurar' ? '-previa' : '')) .
+        ($completa ? '' : '-ligera') . '.labsbak';
     labs_cifra_archivo($zip, $dir . '/' . $nombre, labs_clave_copias());
     @unlink($zip);
     @chmod($dir . '/' . $nombre, 0640);
     // Se guardan las N más recientes.
     $max = max(3, (int) labs_ajuste('rgpd.copias_guardar', '14'));
     $l = labs_copias_lista();
+    // La copia completa más reciente no se borra nunca por antigüedad: es la única con los dosieres.
+    $completa_mas_nueva = null;
+    foreach ($l as $c) {
+        if (strpos($c['nombre'], '-ligera') === false) {
+            $completa_mas_nueva = $c['nombre'];
+            break;
+        }
+    }
     foreach (array_slice($l, $max) as $vieja) {
-        @unlink($dir . '/' . $vieja['nombre']);
+        if ($vieja['nombre'] !== $completa_mas_nueva) {
+            @unlink($dir . '/' . $vieja['nombre']);
+        }
     }
     labs_pon_ajuste('copia_ultima', labs_ahora());
-    return array('nombre' => $nombre, 'documentos' => $docs, 'tamano' => filesize($dir . '/' . $nombre));
+    if ($completa) {
+        labs_pon_ajuste('copia_completa_ultima', labs_ahora());
+    }
+    return array('nombre' => $nombre, 'documentos' => $docs, 'tamano' => filesize($dir . '/' . $nombre), 'completa' => $completa);
 }
 
 function labs_copias_lista()
@@ -456,9 +487,17 @@ function labs_copia_restaura($nombre)
     }
     $db->exec('SET FOREIGN_KEY_CHECKS = 1');
     // Documentos: se sustituyen por los de la copia (sin salirse de la carpeta).
+    // Si la copia es ligera (sin dosieres), los dosieres actuales se conservan.
+    $info = json_decode((string) $z->getFromName('contenido.json'), true);
+    $con_recursos = !is_array($info) || !empty($info['recursos']);
     $base = rtrim(LABS_STORAGE_DIR, '/') . '/documentos';
     if (is_dir($base)) {
-        labs_borra_arbol($base);
+        foreach (scandir($base) ?: array() as $e) {
+            if ($e === '.' || $e === '..' || (!$con_recursos && $e === 'recursos')) {
+                continue;
+            }
+            is_dir($base . '/' . $e) ? labs_borra_arbol($base . '/' . $e) : @unlink($base . '/' . $e);
+        }
     }
     $docs = 0;
     for ($i = 0; $i < $z->numFiles; $i++) {
@@ -474,8 +513,14 @@ function labs_copia_restaura($nombre)
         if (!is_dir(dirname($dest))) {
             @mkdir(dirname($dest), 0750, true);
         }
-        file_put_contents($dest, $z->getFromIndex($i));
-        $docs++;
+        $in = $z->getStream($n);
+        $out = $in ? fopen($dest, 'wb') : false;
+        if ($in && $out) {
+            stream_copy_to_stream($in, $out);
+            fclose($out);
+            fclose($in);
+            $docs++;
+        }
     }
     $z->close();
     @unlink($zip);

@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-WPKkzt1bR0dJGf5+ZCdLlqnrNah6A046sguzn2Ie8LU='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-2RFRQCtSBDBoukRSQoHEz0JI21+y9vaE7TflcdZL8bw='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Labs Command Center 360 - Oficina virtual SaaS de la red comercial de Labs24k.">
 <meta name="theme-color" content="#0B0F19">
@@ -4068,23 +4068,15 @@ function ctAnadeComentario(){
 function ctSubeArchivo(file){
   var id = CT.det;
   if(!id || !file) return;
-  if(file.size > 25*1024*1024){ toast('El archivo supera los 25 MB permitidos.'); return; }
+  if(file.size > MAX_SUBIDA){ toast('El archivo supera los ' + Math.round(MAX_SUBIDA/1048576) + ' MB permitidos.'); return; }
   CT.subiendo = true; renderApp();
   var limpio = String(file.name || 'archivo').replace(/[^A-Za-z0-9.\-_]/g, '_');
   var ruta = 'contactos/' + id + '/' + Date.now() + '-' + limpio;
-  sbConSesion(function(){
-    return fetch(sbUrl('/storage/v1/object/' + BUCKET_DOCS + '/' + ruta), {
-      method:'POST', credentials:'same-origin',
-      headers:{'X-Sesion': (SB.sesion||{}).access_token || '',
-        'Content-Type': file.type || 'application/octet-stream'},
-      body:file
-    }).then(function(r){ return {ok:r.ok, estado:r.status}; },
-            function(){ return {ok:false, estado:0}; });
-  }).then(function(r){
+  subeArchivo(ruta, file, file.type).then(function(r){
     if(!r.ok){
       CT.subiendo = false; renderApp();
       toast(r.estado === 0 ? 'No se ha podido contactar con el almacén de archivos.'
-                            : 'No se ha podido subir el archivo (código '+r.estado+').');
+                            : 'No se ha podido subir el archivo: ' + (r.mensaje || 'código ' + r.estado) + '.');
       return;
     }
     return sbInsert('contacto_documentos', {contacto_id:id, nombre:file.name, tipo:file.type||'',
@@ -4550,24 +4542,18 @@ function dsGuardaNuevo(file){
   var n = DS.nuevo;
   if(!n || !n.nombre.trim()){ toast('Ponle un nombre al dosier antes de subirlo.'); return; }
   if(!file){ toast('Selecciona el archivo PDF o PPTX del dosier.'); return; }
-  if(file.size > 25*1024*1024){ toast('El archivo supera los 25 MB permitidos.'); return; }
+  if(file.size > MAX_SUBIDA){ toast('El archivo supera los ' + Math.round(MAX_SUBIDA/1048576) + ' MB permitidos.'); return; }
 
-  DS.subiendo = true; renderApp();
+  DS.subiendo = true; DS.progreso = 0; renderApp();
   var limpio = String(file.name || 'archivo').replace(/[^A-Za-z0-9.\-_]/g, '_');
   var ruta = 'recursos/' + Date.now() + '-' + limpio;
-  sbConSesion(function(){
-    return fetch(sbUrl('/storage/v1/object/' + BUCKET_DOCS + '/' + ruta), {
-      method:'POST', credentials:'same-origin',
-      headers:{'X-Sesion': (SB.sesion||{}).access_token || '',
-        'Content-Type': file.type || 'application/octet-stream'},
-      body:file
-    }).then(function(r){ return {ok:r.ok, estado:r.status}; },
-            function(){ return {ok:false, estado:0}; });
+  subeArchivo(ruta, file, file.type, function(f){
+    DS.progreso = f; var b = q('#dsn-guarda'); if(b) b.textContent = 'Subiendo… ' + Math.round(f*100) + '%';
   }).then(function(r){
     if(!r.ok){
       DS.subiendo = false; renderApp();
       toast(r.estado === 0 ? 'No se ha podido contactar con el almacén de archivos.'
-                            : 'No se ha podido subir el archivo (código '+r.estado+').');
+                            : 'No se ha podido subir el archivo: ' + (r.mensaje || 'código ' + r.estado) + '.');
       return;
     }
     return sbInsert('recursos', {
@@ -4619,7 +4605,7 @@ function dsNuevoModal(){
     '</div>'+
     '<div class="field"><label class="f">Nombre del dosier *</label><input class="inp" id="dsn-nombre" value="'+esc(n.nombre)+'" placeholder="Ej. Dosier Command Center 360"></div>'+
     '<div class="field"><label class="f">Descripción</label><input class="inp" id="dsn-desc" value="'+esc(n.descripcion)+'" placeholder="Breve resumen del contenido"></div>'+
-    '<div class="field"><label class="f">Archivo (PDF o PPTX, máx. 25 MB) *</label>'+
+    '<div class="field"><label class="f">Archivo (PDF o PPTX, máx. 300 MB) *</label>'+
       '<input type="file" class="inp" id="dsn-file" accept=".pdf,.pptx"'+(DS.subiendo?' disabled':'')+'></div>'+
     '<div class="row" style="gap:10px;justify-content:flex-end;margin-top:16px">'+
       '<button class="btn btn-s" id="dsn-cancela"'+(DS.subiendo?' disabled':'')+'>Cancelar</button>'+
@@ -4716,21 +4702,19 @@ function dsMigraCopia(){
   var i = 0;
   function siguiente(){
     if(i >= cola.length){ M.paso = 'hecho'; M.token = null; dsCarga(); return; }
-    var x = cola[i++]; M.actual = x.nombre; renderApp();
+    var x = cola[i++]; M.actual = x.nombre + ' · descargando del CRM anterior…'; renderApp();
     var rutaVieja = String(x.ruta || '').split('/').map(encodeURIComponent).join('/');
     dsMigraFetch('/storage/v1/object/authenticated/documentos/' + rutaVieja)
       .then(function(r){ if(!r.ok) throw new Error('no se ha podido descargar (' + r.status + ')'); return r.blob(); })
       .then(function(blob){
-        if(blob.size > 25*1024*1024) throw new Error('pesa más de 25 MB');
+        if(blob.size > MAX_SUBIDA) throw new Error('pesa más de ' + Math.round(MAX_SUBIDA/1048576) + ' MB');
         var nombre = String(x.ruta || x.nombre).split('/').pop().replace(/^\d{10,}-/, '').replace(/[^A-Za-z0-9.\-_]/g, '_') || ('dosier.' + x.tipo);
         var ruta = 'recursos/' + Date.now() + '-' + nombre;
-        return sbConSesion(function(){
-          return fetch(sbUrl('/storage/v1/object/' + BUCKET_DOCS + '/' + ruta), {method:'POST', credentials:'same-origin',
-            headers:{'X-Sesion':(SB.sesion||{}).access_token || '', 'Content-Type': x.tipo === 'pptx' ?
-              'application/vnd.openxmlformats-officedocument.presentationml.presentation' : 'application/pdf'}, body:blob})
-            .then(function(r){ return {ok:r.ok, estado:r.status}; }, function(){ return {ok:false, estado:0}; });
-        }).then(function(r){
-          if(!r.ok) throw new Error('el servidor no lo ha aceptado (' + r.estado + ')');
+        M.fase = 'subiendo'; M.pctArchivo = 0;
+        return subeArchivo(ruta, blob, x.tipo === 'pptx' ? 'application/vnd.openxmlformats-officedocument.presentationml.presentation' : 'application/pdf',
+          function(f){ M.pctArchivo = f; var e = q('#dsm-actual'); if(e) e.textContent = x.nombre + ' · subiendo ' + Math.round(f*100) + '%'; })
+        .then(function(r){
+          if(!r.ok) throw new Error('el servidor no lo ha aceptado: ' + (r.mensaje || r.estado));
           return sbInsert('recursos', {categoria:x.categoria || 'General', nombre:x.nombre, descripcion:x.descripcion || '',
             tipo:x.tipo === 'pptx' ? 'pptx' : 'pdf', ruta:ruta, tamano_bytes:blob.size, subido_por:(SB.sesion && SB.sesion.uid) || null});
         }).then(function(ri){ if(!(ri && ri.ok)) throw new Error('no se ha podido registrar: ' + sbMensaje(ri)); });
@@ -10618,6 +10602,46 @@ function exportaExpedientes(){
 
 /* ==================== DOCUMENTOS EN EL ALMACÉN DEL SERVIDOR ============== */
 var BUCKET_DOCS = 'documentos';
+var MAX_SUBIDA = 300*1024*1024;      // por archivo; los grandes van por trozos
+var TROZO_SUBIDA = 4*1024*1024;      // por debajo del límite de subida de PHP del hosting
+
+/* Sube un archivo al almacén. Si pesa más de 4 MB lo manda en trozos, así no
+   choca con el límite de subida de PHP de Hostalia. progreso(0..1) opcional.
+   Devuelve {ok, estado, mensaje}. */
+function subeArchivo(ruta, blob, tipo, progreso){
+  var url = sbUrl('/storage/v1/object/' + BUCKET_DOCS + '/' + ruta);
+  function envia(cuerpo, extra){
+    return sbConSesion(function(){
+      return fetch(url, {method:'POST', credentials:'same-origin',
+        headers:Object.assign({'X-Sesion':(SB.sesion||{}).access_token || '', 'Content-Type':tipo || 'application/octet-stream'}, extra || {}),
+        body:cuerpo}).then(function(r){
+          return r.text().then(function(t){ var d = null; try{ d = JSON.parse(t); }catch(e){}
+            return {ok:r.ok, estado:r.status, mensaje:(d && (d.message || d.error)) || ''}; });
+        }, function(){ return {ok:false, estado:0, mensaje:'Sin conexión con el servidor.'}; });
+    });
+  }
+  if(blob.size > MAX_SUBIDA) return Promise.resolve({ok:false, estado:413, mensaje:'Pesa más de ' + Math.round(MAX_SUBIDA/1048576) + ' MB.'});
+  if(blob.size <= TROZO_SUBIDA) return envia(blob).then(function(r){ if(progreso) progreso(1); return r; });
+  var total = Math.ceil(blob.size / TROZO_SUBIDA), id = '', abc = 'abcdefghijklmnopqrstuvwxyz0123456789', n = 0;
+  var az = new Uint8Array(24); (window.crypto || window.msCrypto).getRandomValues(az);
+  for(var k = 0; k < az.length; k++) id += abc[az[k] % abc.length];
+  function siguiente(){
+    var trozo = blob.slice(n*TROZO_SUBIDA, Math.min(blob.size, (n+1)*TROZO_SUBIDA));
+    var intento = 0;
+    function prueba(){
+      return envia(trozo, {'X-Subida':id, 'X-Trozo':n + '/' + total}).then(function(r){
+        if(!r.ok && r.estado === 0 && intento++ < 2) return prueba();     // corte de red: se reintenta el trozo
+        return r;
+      });
+    }
+    return prueba().then(function(r){
+      if(!r.ok) return r;
+      n++; if(progreso) progreso(n/total);
+      return n < total ? siguiente() : r;
+    });
+  }
+  return siguiente();
+}
 
 /* Descarga autenticada: el archivo no es público, así que se pide con el token
    de sesión y se entrega como Blob. Si aún no está subido, se dice claramente
@@ -12838,13 +12862,16 @@ function cumCopias(){
   var E = CUM.estado;
   return '<div class="card" style="margin-bottom:16px"><div class="card-h"><div><h3>'+ic('save',16)+'Copias de seguridad cifradas</h3>'+
     '<p>Base de datos y documentos, cifrados con AES-256 y guardados '+(E.copias_privadas ? 'en la carpeta privada del hosting' : 'en storage/ (protegido)')+
-    '. Se hace una al día sola y se guardan las '+esc(E.ajustes.copias_guardar)+' últimas. Descarga una de vez en cuando y guárdala fuera del hosting.</p></div>'+
+    '. Se hace una al día sola (base de datos y documentos de clientes) y una vez por semana una completa con los dosieres. Se guardan las '+
+    esc(E.ajustes.copias_guardar)+' últimas y siempre la última completa. Ocupan '+cumTam(E.copias.reduce(function(a, c){ return a + c.tamano; }, 0))+
+    ' en total. Descarga una de vez en cuando y guárdala fuera del hosting.</p></div>'+
     '<div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn btn-p btn-xs" id="cum-copia-crear"'+(CUM.ocupado?' disabled':'')+'>'+
       ic(CUM.ocupado === 'copia' ? 'refresh' : 'plus',13)+' '+(CUM.ocupado === 'copia' ? 'Creando…' : 'Crear copia ahora')+'</button>'+
     '<label class="btn btn-s btn-xs" style="cursor:pointer">'+ic('upload',13)+' Subir copia<input type="file" id="cum-copia-subir" accept=".labsbak" hidden></label></div></div>'+
     (E.copias.length ? '<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Copia</th><th>Fecha</th><th>Tamaño</th><th></th></tr></thead><tbody>'+
       E.copias.map(function(c){
-        var tipo = /-auto\./.test(c.nombre) ? 'Automática' : /-previa\./.test(c.nombre) ? 'Antes de restaurar' : /subida/.test(c.nombre) ? 'Subida' : 'Manual';
+        var tipo = (/-auto[.-]/.test(c.nombre) ? 'Automática' : /-previa[.-]/.test(c.nombre) ? 'Antes de restaurar' : /subida/.test(c.nombre) ? 'Subida' : 'Manual') +
+          (/-ligera\./.test(c.nombre) ? ' · sin dosieres' : ' · completa (con dosieres)');
         return '<tr><td><div class="mono tiny">'+esc(c.nombre)+'</div><div class="tiny muted">'+tipo+'</div></td><td class="tiny nowrap">'+cumFecha(c.creado)+'</td>'+
           '<td class="tiny">'+cumTam(c.tamano)+'</td><td style="text-align:right;white-space:nowrap">'+
           '<button class="btn btn-s btn-xs" data-cum-bajar="'+esc(c.nombre)+'">'+ic('download',12)+' Descargar</button> '+

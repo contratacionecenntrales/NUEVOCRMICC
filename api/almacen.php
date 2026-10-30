@@ -111,6 +111,9 @@ function labs_almacen_subir($ruta)
     if (!isset($tipos[$ext])) {
         throw new ErrorApi('Ese tipo de archivo no está permitido.', 415, 'InvalidMimeType');
     }
+    if (labs_cabecera('X-Trozo') !== null && labs_cabecera('X-Trozo') !== '') {
+        return labs_almacen_subir_trozo($ruta, $ext);
+    }
     $declarado = isset($_SERVER['CONTENT_LENGTH']) ? (int) $_SERVER['CONTENT_LENGTH'] : 0;
     if ($declarado > LABS_MAX_ARCHIVO) {
         throw new ErrorApi('El archivo supera el tamaño máximo.', 413, 'EntityTooLarge');
@@ -199,4 +202,92 @@ function labs_almacen_borra_archivo($ruta)
             @unlink($f);
         }
     }
+}
+
+/**
+ * Subida por trozos para archivos grandes (presentaciones, dosieres...).
+ * El panel manda el archivo en trozos de unos 4 MB con las cabeceras
+ * X-Subida (identificador) y X-Trozo ("n/total", empezando en 0). Así no
+ * choca con el límite de subida de PHP del hosting. Al llegar el último
+ * trozo se comprueba el contenido y se guarda en su sitio.
+ */
+function labs_almacen_subir_trozo($ruta, $ext)
+{
+    $u = labs_usuario(true);
+    $id = (string) labs_cabecera('X-Subida');
+    if (!preg_match('/^[A-Za-z0-9]{16,40}$/', $id) || !preg_match('#^(\d{1,4})/(\d{1,4})$#', (string) labs_cabecera('X-Trozo'), $m)) {
+        throw new ErrorApi('Subida por partes no válida.', 400, 'InvalidChunk');
+    }
+    $n = (int) $m[1];
+    $total = (int) $m[2];
+    if ($total < 1 || $total > 500 || $n >= $total) {
+        throw new ErrorApi('Subida por partes no válida.', 400, 'InvalidChunk');
+    }
+    $dir = rtrim(LABS_STORAGE_DIR, '/') . '/.subidas';
+    if (!is_dir($dir) && !@mkdir($dir, 0750, true)) {
+        throw new ErrorApi('No se ha podido preparar la subida.', 500, 'StorageError');
+    }
+    if (!is_file($dir . '/.htaccess')) {
+        @file_put_contents($dir . '/.htaccess', "Require all denied\n");
+    }
+    if (mt_rand(1, 20) === 1) {
+        foreach (glob($dir . '/*.parte') ?: array() as $viejo) {
+            if (filemtime($viejo) < time() - 86400) {
+                @unlink($viejo);
+                @unlink(substr($viejo, 0, -6) . '.sig');
+            }
+        }
+    }
+    // El trozo pertenece a esta persona y a esta ruta: nadie puede colarse en una subida ajena.
+    $base = $dir . '/' . hash('sha256', $id . '|' . $u['id'] . '|' . $ruta);
+    $parte = $base . '.parte';
+    $sig = $base . '.sig';
+    if ($n === 0) {
+        @unlink($parte);
+        file_put_contents($sig, '0');
+    } elseif (!is_file($sig) || (int) file_get_contents($sig) !== $n) {
+        throw new ErrorApi('Falta un trozo anterior: vuelve a subir el archivo.', 409, 'InvalidChunk');
+    }
+    $datos = file_get_contents('php://input', false, null, 0, LABS_MAX_TROZO + 1);
+    if ($datos === false || $datos === '') {
+        throw new ErrorApi('Un trozo del archivo ha llegado vacío.', 400, 'EmptyBody');
+    }
+    if (strlen($datos) > LABS_MAX_TROZO) {
+        throw new ErrorApi('Trozo demasiado grande.', 413, 'EntityTooLarge');
+    }
+    if ($n === 0 && !labs_almacen_contenido_ok($ext, $datos)) {
+        throw new ErrorApi('El contenido del archivo no corresponde a un .' . $ext . ' válido.', 415, 'InvalidMimeType');
+    }
+    if (@file_put_contents($parte, $datos, FILE_APPEND | LOCK_EX) === false) {
+        throw new ErrorApi('No se ha podido guardar el archivo en el servidor.', 500, 'StorageError');
+    }
+    clearstatcache(true, $parte);
+    if (filesize($parte) > LABS_MAX_GRANDE) {
+        @unlink($parte);
+        @unlink($sig);
+        throw new ErrorApi('El archivo supera el tamaño máximo (' . round(LABS_MAX_GRANDE / 1048576) . ' MB).', 413, 'EntityTooLarge');
+    }
+    if ($n < $total - 1) {
+        file_put_contents($sig, (string) ($n + 1));
+        return array('trozo' => $n, 'recibido' => filesize($parte));
+    }
+    // Último trozo: el archivo completo va a su sitio.
+    @unlink($sig);
+    $fichero = labs_almacen_fichero($ruta);
+    $upsert = strtolower((string) labs_cabecera('x-upsert')) === 'true';
+    if (is_file($fichero) && !$upsert) {
+        @unlink($parte);
+        throw new ErrorApi('Ya existe un archivo con ese nombre.', 409, 'Duplicate');
+    }
+    $d = dirname($fichero);
+    if (!is_dir($d) && !@mkdir($d, 0750, true)) {
+        @unlink($parte);
+        throw new ErrorApi('No se ha podido crear la carpeta del almacén.', 500, 'StorageError');
+    }
+    if (!@rename($parte, $fichero)) {
+        @unlink($parte);
+        throw new ErrorApi('No se ha podido guardar el archivo en el servidor.', 500, 'StorageError');
+    }
+    @chmod($fichero, 0640);
+    return array('Key' => 'documentos/' . $ruta, 'Id' => labs_uuid());
 }
