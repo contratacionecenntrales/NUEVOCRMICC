@@ -15,6 +15,7 @@ function labs_almacen_tipos()
         'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        'mp4' => 'video/mp4', 'webm' => 'video/webm',
     );
 }
 
@@ -74,6 +75,10 @@ function labs_almacen_contenido_ok($ext, $datos)
         case 'xlsx':
         case 'pptx':
             return strpos($ini, "PK\x03\x04") === 0;
+        case 'mp4':
+            return substr($datos, 4, 4) === 'ftyp';
+        case 'webm':
+            return strpos($ini, "\x1A\x45\xDF\xA3") === 0;
         case 'csv':
         case 'txt':
             // Texto: nada de código que un navegador pudiera ejecutar.

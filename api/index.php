@@ -33,6 +33,7 @@ require __DIR__ . '/cumplimiento.php';
 require __DIR__ . '/importacion.php';
 require __DIR__ . '/nextgen.php';
 require __DIR__ . '/configurador.php';
+require __DIR__ . '/recursos.php';
 
 ini_set('display_errors', '0');
 
@@ -161,6 +162,22 @@ try {
         if ($resp === null) {
             $estado = $metodo === 'POST' ? 201 : 204;
         }
+    } elseif (preg_match('#^/storage/v1/object/sign/documentos/(.+)$#', $ruta, $m)) {
+        /* --- Archivos con enlace firmado (ver en el CRM, vídeo, PDF por partes) */
+        if ($metodo === 'GET' || $metodo === 'HEAD') {
+            labs_db()->commit();
+            $db_iniciada = false;
+            labs_almacen_servir_firmado($m[1], (string) $param('token'));
+        } elseif ($metodo === 'POST') {
+            $resp = labs_almacen_firmar($m[1], labs_cuerpo_json());
+        } else {
+            throw new ErrorApi('Método no admitido.', 405, 'PGRST000');
+        }
+    } elseif (preg_match('#^/recursos(/[a-z0-9/_-]*)?$#', $ruta, $m)) {
+        /* --- Formación: progreso y resumen -------------------------------- */
+        $r = labs_recursos($metodo, isset($m[1]) ? $m[1] : '', $metodo === 'GET' ? array() : labs_cuerpo_json(), $pares);
+        $estado = $r[0];
+        $resp = $r[1];
     } elseif (preg_match('#^/storage/v1/object/(authenticated/)?documentos/(.+)$#', $ruta, $m)) {
         /* --- Archivos ----------------------------------------------------- */
         if ($metodo === 'GET') {

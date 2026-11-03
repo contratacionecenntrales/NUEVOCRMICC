@@ -313,7 +313,7 @@ function labs_tablas_copia()
         'contratos', 'firma_eventos', 'contactos', 'contacto_eventos', 'contacto_comentarios', 'contacto_documentos', 'recursos',
         'recursos_descargas', 'tickets', 'ticket_eventos', 'agente_fichas', 'agente_seguimiento', 'ajustes', 'registro_accesos',
         'bloqueos', 'incidentes', 'alertas', 'solicitudes_rgpd',
-        'citas', 'ia_config', 'pipeline_movimientos');
+        'citas', 'ia_config', 'pipeline_movimientos', 'recursos_progreso');
     $hay = labs_q('SELECT table_name FROM information_schema.tables WHERE table_schema = DATABASE()')->fetchAll(PDO::FETCH_COLUMN);
     return array_values(array_intersect($todas, $hay));
 }

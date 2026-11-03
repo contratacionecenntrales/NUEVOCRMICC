@@ -2,7 +2,7 @@
 
 Sala de Ventas, Pipeline IA, Agenda comercial y Ficha 360° con configurador de
 asistentes de IA. Todo con datos reales de la base de datos de Hostalia; se
-instala con el zip, sin tocar SQL (la base de datos se actualiza sola, versión 7).
+instala con el zip, sin tocar SQL (la base de datos se actualiza sola, versión 8).
 
 ## Módulos
 
@@ -14,6 +14,46 @@ instala con el zip, sin tocar SQL (la base de datos se actualiza sola, versión 
 | **Ficha 360°** | Al pulsar un contacto (o una tarjeta del pipeline, o una cita): resumen (fase, SLA, valor, temperatura, estado del asistente, próxima cita) y **timeline omnicanal** con llamadas y sus transcripciones, WhatsApp, correos, notas, firma, citas e IA, filtrable por canal. **Documentos & Firma**: genera el contrato en un clic, lo envía por SMS o email y sigue en tiempo real Emitido → Enviado → Abierto → Firmado. **Configurador IA**: asistente de voz (número, modelo GPT-4o, voz, system prompt, transferencias, «📞 Probar llamada ahora»), bot de WhatsApp (canal, base de conocimiento RAG con PDFs y vista previa del chat) y embudos con plantillas y **webhook propio del cliente**. Botón **⚡ Desplegar & Aprovisionar** con consola de logs en directo. |
 
 Puntos del ranking: cita realizada 2 · demo 3 · propuesta 5 · firma 15.
+
+## Centro de Formación y Recursos
+
+Formaciones y dosieres que **se ven dentro del CRM** y se descargan:
+
+- **Visor propio**: PDF página a página (con miniaturas, zoom, pantalla
+  completa y salto de página), presentaciones **PPTX** dibujadas diapositiva a
+  diapositiva (textos, imágenes, formas, tablas y colores del tema), **vídeo**
+  MP4/WEBM con velocidad de reproducción e **imágenes**. Word y Excel se
+  descargan. Atajos: ← → para pasar, + − para el zoom, F pantalla completa,
+  Esc para cerrar.
+- Los archivos se leen con un **enlace firmado** de 4 horas, ligado a la
+  persona y al archivo: el vídeo empieza al momento y un PDF grande se abre sin
+  bajarlo entero (peticiones por partes). Si la cuenta se suspende, el enlace
+  deja de valer.
+- **Formación**: sección Formación o Dosier, categoría, nivel, destacados,
+  portadas automáticas (primera página, fotograma del vídeo o miniatura de la
+  presentación), páginas y duración. Cada persona lleva su **progreso**
+  («Continúa donde lo dejaste», en curso, completados) y dirección ve en las
+  estadísticas cuántos lo vieron, descargaron, empezaron y completaron.
+- Subida de varios archivos a la vez arrastrándolos (hasta 1 GB por archivo,
+  por trozos). Las portadas de los dosieres que ya había se generan solas la
+  primera vez que dirección abre el centro.
+- El lector de PDF (pdf.js 3.11, licencia Apache 2.0) va en `vendor/pdfjs/`,
+  sin depender de internet. Se usa con la evaluación de código desactivada.
+
+## Contactos con IA
+
+- **Puntuación IA** (0-100) y temperatura de cada contacto: fase, actividad
+  reciente, seguimiento, datos completos, señales de las etiquetas y valor. Es
+  la misma que usan el pipeline y la ficha.
+- **Siguiente paso** recomendado en cada fila (llamar por seguimiento vencido,
+  primer contacto, agendar demo, enviar propuesta, reactivar…).
+- **Radar IA**: leads calientes sin seguimiento, seguimientos vencidos, SLA
+  vencido, nuevos de la semana, inactivos y fichas incompletas; cada uno
+  filtra la lista con un clic. **Mejores oportunidades** del momento.
+- Filtros visuales: leads/clientes, temperatura, fase del pipeline, estado,
+  etiqueta, seguimiento y responsable; orden por actividad, puntuación, valor,
+  seguimiento, alta o nombre; vista en tabla o tarjetas (tarjetas en el móvil)
+  con llamada, WhatsApp y correo directos.
 
 ## Real o simulación
 
@@ -132,5 +172,5 @@ de seguridad cifradas.
 
 ## Pruebas
 
-45 + 25 pruebas del servidor y 34 + 36 comprobaciones en el navegador, incluido el móvil,
+45 + 25 + 30 pruebas del servidor y 34 + 36 + 49 comprobaciones en el navegador, incluido el móvil,
 además de todas las anteriores del CRM.

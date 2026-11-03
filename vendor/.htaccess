@@ -1,0 +1,4 @@
+# Lector de PDF (pdf.js): se puede guardar en la caché del navegador una semana.
+<IfModule mod_headers.c>
+  Header set Cache-Control "public, max-age=604800"
+</IfModule>

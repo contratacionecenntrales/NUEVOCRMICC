@@ -8,7 +8,7 @@
  */
 defined('LABS') || exit;
 
-define('LABS_VERSION_ESQUEMA', 7);
+define('LABS_VERSION_ESQUEMA', 8);
 
 function labs_columna_existe(PDO $db, $tabla, $col)
 {
@@ -106,6 +106,14 @@ function labs_migra(PDO $db)
            valor DECIMAL(12,2) NOT NULL DEFAULT 0, autor_id CHAR(36) NULL, ts DATETIME(6) NOT NULL,
            PRIMARY KEY (id), KEY pipeline_mov_ts_idx (ts, a), KEY pipeline_mov_contacto_idx (contacto_id),
            CONSTRAINT pipeline_mov_contacto_fk FOREIGN KEY (contacto_id) REFERENCES contactos(id) ON DELETE CASCADE) $opc",
+        // v8 · Formación: el avance de cada persona en cada recurso.
+        "CREATE TABLE IF NOT EXISTS recursos_progreso (
+           id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, recurso_id BIGINT UNSIGNED NOT NULL, usuario_id CHAR(36) NOT NULL,
+           avance TINYINT UNSIGNED NOT NULL DEFAULT 0, posicion INT UNSIGNED NOT NULL DEFAULT 0, completado DATETIME(6) NULL,
+           actualizado DATETIME(6) NOT NULL,
+           PRIMARY KEY (id), UNIQUE KEY recursos_prog_uq (recurso_id, usuario_id), KEY recursos_prog_usuario_idx (usuario_id),
+           CONSTRAINT rprog_recurso_fk FOREIGN KEY (recurso_id) REFERENCES recursos(id) ON DELETE CASCADE,
+           CONSTRAINT rprog_usuario_fk FOREIGN KEY (usuario_id) REFERENCES perfiles(id) ON DELETE CASCADE) $opc",
     );
     foreach ($pasos as $sql) {
         $db->exec($sql);
@@ -132,6 +140,15 @@ function labs_migra(PDO $db)
         array('contactos', 'motivo_perdida', "ALTER TABLE contactos ADD COLUMN motivo_perdida VARCHAR(200) NOT NULL DEFAULT ''"),
         // --- Credenciales cifradas por cliente (versión 7) ---------------------
         array('ia_config', 'secretos', 'ALTER TABLE ia_config ADD COLUMN secretos TEXT NULL'),
+        // v8 · Centro de Recursos y Formación.
+        array('recursos', 'seccion', "ALTER TABLE recursos ADD COLUMN seccion VARCHAR(12) NOT NULL DEFAULT 'dosier'"),
+        array('recursos', 'miniatura', 'ALTER TABLE recursos ADD COLUMN miniatura MEDIUMTEXT NULL'),
+        array('recursos', 'paginas', 'ALTER TABLE recursos ADD COLUMN paginas INT NULL'),
+        array('recursos', 'duracion', 'ALTER TABLE recursos ADD COLUMN duracion INT NULL'),
+        array('recursos', 'destacado', 'ALTER TABLE recursos ADD COLUMN destacado TINYINT(1) NOT NULL DEFAULT 0'),
+        array('recursos', 'nivel', "ALTER TABLE recursos ADD COLUMN nivel VARCHAR(30) NOT NULL DEFAULT ''"),
+        array('recursos', 'etiquetas', "ALTER TABLE recursos ADD COLUMN etiquetas VARCHAR(300) NOT NULL DEFAULT ''"),
+        array('recursos_descargas', 'accion', "ALTER TABLE recursos_descargas ADD COLUMN accion VARCHAR(12) NOT NULL DEFAULT 'descarga'"),
         array('contratos', 'contacto_id', 'ALTER TABLE contratos ADD COLUMN contacto_id BIGINT UNSIGNED NULL, ADD KEY contratos_contacto_idx (contacto_id)'),
     );
     foreach ($columnas as $c) {

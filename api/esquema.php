@@ -938,6 +938,9 @@ function labs_tablas()
     if (function_exists('labs_tablas_nextgen')) {
         labs_tablas_nextgen($T, $AHORA, $HOY);
     }
+    if (function_exists('labs_tablas_recursos')) {
+        labs_tablas_recursos($T, $AHORA);
+    }
     return $T;
 }
 
