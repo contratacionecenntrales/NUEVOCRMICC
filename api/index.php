@@ -31,6 +31,7 @@ require __DIR__ . '/totp.php';
 require __DIR__ . '/seguridad.php';
 require __DIR__ . '/cumplimiento.php';
 require __DIR__ . '/importacion.php';
+require __DIR__ . '/nextgen.php';
 
 ini_set('display_errors', '0');
 
@@ -184,6 +185,17 @@ try {
         $r = labs_rgpd($metodo, $sub, ($metodo === 'GET' || $crudo) ? array() : labs_cuerpo_json(), $pares);
         $estado = $r[0];
         $resp = $r[1];
+    } elseif (preg_match('#^/ia(/[a-z0-9/_-]*)?$#', $ruta, $m)) {
+        /* --- Configurador IA, firma por SMS/correo, integraciones --------- */
+        $r = labs_ia($metodo, isset($m[1]) ? $m[1] : '', $metodo === 'GET' ? array() : labs_cuerpo_json(), $pares);
+        $estado = $r[0];
+        $resp = $r[1];
+    } elseif ($ruta === '/sala' && $metodo === 'GET') {
+        /* --- Sala de Ventas ----------------------------------------------- */
+        $resp = labs_sala((string) $param('periodo'));
+    } elseif (preg_match('#^/hook/([a-f0-9]{32})$#', $ruta, $m) && $metodo === 'POST') {
+        /* --- Webhook de entrada de un contacto (público) ----------------- */
+        $resp = labs_hook_entrada($m[1]);
     } elseif ($ruta === '/mantenimiento') {
         /* --- Tarea programada (Plesk → Tareas programadas → URL) ---------- */
         if (labs_freno('mant|' . labs_ip(), 20, 3600)) {

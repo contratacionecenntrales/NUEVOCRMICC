@@ -8,7 +8,7 @@
  */
 defined('LABS') || exit;
 
-define('LABS_VERSION_ESQUEMA', 5);
+define('LABS_VERSION_ESQUEMA', 6);
 
 function labs_columna_existe(PDO $db, $tabla, $col)
 {
@@ -85,6 +85,27 @@ function labs_migra(PDO $db)
            vence DATETIME(6) NOT NULL, estado VARCHAR(20) NOT NULL DEFAULT 'abierta', notas TEXT NULL,
            respuesta TEXT NULL, resuelta DATETIME(6) NULL, creado_por CHAR(36) NULL, creado DATETIME(6) NOT NULL,
            PRIMARY KEY (id), UNIQUE KEY solicitudes_codigo_uq (codigo)) $opc",
+        // --- Next-Gen (versión 6): agenda, configurador IA y movimientos del pipeline ---
+        "CREATE TABLE IF NOT EXISTS citas (
+           id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, contacto_id BIGINT UNSIGNED NULL, titulo VARCHAR(200) NOT NULL,
+           tipo VARCHAR(20) NOT NULL DEFAULT 'demo', inicio DATETIME(6) NOT NULL, fin DATETIME(6) NOT NULL,
+           comercial_id CHAR(36) NULL, estado VARCHAR(20) NOT NULL DEFAULT 'programada', sector VARCHAR(80) NOT NULL DEFAULT '',
+           lugar VARCHAR(200) NOT NULL DEFAULT '', notas TEXT NOT NULL, resumen TEXT NOT NULL, creado_por CHAR(36) NULL,
+           creado DATETIME(6) NOT NULL, actualizado DATETIME(6) NOT NULL,
+           PRIMARY KEY (id), KEY citas_inicio_idx (inicio), KEY citas_comercial_idx (comercial_id, inicio), KEY citas_contacto_idx (contacto_id),
+           CONSTRAINT citas_contacto_fk FOREIGN KEY (contacto_id) REFERENCES contactos(id) ON DELETE SET NULL,
+           CONSTRAINT citas_comercial_fk FOREIGN KEY (comercial_id) REFERENCES perfiles(id) ON DELETE SET NULL) $opc",
+        "CREATE TABLE IF NOT EXISTS ia_config (
+           contacto_id BIGINT UNSIGNED NOT NULL, voz LONGTEXT NOT NULL, whatsapp LONGTEXT NOT NULL, embudo LONGTEXT NOT NULL,
+           estado VARCHAR(20) NOT NULL DEFAULT 'borrador', desplegado DATETIME(6) NULL, webhook_token CHAR(32) NULL,
+           creado DATETIME(6) NOT NULL, actualizado DATETIME(6) NOT NULL,
+           PRIMARY KEY (contacto_id), UNIQUE KEY ia_config_token_uq (webhook_token),
+           CONSTRAINT ia_config_contacto_fk FOREIGN KEY (contacto_id) REFERENCES contactos(id) ON DELETE CASCADE) $opc",
+        "CREATE TABLE IF NOT EXISTS pipeline_movimientos (
+           id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, contacto_id BIGINT UNSIGNED NOT NULL, de VARCHAR(20) NOT NULL, a VARCHAR(20) NOT NULL,
+           valor DECIMAL(12,2) NOT NULL DEFAULT 0, autor_id CHAR(36) NULL, ts DATETIME(6) NOT NULL,
+           PRIMARY KEY (id), KEY pipeline_mov_ts_idx (ts, a), KEY pipeline_mov_contacto_idx (contacto_id),
+           CONSTRAINT pipeline_mov_contacto_fk FOREIGN KEY (contacto_id) REFERENCES contactos(id) ON DELETE CASCADE) $opc",
     );
     foreach ($pasos as $sql) {
         $db->exec($sql);
@@ -103,6 +124,13 @@ function labs_migra(PDO $db)
         array('contactos', 'proximo_contacto', 'ALTER TABLE contactos ADD COLUMN proximo_contacto DATETIME(6) NULL'),
         // --- Cargo visible del usuario (versión 5): «Coordinador», etc. ------
         array('perfiles', 'cargo', "ALTER TABLE perfiles ADD COLUMN cargo VARCHAR(60) NOT NULL DEFAULT ''"),
+        // --- Pipeline IA (versión 6) -----------------------------------------
+        array('contactos', 'fase', "ALTER TABLE contactos ADD COLUMN fase VARCHAR(20) NOT NULL DEFAULT 'lead', ADD KEY contactos_fase_idx (fase)"),
+        array('contactos', 'valor', 'ALTER TABLE contactos ADD COLUMN valor DECIMAL(12,2) NOT NULL DEFAULT 0'),
+        array('contactos', 'soluciones', "ALTER TABLE contactos ADD COLUMN soluciones VARCHAR(60) NOT NULL DEFAULT ''"),
+        array('contactos', 'fase_desde', 'ALTER TABLE contactos ADD COLUMN fase_desde DATETIME(6) NULL'),
+        array('contactos', 'motivo_perdida', "ALTER TABLE contactos ADD COLUMN motivo_perdida VARCHAR(200) NOT NULL DEFAULT ''"),
+        array('contratos', 'contacto_id', 'ALTER TABLE contratos ADD COLUMN contacto_id BIGINT UNSIGNED NULL, ADD KEY contratos_contacto_idx (contacto_id)'),
     );
     foreach ($columnas as $c) {
         if (!labs_columna_existe($db, $c[0], $c[1])) {
@@ -118,6 +146,12 @@ function labs_migra(PDO $db)
     }
     if ($v < 5) {
         labs_migra_traspasa_raiz($db);
+    }
+    if ($v < 6) {
+        // Cada contacto entra en el pipeline en la fase que corresponde a su estado.
+        $db->exec("UPDATE contactos SET fase = CASE estado WHEN 'Contactado' THEN 'cualificacion' WHEN 'Cualificado' THEN 'demo'
+                     WHEN 'Propuesta enviada' THEN 'propuesta' WHEN 'Cliente' THEN 'produccion' WHEN 'Perdido' THEN 'perdido' ELSE 'lead' END,
+                     fase_desde = COALESCE(fase_desde, actualizado)");
     }
     $db->prepare("INSERT INTO ajustes (clave, valor) VALUES ('version_esquema', ?) ON DUPLICATE KEY UPDATE valor = VALUES(valor)")
         ->execute(array((string) LABS_VERSION_ESQUEMA));

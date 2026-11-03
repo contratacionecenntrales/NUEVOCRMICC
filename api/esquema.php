@@ -609,7 +609,7 @@ function labs_tablas()
             return $f['autor_id'] === labs_uid() && labs_puedo('contactos.notas') && labs_contacto_visible_id($f['contacto_id']);
         },
         'valida' => function ($f) use ($texto_corto) {
-            if (!labs_en($f['tipo'], array('estado', 'evento', 'nota', 'llamada', 'whatsapp', 'correo', 'reunion'))) {
+            if (!labs_en($f['tipo'], array('estado', 'evento', 'nota', 'llamada', 'whatsapp', 'correo', 'reunion', 'firma', 'ia', 'webhook'))) {
                 return 'Tipo de anotación no válido.';
             }
             return $texto_corto($f);
@@ -934,6 +934,10 @@ function labs_tablas()
         },
     );
 
+    // Pipeline IA, agenda y configurador (api/nextgen.php).
+    if (function_exists('labs_tablas_nextgen')) {
+        labs_tablas_nextgen($T, $AHORA, $HOY);
+    }
     return $T;
 }
 

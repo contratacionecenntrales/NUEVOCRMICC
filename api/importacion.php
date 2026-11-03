@@ -184,11 +184,15 @@ function labs_importa_contactos($filas, $gestor_id, $origen = 'Importación CSV'
             continue;
         }
 
+        $est = labs_estado_por_etiquetas($etq);
+        $tiene_fase = labs_columna_existe(labs_db(), 'contactos', 'fase');
         labs_q('INSERT INTO contactos (tipo, nombre, empresa, email, prefijo, telefono, origen, estado, especificaciones, gestor_id,
-                  etiquetas, ref_externa, ultima_actividad, creado, actualizado) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', array(
+                  etiquetas, ref_externa, ultima_actividad, creado, actualizado' . ($tiene_fase ? ', fase, fase_desde' : '') . ')
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?' . ($tiene_fase ? ',?,?' : '') . ')', array_merge(array(
             'lead', $nombre, mb_substr($empresa, 0, 200), $email, $prefijo, mb_substr($tel, 0, 40), mb_substr($origen, 0, 120),
-            labs_estado_por_etiquetas($etq), '', $gestor_id, mb_substr(implode(', ', $etq), 0, 500), $ref !== '' ? $ref : null,
-            $actividad, $creado ?: $ahora, $actividad ?: ($creado ?: $ahora)));
+            $est, '', $gestor_id, mb_substr(implode(', ', $etq), 0, 500), $ref !== '' ? $ref : null,
+            $actividad, $creado ?: $ahora, $actividad ?: ($creado ?: $ahora)),
+            $tiene_fase ? array(function_exists('labs_fase_de_estado') ? labs_fase_de_estado($est) : 'lead', $actividad ?: ($creado ?: $ahora)) : array()));
         $id = (int) labs_db()->lastInsertId();
         labs_q('INSERT INTO contacto_eventos (contacto_id, autor_id, tipo, texto, ts) VALUES (?,?,?,?,?)', array(
             $id, $autor, 'evento', 'Importado desde ' . $origen . '.' . ($tags_raw !== '' ? ' Etiquetas de origen: ' . mb_substr($tags_raw, 0, 400) . '.' : ''),
