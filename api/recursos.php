@@ -274,6 +274,10 @@ function labs_recursos($metodo, $sub, $b, $pares)
 function labs_semilla_recursos()
 {
     $dir = __DIR__ . '/semilla';
+    // La lista se acaba de subir con el zip: que PHP no use una copia anterior en caché.
+    if (function_exists('opcache_invalidate')) {
+        @opcache_invalidate($dir . '/recursos.php', true);
+    }
     $lista = include $dir . '/recursos.php';
     if (!is_array($lista)) {
         $lista = array();
@@ -326,11 +330,18 @@ function labs_semilla_recursos()
     if ($hechos) {
         labs_anota('Documentos corporativos cargados', $hechos . ' documento(s) en el Centro de Recursos.', null, null);
     }
-    // Fuera de la carpeta pública: lo que ya está cargado se borra.
+    // Fuera de la carpeta pública: lo que ya está cargado se borra, y también lo que
+    // quede de un zip anterior que ya no está en la lista.
+    $pendientes = array();
     foreach ($lista as $d) {
         $clave = 'semilla.recurso.' . preg_replace('/[^a-z0-9._-]/', '', (string) ($d['clave'] ?? ''));
-        if (labs_ajuste($clave)) {
-            @unlink($dir . '/' . basename((string) ($d['archivo'] ?? '')));
+        if (!labs_ajuste($clave)) {
+            $pendientes[basename((string) ($d['archivo'] ?? ''))] = true;
+        }
+    }
+    foreach (scandir($dir) ?: array() as $f) {
+        if (!in_array($f, array('.', '..', '.htaccess', 'recursos.php', 'index.html'), true) && empty($pendientes[$f]) && is_file($dir . '/' . $f)) {
+            @unlink($dir . '/' . $f);
         }
     }
     $quedan = array_diff(scandir($dir) ?: array(), array('.', '..', '.htaccess', 'recursos.php', 'index.html'));

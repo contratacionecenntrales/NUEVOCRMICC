@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-gwb+JEwcJtCzsJnnrMRfTvqZRN7PfUXqATRk81dnaew='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-+3emAsjuj5fAJFrQ/IAXxEQjZCiCJlRzJWC0cmQ0iy4='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Labs Command Center 360 - Oficina virtual SaaS de la red comercial de Labs24k.">
 <meta name="theme-color" content="#0B0F19">
@@ -1601,6 +1601,25 @@ a.btn.btn-g:hover{color:#fff}
 .rc-mini-st span{font-size:11px;color:var(--txt-2)}
 
 .rc-c.r{color:#FDE68A;background:rgba(251,191,36,.12)}
+.rc-bloque-h{--bc:#2DD4C4;display:flex;align-items:flex-start;gap:14px;margin:26px 0 14px}
+.rc-bloque-ic{width:42px;height:42px;flex:0 0 auto;border-radius:13px;display:grid;place-items:center;color:var(--bc);background:color-mix(in srgb,var(--bc) 14%,transparent);border:1px solid color-mix(in srgb,var(--bc) 40%,transparent)}
+.rc-bloque-ic svg{display:block}
+.rc-bloque-k{font-size:10.5px;font-weight:800;letter-spacing:.16em;color:var(--bc)}
+.rc-bloque-h h3{margin:2px 0 3px;font-size:20px;color:var(--txt);letter-spacing:-.01em}
+.rc-bloque-h p{margin:0;font-size:13px;color:var(--txt-2)}
+.rc-esc{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,520px),1fr));gap:16px;margin-bottom:6px}
+.rc-esc-c{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);padding:0;overflow:hidden;transition:transform .2s,border-color .2s,box-shadow .2s}
+.rc-esc-c:hover{transform:translateY(-3px);border-color:rgba(45,212,196,.5);box-shadow:0 24px 44px -26px rgba(45,212,196,.7)}
+.rc-esc-img{position:relative;min-height:220px;overflow:hidden;cursor:pointer;display:grid;place-items:center}
+.rc-esc-img{background:radial-gradient(90% 90% at 50% 40%,#1E293B,#0B1220)!important}
+.rc-esc-img img{position:absolute;inset:14px;width:calc(100% - 28px);height:calc(100% - 28px);object-fit:contain;display:block;transition:transform .5s;filter:drop-shadow(0 14px 24px rgba(0,0,0,.55));border-radius:6px}
+.rc-esc-c:hover .rc-esc-img img{transform:scale(1.04)}
+.rc-esc-img:hover .rc-play{opacity:1;transform:scale(1)}
+.rc-esc-b{display:flex;flex-direction:column;gap:8px;padding:18px 18px 16px}
+.rc-esc-k{font-size:10.5px;font-weight:800;letter-spacing:.14em;color:#5EEAD4;text-transform:uppercase}
+.rc-esc-b h4{margin:0;font-size:17px;line-height:1.25;color:var(--txt)}
+.rc-esc-b p{margin:0;font-size:13px;line-height:1.5;color:var(--txt-2)}
+@media (max-width:640px){ .rc-esc-c{grid-template-columns:1fr} .rc-esc-img{min-height:180px} }
 .rc-frag{display:flex;gap:6px;align-items:flex-start;font-size:12px;color:var(--txt-2);padding:7px 9px;border-radius:10px;background:rgba(45,212,196,.06);border:1px dashed rgba(45,212,196,.3);line-height:1.45}
 .rc-frag svg{display:block;flex:0 0 auto;margin-top:2px;color:#5EEAD4}
 .rc-frag mark{background:rgba(94,234,212,.25);color:#F0FDFA;border-radius:3px;padding:0 2px}
@@ -1617,7 +1636,7 @@ a.btn.btn-g:hover{color:#fff}
 .rc-ruta-pct .rc-ring{position:absolute;inset:0}
 .rc-ruta-pct b{position:relative;font-size:16px;color:var(--txt)}
 .rc-pasos{display:flex;align-items:stretch;gap:0;margin-top:18px;overflow-x:auto;padding-bottom:4px}
-.rc-paso{position:relative;flex:1 0 150px;max-width:230px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:10px;border-radius:14px;cursor:pointer;text-align:left;
+.rc-paso{position:relative;flex:1 0 150px;max-width:340px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:10px;border-radius:14px;cursor:pointer;text-align:left;
   border:1px solid var(--line);background:rgba(15,23,42,.5);color:var(--txt-2);transition:transform .15s,border-color .15s}
 .rc-paso:hover{transform:translateY(-3px);border-color:rgba(251,191,36,.6)}
 .rc-paso.ok{border-color:rgba(74,222,128,.45)}
@@ -7568,7 +7587,7 @@ function rcRutaHTML(R){
   return '<div class="rc-ruta'+(fin ? ' fin' : '')+'">'+
     '<div class="rc-ruta-h">'+
       '<div class="rc-ruta-ic">'+ic(fin ? 'check' : 'target',22)+'</div>'+
-      '<div style="flex:1;min-width:0"><div class="rc-ruta-k">RUTA DE FORMACIÓN</div><h3>'+esc(R.n)+'</h3>'+
+      '<div style="flex:1;min-width:0"><div class="rc-ruta-k">ITINERARIO · '+R.pasos.length+' PASOS</div><h3>'+esc(R.n)+'</h3>'+
         '<div class="tiny muted">'+R.pasos.length+' pasos'+(mins ? ' · ≈ '+mins+' min en total' : '')+' · '+hechos+' de '+R.pasos.length+' completados</div></div>'+
       '<div class="rc-ruta-pct">'+rcAnillo(pct, 74, fin ? '#4ADE80' : null)+'<b>'+pct+'%</b></div>'+
       '<button class="btn btn-p" data-rc-ver="'+(fin ? R.pasos[0].id : sig.id)+'">'+ic(fin ? 'refresh' : 'play',14)+' '+esc(cta.length > 58 ? cta.slice(0, 56)+'…' : cta)+'</button>'+
@@ -7583,6 +7602,32 @@ function rcRutaHTML(R){
         '<span class="rc-paso-m">'+(est === 'ok' ? 'Completado' : est === 'curso' ? 'En curso · '+p.avance+'%' : est === 'sig' ? 'Siguiente' : 'Pendiente')+(rcMinutos(r) ? ' · '+rcMinutos(r)+' min' : '')+'</span>'+
       '</button>'; }).join('<span class="rc-paso-l"></span>')+'</div>'+
   '</div>';
+}
+
+/* --- Material para el cliente (escaparate de dosieres) --------------------- */
+function rcEscaparate(lista){
+  return lista.filter(function(r){ return !rcEsFormacion(r) && !r.ruta_formacion && (Number(r.destacado) || r.categoria === 'Material para clientes'); })
+    .sort(function(a, b){ return (Number(a.orden)||99) - (Number(b.orden)||99) || new Date(b.creado) - new Date(a.creado); }).slice(0, 6);
+}
+function rcEscaparateHTML(r, gest){
+  var K = RC_CLASES[rcClase(r.tipo)], st = rcStats(r);
+  return '<div class="card rc-esc-c">'+
+    '<div class="rc-esc-img" data-rc-ver="'+r.id+'" style="background:'+K.g+'">'+(r.miniatura ? '<img src="'+esc(r.miniatura)+'" alt="">' : '<span style="color:'+K.col+'">'+ic(K.ic,44)+'</span>')+
+      '<span class="rc-play">'+ic('eye',22)+'</span></div>'+
+    '<div class="rc-esc-b">'+
+      '<div class="rc-esc-k">'+esc(r.categoria)+'</div>'+
+      '<h4>'+esc(r.nombre)+'</h4>'+
+      (r.descripcion ? '<p>'+esc(r.descripcion)+'</p>' : '')+
+      '<div class="tiny muted">'+esc(K.t)+(rcMeta(r) ? ' · '+esc(rcMeta(r)) : '')+(st.vistas ? ' · '+st.vistas+' vista'+(st.vistas === 1 ? '' : 's') : '')+'</div>'+
+      '<div class="rc-acc">'+
+        '<button class="btn btn-p btn-xs" data-rc-ver="'+r.id+'">'+ic('max',13)+' Presentar a pantalla completa</button>'+
+        '<button class="btn btn-s btn-xs" data-ds-desc="'+r.id+'">'+ic('download',13)+' Descargar</button>'+
+        (gest ? '<span class="spacer"></span><button class="icon-btn sm" data-rc-edit="'+r.id+'" title="Editar">'+ic('edit',14)+'</button>'+
+          '<button class="icon-btn sm" data-ds-log="'+r.id+'" title="Estadísticas">'+ic('chart',14)+'</button>' : '')+
+      '</div></div></div>';
+}
+function rcBloqueH(k, t, d, i, c){
+  return '<div class="rc-bloque-h" style="--bc:'+c+'"><span class="rc-bloque-ic">'+ic(i,18)+'</span><div><div class="rc-bloque-k">'+k+'</div><h3>'+esc(t)+'</h3><p>'+esc(d)+'</p></div></div>';
 }
 
 /* --- Vista ---------------------------------------------------------------- */
@@ -7616,23 +7661,32 @@ function viewResources(v){
   lista.sort(function(a, b){
     if(DS.orden === 'az') return a.nombre.localeCompare(b.nombre, 'es');
     if(DS.orden === 'vistas') return (rcStats(b).vistas||0) - (rcStats(a).vistas||0);
-    return new Date(b.creado).getTime() - new Date(a.creado).getTime();
+    return (Number(b.destacado)||0) - (Number(a.destacado)||0) || new Date(b.creado).getTime() - new Date(a.creado).getTime();
   });
   var seguir = enCurso.slice().sort(function(a, b){ return new Date(rcProg(b).actualizado) - new Date(rcProg(a).actualizado); })[0];
 
+  /* Vista ordenada: formación de inicio (rutas) → material para el cliente → biblioteca con lo demás. */
+  var curado = (DS.tab === 'todo' || DS.tab === 'formacion' || DS.tab === 'dosier') && !txt && !DS.catF && !DS.tipoF && DS.orden === 'recientes';
+  var rutas = curado && DS.tab !== 'dosier' ? rcRutas(todos) : [];
+  var escaparate = curado && DS.tab !== 'formacion' ? rcEscaparate(todos) : [];
+  if(curado){
+    var yaVistos = {}; rutas.forEach(function(R){ R.pasos.forEach(function(r){ yaVistos[r.id] = 1; }); }); escaparate.forEach(function(r){ yaVistos[r.id] = 1; });
+    lista = lista.filter(function(r){ return !yaVistos[r.id]; });
+  }
   var porCat = {}, orden = [];
   lista.forEach(function(r){ if(!porCat[r.categoria]){ porCat[r.categoria] = []; orden.push(r.categoria); } porCat[r.categoria].push(r); });
-  var agrupa = !DS.catF && !txt && DS.orden === 'recientes' && orden.length > 1 && DS.tab !== 'curso' && DS.tab !== 'hechos';
+  var agrupa = !DS.catF && !txt && DS.orden === 'recientes' && (orden.length > 1 || curado) && DS.tab !== 'curso' && DS.tab !== 'hechos';
   var pinta = function(arr){ return DS.vista === 'lista' ? '<div class="rc-lista">'+arr.map(function(r){ return rcFila(r, gest); }).join('')+'</div>'
     : '<div class="rc-grid">'+arr.map(function(r){ return rcTarjeta(r, gest); }).join('')+'</div>'; };
-  var cuerpo = !lista.length ?
+  var cuerpo = !lista.length && curado && (rutas.length || escaparate.length) ? '' : !lista.length ?
     '<div class="rc-vacio">'+ic(DS.tab === 'formacion' ? 'cap' : 'file', 46)+'<h3>'+(DS.cargando ? 'Cargando el centro de recursos…' : DS.error ? 'No se ha podido cargar' : todos.length ? 'Nada coincide con la búsqueda' : 'Aún no hay contenido')+'</h3>'+
       '<p class="muted">'+(DS.error ? esc(DS.error) : todos.length ? 'Prueba con otra palabra o quita los filtros.' : gest ? 'Sube la primera formación o dosier: se podrá ver aquí mismo y descargar. ¿Faltan los dosieres que tenías antes? Pulsa «Traer del CRM anterior» y se copian todos aquí con su categoría.' : 'Dirección todavía no ha subido formaciones ni dosieres.')+'</p>'+
       (gest && !todos.length && !DS.cargando ? '<div class="row" style="gap:8px;justify-content:center;flex-wrap:wrap"><button class="btn btn-p" id="rc-nuevo2">'+ic('upload',15)+' Subir contenido</button><button class="btn btn-s" id="ds-migra2">'+ic('download',15)+' Traer del CRM anterior</button></div>' : '')+'</div>'
-    : agrupa ? orden.map(function(cat){ return '<section class="rc-sec"><div class="rc-sec-h"><h4>'+esc(cat)+'</h4><span class="tiny muted">'+porCat[cat].length+'</span></div>'+pinta(porCat[cat])+'</section>'; }).join('')
+    : agrupa ? (curado ? rcBloqueH('BIBLIOTECA', DS.tab === 'formacion' ? 'Más formación' : DS.tab === 'dosier' ? 'Otros dosieres' : 'Biblioteca de recursos', 'El resto del material, ordenado por categoría.', 'book', '#94A3B8') : '')+
+        orden.map(function(cat){ return '<section class="rc-sec"><div class="rc-sec-h"><h4>'+esc(cat)+'</h4><span class="tiny muted">'+porCat[cat].length+'</span></div>'+pinta(porCat[cat])+'</section>'; }).join('')
     : pinta(lista);
 
-  var destacados = (DS.tab === 'todo' || DS.tab === 'formacion') && !txt && !DS.catF && !DS.tipoF ? base.filter(function(r){ return Number(r.destacado); }).slice(0, 6) : [];
+  var destacados = [];
 
   v.innerHTML =
   '<div class="rc-hero">'+
@@ -7657,10 +7711,6 @@ function viewResources(v){
       '<span class="btn btn-p btn-xs">'+ic('play',13)+' Continuar · '+rcProg(seguir).avance+'%</span></div>' : '')+
   '</div>'+
 
-  ((DS.tab === 'todo' || DS.tab === 'formacion') && !txt && !DS.catF && !DS.tipoF ? rcRutas(todos).map(rcRutaHTML).join('') : '')+
-  (destacados.length ? '<div class="rc-dest"><div class="rc-sec-h"><h4>'+ic('star',15)+' Destacados</h4></div><div class="rc-dest-row">'+
-    destacados.map(function(r){ return '<div class="rc-dest-c">'+rcPortada(r, true)+'<div class="rc-dest-t"><b class="trunc">'+esc(r.nombre)+'</b><span class="tiny muted">'+esc(r.categoria)+(rcMeta(r) ? ' · '+esc(rcMeta(r)) : '')+'</span></div></div>'; }).join('')+'</div></div>' : '')+
-
   '<div class="card rc-barra">'+
     '<div class="rc-tabs">'+tabs.map(function(t){ return '<button class="rc-tab'+(DS.tab===t[0]?' on':'')+'" data-rc-tab="'+t[0]+'">'+ic(t[3],14)+' '+t[1]+'<span>'+t[2]+'</span></button>'; }).join('')+'</div>'+
     '<div class="rc-fil">'+
@@ -7674,6 +7724,12 @@ function viewResources(v){
     (Object.keys(tiposN).length > 1 ? '<div class="rc-tipos"><button class="rc-tp'+(!DS.tipoF?' on':'')+'" data-rc-tipo="">Todos</button>'+
       Object.keys(RC_CLASES).filter(function(k){ return tiposN[k]; }).map(function(k){ return '<button class="rc-tp'+(DS.tipoF===k?' on':'')+'" data-rc-tipo="'+k+'" style="--c:'+RC_CLASES[k].col+'">'+ic(RC_CLASES[k].ic,12)+' '+RC_CLASES[k].t+' <span>'+tiposN[k]+'</span></button>'; }).join('')+'</div>' : '')+
   '</div>'+
+  (rutas.length ? rcBloqueH('FORMACIÓN DE INICIO', 'Formación de los nuevos comerciales', 'Lo que todo gestor completa al empezar, en este orden. Tu progreso se guarda solo.', 'cap', '#FBBF24')+rutas.map(rcRutaHTML).join('') : '')+
+  (escaparate.length ? rcBloqueH('PARA LA REUNIÓN', 'Material para el cliente', 'Lo que se enseña y se deja en cada visita: quiénes somos y los packs que vendemos.', 'file', '#2DD4C4')+
+    '<div class="rc-esc">'+escaparate.map(function(r){ return rcEscaparateHTML(r, gest); }).join('')+'</div>' : '')+
+  (destacados.length ? '<div class="rc-dest"><div class="rc-sec-h"><h4>'+ic('star',15)+' Destacados</h4></div><div class="rc-dest-row">'+
+    destacados.map(function(r){ return '<div class="rc-dest-c">'+rcPortada(r, true)+'<div class="rc-dest-t"><b class="trunc">'+esc(r.nombre)+'</b><span class="tiny muted">'+esc(r.categoria)+(rcMeta(r) ? ' · '+esc(rcMeta(r)) : '')+'</span></div></div>'; }).join('')+'</div></div>' : '')+
+
   (gest && DS.metaEnMarcha ? '<div class="rc-metab" id="rc-meta">'+ic('spark',13)+' Preparando portadas '+(DS.metaN||0)+'/'+(DS.metaTotal||0)+'</div>' : '')+
   '<div class="rc-cuerpo">'+cuerpo+'</div>'+
   (DS.nuevo ? dsNuevoModal() : '')+

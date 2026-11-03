@@ -51,7 +51,13 @@ Formaciones y dosieres que **se ven dentro del CRM** y se descargan:
 - **Rutas de formación**: los recursos con la misma ruta forman un itinerario
   por pasos (orden editable), con el progreso de cada persona, el siguiente
   paso recomendado y el tiempo estimado. Incluida: «Onboarding Account
-  Manager» en 6 pasos.
+  Manager» sustituida por la organización actual (ver abajo).
+- **Cómo se ordena el Centro de Recursos**: arriba, la **Formación de inicio
+  del Gestor Comercial** (Manual del Gestor Comercial → Rutina diaria del
+  Account Manager → Kit de Venta Rápido → AI Act); después, **Material para
+  el cliente** (Presentación Corporativa y Packs de Servicios), con botón de
+  presentar a pantalla completa; y al final la biblioteca con el resto, sin
+  repetir lo de arriba. Lo destacado sale primero en su categoría.
 - **Buscar dentro de los documentos**: el texto de cada PDF se indexa (al
   cargarlo o al subirlo) y la tarjeta enseña el fragmento que coincide.
 
