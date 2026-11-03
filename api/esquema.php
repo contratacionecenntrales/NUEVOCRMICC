@@ -545,7 +545,7 @@ function labs_tablas()
             'email' => array('t', ''), 'prefijo' => array('t', '+34'), 'telefono' => array('t', ''), 'origen' => array('t', ''),
             'estado' => array('t', 'Nuevo'), 'especificaciones' => array('t', ''), 'gestor_id' => array('u'),
             'expediente_id' => array('i'), 'etiquetas' => array('t', ''), 'ref_externa' => array('t'),
-            'ultima_actividad' => array('s'), 'proximo_contacto' => array('s'),
+            'ultima_actividad' => array('s'), 'proximo_contacto' => array('s'), 'activo' => array('i', 1),
             'creado' => array('s', $AHORA), 'actualizado' => array('s', $AHORA)),
         'actualizado' => true,
         'leer' => function () {
@@ -567,10 +567,20 @@ function labs_tablas()
             return labs_puedo('contactos.editar') &&
                 (in_array(labs_mi_rol(), array('admin', 'manager', 'backoffice'), true) || $f['gestor_id'] === labs_uid());
         },
+        // Borrar la ficha entera: solo administración (admin y coordinación). El resto la desactiva.
         'borrar' => function () {
-            return labs_si(labs_puedo('contactos.borrar'));
+            return labs_si(labs_mi_rol() === 'admin' && labs_puedo('contactos.borrar'));
+        },
+        'despues_borrar' => function ($v) {
+            // Los contratos y citas se conservan (sin contacto); sus archivos se borran del almacén.
+            labs_q('UPDATE contratos SET contacto_id = NULL WHERE contacto_id = ?', array($v['id']));
+            labs_almacen_borra_carpeta('contactos/' . (int) $v['id']);
+            labs_anota('Contacto eliminado', '«' . $v['nombre'] . '»' . ($v['empresa'] !== '' ? ' (' . $v['empresa'] . ')' : '') . ' · id ' . $v['id']);
         },
         'valida' => function ($f) {
+            if (!in_array((int) $f['activo'], array(0, 1), true)) {
+                return 'El contacto solo puede estar activo o desactivado.';
+            }
             if (!labs_largo($f['nombre'], 2, 120)) {
                 return 'El nombre debe tener entre 2 y 120 caracteres.';
             }

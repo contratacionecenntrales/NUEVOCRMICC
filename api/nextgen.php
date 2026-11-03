@@ -114,6 +114,10 @@ function labs_tablas_nextgen(&$T, $AHORA, $HOY)
         }
     };
     $T['contactos']['despues_editar'] = function ($v, $n) {
+        if ((int) $n['activo'] !== (int) $v['activo']) {
+            labs_q('INSERT INTO contacto_eventos (contacto_id, autor_id, tipo, texto, ts) VALUES (?,?,?,?,?)', array(
+                $n['id'], labs_uid(), 'estado', (int) $n['activo'] ? 'Contacto reactivado' : 'Contacto desactivado', labs_ahora()));
+        }
         if ($n['fase'] !== $v['fase']) {
             $fases = labs_fases();
             labs_q('INSERT INTO pipeline_movimientos (contacto_id, de, a, valor, autor_id, ts) VALUES (?,?,?,?,?,?)',

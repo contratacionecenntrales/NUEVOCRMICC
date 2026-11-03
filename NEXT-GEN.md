@@ -2,7 +2,7 @@
 
 Sala de Ventas, Pipeline IA, Agenda comercial y Ficha 360° con configurador de
 asistentes de IA. Todo con datos reales de la base de datos de Hostalia; se
-instala con el zip, sin tocar SQL (la base de datos se actualiza sola, versión 8).
+instala con el zip, sin tocar SQL (la base de datos se actualiza sola, versión 9).
 
 ## Módulos
 
@@ -54,6 +54,17 @@ Formaciones y dosieres que **se ven dentro del CRM** y se descargan:
   etiqueta, seguimiento y responsable; orden por actividad, puntuación, valor,
   seguimiento, alta o nombre; vista en tabla o tarjetas (tarjetas en el móvil)
   con llamada, WhatsApp y correo directos.
+
+### Desactivar o eliminar contactos
+
+- **Desactivar / Reactivar** (botón en la ficha): cualquiera que pueda editar
+  el contacto. Un contacto desactivado sale de la lista, el pipeline, las
+  cifras y el radar, pero conserva todo; se ve en el filtro «Desactivados».
+  Queda anotado en el historial.
+- **Eliminar** (solo el rol administrador: admin y coordinación): pide
+  escribir ELIMINAR. Borra la ficha, el historial, los comentarios, los
+  documentos (también del almacén) y la configuración de IA; las citas y los
+  contratos se conservan sin contacto. Queda en el registro de auditoría.
 
 ## Real o simulación
 

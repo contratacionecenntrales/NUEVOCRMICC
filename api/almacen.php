@@ -209,6 +209,26 @@ function labs_almacen_borra_archivo($ruta)
     }
 }
 
+/** Borra una carpeta del almacén (los archivos de un contacto al eliminarlo). */
+function labs_almacen_borra_carpeta($ruta)
+{
+    try {
+        $ruta = labs_almacen_ruta($ruta);
+    } catch (ErrorApi $e) {
+        return;
+    }
+    foreach (array(labs_almacen_fichero($ruta), rtrim(LABS_STORAGE_WEB, '/') . '/documentos/' . $ruta) as $dir) {
+        if (!is_dir($dir)) {
+            continue;
+        }
+        $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS), RecursiveIteratorIterator::CHILD_FIRST);
+        foreach ($it as $f) {
+            $f->isDir() ? @rmdir($f->getPathname()) : @unlink($f->getPathname());
+        }
+        @rmdir($dir);
+    }
+}
+
 /**
  * Subida por trozos para archivos grandes (presentaciones, dosieres...).
  * El panel manda el archivo en trozos de unos 4 MB con las cabeceras

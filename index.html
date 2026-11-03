@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-r2MMsOZOq3f7jajr9hEA5RjmiVBS/ujFRYVEkpACnKw='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-LqLzbcusLkmCsMhdCA38X/z4LswAo/rKq3BmXAvDDW8='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Labs Command Center 360 - Oficina virtual SaaS de la red comercial de Labs24k.">
 <meta name="theme-color" content="#0B0F19">
@@ -1361,7 +1361,7 @@ a.btn.btn-g:hover{color:#fff}
 .ctl-hero h2{margin:12px 0 6px;font-size:clamp(22px,2.8vw,32px);letter-spacing:-.02em;background:linear-gradient(92deg,#F0FDFA,#5EEAD4 50%,#A5B4FC);-webkit-background-clip:text;background-clip:text;color:transparent}
 .ctl-hero p{margin:0;color:#A5B4C8;font-size:14px;line-height:1.55}
 .ctl-hero>.row{position:relative}
-.ct-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.ctl-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-bottom:16px}
 .ct-kpi{--kc:#2DD4C4;position:relative;overflow:hidden;padding:16px}
 .ct-kpi:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--kc);box-shadow:0 0 16px var(--kc)}
 .ct-kpi .lbl{font-size:12px;color:var(--txt-2);font-weight:600}
@@ -1440,13 +1440,21 @@ a.btn.btn-g:hover{color:#fff}
 .ct-card-f{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto;padding-top:6px;border-top:1px solid var(--line)}
 .ct-vacio{display:flex;flex-direction:column;align-items:center;gap:10px;padding:40px 12px;text-align:center;color:var(--txt-2)}
 .ct-vacio>svg{display:block;color:#5EEAD4;opacity:.8}
-@media (max-width:1200px){ .ct-kpis{grid-template-columns:repeat(3,minmax(0,1fr))} .ct-radar-l{grid-template-columns:1fr} }
+.ct-off{opacity:.55}
+.ct-off:hover{opacity:.85}
+.ct-chip-off{color:#CBD5E1;background:rgba(148,163,184,.16);border:1px dashed rgba(148,163,184,.5);font-size:10.5px}
+.ct-btn-del{color:#FCA5A5;border-color:rgba(248,113,113,.35)}
+.ct-btn-del:hover{background:rgba(248,113,113,.12);border-color:#F87171}
+.ct-btn-del2{background:#DC2626;color:#fff;border:0}
+.ct-btn-del2:disabled{opacity:.4;cursor:not-allowed}
+.ct-nota-off{margin:12px 0 0;border-color:rgba(148,163,184,.45)}
+@media (max-width:1200px){ .ctl-kpis{grid-template-columns:repeat(3,minmax(0,1fr))} .ct-radar-l{grid-template-columns:1fr} }
 @media (max-width:900px){ .ct-ia{grid-template-columns:1fr} }
 @media (max-width:640px){
   .ctl-hero{padding:18px 16px;border-radius:18px}
-  .ct-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ctl-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
   .ct-kpi .val{font-size:21px}
-  .ct-kpis .ct-kpi:last-child{grid-column:1/-1}
+  .ctl-kpis .ct-kpi:last-child{grid-column:1/-1}
   .ct-search{min-width:0;flex-basis:100%}
   .ct-seg{max-width:100%;overflow-x:auto}
   .ct-cards{grid-template-columns:minmax(0,1fr)}
@@ -4770,6 +4778,7 @@ var PL = {com:'', sol:'', temp:'', q:'', arrastra:null, menu:null};
 function plPuedeVer(c){
   if(PL.com && c.gestor_id !== PL.com) return false;
   if(PL.sol && ngSoluciones(c).indexOf(PL.sol) < 0) return false;
+  if(Number(c.activo) === 0) return false;
   if(PL.temp && ngTemperatura(c).k !== PL.temp) return false;
   if(PL.q){ var t = (c.nombre+' '+(c.empresa||'')+' '+(c.email||'')+' '+(c.telefono||'')+' '+(c.etiquetas||'')).toLowerCase();
     if(t.indexOf(PL.q.toLowerCase().trim()) < 0) return false; }
@@ -6029,7 +6038,7 @@ var TIPOS_ACT_CT = {nota:['Nota','file'], llamada:['Llamada','phone'], whatsapp:
   reunion:['Reunión','users'], estado:['Cambio de estado','refresh'], evento:['Sistema','bolt']};
 var CT = {
   lista:[], cargando:false, cargado:false, error:'',
-  filtro:'', tipoF:'', estadoF:'', etiquetaF:'', segF:'', faseF:'', tempF:'', gestorF:'', calidadF:'', orden:'actividad', vistaL:'', pagina:1,
+  filtro:'', tipoF:'', estadoF:'', etiquetaF:'', segF:'', faseF:'', tempF:'', gestorF:'', calidadF:'', activoF:'activos', orden:'actividad', vistaL:'', pagina:1, borrar:null,
   det:null, tab:'hist', eventos:[], comentarios:[], documentos:[], subiendo:false,
   nuevoTexto:'', nuevoTipo:'llamada', nuevoComentario:'', nuevo:null, edit:null, guardando:false,
   importar:null
@@ -6329,7 +6338,7 @@ function ctFichaPagina(){
         '<div class="row" style="gap:8px;align-items:center;flex-wrap:wrap">'+
           '<h2 style="margin:0;font-size:22px;color:#fff">'+esc(c.nombre)+'</h2>'+
           (c.tipo==='cliente' ? '<span class="chip green">Cliente</span>' : '<span class="chip blue">Lead</span>')+
-          '<span class="chip '+(COLOR_EST_CT[c.estado]||'')+'">'+esc(c.estado)+'</span></div>'+
+          '<span class="chip '+(COLOR_EST_CT[c.estado]||'')+'">'+esc(c.estado)+'</span>'+(ctActivo(c) ? '' : '<span class="chip ct-chip-off">Desactivado</span>')+'</div>'+
         '<div class="small muted" style="margin-top:4px">'+esc(c.empresa || 'Sin empresa')+
           (c.gestor_id ? ' · Responsable: '+esc(ctNombreGestor(c.gestor_id) || '—') : '')+'</div>'+
         (ctEtiquetas(c).length ? '<div class="row" style="gap:6px;flex-wrap:wrap;margin-top:8px">'+ctEtiquetas(c).map(function(t){
@@ -6341,7 +6350,11 @@ function ctFichaPagina(){
         (c.email ? '<a class="btn btn-s" href="mailto:'+esc(c.email)+'" data-ct-accion="correo">'+ic('mail',15)+' Correo</a>' : '')+
         '<select class="inp" id="ct-est" style="width:auto;min-width:170px">'+
           ESTADOS_CT.map(function(x){ return '<option'+(c.estado===x?' selected':'')+'>'+x+'</option>'; }).join('')+'</select>'+
+        '<button class="btn btn-s" id="ct-activo" title="'+(ctActivo(c) ? 'Lo saca de la lista, el pipeline y el radar sin borrar nada' : 'Vuelve a la lista y al pipeline')+'">'+
+          ic(ctActivo(c) ? 'eye' : 'refresh',15)+' '+(ctActivo(c) ? 'Desactivar' : 'Reactivar')+'</button>'+
+        (ctPuedeBorrar() ? '<button class="btn btn-s ct-btn-del" id="ct-eliminar" title="Eliminar definitivamente (solo administración)">'+ic('x',15)+' Eliminar</button>' : '')+
       '</div></div>'+
+    (ctActivo(c) ? '' : '<div class="nota ct-nota-off">'+ic('alert',15)+'<span>Este contacto está <strong>desactivado</strong>: no aparece en la lista, el pipeline ni el radar, pero conserva todo su historial. Pulsa «Reactivar» para recuperarlo.</span></div>')+
 
     '<div class="grid g-4 ct-kpis" style="margin:16px 0">'+
       [['Teléfono', tel ? (c.prefijo||'')+' '+c.telefono : '—', 'phone', 'blue'],
@@ -6379,7 +6392,39 @@ function ctFichaPagina(){
           esc(ctFechaCorta(c.actualizado, true))+(c.ref_externa ? '<br>Id en el CRM anterior: <span class="mono">'+esc(c.ref_externa)+'</span>' : '')+'</div>'+
       '</div>'+
       '<div class="card" style="min-width:0"><div class="lms-tabs" style="margin-bottom:16px;overflow-x:auto">'+nav+'</div>'+cuerpo+'</div>'+
-    '</div>'+ciaConsolaHTML()+ciaPrevueloHTML(c)+ngIntegraModal();
+    '</div>'+ciaConsolaHTML()+ciaPrevueloHTML(c)+ngIntegraModal()+(CT.borrar === c.id ? ctBorrarModal(c) : '');
+}
+
+function ctBorrarModal(c){
+  return '<div class="ov" data-ov="ct-borrar"><div class="modal" style="max-width:480px">'+
+    '<h3 style="margin:0 0 8px;color:#FCA5A5">'+ic('alert',18)+' Eliminar contacto</h3>'+
+    '<p class="small" style="margin:0 0 10px">Vas a eliminar <strong>'+esc(c.nombre)+'</strong>'+(c.empresa ? ' ('+esc(c.empresa)+')' : '')+' para siempre.</p>'+
+    '<ul class="small muted" style="margin:0 0 12px;padding-left:18px;line-height:1.6"><li>Se borran la ficha, el historial, los comentarios, los documentos y la configuración de IA.</li>'+
+      '<li>Las citas y los contratos se conservan, sin contacto asociado.</li><li>No se puede deshacer. Si solo quieres quitarlo de en medio, mejor <strong>desactívalo</strong>.</li></ul>'+
+    '<div class="field"><label class="f">Para confirmar, escribe ELIMINAR</label><input class="inp" id="ct-del-txt" autocomplete="off" placeholder="ELIMINAR"></div>'+
+    '<div class="row" style="gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:6px">'+
+      '<button class="btn btn-s" id="ct-del-no">Cancelar</button>'+
+      '<button class="btn btn-s" id="ct-del-desact">'+ic('eye',14)+' Mejor desactivar</button>'+
+      '<button class="btn ct-btn-del2" id="ct-del-si" disabled>'+ic('x',14)+' Eliminar definitivamente</button></div>'+
+  '</div></div>';
+}
+function ctCambiaActivo(c, activo){
+  sbUpdate('contactos', 'id=eq.'+c.id, {activo:activo ? 1 : 0}).then(function(r){
+    if(!(r && r.ok)){ toast('No se ha podido cambiar: ' + sbMensaje(r)); return; }
+    c.activo = activo ? 1 : 0; if(CT.edit) CT.edit.activo = c.activo;
+    toast(activo ? 'Contacto reactivado.' : 'Contacto desactivado: ya no aparece en la lista ni en el pipeline.');
+    if(typeof PL !== 'undefined') PL.datos = null;
+    ctCargaDetalle(c.id);
+  });
+}
+function ctElimina(c){
+  sbDelete('contactos', 'id=eq.'+c.id).then(function(r){
+    if(!(r && r.ok)){ toast('No se ha podido eliminar: ' + sbMensaje(r)); return; }
+    CT.lista = CT.lista.filter(function(x){ return x.id !== c.id; });
+    CT.borrar = null; CT.det = null; CT.edit = null;
+    toast('«' + c.nombre + '» eliminado.');
+    renderApp();
+  });
 }
 
 /* ------------------------------ IMPORTAR CSV ------------------------------ */
@@ -6516,6 +6561,8 @@ function ctEventosImportar(){
    calidad del dato), siguiente mejor acción, radar de oportunidades que se
    pulsa para filtrar, filtros visuales y vista en tabla o tarjetas.
    ========================================================================== */
+function ctActivo(c){ return Number(c.activo) !== 0; }
+function ctPuedeBorrar(){ return S.role === 'admin'; }
 function ctDiasDesde(ts){ return ts ? (Date.now() - new Date(ts).getTime()) / 86400000 : 999; }
 /* Puntuación 0-100, motivos y siguiente paso. */
 var CT_IAC = typeof WeakMap === 'function' ? new WeakMap() : null;   /* caché fuera del objeto: nunca viaja al servidor */
@@ -6562,6 +6609,8 @@ function ctListaFiltrada(){
   var l = CT.lista.filter(function(c){
     if(txt){ var t = (c.nombre+' '+(c.empresa||'')+' '+(c.email||'')+' '+(c.prefijo||'')+(c.telefono||'')+' '+(c.telefono||'')+' '+(c.etiquetas||'')+' '+(c.cargo||'')+' '+(c.origen||'')).toLowerCase();
       if(t.indexOf(txt) < 0) return false; }
+    if(CT.activoF === 'activos' && !ctActivo(c)) return false;
+    if(CT.activoF === 'inactivos' && ctActivo(c)) return false;
     if(CT.tipoF && c.tipo !== CT.tipoF) return false;
     if(CT.estadoF && c.estado !== CT.estadoF) return false;
     if(CT.etiquetaF && ctEtiquetas(c).indexOf(CT.etiquetaF) < 0) return false;
@@ -6589,7 +6638,7 @@ function ctListaFiltrada(){
   return l;
 }
 function ctFiltrosActivos(){
-  return ['filtro','tipoF','estadoF','etiquetaF','faseF','tempF','gestorF','calidadF','segF'].filter(function(k){ return CT[k]; }).length;
+  return ['filtro','tipoF','estadoF','etiquetaF','faseF','tempF','gestorF','calidadF','segF'].filter(function(k){ return CT[k]; }).length + (CT.activoF !== 'activos' ? 1 : 0);
 }
 function ctScore(a, grande){
   var col = a.t.c, sz = grande ? 46 : 38, r = (sz - 6) / 2, cc = 2 * Math.PI * r;
@@ -6611,9 +6660,9 @@ function ctAcciones(c){
 }
 function ctFilaTabla(c){
   var a = ctIa(c), f = ngFase(c.fase), et = ctEtiquetas(c), s = ctSeguimiento(c);
-  return '<tr class="ct-fila" data-ct-ver="'+c.id+'" tabindex="0">'+
+  return '<tr class="ct-fila'+(ctActivo(c) ? '' : ' ct-off')+'" data-ct-ver="'+c.id+'" tabindex="0">'+
     '<td><div class="row" style="gap:11px;align-items:center;min-width:0">'+ctAvatar(c, a)+
-      '<div style="min-width:0"><div class="w trunc">'+esc(c.nombre)+'</div><div class="tiny muted trunc">'+esc(c.empresa || '—')+(c.cargo ? ' · '+esc(c.cargo) : '')+'</div></div></div></td>'+
+      '<div style="min-width:0"><div class="w trunc">'+esc(c.nombre)+(ctActivo(c) ? '' : ' <span class="chip ct-chip-off">Desactivado</span>')+'</div><div class="tiny muted trunc">'+esc(c.empresa || '—')+(c.cargo ? ' · '+esc(c.cargo) : '')+'</div></div></div></td>'+
     '<td class="tiny nowrap"><div class="ct-dato">'+(c.telefono ? ic('phone',11)+' '+esc((c.prefijo||'')+' '+c.telefono) : '<span class="muted">Sin teléfono</span>')+'</div>'+
       '<div class="ct-dato muted trunc" style="max-width:210px">'+(c.email ? ic('mail',11)+' '+esc(c.email) : 'Sin correo')+'</div></td>'+
     '<td><span class="ct-fase" style="--fc:'+f.c+'">'+ic(f.i,11)+' '+esc(f.n)+'</span><div style="margin-top:5px"><span class="chip '+(COLOR_EST_CT[c.estado]||'')+'">'+esc(c.estado)+'</span></div></td>'+
@@ -6628,8 +6677,8 @@ function ctFilaTabla(c){
 }
 function ctTarjeta(c){
   var a = ctIa(c), f = ngFase(c.fase), s = ctSeguimiento(c), et = ctEtiquetas(c);
-  return '<div class="ct-fila ct-card" data-ct-ver="'+c.id+'" tabindex="0" style="--tc:'+a.t.c+'">'+
-    '<div class="ct-card-h">'+ctAvatar(c, a)+'<div style="min-width:0;flex:1"><div class="w trunc">'+esc(c.nombre)+'</div><div class="tiny muted trunc">'+esc(c.empresa || '—')+'</div></div>'+ctScore(a)+'</div>'+
+  return '<div class="ct-fila ct-card'+(ctActivo(c) ? '' : ' ct-off')+'" data-ct-ver="'+c.id+'" tabindex="0" style="--tc:'+a.t.c+'">'+
+    '<div class="ct-card-h">'+ctAvatar(c, a)+'<div style="min-width:0;flex:1"><div class="w trunc">'+esc(c.nombre)+(ctActivo(c) ? '' : ' <span class="chip ct-chip-off">Desactivado</span>')+'</div><div class="tiny muted trunc">'+esc(c.empresa || '—')+'</div></div>'+ctScore(a)+'</div>'+
     '<div class="row" style="gap:6px;flex-wrap:wrap"><span class="ct-fase" style="--fc:'+f.c+'">'+ic(f.i,11)+' '+esc(f.n)+'</span><span class="chip '+(COLOR_EST_CT[c.estado]||'')+'">'+esc(c.estado)+'</span>'+
       (Number(c.valor) ? '<span class="chip">'+ngEuros(c.valor)+'</span>' : '')+'</div>'+
     '<div class="ct-paso'+(a.paso.u ? ' u' : '')+'" style="margin:2px 0">'+ic('spark',10)+' '+esc(a.paso.t)+'</div>'+
@@ -6657,15 +6706,16 @@ function viewContactos(v){
   var vista = lista.slice((CT.pagina-1)*porPag, CT.pagina*porPag);
   var etiquetas = {};
   CT.lista.forEach(function(c){ ctEtiquetas(c).forEach(function(t){ etiquetas[t] = (etiquetas[t]||0) + 1; }); });
-  var pend = CT.lista.filter(function(c){ var s = ctSeguimiento(c); return s && (s.col === 'red' || s.col === 'amber'); }).length;
+  var vivos = CT.lista.filter(ctActivo), nInact = CT.lista.length - vivos.length;
+  var pend = vivos.filter(function(c){ var s = ctSeguimiento(c); return s && (s.col === 'red' || s.col === 'amber'); }).length;
   var temps = {caliente:0, templado:0, frio:0, ganado:0, perdido:0}, fases = {}, abierto = 0, sumaIa = 0;
-  CT.lista.forEach(function(c){ var a = ctIa(c); temps[a.t.k] = (temps[a.t.k]||0) + 1; sumaIa += a.s; var k = c.fase || 'lead'; fases[k] = (fases[k]||0) + 1;
+  vivos.forEach(function(c){ var a = ctIa(c); temps[a.t.k] = (temps[a.t.k]||0) + 1; sumaIa += a.s; var k = c.fase || 'lead'; fases[k] = (fases[k]||0) + 1;
     if(['firmado','despliegue','produccion','perdido'].indexOf(k) < 0) abierto += Number(c.valor) || 0; });
-  var mediaIa = CT.lista.length ? Math.round(sumaIa / CT.lista.length) : 0;
+  var mediaIa = vivos.length ? Math.round(sumaIa / vivos.length) : 0;
 
   /* Radar IA: oportunidades y huecos de la cartera, cada uno filtra con un clic. */
   var radar = [];
-  var cuenta = function(k){ return CT.lista.filter(CT_CALIDAD[k].f).length; };
+  var cuenta = function(k){ return vivos.filter(CT_CALIDAD[k].f).length; };
   var n1 = cuenta('calientes_sin'), n2 = cuenta('sla'), n3 = cuenta('inactivos'), n4 = cuenta('nuevos'), n5 = cuenta('sinemail'), n6 = cuenta('sintel');
   if(n1) radar.push({k:'calientes_sin', i:'bolt', c:'#F87171', t:n1+' lead'+(n1>1?'s':'')+' caliente'+(n1>1?'s':'')+' sin seguimiento', d:'Están listos para avanzar: prográmales una llamada hoy.'});
   if(pend) radar.push({k:'seg', i:'calendar', c:'#FBBF24', t:pend+' seguimiento'+(pend>1?'s':'')+' para hoy o vencido'+(pend>1?'s':''), d:'Cada día de retraso enfría al cliente.'});
@@ -6673,14 +6723,14 @@ function viewContactos(v){
   if(n4) radar.push({k:'nuevos', i:'userPlus', c:'#38BDF8', t:n4+' contacto'+(n4>1?'s':'')+' nuevo'+(n4>1?'s':'')+' esta semana', d:'El primer contacto en menos de 24 h multiplica el cierre.'});
   if(n3) radar.push({k:'inactivos', i:'refresh', c:'#A78BFA', t:n3+' sin actividad desde hace más de 30 días', d:'Reactívalos con un WhatsApp o una oferta nueva.'});
   if(n5 + n6) radar.push({k:n5 >= n6 ? 'sinemail' : 'sintel', i:'alert', c:'#94A3B8', t:'Datos incompletos: '+n5+' sin correo · '+n6+' sin teléfono', d:'Completar la ficha mejora la puntuación y el alcance.'});
-  var top = CT.lista.filter(function(c){ var a = ctIa(c); return a.t.k !== 'ganado' && a.t.k !== 'perdido'; })
+  var top = vivos.filter(function(c){ var a = ctIa(c); return a.t.k !== 'ganado' && a.t.k !== 'perdido'; })
     .sort(function(a, b){ return (ctIa(b).s + (Number(b.valor)||0)/500) - (ctIa(a).s + (Number(a.valor)||0)/500); }).slice(0, 3);
 
   var kpis = [
-    ['Contactos', String(CT.lista.length), 'users', '#2DD4C4', temps.caliente+' calientes · '+temps.templado+' templados', ''],
+    ['Contactos activos', String(vivos.length), 'users', '#2DD4C4', temps.caliente+' calientes · '+temps.templado+' templados'+(nInact ? ' · '+nInact+' desactivados' : ''), ''],
     ['Puntuación IA media', mediaIa+'<small>/100</small>', 'spark', '#A78BFA', 'según fase, actividad y datos', ''],
-    ['Pipeline abierto', ngEuros(abierto), 'euro', '#FBBF24', (CT.lista.length - (temps.ganado||0) - (temps.perdido||0))+' oportunidades vivas', ''],
-    ['Clientes', String(CT.lista.filter(function(c){ return c.tipo==='cliente'; }).length), 'check', '#4ADE80', (temps.ganado||0)+' ganados en el pipeline', ''],
+    ['Pipeline abierto', ngEuros(abierto), 'euro', '#FBBF24', (vivos.length - (temps.ganado||0) - (temps.perdido||0))+' oportunidades vivas', ''],
+    ['Clientes', String(vivos.filter(function(c){ return c.tipo==='cliente'; }).length), 'check', '#4ADE80', (temps.ganado||0)+' ganados en el pipeline', ''],
     ['Seguimientos para hoy o vencidos', String(pend), 'calendar', pend ? '#F87171' : '#FBBF24', pend ? 'Pulsa para verlos' : 'Todo al día', 'pend']
   ];
 
@@ -6703,7 +6753,7 @@ function viewContactos(v){
       (ctPuedeImportar() ? '<button class="btn btn-s" id="ct-importar">'+ic('upload',15)+' Importar Excel o CSV</button>' : '')+
       '<button class="btn btn-p" id="ct-nuevo">'+ic('plus',16)+' Nuevo contacto</button></div>'+
   '</div>'+
-  '<div class="ct-kpis">'+kpis.map(function(k){ return '<div class="card kpi ct-kpi'+(k[5]?' ct-kpi-click':'')+(k[5] && CT.segF === 'pend' ? ' on' : '')+'"'+(k[5]?' data-ct-seg="'+k[5]+'"':'')+' style="--kc:'+k[3]+'">'+
+  '<div class="ctl-kpis">'+kpis.map(function(k){ return '<div class="card kpi ct-kpi'+(k[5]?' ct-kpi-click':'')+(k[5] && CT.segF === 'pend' ? ' on' : '')+'"'+(k[5]?' data-ct-seg="'+k[5]+'"':'')+' style="--kc:'+k[3]+'">'+
       '<div class="row" style="justify-content:space-between;align-items:flex-start"><div class="lbl">'+k[0]+'</div><span class="ct-kpi-ic">'+ic(k[2],16)+'</span></div>'+
       '<div class="val">'+k[1]+'</div><div class="tiny muted">'+k[4]+'</div></div>'; }).join('')+'</div>'+
 
@@ -6721,6 +6771,8 @@ function viewContactos(v){
   '<div class="card ct-panel">'+
     '<div class="ct-fil">'+
       '<div class="search ct-search">'+ic('search',15)+'<input id="ct-find" placeholder="Buscar por nombre, empresa, correo, teléfono, etiqueta u origen…" value="'+esc(CT.filtro)+'"></div>'+
+      '<div class="ct-seg">'+[['activos','Activos',vivos.length],['inactivos','Desactivados',nInact],['todos','Todos',CT.lista.length]].map(function(x){
+        return '<button class="'+(CT.activoF===x[0]?'on':'')+'" data-ct-activo-f="'+x[0]+'">'+x[1]+' <span>'+x[2]+'</span></button>'; }).join('')+'</div>'+
       '<div class="ct-seg">'+[['','Todos'],['lead','Leads'],['cliente','Clientes']].map(function(x){ return '<button class="'+(CT.tipoF===x[0]?'on':'')+'" data-ct-tipo-f="'+x[0]+'">'+x[1]+'</button>'; }).join('')+'</div>'+
       '<div class="ct-seg temp">'+[['caliente','🔥 Calientes','#F87171'],['templado','Templados','#FBBF24'],['frio','❄ Fríos','#38BDF8']].map(function(x){
         return '<button class="'+(CT.tempF===x[0]?'on':'')+'" data-ct-temp="'+x[0]+'" style="--sc:'+x[2]+'">'+x[1]+' <span>'+(temps[x[0]]||0)+'</span></button>'; }).join('')+'</div>'+
@@ -6755,6 +6807,7 @@ function viewContactos(v){
 
   var refiltra = function(){ CT.pagina = 1; renderApp(); };
   q('#ct-find').oninput = function(){ CT.filtro = this.value; var p = this.selectionStart; refiltra(); var n = q('#ct-find'); if(n){ n.focus(); n.setSelectionRange(p, p); } };
+  qa('[data-ct-activo-f]').forEach(function(b){ b.onclick = function(){ CT.activoF = b.dataset.ctActivoF; refiltra(); }; });
   qa('[data-ct-tipo-f]').forEach(function(b){ b.onclick = function(){ CT.tipoF = b.dataset.ctTipoF; refiltra(); }; });
   qa('[data-ct-temp]').forEach(function(b){ b.onclick = function(){ CT.tempF = CT.tempF === b.dataset.ctTemp ? '' : b.dataset.ctTemp; refiltra(); }; });
   qa('[data-ct-fase]').forEach(function(b){ b.onclick = function(){ CT.faseF = CT.faseF === b.dataset.ctFase ? '' : b.dataset.ctFase; refiltra(); }; });
@@ -6764,7 +6817,7 @@ function viewContactos(v){
   if(q('#ct-fgest')) q('#ct-fgest').onchange = function(){ CT.gestorF = this.value; refiltra(); };
   q('#ct-orden').onchange = function(){ CT.orden = this.value; refiltra(); };
   qa('[data-ct-vista]').forEach(function(b){ b.onclick = function(){ CT.vistaL = b.dataset.ctVista; try{ localStorage.setItem('labs_ct_vista', CT.vistaL); }catch(e){} renderApp(); }; });
-  var limpia = function(){ ['filtro','tipoF','estadoF','etiquetaF','faseF','tempF','gestorF','calidadF','segF'].forEach(function(k){ CT[k] = ''; }); refiltra(); };
+  var limpia = function(){ ['filtro','tipoF','estadoF','etiquetaF','faseF','tempF','gestorF','calidadF','segF'].forEach(function(k){ CT[k] = ''; }); CT.activoF = 'activos'; refiltra(); };
   if(q('#ct-limpia')) q('#ct-limpia').onclick = limpia;
   if(q('#ct-limpia2')) q('#ct-limpia2').onclick = limpia;
   if(q('#ct-cal-x')) q('#ct-cal-x').onclick = function(){ CT.calidadF = ''; refiltra(); };
@@ -6800,6 +6853,12 @@ function ctEventosFicha(){
   var c = ctContactoPorId(CT.det);
   q('#ct-volver').onclick = ctCierra;
   ct360Eventos(c); ngIntegraEventos();
+  if(q('#ct-activo')) q('#ct-activo').onclick = function(){ ctCambiaActivo(c, !ctActivo(c)); };
+  if(q('#ct-eliminar')) q('#ct-eliminar').onclick = function(){ CT.borrar = c.id; renderApp(); var i = q('#ct-del-txt'); if(i) i.focus(); };
+  if(q('#ct-del-no')) q('#ct-del-no').onclick = function(){ CT.borrar = null; renderApp(); };
+  if(q('#ct-del-desact')) q('#ct-del-desact').onclick = function(){ CT.borrar = null; ctCambiaActivo(c, false); };
+  if(q('#ct-del-txt')) q('#ct-del-txt').oninput = function(){ q('#ct-del-si').disabled = this.value.trim().toUpperCase() !== 'ELIMINAR'; };
+  if(q('#ct-del-si')) q('#ct-del-si').onclick = function(){ if(q('#ct-del-txt').value.trim().toUpperCase() === 'ELIMINAR') ctElimina(c); };
   qa('[data-ct-sol]').forEach(function(b){ b.onclick = function(){
     var l = String(CT.edit.soluciones || '').split(',').filter(Boolean), k = b.dataset.ctSol, i = l.indexOf(k);
     if(i > -1) l.splice(i, 1); else l.push(k); CT.edit.soluciones = l.join(','); renderApp(); }; });
