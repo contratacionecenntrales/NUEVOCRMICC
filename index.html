@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-C9A/nmQVkTYE0BV4ohR5wQmlyO/Ailsl5D9QXRjx2r8='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-a0c0MgsAXkG5a8lDKRxF2Mo/bhfWQCyR6i2KhOvH/xM='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Labs Command Center 360 - Oficina virtual SaaS de la red comercial de Labs24k.">
 <meta name="theme-color" content="#0B0F19">
@@ -1164,6 +1164,192 @@ a.btn.btn-g:hover{color:#fff}
   padding:14px 20px;border-top:1px solid var(--line);flex:0 0 auto;background:var(--card-2)}
 .ft-t{margin:0 0 14px;font-size:13px;color:#fff;font-weight:600;letter-spacing:.2px}
 
+/* =========================== NEXT-GEN · SALA, PIPELINE, AGENDA, FICHA 360 ========================== */
+.ng-hero{display:flex;gap:18px;align-items:center;flex-wrap:wrap;padding:22px 24px;border:1px solid rgba(23,200,192,.28);
+  background:radial-gradient(90% 160% at 0% 0%,rgba(23,200,192,.20) 0%,rgba(15,23,42,0) 55%),radial-gradient(70% 140% at 100% 100%,rgba(74,222,128,.14) 0%,rgba(15,23,42,0) 60%),linear-gradient(160deg,rgba(30,41,59,.95),rgba(15,23,42,.9));
+  box-shadow:0 0 0 1px rgba(23,200,192,.08),0 20px 60px -30px rgba(23,200,192,.55)}
+.ng-h1{margin:10px 0 6px;font-size:30px;line-height:1.1;color:#fff;letter-spacing:-.02em;text-shadow:0 0 28px rgba(23,200,192,.35)}
+.ng-sub{margin:0;font-size:13.5px;color:#CBD5E1}.ng-sub b{color:#fff}
+.ng-hero-der{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.ng-reloj{font-size:30px;font-weight:800;color:#fff;font-variant-numeric:tabular-nums;text-shadow:0 0 20px rgba(23,200,192,.45);min-width:130px;text-align:right}
+.ng-seg{display:inline-flex;gap:3px;padding:4px;border-radius:12px;background:var(--card-2);border:1px solid var(--line);flex-wrap:wrap}
+.ng-seg button{border:none;background:none;color:var(--txt-2);font:inherit;font-size:12.5px;font-weight:600;padding:7px 13px;border-radius:9px;cursor:pointer}
+.ng-seg button:hover{color:#fff}.ng-seg button.on{background:linear-gradient(135deg,#17C8C0,#4ADE80);color:#04231A;box-shadow:0 6px 18px -8px rgba(23,200,192,.9)}
+.ng-ticker{margin:14px 0;overflow:hidden;border-radius:12px;border:1px solid var(--line);background:rgba(15,23,42,.7);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
+.ng-ticker-in{display:inline-flex;gap:34px;white-space:nowrap;padding:10px 0;animation:ngTicker 70s linear infinite}
+.ng-ticker:hover .ng-ticker-in{animation-play-state:paused}
+@keyframes ngTicker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.ng-tick{font-size:12.5px;color:#CBD5E1;display:inline-flex;gap:7px;align-items:center}.ng-tick svg{color:var(--tc)}.ng-tick i{color:var(--txt-3);font-style:normal}
+.ng-tick b,.ng-feed b{color:#fff}.ng-feed-c{color:#99F6E4;font-weight:600}
+.ng-nodos{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:14px}
+.ng-nodo-v{font-size:18px;font-weight:800;font-variant-numeric:tabular-nums}
+.ng-kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
+.ng-kpi{position:relative;overflow:hidden;padding:16px;border:1px solid color-mix(in srgb,var(--kc) 35%,transparent);
+  background:linear-gradient(160deg,rgba(30,41,59,.95),rgba(15,23,42,.92))}
+.ng-kpi:before{content:'';position:absolute;right:-30px;top:-30px;width:90px;height:90px;border-radius:50%;background:var(--kc);opacity:.18;filter:blur(6px)}
+.ng-kpi:after{content:'';position:absolute;left:0;top:14px;bottom:14px;width:3px;border-radius:3px;background:var(--kc);box-shadow:0 0 14px var(--kc)}
+.ng-kpi-ic{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;color:var(--kc);background:color-mix(in srgb,var(--kc) 15%,transparent)}
+.ng-kpi-v{font-size:24px;font-weight:800;color:#fff;margin-top:10px;font-variant-numeric:tabular-nums;line-height:1.1}
+.ng-kpi-l{font-size:12px;color:var(--txt-2);margin-top:3px}
+.ng-sala-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr) minmax(0,1fr);gap:16px;margin-top:16px;align-items:start}
+.ng-podio{display:flex;justify-content:center;align-items:flex-end;gap:14px;margin:6px 0 14px}
+.ng-pod{display:flex;flex-direction:column;align-items:center;gap:5px;min-width:0;flex:1;max-width:130px}
+.ng-pod-med{width:24px;height:24px;border-radius:50%;background:var(--mc);color:#111;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 14px var(--mc)}
+.ng-pod-n{font-size:12.5px;color:#fff;font-weight:700;text-align:center;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ng-pod-p{font-size:11.5px;color:#99F6E4}
+.ng-pod-base{width:100%;border-radius:10px 10px 0 0;background:linear-gradient(180deg,color-mix(in srgb,var(--mc) 55%,transparent),rgba(15,23,42,.2));border:1px solid color-mix(in srgb,var(--mc) 60%,transparent);border-bottom:none}
+.ng-pod-1 .ng-pod-base{height:74px}.ng-pod-2 .ng-pod-base{height:52px}.ng-pod-3 .ng-pod-base{height:38px}
+.ng-av{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;border-radius:50%;font-weight:800;color:#fff;
+  background:radial-gradient(circle at 30% 30%,color-mix(in srgb,var(--avc,#17C8C0) 70%,#fff 0%),color-mix(in srgb,var(--avc,#17C8C0) 45%,#0B0F19));
+  box-shadow:0 0 0 2px rgba(15,23,42,.9),0 0 0 3px color-mix(in srgb,var(--avc,#17C8C0) 60%,transparent)}
+.ng-barra{position:relative;height:18px;min-width:90px;border-radius:9px;background:var(--card-2);overflow:hidden}
+.ng-barra i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,#17C8C0,#4ADE80);border-radius:9px}
+.ng-barra span{position:relative;font-size:11px;font-weight:800;color:#04231A;padding-left:7px;line-height:18px}
+.ng-insight{display:flex;gap:9px;align-items:flex-start;padding:10px 12px;border-radius:11px;background:rgba(23,200,192,.07);border:1px solid rgba(23,200,192,.2);font-size:12.5px;color:#CBD5E1;margin-bottom:8px}
+.ng-insight svg{color:#FBBF24;flex:0 0 auto;margin-top:2px}.ng-insight b{color:#fff}
+.ng-spark{width:100%;height:46px;display:block}
+.ng-emb{display:flex;align-items:center;gap:10px;padding:5px 0}.ng-emb-n{font-size:12px;min-width:104px;font-weight:600}
+.ng-emb-b{flex:1;height:8px;border-radius:5px;background:var(--card-2);overflow:hidden}.ng-emb-b i{display:block;height:100%;border-radius:5px;box-shadow:0 0 10px currentColor}
+.ng-feed{max-height:620px;overflow-y:auto;margin-right:-6px;padding-right:6px}
+.ng-feed-i{display:flex;gap:10px;padding:10px 12px;border-radius:12px;border:1px solid color-mix(in srgb,var(--fc) 40%,transparent);border-left:3px solid var(--fc);
+  background:linear-gradient(90deg,color-mix(in srgb,var(--fc) 9%,transparent),rgba(15,23,42,.4));margin-bottom:8px;animation:ngEntra .4s ease}
+.ng-feed-i[data-sala-ficha]{cursor:pointer}.ng-feed-i[data-sala-ficha]:hover{border-color:var(--fc)}
+.ng-feed-ic{width:26px;height:26px;flex:0 0 26px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--fc);background:color-mix(in srgb,var(--fc) 16%,transparent)}
+@keyframes ngEntra{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.ng-anillo-v{filter:drop-shadow(0 0 8px rgba(23,200,192,.6))}
+.ng-tv-body .sidebar,.ng-tv-body .topbar{display:none!important}
+.ng-tv-body .main,.ng-tv-body #view{margin:0!important;padding:18px!important;max-width:none!important}
+.ng-tv .ng-h1{font-size:40px}.ng-tv .ng-kpi-v{font-size:32px}.ng-tv .ng-reloj{font-size:42px}
+
+.ng-chip{font-size:10.5px;padding:3px 8px;display:inline-flex;align-items:center;gap:4px}
+.ng-kanban{display:flex;gap:12px;overflow-x:auto;padding-bottom:10px;align-items:flex-start;scroll-snap-type:x proximity}
+.ng-col{flex:0 0 268px;scroll-snap-align:start;border-radius:16px;padding:12px;background:linear-gradient(180deg,rgba(15,23,42,.9),rgba(15,23,42,.6));
+  border:1px solid var(--line);border-top:3px solid var(--fc);box-shadow:0 -8px 24px -18px var(--fc);transition:border-color .15s,box-shadow .15s}
+.ng-col.ng-sobre{border-color:var(--fc);box-shadow:0 0 0 2px color-mix(in srgb,var(--fc) 45%,transparent),0 0 32px -6px var(--fc)}
+.ng-col-h{display:flex;justify-content:space-between;align-items:center;gap:8px;color:#fff;font-size:13.5px}.ng-col-h svg{color:var(--fc)}
+.ng-col-n{min-width:24px;height:22px;padding:0 7px;border-radius:11px;background:color-mix(in srgb,var(--fc) 22%,transparent);color:var(--fc);font-size:11.5px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.ng-col-s{font-size:11.5px;color:var(--txt-2);margin:4px 0 10px;font-weight:600}
+.ng-col-b{display:flex;flex-direction:column;gap:9px;min-height:80px;max-height:68vh;overflow-y:auto;padding-right:2px}
+.ng-vacio{border:1px dashed var(--line);border-radius:12px;padding:18px;text-align:center;color:var(--txt-3);font-size:12px}
+.ng-card{position:relative;border-radius:13px;padding:11px 12px;cursor:grab;background:linear-gradient(160deg,rgba(30,41,59,.98),rgba(17,24,39,.96));
+  border:1px solid rgba(148,163,184,.16);border-left:3px solid var(--tc);box-shadow:0 8px 20px -14px rgba(0,0,0,.8);transition:transform .12s,box-shadow .12s,border-color .12s}
+.ng-card:hover,.ng-card:focus{transform:translateY(-2px);border-color:color-mix(in srgb,var(--tc) 55%,transparent);box-shadow:0 14px 30px -16px var(--tc);outline:none}
+.ng-card.ng-drag{opacity:.45;transform:rotate(2deg)}
+.ng-card-top{display:flex;gap:8px;align-items:flex-start}.ng-card-n{font-size:13px;font-weight:700;color:#fff}
+.ng-temp{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;color:var(--tc);white-space:nowrap}
+.ng-termo{display:inline-flex;gap:2px;align-items:flex-end}.ng-termo i{width:4px;border-radius:2px;background:rgba(148,163,184,.25)}
+.ng-termo i:nth-child(1){height:6px}.ng-termo i:nth-child(2){height:9px}.ng-termo i:nth-child(3){height:12px}.ng-termo i.on{background:var(--tc,#F87171);box-shadow:0 0 6px var(--tc,#F87171)}
+.ng-card-chips{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
+.ng-card-pie{display:flex;justify-content:space-between;align-items:center;margin-top:9px}.ng-card-v{font-size:13.5px;font-weight:800;color:#99F6E4}
+.ng-parp{animation:ngParp 1.6s ease-in-out infinite}@keyframes ngParp{50%{opacity:.55}}
+.ng-card-acc{position:absolute;right:8px;bottom:-14px;display:flex;gap:4px;opacity:0;transform:translateY(4px);transition:.15s;z-index:3;pointer-events:none}
+.ng-card:hover .ng-card-acc,.ng-card:focus-within .ng-card-acc{opacity:1;transform:none;pointer-events:auto}
+.ng-fab{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1px solid rgba(23,200,192,.45);
+  background:#0F172A;color:#99F6E4;cursor:pointer;box-shadow:0 6px 16px -6px rgba(0,0,0,.9);text-decoration:none}
+.ng-fab:hover{background:#17C8C0;color:#04231A}.ng-fab-p{background:linear-gradient(135deg,#17C8C0,#4ADE80);color:#04231A;border:none}
+.ng-mover{display:flex;align-items:center;gap:9px;width:100%;text-align:left;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--card-2);color:#fff;font:inherit;font-size:13px;cursor:pointer}
+.ng-mover svg{color:var(--fc)}.ng-mover:hover,.ng-mover.on{border-color:var(--fc);background:color-mix(in srgb,var(--fc) 12%,transparent)}
+@media (hover:none){.ng-card-acc{opacity:1;transform:none;pointer-events:auto;position:static;margin-top:9px}}
+
+.ng-semana{display:grid;grid-template-columns:repeat(7,minmax(150px,1fr));gap:10px;overflow-x:auto;padding-bottom:6px}
+.ng-dia{border-radius:15px;border:1px solid var(--line);background:linear-gradient(180deg,rgba(15,23,42,.92),rgba(15,23,42,.6));min-height:240px;display:flex;flex-direction:column;transition:.15s}
+.ng-dia.hoy{border-color:rgba(23,200,192,.6);box-shadow:0 0 0 1px rgba(23,200,192,.3),0 0 30px -12px #17C8C0}
+.ng-dia.ng-sobre{border-color:#4ADE80;box-shadow:0 0 0 2px rgba(74,222,128,.35)}
+.ng-dia-h{padding:12px 12px 10px;border-bottom:1px solid var(--line-soft)}.ng-dia-h .tiny:first-child{color:#99F6E4;font-weight:800;letter-spacing:.06em}
+.ng-dia-n{font-size:24px;font-weight:800;color:#fff}.ng-dia-n span{font-size:13px;color:var(--txt-2);font-weight:600}
+.ng-dia-bar{height:4px;border-radius:3px;background:var(--card-2);margin-top:8px;overflow:hidden}.ng-dia-bar i{display:block;height:100%;background:linear-gradient(90deg,#17C8C0,#4ADE80)}
+.ng-dia-b{padding:10px;display:flex;flex-direction:column;gap:8px;flex:1}
+.ng-cita{border-radius:12px;padding:9px 10px;cursor:pointer;background:linear-gradient(160deg,color-mix(in srgb,var(--cc) 16%,rgba(30,41,59,.95)),rgba(17,24,39,.95));
+  border:1px solid color-mix(in srgb,var(--cc) 45%,transparent);border-left:3px solid var(--cc);transition:.12s}
+.ng-cita:hover,.ng-cita:focus{transform:translateY(-1px);box-shadow:0 10px 24px -14px var(--cc);outline:none}
+.ng-cita-realizada{opacity:.78}.ng-cita-cancelada{opacity:.45;text-decoration:line-through}.ng-cita-no_asistio{border-left-color:#F87171}
+.ng-cita-h{display:flex;justify-content:space-between;font-size:12px;color:#fff}.ng-cita-h span{color:var(--cc)}
+.ng-cita-t{font-size:12.5px;font-weight:700;color:#fff;margin-top:3px}
+.ng-cita-p{display:flex;align-items:center;gap:6px;margin-top:6px}
+.ng-dia-grid{position:relative;padding:12px 14px}.ng-horas{position:relative;margin-left:56px}
+.ng-hora{border-top:1px solid var(--line-soft);position:relative;cursor:pointer}.ng-hora:hover{background:rgba(23,200,192,.04)}
+.ng-hora span{position:absolute;left:-56px;top:-8px;font-size:11px;color:var(--txt-3)}
+.ng-bloque{position:absolute;left:6px;right:6px;z-index:2}.ng-bloque .ng-cita{height:100%;overflow:hidden}
+.ng-ahora{position:absolute;left:0;right:0;height:2px;background:#F87171;box-shadow:0 0 10px #F87171;z-index:3}
+.ng-ahora:before{content:'';position:absolute;left:-5px;top:-4px;width:10px;height:10px;border-radius:50%;background:#F87171}
+.ng-equipo td{padding:8px}.ng-equipo .ng-cita{margin-bottom:6px}
+.ng-mes{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}.ng-mes-dow{font-size:11px;color:var(--txt-3);text-align:center;font-weight:700;padding:4px}
+.ng-mes-c{min-height:92px;border-radius:11px;border:1px solid var(--line);background:var(--card-2);padding:7px;cursor:pointer;overflow:hidden}
+.ng-mes-c:hover{border-color:rgba(23,200,192,.5)}.ng-mes-c.fuera{opacity:.4}.ng-mes-c.hoy{border-color:#17C8C0;box-shadow:inset 0 0 0 1px #17C8C0}
+.ng-mes-d{font-size:12px;font-weight:800;color:#fff;margin-bottom:4px}
+.ng-mes-ev{font-size:10.5px;color:#E2E8F0;border-left:2px solid var(--cc);padding:1px 5px;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ng-persona{display:inline-flex;align-items:center;gap:6px;padding:4px 10px 4px 4px;border-radius:20px;border:1px solid var(--line);background:var(--card-2);color:#E2E8F0;font:inherit;font-size:12px;cursor:pointer}
+.ng-persona b{background:rgba(23,200,192,.2);color:#99F6E4;border-radius:10px;padding:0 6px;font-size:11px}.ng-persona.on{border-color:#17C8C0;box-shadow:0 0 12px -4px #17C8C0}
+.ng-dato{padding:10px 12px;border-radius:11px;background:var(--card-2);border:1px solid var(--line)}.ng-dato span{display:block;font-size:11px;color:var(--txt-3);margin-bottom:3px}.ng-dato b{color:#fff;font-size:13px}
+.ng-acciones{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.ng-acciones a.btn{text-decoration:none}
+.ng-trans{margin-top:12px;padding:12px;border-radius:12px;background:rgba(15,23,42,.8);border:1px solid rgba(23,200,192,.25)}
+.ng-burbuja{max-width:88%;padding:7px 11px;border-radius:12px;font-size:12.5px;margin:5px 0;color:#E2E8F0;line-height:1.45}
+.ng-burbuja.ia{background:rgba(23,200,192,.14);border:1px solid rgba(23,200,192,.3)}.ng-burbuja.cli{background:rgba(148,163,184,.12);margin-left:auto}
+.ng-burbuja b{color:#99F6E4;font-size:11px;margin-right:4px}
+.ng-sugs{margin-top:6px;border:1px solid var(--line);border-radius:10px;max-height:200px;overflow-y:auto;background:var(--card-2)}
+.ng-sugs button{display:block;width:100%;text-align:left;padding:8px 10px;border:none;border-bottom:1px solid var(--line-soft);background:none;color:#fff;font:inherit;font-size:13px;cursor:pointer}
+.ng-sugs button:hover{background:rgba(23,200,192,.1)}
+
+.ng-mini{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:12px}
+.ng-mini-c{padding:11px 12px;border-radius:12px;background:linear-gradient(160deg,color-mix(in srgb,var(--mc) 12%,rgba(17,24,39,.95)),rgba(17,24,39,.95));border:1px solid color-mix(in srgb,var(--mc) 35%,transparent);display:flex;flex-direction:column;gap:5px;align-items:flex-start}
+.ng-mini-c span{font-size:11px;color:var(--txt-3)}.ng-mini-c b{color:#fff;font-size:14px;display:flex;gap:6px;align-items:center}.ng-mini-c em{font-style:normal}
+.ng-link{border:none;background:none;color:#5EEAD4;font:inherit;font-size:12px;cursor:pointer;padding:0;text-decoration:underline}
+.ng-prox{display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:12px;border:1px dashed rgba(251,191,36,.4);background:rgba(251,191,36,.06);margin-bottom:12px;font-size:13px;color:#E2E8F0}
+.ng-prox svg{color:#FBBF24}
+.ng-filtro{border:1px solid var(--line);background:var(--card-2);color:var(--txt-2);font:inherit;font-size:12px;padding:5px 11px;border-radius:16px;cursor:pointer}
+.ng-filtro:hover{color:#fff}.ng-filtro.on{border-color:#17C8C0;color:#99F6E4;background:rgba(23,200,192,.1)}
+.ng-tl{position:relative;padding-left:4px}.ng-tl:before{content:'';position:absolute;left:17px;top:6px;bottom:6px;width:2px;background:linear-gradient(180deg,rgba(23,200,192,.5),rgba(23,200,192,0))}
+.ng-tl-i{position:relative;display:flex;gap:12px;padding:10px 0}
+.ng-tl-ic{position:relative;z-index:1;width:28px;height:28px;flex:0 0 28px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--tc);background:#0F172A;border:1px solid color-mix(in srgb,var(--tc) 60%,transparent);box-shadow:0 0 12px -4px var(--tc)}
+.ng-transc{margin-top:6px}.ng-transc summary{cursor:pointer;font-size:11.5px;color:#C4B5FD}
+.ng-sign{padding:14px;border-radius:14px;border:1px solid rgba(74,222,128,.28);background:linear-gradient(160deg,rgba(74,222,128,.07),rgba(17,24,39,.6))}
+.ng-contrato{padding:12px;border-radius:12px;background:var(--card-2);border:1px solid var(--line)}
+.ng-pasos{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:10px}
+.ng-paso{display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center;position:relative}
+.ng-paso span{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;background:#0F172A}
+.ng-paso.ok span{border-color:#4ADE80;background:#4ADE80;color:#04231A;box-shadow:0 0 12px -2px #4ADE80}
+.ng-paso b{font-size:11.5px;color:#fff}.ng-paso i{font-size:10.5px;color:var(--txt-3);font-style:normal}
+.ng-ia-h{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap}
+.ng-ia-b{padding:14px;border-radius:14px;border:1px solid rgba(23,200,192,.25);background:rgba(15,23,42,.55)}
+.ng-ia-pie{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px}
+.ng-desplegar{background:linear-gradient(135deg,#17C8C0,#4ADE80);color:#04231A;font-weight:800;border:none;padding:11px 20px;border-radius:12px;
+  box-shadow:0 0 0 1px rgba(74,222,128,.4),0 12px 30px -10px rgba(23,200,192,.9);animation:ngBrillo 2.8s ease-in-out infinite}
+.ng-desplegar:disabled{opacity:.55;animation:none}@keyframes ngBrillo{50%{box-shadow:0 0 0 1px rgba(74,222,128,.6),0 12px 40px -6px rgba(74,222,128,.95)}}
+.ng-switch{display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--txt-2);cursor:pointer}
+.ng-switch input{display:none}.ng-switch span{width:36px;height:20px;border-radius:11px;background:var(--line);position:relative;transition:.15s}
+.ng-switch span:after{content:'';position:absolute;left:3px;top:3px;width:14px;height:14px;border-radius:50%;background:#fff;transition:.15s}
+.ng-switch input:checked+span{background:#17C8C0;box-shadow:0 0 12px -2px #17C8C0}.ng-switch input:checked+span:after{left:19px}
+.ng-probar{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}.ng-probar .inp{flex:1;min-width:180px}
+.ng-wa{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:16px;align-items:start}
+.ng-movil{border-radius:26px;border:2px solid #334155;background:#0B141A;overflow:hidden;box-shadow:0 20px 50px -20px rgba(0,0,0,.9)}
+.ng-movil-h{display:flex;gap:7px;align-items:center;padding:11px 14px;background:#1F2C34;color:#fff;font-size:13px;font-weight:700}
+.ng-movil-h span{margin-left:auto;font-size:9.5px;color:#FDE68A;font-weight:600;text-transform:uppercase}
+.ng-movil-b{height:300px;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:6px;background:radial-gradient(circle at 30% 20%,rgba(23,200,192,.06),transparent 60%),#0B141A}
+.ng-msg{max-width:85%;padding:7px 10px;border-radius:10px;font-size:12.5px;color:#E9EDEF;line-height:1.4}
+.ng-msg.bot{background:#202C33;border-top-left-radius:2px}.ng-msg.yo{background:#005C4B;margin-left:auto;border-top-right-radius:2px}
+.ng-movil-in{display:flex;gap:6px;padding:8px;background:#1F2C34}.ng-movil-in .inp{padding:7px 10px;font-size:12.5px}
+.ng-plantillas{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.ng-plantilla{text-align:left;padding:11px;border-radius:12px;border:1px solid var(--line);background:var(--card-2);color:#fff;font:inherit;cursor:pointer;display:flex;flex-direction:column;gap:3px}
+.ng-plantilla span{font-size:11px;color:var(--txt-3)}.ng-plantilla.on{border-color:#FBBF24;box-shadow:0 0 18px -8px #FBBF24;background:rgba(251,191,36,.08)}
+.ng-flujo{margin-top:12px;display:flex;flex-direction:column;gap:6px;position:relative}
+.ng-flujo-p{display:flex;gap:10px;align-items:center;padding:9px 12px;border-radius:11px;background:var(--card-2);border:1px solid var(--line);font-size:13px;color:#E2E8F0}
+.ng-flujo-p.off{opacity:.45}.ng-flujo-n{width:22px;height:22px;border-radius:50%;background:rgba(251,191,36,.18);color:#FDE68A;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.ng-pre{white-space:pre-wrap;background:#0B0F19;border:1px solid var(--line);border-radius:10px;padding:10px;margin-top:6px;font-size:11px;color:#CBD5E1}
+.ng-consola{position:fixed;right:18px;bottom:18px;width:min(560px,calc(100vw - 36px));z-index:90;border-radius:14px;overflow:hidden;
+  border:1px solid rgba(74,222,128,.45);background:#05080F;box-shadow:0 30px 80px -20px rgba(0,0,0,.95),0 0 40px -12px rgba(74,222,128,.6)}
+/* Iconos en línea con el texto dentro de los módulos Next-Gen */
+.ng-card .tiny svg,.ng-ia-h h3 svg,.ng-ia-b .ft-t svg,.ng-sign h3 svg,.ng-tl .tiny svg,.ng-trans svg,.ng-transc summary svg,.ng-dato svg,.ng-prox b svg{display:inline-block;vertical-align:-2px;margin-right:3px}
+.ng-ia-b .ft-t,.ng-ia-h h3{display:flex;align-items:center;gap:7px}
+.ng-consola-h{display:flex;gap:10px;align-items:center;padding:9px 12px;background:#0B1220;color:#fff;font-size:12.5px;font-weight:700;border-bottom:1px solid rgba(74,222,128,.25)}
+.ng-consola-h>span:first-child{flex:1;display:flex;gap:6px;align-items:center;color:#86EFAC}
+.ng-consola-b{max-height:320px;overflow-y:auto;padding:12px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;line-height:1.6}
+.ng-cursor{color:#4ADE80;animation:ngParp 1s steps(1) infinite}
+@media (max-width:1280px){.ng-sala-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.ng-sala-grid>:last-child{grid-column:1/-1}.ng-kpis{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+@media (max-width:860px){.ng-sala-grid{grid-template-columns:minmax(0,1fr)}.ng-nodos{grid-template-columns:repeat(2,minmax(0,1fr))}.ng-mini{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ng-wa{grid-template-columns:minmax(0,1fr)}.ng-plantillas{grid-template-columns:repeat(2,minmax(0,1fr))}.ng-semana{grid-template-columns:repeat(7,minmax(160px,1fr))}}
+@media (max-width:640px){.ng-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}.ng-nodos{grid-template-columns:minmax(0,1fr)}.ng-h1{font-size:24px}
+  .ng-reloj{font-size:22px;min-width:0}.ng-col{flex-basis:84vw}.ng-pasos{grid-template-columns:repeat(2,minmax(0,1fr))}.ng-hero{padding:16px}}
+
 /* =========================== CONTACTOS · FICHA ========================== */
 .ct-fila{cursor:pointer;transition:background .12s}
 .ct-fila:hover,.ct-fila:focus{background:rgba(23,200,192,.06);outline:none}
@@ -1785,10 +1971,12 @@ var ROLES = {
 };
 var MENU = [
   {id:'dashboard',   label:'Panel Principal',            icon:'dashboard', sec:'General',   roles:['admin','manager','commercial','backoffice']},
-  {id:'calendar',    label:'Calendario y Citas',         icon:'calendar',  sec:'General',   roles:['admin','manager','commercial'], n:3},
+  {id:'calendar',    label:'Agenda Comercial',           icon:'calendar',  sec:'General',   roles:['admin','manager','commercial','backoffice']},
   {id:'academy',     label:'Academia y Cursos',          icon:'book',      sec:'General',   roles:['admin','manager','commercial','backoffice']},
   {id:'mission',     label:'Mission Control',            icon:'spark',     sec:'General',   roles:['admin','manager']},
   {id:'mificha',     label:'Mi Ficha',                   icon:'user',      sec:'General',   roles:['commercial']},
+  {id:'sala',        label:'Sala de Ventas',             icon:'trend',     sec:'General',   roles:['admin','manager','commercial','backoffice']},
+  {id:'pipeline',    label:'Pipeline IA',                icon:'filter',    sec:'General',   roles:['admin','manager','commercial','backoffice']},
   {id:'contactos',   label:'Contactos',                  icon:'user',      sec:'General',   roles:['admin','manager','commercial','backoffice']},
   {id:'resources',   label:'Centro de Recursos',         icon:'file',      sec:'General',   roles:['admin','manager','commercial','backoffice']},
   {id:'support',     label:'Soporte y Tickets',          icon:'help',      sec:'General',   roles:['admin','manager','commercial','backoffice']},
@@ -2038,13 +2226,14 @@ function renderApp(){
   }, {once:true});
 
   var v = q('#view');
-  var VIEWS = {dashboard:viewDashboard, calendar:viewCalendar, academy:viewAcademy, quotes:viewQuotes,
+  var VIEWS = {dashboard:viewDashboard, calendar:viewAgenda, academy:viewAcademy, quotes:viewQuotes,
     automation:viewAutomationPacks, packs:viewPacks, ranking:viewRanking, mission:viewMission,
     funnels:viewFunnels, audits:viewAudits, clients:viewClients, contracts:viewContracts,
     backoffice:viewBackoffice, voice_wa:viewVoice, integrations:viewIntegrations,
     interviews:viewInterviews, users:viewUsers, settings:viewSettings, contactos:viewContactos,
     rolesadmin:viewRolesAdmin, resources:viewResources, support:viewSupport,
-    adminsupport:viewAdminSupportDesk, equipo:viewEquipo, mificha:viewMiFicha, seguridad:viewSeguridad, cumplimiento:viewCumplimiento};
+    adminsupport:viewAdminSupportDesk, equipo:viewEquipo, mificha:viewMiFicha, seguridad:viewSeguridad, cumplimiento:viewCumplimiento,
+    sala:viewSala, pipeline:viewPipeline};
   (VIEWS[S.view]||viewDashboard)(v);
   reponerToasts();
   vcBanda();
@@ -3887,6 +4076,1157 @@ function hrEventos(){
 }
 
 /* ==========================================================================
+   NEXT-GEN · Labs Command Center 360™
+   Sala de Ventas en directo, Pipeline IA (Kanban), Agenda comercial y la
+   Ficha 360 (timeline omnicanal, Sign-Engine y Configurador IA a 1 clic).
+   Todo con datos reales del servidor (api/nextgen.php). Las integraciones
+   externas (Twilio, n8n/Make) funcionan de verdad si están configuradas; si
+   no, en modo simulación, y la pantalla lo dice siempre.
+   ========================================================================== */
+var FASES_NG = [
+  {k:'lead',          n:'Lead entrante',  sla:1,  p:5,   c:'#38BDF8', i:'bolt'},
+  {k:'cualificacion', n:'Cualificación',  sla:3,  p:15,  c:'#818CF8', i:'search'},
+  {k:'demo',          n:'Demo IA',        sla:5,  p:30,  c:'#C084FC', i:'mic'},
+  {k:'propuesta',     n:'Propuesta',      sla:7,  p:50,  c:'#FBBF24', i:'file'},
+  {k:'negociacion',   n:'Negociación',    sla:10, p:70,  c:'#FB923C', i:'chat'},
+  {k:'firmado',       n:'Firmado',        sla:3,  p:100, c:'#4ADE80', i:'check'},
+  {k:'despliegue',    n:'Despliegue',     sla:14, p:100, c:'#2DD4BF', i:'plug'},
+  {k:'produccion',    n:'En producción',  sla:0,  p:100, c:'#17C8C0', i:'spark'},
+  {k:'perdido',       n:'Perdido',        sla:0,  p:0,   c:'#F87171', i:'x'}
+];
+var SOLUCIONES_NG = {voz:{n:'Voz IA', i:'mic', c:'violet'}, whatsapp:{n:'WhatsApp', i:'chat', c:'green'}, embudo:{n:'Embudo', i:'filter', c:'amber'}};
+function ngFase(k){ return FASES_NG.filter(function(f){ return f.k === k; })[0] || FASES_NG[0]; }
+function ngEuros(n, dec){
+  return new Intl.NumberFormat('es-ES', {style:'currency', currency:'EUR', maximumFractionDigits: dec ? 2 : 0}).format(Number(n) || 0);
+}
+function ngSoluciones(c){ return String(c.soluciones || '').split(',').map(function(s){ return s.trim(); }).filter(function(s){ return SOLUCIONES_NG[s]; }); }
+function ngChipsSol(c){
+  return ngSoluciones(c).map(function(s){ var x = SOLUCIONES_NG[s];
+    return '<span class="chip '+x.c+' ng-chip">'+ic(x.i,10)+' '+x.n+'</span>'; }).join('');
+}
+function ngIniciales(n){ return String(n || '?').split(/\s+/).filter(Boolean).slice(0, 2).map(function(p){ return p.charAt(0).toUpperCase(); }).join(''); }
+function ngNombreUsuario(id){
+  var u = (typeof USUARIOS !== 'undefined' ? USUARIOS : []).filter(function(x){ return x.id === id; })[0];
+  return u ? (u.n || u.mail) : '';
+}
+function ngAvatar(nombre, tam, color){
+  tam = tam || 26;
+  return '<span class="ng-av" style="width:'+tam+'px;height:'+tam+'px;font-size:'+Math.round(tam*0.38)+'px;'+(color ? '--avc:'+color : '')+'">'+esc(ngIniciales(nombre))+'</span>';
+}
+/* Temperatura del lead: fase, actividad reciente, seguimiento programado y valor. */
+function ngTemperatura(c){
+  var f = ngFase(c.fase), s = f.p;
+  var act = c.ultima_actividad || c.actualizado || c.creado;
+  var dias = act ? (Date.now() - new Date(act).getTime())/86400000 : 99;
+  s += dias < 2 ? 30 : dias < 7 ? 15 : dias > 30 ? -25 : 0;
+  if(c.proximo_contacto && new Date(c.proximo_contacto).getTime() > Date.now()) s += 10;
+  if(Number(c.valor) >= 2000) s += 10;
+  if(c.fase === 'perdido') return {k:'perdido', n:'Perdido', c:'#94A3B8', s:0};
+  if(['firmado','despliegue','produccion'].indexOf(c.fase) > -1) return {k:'ganado', n:'Ganado', c:'#4ADE80', s:100};
+  return s >= 60 ? {k:'caliente', n:'Caliente', c:'#F87171', s:s} : s >= 30 ? {k:'templado', n:'Templado', c:'#FBBF24', s:s} : {k:'frio', n:'Frío', c:'#38BDF8', s:s};
+}
+/* SLA: tiempo que lleva en la fase frente al máximo de la fase. */
+function ngSla(c){
+  var f = ngFase(c.fase);
+  if(!f.sla || !c.fase_desde) return null;
+  var lim = new Date(c.fase_desde).getTime() + f.sla*86400000, h = (lim - Date.now())/3600000;
+  if(h < 0) return {vencido:true, txt:'SLA vencido ' + (h > -24 ? Math.ceil(-h) + ' h' : Math.ceil(-h/24) + ' d'), col:'red'};
+  return {vencido:false, txt:'SLA ' + (h < 24 ? Math.floor(h) + ' h ' + Math.floor((h % 1)*60) + ' min' : Math.floor(h/24) + ' d ' + Math.floor(h % 24) + ' h'),
+          col: h < 24 ? 'amber' : 'blue', urgente: h < 24};
+}
+function ngApi(ruta, metodo, cuerpo){
+  return sbConSesion(function(){ return sbFetch(ruta, {method: metodo || 'GET', body: cuerpo}); }).then(function(r){
+    if(!r.ok) throw new Error(sbMensaje(r));
+    return r.datos;
+  });
+}
+function ngRel(ts){ return ts ? haceRel(new Date(ts).getTime()) : '—'; }
+function ngWhatsApp(tel, texto){ var t = String(tel || '').replace(/[^\d]/g, ''); return 'https://wa.me/' + t + (texto ? '?text=' + encodeURIComponent(texto) : ''); }
+/* Abre la ficha 360 de un contacto desde cualquier módulo y recuerda de dónde se vino. */
+function ngAbreFicha(id, desde){
+  if(typeof CT === 'undefined') return;
+  CT.volverA = desde || null; S.view = 'contactos';
+  var abre = function(){ if(ctContactoPorId(id)) ctAbre(id); else { toast('Ese contacto no está en tu cartera.'); renderApp(); } };
+  if(CT.cargado) abre();
+  else { CT.cargando = true; sbSelect('contactos', 'select=*&order=actualizado.desc').then(function(r){
+    CT.cargando = false; CT.cargado = true; if(r && r.ok) CT.lista = r.datos || []; abre(); }); }
+}
+var NG_ICONO_EV = {llamada:['phone','#C084FC'], whatsapp:['chat','#4ADE80'], correo:['mail','#38BDF8'], reunion:['users','#FBBF24'], nota:['file','#94A3B8'],
+  estado:['refresh','#17C8C0'], evento:['calendar','#FBBF24'], firma:['file','#4ADE80'], ia:['spark','#2DD4BF'], webhook:['plug','#818CF8'],
+  abierto:['eye','#38BDF8'], firmado:['check','#4ADE80'], comentario:['chat','#94A3B8'], cita:['calendar','#FBBF24']};
+
+/* ==========================================================================
+   SALA DE VENTAS EN DIRECTO
+   ========================================================================== */
+var SALA = {periodo:'mes', datos:null, cargando:false, error:'', lat:null, timer:null, reloj:null, tv:false};
+
+function salaCarga(silencioso){
+  if(SALA.cargando) return;
+  SALA.cargando = true; if(!silencioso) SALA.error = '';
+  var t0 = performance.now();
+  ngApi('/sala?periodo=' + SALA.periodo).then(function(d){
+    SALA.lat = Math.round(performance.now() - t0); SALA.datos = d; SALA.cargando = false; SALA.actualizado = Date.now();
+    if(S.view === 'sala') renderApp();
+  }).catch(function(e){ SALA.cargando = false; SALA.error = e.message; if(S.view === 'sala') renderApp(); });
+}
+function salaPrograma(){
+  if(SALA.timer) return;
+  SALA.timer = setInterval(function(){
+    if(S.view !== 'sala' || !S.logged){ clearInterval(SALA.timer); SALA.timer = null; return; }
+    salaCarga(true);
+  }, 15000);
+  SALA.reloj = setInterval(function(){
+    if(S.view !== 'sala'){ clearInterval(SALA.reloj); SALA.reloj = null; return; }
+    var r = q('#sala-reloj'); if(r) r.textContent = new Date().toLocaleTimeString('es-ES', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+    var a = q('#sala-act'); if(a && SALA.actualizado) a.textContent = 'Actualizado hace ' + Math.round((Date.now() - SALA.actualizado)/1000) + ' s';
+  }, 1000);
+}
+
+function salaAnillo(p, hechos, meta){
+  var r = 54, c = 2*Math.PI*r, v = Math.min(1, meta ? hechos/meta : 0);
+  return '<svg viewBox="0 0 140 140" width="140" height="140" class="ng-anillo" aria-hidden="true">'+
+    '<defs><linearGradient id="ngAnGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#17C8C0"/><stop offset="100%" stop-color="#4ADE80"/></linearGradient></defs>'+
+    '<circle cx="70" cy="70" r="'+r+'" fill="none" stroke="rgba(148,163,184,.14)" stroke-width="12"/>'+
+    '<circle cx="70" cy="70" r="'+r+'" fill="none" stroke="url(#ngAnGrad)" stroke-width="12" stroke-linecap="round" stroke-dasharray="'+(c*v).toFixed(1)+' '+c.toFixed(1)+'" transform="rotate(-90 70 70)" class="ng-anillo-v"/>'+
+    '<text x="70" y="68" text-anchor="middle" fill="#fff" font-size="28" font-weight="800">'+Math.round(v*100)+'%</text>'+
+    '<text x="70" y="90" text-anchor="middle" fill="#9CA3AF" font-size="12">'+hechos+' / '+meta+'</text></svg>';
+}
+function salaSpark(serie){
+  if(!serie || serie.length < 2) return '';
+  var max = Math.max.apply(null, serie.map(function(x){ return x.n; })) || 1, w = 220, h = 46;
+  var pts = serie.map(function(x, i){ return (i*(w/(serie.length-1))).toFixed(1)+','+(h - x.n/max*(h-6) - 3).toFixed(1); }).join(' ');
+  return '<svg viewBox="0 0 '+w+' '+h+'" class="ng-spark" preserveAspectRatio="none"><polyline points="'+pts+'" fill="none" stroke="#17C8C0" stroke-width="2.2" stroke-linejoin="round"/>'+
+    '<polygon points="0,'+h+' '+pts+' '+w+','+h+'" fill="rgba(23,200,192,.14)"/></svg>';
+}
+function salaTextoFeed(f){
+  var quien = f.autor ? '<b>'+esc(f.autor)+'</b> · ' : '';
+  return quien + esc(String(f.texto || '').split('\n')[0]) + (f.contacto ? ' <span class="ng-feed-c">'+esc(f.contacto)+'</span>' : '');
+}
+
+function viewSala(v){
+  if(!SALA.datos && !SALA.cargando) salaCarga();
+  salaPrograma();
+  var D = SALA.datos;
+  if(!D){
+    v.innerHTML = '<div class="card glass"><p class="muted">'+(SALA.error ? 'No se ha podido cargar la sala: '+esc(SALA.error) : 'Conectando con la sala de ventas…')+'</p></div>';
+    return;
+  }
+  var K = D.kpis, per = {hoy:'hoy', semana:'esta semana', mes:'este mes'}[D.periodo];
+  var activos = D.ranking.filter(function(r){ return r.puntos > 0; }).length;
+  var podio = D.ranking.slice(0, 3), medallas = ['#FBBF24', '#CBD5E1', '#F59E0B'];
+  var orden = podio.length === 3 ? [1, 0, 2] : podio.map(function(_, i){ return i; });
+  var mejorHora = D.horas.indexOf(Math.max.apply(null, D.horas));
+  var faltan = Math.max(0, D.objetivo.meta - D.objetivo.hechos), quedan = Math.max(1, D.objetivo.dias - D.objetivo.dia + 1);
+  var analisis = [
+    faltan ? 'Faltan <b>'+faltan+'</b> firmas en <b>'+quedan+'</b> días: '+(faltan/quedan < 1 ? 'basta con menos de una al día.' : '<b>'+(faltan/quedan).toFixed(1)+'</b> al día.') : '<b>¡Objetivo del mes cumplido!</b> Todo lo que entre ahora es extra.',
+    Math.max.apply(null, D.horas) > 0 ? 'La franja de <b>'+String(mejorHora).padStart(2,'0')+':00 a '+String(mejorHora+1).padStart(2,'0')+':00</b> es la de más actividad del equipo.' : 'Todavía no hay actividad suficiente para detectar la mejor franja horaria.',
+    K.tasa_cierre !== null ? 'Tasa de cierre '+per+': <b>'+K.tasa_cierre+'%</b> de los deals decididos se han ganado.' : 'Aún no hay deals ganados o perdidos '+per+'.',
+    'Pipeline ponderado: <b>'+ngEuros(K.pipeline_ponderado)+'</b> de '+ngEuros(K.pipeline_abierto)+' abiertos ('+K.deals_abiertos+' deals).'
+  ];
+  var total = Math.max(1, FASES_NG.reduce(function(a, f){ return a + ((D.fases[f.k] || {}).n || 0); }, 0));
+
+  v.innerHTML =
+  '<div class="ng-sala'+(SALA.tv ? ' ng-tv' : '')+'" id="ng-sala">'+
+    '<div class="card glass ng-hero">'+
+      '<div style="flex:1;min-width:240px">'+
+        '<span class="pill-live"><span class="blip"></span>EN DIRECTO</span>'+
+        '<h1 class="ng-h1">Sala de ventas</h1>'+
+        '<p class="ng-sub"><b>'+K.firmados+'</b> contratos firmados y <b>'+K.citas_realizadas+'</b> citas realizadas '+per+' · <b>'+activos+'</b> persona'+(activos === 1 ? '' : 's')+' sumando puntos</p>'+
+      '</div>'+
+      '<div class="ng-hero-der">'+
+        '<div class="ng-reloj" id="sala-reloj">'+new Date().toLocaleTimeString('es-ES', {hour:'2-digit', minute:'2-digit', second:'2-digit'})+'</div>'+
+        '<div class="ng-seg">'+[['hoy','Hoy'],['semana','Semana'],['mes','Mes']].map(function(p){
+          return '<button class="'+(SALA.periodo === p[0] ? 'on' : '')+'" data-sala-per="'+p[0]+'">'+p[1]+'</button>'; }).join('')+'</div>'+
+        '<button class="btn btn-s" id="sala-tv">'+ic('eye',14)+' '+(SALA.tv ? 'Salir de modo TV' : 'Modo TV')+'</button>'+
+      '</div>'+
+    '</div>'+
+
+    (D.feed.length ? '<div class="ng-ticker"><div class="ng-ticker-in">'+D.feed.slice(0, 14).concat(D.feed.slice(0, 14)).map(function(f){
+      var x = NG_ICONO_EV[f.tipo] || NG_ICONO_EV.evento;
+      return '<span class="ng-tick" style="--tc:'+x[1]+'">'+ic(x[0],12)+' '+salaTextoFeed(f)+' <i>'+esc(ngRel(f.ts))+'</i></span>'; }).join('')+'</div></div>' : '')+
+
+    '<div class="ng-nodos">'+
+      [['API Labs · Hostalia', SALA.lat !== null ? SALA.lat+' ms' : '—', 'latencia real del servidor', SALA.lat !== null && SALA.lat < 400 ? '#4ADE80' : '#FBBF24'],
+       ['Asistentes IA en producción', String(K.ia_produccion), K.ia_configurados+' configurado(s) en total', '#17C8C0'],
+       ['Llamadas de agentes de voz', String(K.llamadas_ia), per, '#C084FC'],
+       ['Conversaciones WhatsApp', String(K.whatsapp), per, '#4ADE80']].map(function(n){
+        return '<div class="nodo" style="--nc:'+n[3]+'"><span class="halo"><span class="punto"></span></span>'+
+          '<div style="min-width:0;flex:1"><div class="small trunc" style="color:#fff;font-weight:600">'+esc(n[0])+'</div><div class="tiny muted trunc">'+esc(n[2])+'</div></div>'+
+          '<div class="ng-nodo-v" style="color:'+n[3]+'">'+esc(n[1])+'</div></div>'; }).join('')+
+    '</div>'+
+
+    '<div class="ng-kpis">'+
+      [['Contratos firmados', K.firmados, 'check', '#4ADE80', ''],
+       ['Valor ganado', ngEuros(K.valor_ganado), 'euro', '#17C8C0', ''],
+       ['Pipeline abierto', ngEuros(K.pipeline_abierto), 'trend', '#818CF8', 'ponderado '+ngEuros(K.pipeline_ponderado)],
+       ['Citas realizadas', K.citas_realizadas, 'calendar', '#FBBF24', K.citas_hoy+' pendiente(s) hoy'],
+       ['Leads nuevos', K.leads_nuevos, 'bolt', '#38BDF8', ''],
+       ['Puntos del equipo', K.puntos_equipo, 'spark', '#F472B6', '']].map(function(k){
+        return '<div class="card ng-kpi" style="--kc:'+k[3]+'"><div class="ng-kpi-ic">'+ic(k[2],16)+'</div>'+
+          '<div class="ng-kpi-v">'+esc(String(k[1]))+'</div><div class="ng-kpi-l">'+esc(k[0])+'</div>'+(k[4] ? '<div class="tiny muted">'+esc(k[4])+'</div>' : '')+'</div>'; }).join('')+
+    '</div>'+
+
+    '<div class="ng-sala-grid">'+
+      '<div class="card glass"><div class="card-h"><div><h3>'+ic('target',16)+'Ranking de la red</h3><p>Cita realizada 2 · Demo 3 · Propuesta 5 · Firma 15 puntos</p></div></div>'+
+        (podio.length ? '<div class="ng-podio">'+orden.map(function(i){ var r = podio[i];
+          return '<div class="ng-pod ng-pod-'+(i+1)+'"><div class="ng-pod-med" style="--mc:'+medallas[i]+'">'+(i+1)+'</div>'+ngAvatar(r.nombre, i === 0 ? 62 : 50, medallas[i])+
+            '<div class="ng-pod-n">'+esc(r.nombre)+'</div><div class="ng-pod-p">'+r.puntos+' pts</div><div class="ng-pod-base" style="--mc:'+medallas[i]+'"></div></div>'; }).join('')+'</div>' : '')+
+        '<div style="overflow-x:auto"><table class="tbl ng-rank"><thead><tr><th>#</th><th>Nombre</th><th>Puntos</th><th>Citas</th><th>Demos</th><th>Prop.</th><th>Firmas</th><th>Valor</th></tr></thead><tbody>'+
+        (D.ranking.map(function(r, i){
+          var max = D.ranking[0].puntos || 1;
+          return '<tr><td class="tiny muted">'+(i+1)+'</td><td><div class="row" style="gap:8px;align-items:center">'+ngAvatar(r.nombre, 26)+'<span class="small trunc" style="color:#fff">'+esc(r.nombre)+'</span></div></td>'+
+            '<td><div class="ng-barra"><i style="width:'+Math.round(r.puntos/max*100)+'%"></i><span>'+r.puntos+'</span></div></td>'+
+            '<td class="tiny">'+r.citas+'</td><td class="tiny">'+r.demos+'</td><td class="tiny">'+r.propuestas+'</td><td class="tiny">'+r.firmados+'</td><td class="tiny nowrap">'+ngEuros(r.valor)+'</td></tr>';
+        }).join('') || '<tr><td colspan="8" class="muted" style="text-align:center;padding:18px">Sin equipo comercial activo todavía.</td></tr>')+
+        '</tbody></table></div></div>'+
+
+      '<div class="stack" style="gap:16px">'+
+        '<div class="card glass"><div class="card-h"><div><h3>Objetivo del mes</h3><p>Día '+D.objetivo.dia+' de '+D.objetivo.dias+'</p></div>'+
+          (S.role === 'admin' ? '<button class="btn btn-s btn-xs" id="sala-obj">'+ic('cog',12)+' Cambiar</button>' : '')+'</div>'+
+          '<div class="row" style="gap:16px;align-items:center;flex-wrap:wrap">'+salaAnillo(0, D.objetivo.hechos, D.objetivo.meta)+
+          '<div style="flex:1;min-width:150px" class="small"><div style="color:#fff;font-weight:700;font-size:15px">'+D.objetivo.hechos+' firmas de '+D.objetivo.meta+'</div>'+
+          '<div class="muted" style="margin-top:6px">A este ritmo cerraréis el mes con <b style="color:#fff">'+D.objetivo.proyeccion+'</b>.</div></div></div></div>'+
+        '<div class="card glass"><div class="card-h"><div><h3>'+ic('spark',16)+'Análisis en directo</h3><p>Calculado con los datos del CRM</p></div></div>'+
+          analisis.map(function(a){ return '<div class="ng-insight">'+ic('bolt',13)+'<span>'+a+'</span></div>'; }).join('')+
+          '<div class="tiny muted" style="margin:12px 0 4px">Actividad de los últimos 14 días</div>'+salaSpark(D.serie)+'</div>'+
+        '<div class="card glass"><div class="card-h"><div><h3>Embudo de la red</h3><p>Contactos por fase del pipeline</p></div>'+
+          '<button class="btn btn-s btn-xs" data-go="pipeline">'+ic('filter',12)+' Pipeline</button></div>'+
+          FASES_NG.map(function(f){ var x = D.fases[f.k] || {n:0, v:0};
+            return '<div class="ng-emb"><span class="ng-emb-n" style="color:'+f.c+'">'+esc(f.n)+'</span><div class="ng-emb-b"><i style="width:'+Math.max(2, x.n/total*100)+'%;background:'+f.c+'"></i></div>'+
+              '<span class="tiny" style="color:#fff;min-width:28px;text-align:right">'+x.n+'</span></div>'; }).join('')+'</div>'+
+      '</div>'+
+
+      '<div class="card glass"><div class="card-h"><div><h3>'+ic('bolt',16)+'Actividad en directo</h3><p id="sala-act">Actualizado ahora</p></div></div>'+
+        '<div class="ng-feed">'+(D.feed.map(function(f){
+          var x = NG_ICONO_EV[f.tipo] || NG_ICONO_EV.evento;
+          return '<div class="ng-feed-i" style="--fc:'+x[1]+'"'+(f.contacto_id ? ' data-sala-ficha="'+f.contacto_id+'"' : '')+'>'+
+            '<span class="ng-feed-ic">'+ic(x[0],13)+'</span><div style="flex:1;min-width:0"><div class="small" style="color:#E2E8F0">'+salaTextoFeed(f)+'</div>'+
+            '<div class="tiny muted">'+esc(ngRel(f.ts))+'</div></div></div>'; }).join('') ||
+          '<p class="tiny muted">Sin actividad todavía. Las llamadas, citas, propuestas y firmas aparecerán aquí al momento.</p>')+'</div></div>'+
+    '</div>'+
+  '</div>';
+
+  qa('[data-sala-per]').forEach(function(b){ b.onclick = function(){ SALA.periodo = b.dataset.salaPer; SALA.datos = null; salaCarga(); renderApp(); }; });
+  q('#sala-tv').onclick = function(){
+    SALA.tv = !SALA.tv;
+    try{ if(SALA.tv && document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
+         else if(!SALA.tv && document.fullscreenElement) document.exitFullscreen(); }catch(e){}
+    document.body.classList.toggle('ng-tv-body', SALA.tv); renderApp();
+  };
+  qa('[data-sala-ficha]').forEach(function(b){ b.onclick = function(){ ngAbreFicha(Number(b.dataset.salaFicha), 'sala'); }; });
+  qa('#ng-sala [data-go]').forEach(function(b){ b.onclick = function(){ S.view = b.dataset.go; renderApp(); }; });
+  if(q('#sala-obj')) q('#sala-obj').onclick = function(){
+    var n = window.prompt('Objetivo de firmas para este mes:', String(D.objetivo.meta)); if(n === null) return;
+    ngApi('/ia/ajustes', 'POST', {objetivo_mes: Number(n)}).then(function(){ toast('Objetivo actualizado.'); SALA.datos = null; salaCarga(); }).catch(function(e){ toast(e.message); });
+  };
+}
+
+/* ==========================================================================
+   PIPELINE IA · Kanban con arrastrar y soltar
+   Usa los mismos contactos que el módulo Contactos (CT.lista). Al soltar una
+   tarjeta en otra columna se guarda la fase; el servidor sincroniza el estado,
+   reinicia el SLA y lo anota en el historial y en el ranking.
+   ========================================================================== */
+var PL = {com:'', sol:'', temp:'', q:'', arrastra:null, menu:null};
+
+function plPuedeVer(c){
+  if(PL.com && c.gestor_id !== PL.com) return false;
+  if(PL.sol && ngSoluciones(c).indexOf(PL.sol) < 0) return false;
+  if(PL.temp && ngTemperatura(c).k !== PL.temp) return false;
+  if(PL.q){ var t = (c.nombre+' '+(c.empresa||'')+' '+(c.email||'')+' '+(c.telefono||'')+' '+(c.etiquetas||'')).toLowerCase();
+    if(t.indexOf(PL.q.toLowerCase().trim()) < 0) return false; }
+  return true;
+}
+function plSinAccion(c){
+  if(['perdido','produccion'].indexOf(c.fase) > -1) return false;
+  return !c.proximo_contacto || new Date(c.proximo_contacto).getTime() < Date.now();
+}
+
+function plTarjeta(c){
+  var t = ngTemperatura(c), s = ngSla(c), tel = ctTelCompleto(c);
+  return '<div class="ng-card" draggable="true" data-pl-card="'+c.id+'" style="--tc:'+t.c+'" tabindex="0">'+
+    '<div class="ng-card-top"><div style="min-width:0;flex:1"><div class="ng-card-n trunc">'+esc(c.empresa || c.nombre)+'</div>'+
+      (c.empresa ? '<div class="tiny muted trunc">'+esc(c.nombre)+'</div>' : '')+'</div>'+
+      '<span class="ng-temp" title="Temperatura del lead">'+ngTermo(t)+' '+esc(t.n)+'</span></div>'+
+    '<div class="ng-card-chips">'+(s ? '<span class="chip '+s.col+' ng-chip'+(s.vencido || s.urgente ? ' ng-parp' : '')+'">'+ic('clock',10)+' '+esc(s.txt)+'</span>' : '')+ngChipsSol(c)+'</div>'+
+    '<div class="ng-card-pie"><span class="ng-card-v">'+(Number(c.valor) ? ngEuros(c.valor) : '<span class="muted">sin valor</span>')+'</span>'+
+      (c.gestor_id ? ngAvatar(ngNombreUsuario(c.gestor_id), 22) : '')+'</div>'+
+    (c.fase === 'perdido' && c.motivo_perdida ? '<div class="tiny" style="color:#FCA5A5;margin-top:6px">'+ic('x',10)+' '+esc(c.motivo_perdida)+'</div>' :
+      plSinAccion(c) ? '<div class="tiny" style="color:#FBBF24;margin-top:6px">'+ic('alert',10)+' Sin próxima acción</div>' : '')+
+    '<div class="ng-card-acc">'+
+      (tel ? '<a class="ng-fab" href="tel:'+esc(tel)+'" title="Llamar" data-pl-log="llamada" data-pl-id="'+c.id+'">'+ic('phone',13)+'</a>'+
+             '<a class="ng-fab" href="'+esc(ngWhatsApp(tel))+'" target="_blank" rel="noopener" title="WhatsApp" data-pl-log="whatsapp" data-pl-id="'+c.id+'">'+ic('chat',13)+'</a>' : '')+
+      '<button class="ng-fab" data-pl-cita="'+c.id+'" title="Agendar cita">'+ic('calendar',13)+'</button>'+
+      '<button class="ng-fab" data-pl-mover="'+c.id+'" title="Mover de fase">'+ic('arrowRight',13)+'</button>'+
+      '<button class="ng-fab ng-fab-p" data-pl-ficha="'+c.id+'" title="Abrir ficha 360">'+ic('eye',13)+'</button>'+
+    '</div></div>';
+}
+function ngTermo(t){
+  var n = t.k === 'caliente' ? 3 : t.k === 'templado' ? 2 : t.k === 'frio' ? 1 : 0;
+  return '<span class="ng-termo">'+[1,2,3].map(function(i){ return '<i class="'+(i <= n ? 'on' : '')+'"></i>'; }).join('')+'</span>';
+}
+
+/* Mueve un deal de fase (pide el motivo si se pierde). */
+function plMueve(id, fase){
+  var c = ctContactoPorId(id); if(!c || c.fase === fase) return;
+  var cambios = {fase: fase};
+  if(fase === 'perdido'){
+    var m = window.prompt('¿Por qué se ha perdido «' + (c.empresa || c.nombre) + '»?\n(precio, competencia, sin respuesta, no encaja…)', c.motivo_perdida || '');
+    if(m === null){ renderApp(); return; }
+    cambios.motivo_perdida = m.trim().slice(0, 200);
+  }
+  var antes = c.fase;
+  Object.assign(c, cambios); renderApp();   // se ve al momento; si falla, se deshace
+  sbUpdate('contactos', 'id=eq.' + id, cambios).then(function(r){
+    if(r && r.ok){
+      var fila = Array.isArray(r.datos) ? r.datos[0] : null; if(fila) Object.assign(c, fila);
+      toast(ngFase(fase).n + ': ' + (c.empresa || c.nombre)); if(SALA) SALA.datos = null; renderApp();
+    } else { c.fase = antes; toast('No se ha podido mover: ' + sbMensaje(r)); renderApp(); }
+  });
+}
+
+function viewPipeline(v){
+  if(!CT.cargado && !CT.cargando) ctCarga();
+  var lista = CT.lista.filter(plPuedeVer);
+  var abiertos = lista.filter(function(c){ return ['firmado','despliegue','produccion','perdido'].indexOf(c.fase) < 0; });
+  var suma = function(l){ return l.reduce(function(a, c){ return a + (Number(c.valor) || 0); }, 0); };
+  var ponderado = abiertos.reduce(function(a, c){ return a + (Number(c.valor) || 0) * ngFase(c.fase).p / 100; }, 0);
+  var vencidos = lista.filter(function(c){ var s = ngSla(c); return s && s.vencido; }).length;
+  var ganados = lista.filter(function(c){ return ['firmado','despliegue','produccion'].indexOf(c.fase) > -1; });
+  var comerciales = (typeof USUARIOS !== 'undefined' ? USUARIOS : []).filter(function(u){ return u.est === 'Activo' && u.rol !== 'backoffice'; });
+  var perdidos = lista.filter(function(c){ return c.fase === 'perdido' && c.motivo_perdida; });
+  var motivos = {}; perdidos.forEach(function(c){ var m = c.motivo_perdida.toLowerCase().trim(); motivos[m] = (motivos[m] || 0) + 1; });
+  var porCom = {}; abiertos.forEach(function(c){ var k = c.gestor_id || '—'; porCom[k] = (porCom[k] || 0) + (Number(c.valor) || 0); });
+
+  v.innerHTML =
+  '<div class="card glass ng-hero" style="margin-bottom:16px">'+
+    '<div style="flex:1;min-width:240px"><span class="pill-live"><span class="blip"></span>PIPELINE IA</span>'+
+      '<h1 class="ng-h1">Del lead a producción</h1>'+
+      '<p class="ng-sub">Arrastra cada tarjeta a su fase. El SLA mide el tiempo en la fase y la temperatura, lo caliente que está el lead.</p></div>'+
+    '<div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn btn-p" id="pl-nuevo">'+ic('plus',15)+' Nuevo deal</button></div>'+
+  '</div>'+
+  '<div class="ng-kpis" style="grid-template-columns:repeat(5,minmax(0,1fr))">'+
+    [['Pipeline abierto', ngEuros(suma(abiertos)), 'trend', '#17C8C0'], ['Previsión ponderada', ngEuros(ponderado), 'target', '#818CF8'],
+     ['Deals abiertos', abiertos.length, 'filter', '#38BDF8'], ['Ganados', ganados.length + ' · ' + ngEuros(suma(ganados)), 'check', '#4ADE80'],
+     ['SLA vencidos', vencidos, 'alert', vencidos ? '#F87171' : '#94A3B8']].map(function(k){
+      return '<div class="card ng-kpi" style="--kc:'+k[3]+'"><div class="ng-kpi-ic">'+ic(k[2],16)+'</div><div class="ng-kpi-v">'+esc(String(k[1]))+'</div><div class="ng-kpi-l">'+esc(k[0])+'</div></div>'; }).join('')+
+  '</div>'+
+  '<div class="card" style="margin:16px 0;padding:12px 14px"><div class="row u-filtros" style="margin:0">'+
+    '<div class="search" style="flex:1;min-width:200px">'+ic('search',15)+'<input id="pl-q" placeholder="Buscar deal, empresa, teléfono o etiqueta…" value="'+esc(PL.q)+'"></div>'+
+    (ctPuedeGestionar() ? '<select class="inp u-sel" id="pl-com"><option value="">Todo el equipo</option>'+comerciales.map(function(u){
+      return '<option value="'+esc(u.id)+'"'+(PL.com === u.id ? ' selected' : '')+'>'+esc(u.n || u.mail)+'</option>'; }).join('')+'</select>' : '')+
+    '<select class="inp u-sel" id="pl-sol"><option value="">Todas las soluciones</option>'+Object.keys(SOLUCIONES_NG).map(function(k){
+      return '<option value="'+k+'"'+(PL.sol === k ? ' selected' : '')+'>'+SOLUCIONES_NG[k].n+'</option>'; }).join('')+'</select>'+
+    '<select class="inp u-sel" id="pl-temp"><option value="">Cualquier temperatura</option>'+[['caliente','Caliente'],['templado','Templado'],['frio','Frío']].map(function(t){
+      return '<option value="'+t[0]+'"'+(PL.temp === t[0] ? ' selected' : '')+'>'+t[1]+'</option>'; }).join('')+'</select>'+
+  '</div></div>'+
+  (CT.cargando && !CT.lista.length ? '<div class="card"><p class="muted">Cargando el pipeline…</p></div>' :
+  '<div class="ng-kanban" id="pl-kanban">'+FASES_NG.map(function(f){
+    var cs = lista.filter(function(c){ return (c.fase || 'lead') === f.k; });
+    cs.sort(function(a, b){ return ngTemperatura(b).s - ngTemperatura(a).s; });
+    return '<div class="ng-col" data-pl-col="'+f.k+'" style="--fc:'+f.c+'">'+
+      '<div class="ng-col-h"><div class="row" style="gap:7px;align-items:center;min-width:0">'+ic(f.i,14)+'<b class="trunc">'+esc(f.n)+'</b></div>'+
+        '<span class="ng-col-n">'+cs.length+'</span></div>'+
+      '<div class="ng-col-s">'+ngEuros(suma(cs))+(f.p && f.p < 100 ? ' · '+f.p+'%' : '')+(f.sla ? ' · SLA '+f.sla+' d' : '')+'</div>'+
+      '<div class="ng-col-b">'+(cs.slice(0, 120).map(plTarjeta).join('') || '<div class="ng-vacio">Arrastra aquí</div>')+
+        (cs.length > 120 ? '<div class="tiny muted" style="text-align:center;padding:8px">… y '+(cs.length-120)+' más (usa los filtros)</div>' : '')+'</div>'+
+    '</div>';
+  }).join('')+'</div>')+
+  '<div class="grid g-2" style="margin-top:16px;align-items:start">'+
+    '<div class="card"><div class="card-h"><div><h3>'+ic('x',15)+'Por qué se pierden</h3><p>Motivos anotados al mover a Perdido</p></div></div>'+
+      (Object.keys(motivos).length ? Object.keys(motivos).sort(function(a, b){ return motivos[b] - motivos[a]; }).slice(0, 8).map(function(m){
+        return '<div class="ng-emb"><span class="ng-emb-n" style="color:#FCA5A5;min-width:160px">'+esc(m)+'</span><div class="ng-emb-b"><i style="width:'+(motivos[m]/perdidos.length*100)+'%;background:#F87171"></i></div><span class="tiny" style="color:#fff">'+motivos[m]+'</span></div>'; }).join('')
+        : '<p class="tiny muted">Aún no hay deals perdidos con motivo.</p>')+'</div>'+
+    '<div class="card"><div class="card-h"><div><h3>'+ic('users',15)+'Pipeline abierto por comercial</h3><p>Valor de los deals en curso</p></div></div>'+
+      (Object.keys(porCom).length ? Object.keys(porCom).sort(function(a, b){ return porCom[b] - porCom[a]; }).map(function(k){
+        var mx = Math.max.apply(null, Object.keys(porCom).map(function(x){ return porCom[x]; })) || 1;
+        return '<div class="ng-emb"><span class="ng-emb-n" style="min-width:160px;color:#fff">'+esc(ngNombreUsuario(k) || 'Sin asignar')+'</span><div class="ng-emb-b"><i style="width:'+Math.max(2, porCom[k]/mx*100)+'%;background:#17C8C0"></i></div><span class="tiny nowrap" style="color:#fff">'+ngEuros(porCom[k])+'</span></div>'; }).join('')
+        : '<p class="tiny muted">Sin deals abiertos.</p>')+'</div>'+
+  '</div>'+
+  (PL.menu ? plMenuMover() : '');
+
+  /* Filtros */
+  q('#pl-q').oninput = function(){ PL.q = this.value; var p = this.selectionStart; renderApp(); var n = q('#pl-q'); if(n){ n.focus(); n.setSelectionRange(p, p); } };
+  if(q('#pl-com')) q('#pl-com').onchange = function(){ PL.com = this.value; renderApp(); };
+  q('#pl-sol').onchange = function(){ PL.sol = this.value; renderApp(); };
+  q('#pl-temp').onchange = function(){ PL.temp = this.value; renderApp(); };
+  q('#pl-nuevo').onclick = function(){ CT.volverA = 'pipeline'; S.view = 'contactos'; ctNuevo(); };
+
+  /* Arrastrar y soltar */
+  qa('[data-pl-card]').forEach(function(el){
+    el.addEventListener('dragstart', function(e){ PL.arrastra = Number(el.dataset.plCard); el.classList.add('ng-drag');
+      try{ e.dataTransfer.setData('text/plain', el.dataset.plCard); e.dataTransfer.effectAllowed = 'move'; }catch(x){} });
+    el.addEventListener('dragend', function(){ el.classList.remove('ng-drag'); qa('.ng-col').forEach(function(c){ c.classList.remove('ng-sobre'); }); });
+    el.addEventListener('dblclick', function(){ ngAbreFicha(Number(el.dataset.plCard), 'pipeline'); });
+    el.addEventListener('keydown', function(e){ if(e.key === 'Enter') ngAbreFicha(Number(el.dataset.plCard), 'pipeline'); });
+  });
+  qa('[data-pl-col]').forEach(function(col){
+    col.addEventListener('dragover', function(e){ e.preventDefault(); col.classList.add('ng-sobre'); });
+    col.addEventListener('dragleave', function(e){ if(!col.contains(e.relatedTarget)) col.classList.remove('ng-sobre'); });
+    col.addEventListener('drop', function(e){ e.preventDefault(); col.classList.remove('ng-sobre');
+      var id = PL.arrastra || Number((e.dataTransfer && e.dataTransfer.getData('text/plain')) || 0); PL.arrastra = null;
+      if(id) plMueve(id, col.dataset.plCol); });
+  });
+  /* Acciones rápidas */
+  qa('[data-pl-ficha]').forEach(function(b){ b.onclick = function(e){ e.stopPropagation(); ngAbreFicha(Number(b.dataset.plFicha), 'pipeline'); }; });
+  qa('[data-pl-cita]').forEach(function(b){ b.onclick = function(e){ e.stopPropagation(); agdNuevaCita({contacto_id: Number(b.dataset.plCita)}, 'pipeline'); }; });
+  qa('[data-pl-mover]').forEach(function(b){ b.onclick = function(e){ e.stopPropagation(); PL.menu = Number(b.dataset.plMover); renderApp(); }; });
+  qa('[data-pl-log]').forEach(function(a){ a.addEventListener('click', function(){
+    var id = Number(a.dataset.plId), c = ctContactoPorId(id); if(!c) return;
+    sbInsert('contacto_eventos', {contacto_id:id, autor_id:(SB.sesion && SB.sesion.uid) || null, tipo:a.dataset.plLog,
+      texto:(a.dataset.plLog === 'llamada' ? 'Llamada saliente desde el pipeline' : 'WhatsApp abierto desde el pipeline')});
+    c.ultima_actividad = new Date().toISOString(); sbUpdate('contactos', 'id=eq.' + id, {ultima_actividad: c.ultima_actividad});
+  }); });
+  if(PL.menu){
+    qa('[data-pl-a]').forEach(function(b){ b.onclick = function(){ var id = PL.menu; PL.menu = null; plMueve(id, b.dataset.plA); }; });
+    q('#pl-menu-x').onclick = function(){ PL.menu = null; renderApp(); };
+  }
+}
+
+/* Mover sin arrastrar (móvil y teclado). */
+function plMenuMover(){
+  var c = ctContactoPorId(PL.menu); if(!c) return '';
+  return '<div class="ov" data-ov="pl-mover"><div class="modal" style="max-width:420px">'+
+    '<h3 style="margin:0 0 4px">Mover «'+esc(c.empresa || c.nombre)+'»</h3><p class="tiny muted" style="margin:0 0 14px">Ahora en: '+esc(ngFase(c.fase).n)+'</p>'+
+    '<div class="stack" style="gap:6px">'+FASES_NG.map(function(f){
+      return '<button class="ng-mover'+(f.k === c.fase ? ' on' : '')+'" data-pl-a="'+f.k+'" style="--fc:'+f.c+'">'+ic(f.i,14)+' '+esc(f.n)+'</button>'; }).join('')+'</div>'+
+    '<div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn btn-s" id="pl-menu-x">Cancelar</button></div></div></div>';
+}
+
+/* ==========================================================================
+   AGENDA COMERCIAL INTELIGENTE
+   Vistas día (rejilla por horas), semana (columnas por día, arrastrar para
+   cambiar de día), equipo (persona × día), mes y lista. Desde cada cita:
+   confirmar, cerrar con resumen, recordatorio por WhatsApp y llamada de prueba
+   del asistente de voz.
+   ========================================================================== */
+var TIPOS_CITA = {demo:['Demo IA','#C084FC','mic'], llamada:['Llamada','#38BDF8','phone'], visita:['Visita','#FBBF24','case'],
+  firma:['Firma','#4ADE80','file'], seguimiento:['Seguimiento','#818CF8','refresh'], prueba_ia:['Prueba de asistente','#2DD4BF','spark'], interna:['Interna','#94A3B8','users']};
+var ESTADOS_CITA = {programada:['Programada','blue'], confirmada:['Confirmada','violet'], realizada:['Realizada','green'], no_asistio:['No asistió','red'], cancelada:['Cancelada','']};
+var AGD = {vista:'semana', fecha:null, citas:[], cargado:'', cargando:false, kpi:null, com:'', tipo:'', estado:'', sector:'', q:'', det:null, form:null, prueba:null, volverA:null};
+
+function agdHoy(){ var d = new Date(); d.setHours(0,0,0,0); return d; }
+function agdLunes(d){ var x = new Date(d); x.setHours(0,0,0,0); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return x; }
+function agdSuma(d, n){ var x = new Date(d); x.setDate(x.getDate() + n); return x; }
+function agdMismoDia(a, b){ return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate(); }
+function agdHora(ts){ return new Date(ts).toLocaleTimeString('es-ES', {hour:'2-digit', minute:'2-digit'}); }
+function agdFechaLarga(d){ return d.toLocaleDateString('es-ES', {weekday:'long', day:'numeric', month:'long'}); }
+function agdRango(){
+  var f = AGD.fecha || agdHoy(), ini, fin;
+  if(AGD.vista === 'dia'){ ini = new Date(f); fin = agdSuma(ini, 1); }
+  else if(AGD.vista === 'mes'){ ini = agdLunes(new Date(f.getFullYear(), f.getMonth(), 1)); fin = agdSuma(agdLunes(new Date(f.getFullYear(), f.getMonth()+1, 0)), 7); }
+  else if(AGD.vista === 'lista'){ ini = agdSuma(f, -7); fin = agdSuma(f, 45); }
+  else { ini = agdLunes(f); fin = agdSuma(ini, 7); }
+  return [ini, fin];
+}
+function agdCarga(forzar){
+  var r = agdRango(), mes0 = new Date(agdHoy().getFullYear(), agdHoy().getMonth(), 1), mes1 = new Date(mes0.getFullYear(), mes0.getMonth()+1, 1);
+  var ini = new Date(Math.min(r[0], mes0, agdLunes(agdHoy()))), fin = new Date(Math.max(r[1], mes1, agdSuma(agdLunes(agdHoy()), 7)));
+  var clave = ini.toISOString() + fin.toISOString();
+  if(!forzar && (AGD.cargado === clave || AGD.cargando)) return;
+  AGD.cargando = true;
+  Promise.all([
+    sbSelect('citas', 'select=*&inicio=gte.' + ini.toISOString() + '&inicio=lt.' + fin.toISOString() + '&order=inicio.asc'),
+    sbSelect('citas', 'select=id,estado,resumen,inicio&estado=in.(programada,confirmada)&inicio=lt.' + new Date().toISOString()),
+    sbSelect('citas', 'select=id&estado=eq.realizada&resumen=eq.')
+  ]).then(function(rs){
+    AGD.cargando = false; AGD.cargado = clave;
+    AGD.citas = (rs[0] && rs[0].ok) ? rs[0].datos || [] : [];
+    AGD.kpi = {pasadas: (rs[1] && rs[1].ok) ? rs[1].datos.length : 0, sinResumen: (rs[2] && rs[2].ok) ? rs[2].datos.length : 0};
+    if(S.view === 'calendar' || S.view === 'agenda') renderApp();
+  }, function(){ AGD.cargando = false; });
+}
+function agdFiltradas(){
+  return AGD.citas.filter(function(c){
+    if(AGD.com && c.comercial_id !== AGD.com) return false;
+    if(AGD.tipo && c.tipo !== AGD.tipo) return false;
+    if(AGD.estado && c.estado !== AGD.estado) return false;
+    if(AGD.sector && (c.sector || '') !== AGD.sector) return false;
+    if(AGD.q){ var k = c.contacto_id ? ctContactoPorId(c.contacto_id) : null;
+      var t = (c.titulo+' '+(c.lugar||'')+' '+(c.notas||'')+' '+(k ? k.nombre+' '+(k.empresa||'')+' '+(k.telefono||'') : '')).toLowerCase();
+      if(t.indexOf(AGD.q.toLowerCase().trim()) < 0) return false; }
+    return true;
+  });
+}
+function agdTarjeta(c, compacta){
+  var t = TIPOS_CITA[c.tipo] || TIPOS_CITA.demo, k = c.contacto_id ? ctContactoPorId(c.contacto_id) : null, e = ESTADOS_CITA[c.estado] || ESTADOS_CITA.programada;
+  return '<div class="ng-cita ng-cita-'+c.estado+'" data-agd-cita="'+c.id+'" draggable="true" style="--cc:'+t[1]+'" tabindex="0">'+
+    '<div class="ng-cita-h"><b>'+agdHora(c.inicio)+'–'+agdHora(c.fin)+'</b><span title="'+esc(t[0])+'">'+ic(t[2],12)+'</span></div>'+
+    '<div class="ng-cita-t trunc">'+esc(k ? (k.empresa || k.nombre) : c.titulo)+'</div>'+
+    (compacta ? '' : '<div class="tiny muted trunc">'+esc(k ? c.titulo : (c.lugar || t[0]))+'</div>')+
+    '<div class="ng-cita-p">'+ngAvatar(ngNombreUsuario(c.comercial_id), 18)+'<span class="tiny trunc">'+esc((ngNombreUsuario(c.comercial_id) || '').split(' ')[0])+'</span>'+
+      '<span class="chip '+e[1]+' ng-chip" style="margin-left:auto">'+esc(e[0])+'</span></div></div>';
+}
+
+function viewAgenda(v){
+  if(!AGD.fecha) AGD.fecha = agdHoy();
+  if(!CT.cargado && !CT.cargando) ctCarga();
+  agdCarga();
+  var lista = agdFiltradas(), hoy = agdHoy(), lun = agdLunes(AGD.fecha);
+  var todas = AGD.citas, mesHoy = hoy.getMonth();
+  var deHoy = todas.filter(function(c){ return agdMismoDia(new Date(c.inicio), hoy) && c.estado !== 'cancelada'; });
+  var semana = todas.filter(function(c){ var d = new Date(c.inicio); return d >= agdLunes(hoy) && d < agdSuma(agdLunes(hoy), 7) && c.estado !== 'cancelada'; });
+  var mes = todas.filter(function(c){ var d = new Date(c.inicio); return d.getMonth() === mesHoy && d.getFullYear() === hoy.getFullYear() && c.estado !== 'cancelada'; });
+  var hechas = mes.filter(function(c){ return c.estado === 'realizada'; }).length, faltas = mes.filter(function(c){ return c.estado === 'no_asistio'; }).length;
+  var asist = (hechas + faltas) ? Math.round(hechas*100/(hechas + faltas)) : null;
+  var comerciales = (typeof USUARIOS !== 'undefined' ? USUARIOS : []).filter(function(u){ return u.est === 'Activo'; });
+  var sectores = {}; todas.forEach(function(c){ if(c.sector) sectores[c.sector] = 1; });
+  var titulo = AGD.vista === 'dia' ? agdFechaLarga(AGD.fecha) : AGD.vista === 'mes' ? AGD.fecha.toLocaleDateString('es-ES', {month:'long', year:'numeric'}) :
+    AGD.vista === 'lista' ? 'Próximas citas' : 'Semana del ' + lun.getDate() + ' ' + lun.toLocaleDateString('es-ES', {month:'long'}) + ' al ' + agdSuma(lun, 6).getDate() + ' ' + agdSuma(lun, 6).toLocaleDateString('es-ES', {month:'long', year:'numeric'});
+  var cuerpo = AGD.vista === 'dia' ? agdVistaDia(lista) : AGD.vista === 'equipo' ? agdVistaEquipo(lista, comerciales) : AGD.vista === 'mes' ? agdVistaMes(lista) :
+    AGD.vista === 'lista' ? agdVistaLista(lista) : agdVistaSemana(lista);
+  var personas = {}; lista.forEach(function(c){ if(c.comercial_id) personas[c.comercial_id] = (personas[c.comercial_id] || 0) + 1; });
+
+  v.innerHTML =
+  '<div class="card glass ng-hero" style="margin-bottom:16px">'+
+    '<div style="flex:1;min-width:240px"><span class="pill-live"><span class="blip"></span>AGENDA COMERCIAL</span>'+
+      '<h1 class="ng-h1" style="text-transform:none">'+esc(titulo.charAt(0).toUpperCase() + titulo.slice(1))+'</h1>'+
+      '<p class="ng-sub"><b>'+lista.length+'</b> citas · <b>'+lista.filter(function(c){ return c.estado === 'realizada'; }).length+'</b> realizadas · <b>'+Object.keys(personas).length+'</b> personas</p></div>'+
+    '<button class="btn btn-p" id="ag-nueva">'+ic('plus',15)+' Nueva cita</button></div>'+
+  '<div class="ng-kpis" style="grid-template-columns:repeat(6,minmax(0,1fr))">'+
+    [['Citas hoy', deHoy.length, 'calendar', '#FBBF24'], ['Esta semana', semana.length, 'calendar', '#818CF8'], ['Este mes', mes.length, 'calendar', '#38BDF8'],
+     ['Asistencia del mes', asist === null ? '—' : asist + '%', 'check', '#4ADE80', hechas+' realizadas · '+faltas+' no asistieron'],
+     ['Pasadas sin cerrar', AGD.kpi ? AGD.kpi.pasadas : '…', 'clock', AGD.kpi && AGD.kpi.pasadas ? '#F87171' : '#94A3B8', 'márcalas como realizadas o no asistió'],
+     ['Realizadas sin resumen', AGD.kpi ? AGD.kpi.sinResumen : '…', 'file', AGD.kpi && AGD.kpi.sinResumen ? '#FB923C' : '#94A3B8']].map(function(k){
+      return '<div class="card ng-kpi" style="--kc:'+k[3]+'"><div class="ng-kpi-ic">'+ic(k[2],16)+'</div><div class="ng-kpi-v">'+esc(String(k[1]))+'</div><div class="ng-kpi-l">'+esc(k[0])+'</div>'+
+        (k[4] ? '<div class="tiny muted">'+esc(k[4])+'</div>' : '')+'</div>'; }).join('')+
+  '</div>'+
+  '<div class="card" style="margin:16px 0;padding:12px 14px">'+
+    '<div class="row" style="gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between">'+
+      '<div class="ng-seg">'+[['dia','Día'],['semana','Semana'],['equipo','Equipo'],['mes','Mes'],['lista','Lista']].map(function(x){
+        return '<button class="'+(AGD.vista === x[0] ? 'on' : '')+'" data-agd-vista="'+x[0]+'">'+x[1]+'</button>'; }).join('')+'</div>'+
+      '<div class="row" style="gap:6px;align-items:center"><button class="btn btn-s btn-xs" id="ag-ant">'+ic('arrowLeft',13)+'</button>'+
+        '<button class="btn btn-p btn-xs" id="ag-hoy">Hoy</button><button class="btn btn-s btn-xs" id="ag-sig">'+ic('arrowRight',13)+'</button>'+
+        '<input type="date" class="inp" id="ag-fecha" style="width:auto;padding:6px 10px" value="'+agdISOdia(AGD.fecha)+'"></div></div>'+
+    '<div class="row u-filtros">'+
+      '<div class="search" style="flex:1;min-width:200px">'+ic('search',15)+'<input id="ag-q" placeholder="Buscar cliente, contacto, teléfono…" value="'+esc(AGD.q)+'"></div>'+
+      (ctPuedeGestionar() ? '<select class="inp u-sel" id="ag-com"><option value="">Todo el equipo</option>'+comerciales.map(function(u){
+        return '<option value="'+esc(u.id)+'"'+(AGD.com === u.id ? ' selected' : '')+'>'+esc(u.n || u.mail)+'</option>'; }).join('')+'</select>' : '')+
+      '<select class="inp u-sel" id="ag-tipo"><option value="">Tipo: todos</option>'+Object.keys(TIPOS_CITA).map(function(k){
+        return '<option value="'+k+'"'+(AGD.tipo === k ? ' selected' : '')+'>'+TIPOS_CITA[k][0]+'</option>'; }).join('')+'</select>'+
+      '<select class="inp u-sel" id="ag-estado"><option value="">Estado: todos</option>'+Object.keys(ESTADOS_CITA).map(function(k){
+        return '<option value="'+k+'"'+(AGD.estado === k ? ' selected' : '')+'>'+ESTADOS_CITA[k][0]+'</option>'; }).join('')+'</select>'+
+      '<select class="inp u-sel" id="ag-sector"><option value="">Sector: todos</option>'+Object.keys(sectores).sort().map(function(s){
+        return '<option'+(AGD.sector === s ? ' selected' : '')+'>'+esc(s)+'</option>'; }).join('')+'</select>'+
+    '</div>'+
+    (Object.keys(personas).length ? '<div class="row" style="gap:6px;flex-wrap:wrap;margin-top:10px">'+Object.keys(personas).map(function(id){
+      return '<button class="ng-persona'+(AGD.com === id ? ' on' : '')+'" data-agd-per="'+esc(id)+'">'+ngAvatar(ngNombreUsuario(id), 20)+' '+esc(ngNombreUsuario(id) || '—')+' <b>'+personas[id]+'</b></button>'; }).join('')+'</div>' : '')+
+  '</div>'+
+  cuerpo+
+  (AGD.det ? agdDetalleModal() : '') + (AGD.form ? agdFormModal() : '');
+  agdEventos();
+}
+function agdISOdia(d){ var x = new Date(d); x.setMinutes(x.getMinutes() - x.getTimezoneOffset()); return x.toISOString().slice(0, 10); }
+
+function agdVistaSemana(lista){
+  var lun = agdLunes(AGD.fecha), hoy = agdHoy();
+  return '<div class="ng-semana">'+[0,1,2,3,4,5,6].map(function(i){
+    var d = agdSuma(lun, i), cs = lista.filter(function(c){ return agdMismoDia(new Date(c.inicio), d); });
+    var hechas = cs.filter(function(c){ return c.estado === 'realizada'; }).length;
+    return '<div class="ng-dia'+(agdMismoDia(d, hoy) ? ' hoy' : '')+'" data-agd-dia="'+agdISOdia(d)+'">'+
+      '<div class="ng-dia-h"><div class="tiny">'+(agdMismoDia(d, hoy) ? 'HOY · ' : '')+d.toLocaleDateString('es-ES', {weekday:'long'}).toUpperCase()+'</div>'+
+        '<div class="ng-dia-n">'+d.getDate()+' <span>'+d.toLocaleDateString('es-ES', {month:'short'})+'</span></div>'+
+        '<div class="tiny muted">'+(cs.length ? cs.length+' cita'+(cs.length > 1 ? 's' : '')+(hechas ? ' · '+hechas+' ✓' : '') : 'Libre')+'</div>'+
+        '<div class="ng-dia-bar"><i style="width:'+(cs.length ? hechas/cs.length*100 : 0)+'%"></i></div></div>'+
+      '<div class="ng-dia-b">'+(cs.map(function(c){ return agdTarjeta(c); }).join('') || '<div class="ng-vacio" data-agd-hueco="'+agdISOdia(d)+'">Sin citas</div>')+'</div></div>';
+  }).join('')+'</div>';
+}
+function agdVistaDia(lista){
+  var d = AGD.fecha, cs = lista.filter(function(c){ return agdMismoDia(new Date(c.inicio), d); });
+  var h0 = 8, h1 = 21, alto = 56;
+  return '<div class="card ng-dia-grid"><div class="ng-horas">'+Array.apply(null, {length: h1-h0}).map(function(_, i){
+      return '<div class="ng-hora" style="height:'+alto+'px" data-agd-h="'+(h0+i)+'"><span>'+String(h0+i).padStart(2,'0')+':00</span></div>'; }).join('')+
+    cs.map(function(c){
+      var a = new Date(c.inicio), b = new Date(c.fin), top = ((a.getHours() + a.getMinutes()/60) - h0) * alto, h = Math.max(26, (b - a)/3600000 * alto);
+      return '<div class="ng-bloque" style="top:'+Math.max(0, top)+'px;height:'+h+'px">'+agdTarjeta(c, h < 70)+'</div>'; }).join('')+
+    (agdMismoDia(d, agdHoy()) ? '<div class="ng-ahora" style="top:'+(((new Date().getHours() + new Date().getMinutes()/60) - h0) * alto)+'px"></div>' : '')+
+  '</div>'+(cs.length ? '' : '<p class="tiny muted" style="text-align:center;margin-top:10px">Día libre. Pulsa en una hora para crear una cita.</p>')+'</div>';
+}
+function agdVistaEquipo(lista, comerciales){
+  var lun = agdLunes(AGD.fecha), gente = comerciales.filter(function(u){ return lista.some(function(c){ return c.comercial_id === u.id; }) || u.rol !== 'backoffice'; });
+  return '<div class="card" style="overflow-x:auto"><table class="tbl ng-equipo"><thead><tr><th>Persona</th>'+[0,1,2,3,4,5,6].map(function(i){
+      var d = agdSuma(lun, i); return '<th>'+d.toLocaleDateString('es-ES', {weekday:'short', day:'numeric'})+'</th>'; }).join('')+'</tr></thead><tbody>'+
+    gente.map(function(u){
+      return '<tr><td><div class="row" style="gap:8px;align-items:center">'+ngAvatar(u.n, 26)+'<span class="small" style="color:#fff">'+esc(u.n || u.mail)+'</span></div></td>'+[0,1,2,3,4,5,6].map(function(i){
+        var d = agdSuma(lun, i), cs = lista.filter(function(c){ return c.comercial_id === u.id && agdMismoDia(new Date(c.inicio), d); });
+        return '<td style="vertical-align:top;min-width:130px">'+cs.map(function(c){ return agdTarjeta(c, true); }).join('')+'</td>'; }).join('')+'</tr>';
+    }).join('')+'</tbody></table></div>';
+}
+function agdVistaMes(lista){
+  var f = AGD.fecha, ini = agdLunes(new Date(f.getFullYear(), f.getMonth(), 1)), hoy = agdHoy(), celdas = '';
+  for(var i = 0; i < 42; i++){
+    var d = agdSuma(ini, i); if(i >= 35 && d.getMonth() !== f.getMonth()) break;
+    var cs = lista.filter(function(c){ return agdMismoDia(new Date(c.inicio), d); });
+    celdas += '<div class="ng-mes-c'+(d.getMonth() !== f.getMonth() ? ' fuera' : '')+(agdMismoDia(d, hoy) ? ' hoy' : '')+'" data-agd-ir="'+agdISOdia(d)+'">'+
+      '<div class="ng-mes-d">'+d.getDate()+'</div>'+cs.slice(0, 3).map(function(c){ var t = TIPOS_CITA[c.tipo] || TIPOS_CITA.demo;
+        return '<div class="ng-mes-ev" style="--cc:'+t[1]+'">'+agdHora(c.inicio)+' '+esc((ctContactoPorId(c.contacto_id) || {}).empresa || c.titulo)+'</div>'; }).join('')+
+      (cs.length > 3 ? '<div class="tiny muted">+'+(cs.length-3)+' más</div>' : '')+'</div>';
+  }
+  return '<div class="card"><div class="ng-mes">'+['L','M','X','J','V','S','D'].map(function(x){ return '<div class="ng-mes-dow">'+x+'</div>'; }).join('')+celdas+'</div></div>';
+}
+function agdVistaLista(lista){
+  return '<div class="card" style="overflow-x:auto"><table class="tbl"><thead><tr><th>Cuándo</th><th>Cita</th><th>Cliente</th><th>Persona</th><th>Estado</th></tr></thead><tbody>'+
+    (lista.map(function(c){ var k = ctContactoPorId(c.contacto_id), t = TIPOS_CITA[c.tipo] || TIPOS_CITA.demo, e = ESTADOS_CITA[c.estado];
+      return '<tr class="ct-fila" data-agd-cita="'+c.id+'"><td class="tiny nowrap">'+esc(new Date(c.inicio).toLocaleString('es-ES', {weekday:'short', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'}))+'</td>'+
+        '<td><span class="chip ng-chip" style="color:'+t[1]+'">'+ic(t[2],10)+' '+esc(t[0])+'</span> <span class="small" style="color:#fff">'+esc(c.titulo)+'</span></td>'+
+        '<td class="small">'+esc(k ? (k.empresa || k.nombre) : '—')+'</td><td class="tiny">'+esc(ngNombreUsuario(c.comercial_id) || '—')+'</td>'+
+        '<td><span class="chip '+e[1]+'">'+esc(e[0])+'</span></td></tr>'; }).join('') ||
+      '<tr><td colspan="5" class="muted" style="text-align:center;padding:24px">No hay citas con estos filtros.</td></tr>')+'</tbody></table></div>';
+}
+
+/* --- Detalle de la cita: acciones ---------------------------------------- */
+function agdDetalleModal(){
+  var c = AGD.citas.filter(function(x){ return x.id === AGD.det; })[0]; if(!c) return '';
+  var k = ctContactoPorId(c.contacto_id), t = TIPOS_CITA[c.tipo] || TIPOS_CITA.demo, e = ESTADOS_CITA[c.estado], tel = k ? ctTelCompleto(k) : '';
+  var cuando = new Date(c.inicio).toLocaleString('es-ES', {weekday:'long', day:'numeric', month:'long', hour:'2-digit', minute:'2-digit'});
+  var recordatorio = 'Hola' + (k ? ' ' + String(k.nombre).split(' ')[0] : '') + ', te recordamos tu cita con Labs24k el ' + cuando + (c.lugar ? ' en ' + c.lugar : '') + '. ¡Te esperamos!';
+  var P = AGD.prueba && AGD.prueba.cita === c.id ? AGD.prueba : null;
+  return '<div class="ov" data-ov="ag-det"><div class="modal" style="max-width:620px">'+
+    '<div class="row" style="justify-content:space-between;align-items:flex-start;gap:10px"><div style="min-width:0">'+
+      '<span class="chip ng-chip" style="color:'+t[1]+';border-color:'+t[1]+'55">'+ic(t[2],11)+' '+esc(t[0])+'</span> <span class="chip '+e[1]+'">'+esc(e[0])+'</span>'+
+      '<h3 style="margin:10px 0 4px">'+esc(c.titulo)+'</h3><div class="small muted">'+esc(cuando.charAt(0).toUpperCase() + cuando.slice(1))+' · '+agdHora(c.inicio)+'–'+agdHora(c.fin)+'</div></div>'+
+      '<button class="icon-btn" id="ag-det-x">'+ic('x',16)+'</button></div>'+
+    '<div class="grid g-2" style="margin-top:14px">'+
+      '<div class="ng-dato"><span>Cliente</span><b>'+(k ? esc(k.empresa || k.nombre) : '—')+'</b>'+(k ? '<div class="tiny muted">'+esc(k.nombre)+(tel ? ' · '+esc(tel) : '')+'</div>' : '')+'</div>'+
+      '<div class="ng-dato"><span>Atiende</span><b>'+esc(ngNombreUsuario(c.comercial_id) || '—')+'</b>'+(c.sector ? '<div class="tiny muted">Sector: '+esc(c.sector)+'</div>' : '')+'</div>'+
+      (c.lugar ? '<div class="ng-dato"><span>Lugar</span><b>'+esc(c.lugar)+'</b></div>' : '')+
+      (c.notas ? '<div class="ng-dato" style="grid-column:1/-1"><span>Notas</span><div class="small" style="white-space:pre-line;color:#E2E8F0">'+esc(c.notas)+'</div></div>' : '')+
+    '</div>'+
+    '<div class="ng-acciones">'+
+      (tel ? '<a class="btn btn-s" href="'+esc(ngWhatsApp(tel, recordatorio))+'" target="_blank" rel="noopener" id="ag-wa">'+ic('chat',14)+' Recordatorio WhatsApp</a>' : '')+
+      (k ? '<button class="btn btn-s" id="ag-prueba">'+ic('phone',14)+' Llamada de prueba IA</button>' : '')+
+      (k ? '<button class="btn btn-s" id="ag-ficha">'+ic('eye',14)+' Ficha 360</button>' : '')+
+      '<button class="btn btn-s" id="ag-editar">'+ic('cog',14)+' Reprogramar</button></div>'+
+    (P ? '<div class="ng-trans">'+(P.cargando ? '<p class="tiny muted">Lanzando la llamada de prueba…</p>' :
+      (P.error ? '<p class="tiny" style="color:#FCA5A5">'+esc(P.error)+'</p>' : '<div class="tiny" style="margin-bottom:8px;color:'+(P.modo === 'real' ? '#86EFAC' : '#FDE68A')+'">'+
+        esc(P.mensaje)+'</div>'+(P.transcripcion || []).map(function(l){ return '<div class="ng-burbuja '+(l.quien === 'IA' ? 'ia' : 'cli')+'"><b>'+esc(l.quien)+'</b> '+esc(l.texto)+'</div>'; }).join('')))+'</div>' : '')+
+    (['programada','confirmada'].indexOf(c.estado) > -1 || (c.estado === 'realizada' && !c.resumen) ?
+      '<div class="field" style="margin-top:14px"><label class="f">Resumen de la cita</label><textarea class="inp" id="ag-resumen" rows="3" placeholder="Qué se habló, siguiente paso, objeciones…">'+esc(c.resumen || '')+'</textarea></div>' :
+      (c.resumen ? '<div class="ng-dato" style="margin-top:14px"><span>Resumen</span><div class="small" style="white-space:pre-line;color:#E2E8F0">'+esc(c.resumen)+'</div></div>' : ''))+
+    '<div class="row" style="gap:8px;flex-wrap:wrap;justify-content:flex-end;margin-top:14px">'+
+      (c.estado === 'programada' ? '<button class="btn btn-s" data-agd-est="confirmada">'+ic('check',14)+' Confirmada</button>' : '')+
+      (['programada','confirmada'].indexOf(c.estado) > -1 ? '<button class="btn btn-s" data-agd-est="no_asistio">'+ic('x',14)+' No asistió</button>'+
+        '<button class="btn btn-s" data-agd-est="cancelada">Cancelar cita</button><button class="btn btn-p" data-agd-est="realizada">'+ic('check',14)+' Realizada</button>' : '')+
+      (c.estado === 'realizada' && !c.resumen ? '<button class="btn btn-p" data-agd-est="realizada">'+ic('save',14)+' Guardar resumen</button>' : '')+
+    '</div></div></div>';
+}
+
+/* --- Alta / edición de cita ------------------------------------------------ */
+function agdNuevaCita(pre, desde){
+  pre = pre || {};
+  var d = pre.fecha ? new Date(pre.fecha) : new Date(); if(!pre.fecha){ d.setMinutes(0, 0, 0); d.setHours(d.getHours() + 1); }
+  var k = pre.contacto_id ? ctContactoPorId(pre.contacto_id) : null;
+  AGD.form = {id:null, titulo: k ? 'Demo IA · ' + (k.empresa || k.nombre) : '', tipo:'demo', dia: agdISOdia(d), hora: String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0'),
+    duracion:45, comercial_id:(SB.sesion && SB.sesion.uid) || '', contacto_id: pre.contacto_id || '', sector: '', lugar:'', notas:'', buscar:''};
+  AGD.volverA = desde || null;
+  if(desde && desde !== 'calendar'){ S.view = 'calendar'; }
+  renderApp();
+}
+function agdFormModal(){
+  var F = AGD.form, jefe = S.role === 'admin' || S.role === 'manager';
+  var gente = (typeof USUARIOS !== 'undefined' ? USUARIOS : []).filter(function(u){ return u.est === 'Activo'; });
+  var cands = CT.lista.filter(function(c){ if(!F.buscar) return String(c.id) === String(F.contacto_id); var t = (c.nombre+' '+(c.empresa||'')+' '+(c.telefono||'')).toLowerCase(); return t.indexOf(F.buscar.toLowerCase()) > -1; }).slice(0, 30);
+  var k = F.contacto_id ? ctContactoPorId(Number(F.contacto_id)) : null;
+  return '<div class="ov" data-ov="ag-form"><div class="modal" style="max-width:560px">'+
+    '<h3 style="margin:0 0 14px">'+(F.id ? 'Reprogramar cita' : 'Nueva cita')+'</h3>'+
+    '<div class="field"><label class="f">Cliente (contacto)</label>'+
+      (k ? '<div class="row" style="gap:8px;align-items:center"><span class="chip blue">'+esc(k.empresa || k.nombre)+'</span><button class="btn btn-s btn-xs" id="agf-quitar">Cambiar</button></div>' :
+      '<input class="inp" id="agf-buscar" placeholder="Busca por nombre, empresa o teléfono" value="'+esc(F.buscar)+'">'+
+      (F.buscar ? '<div class="ng-sugs">'+(cands.map(function(c){ return '<button data-agf-c="'+c.id+'">'+esc(c.empresa || c.nombre)+' <span class="tiny muted">'+esc(c.nombre)+' · '+esc(c.telefono || '')+'</span></button>'; }).join('') ||
+        '<div class="tiny muted" style="padding:6px">Sin resultados. Puedes crear la cita sin contacto.</div>')+'</div>' : ''))+'</div>'+
+    '<div class="field"><label class="f">Título</label><input class="inp" id="agf-titulo" value="'+esc(F.titulo)+'" placeholder="Ej.: Demo del asistente de voz"></div>'+
+    '<div class="grid g-2">'+
+      '<div class="field"><label class="f">Tipo</label><select class="inp" id="agf-tipo">'+Object.keys(TIPOS_CITA).map(function(x){ return '<option value="'+x+'"'+(F.tipo === x ? ' selected' : '')+'>'+TIPOS_CITA[x][0]+'</option>'; }).join('')+'</select></div>'+
+      '<div class="field"><label class="f">Atiende</label>'+(jefe ? '<select class="inp" id="agf-com">'+gente.map(function(u){ return '<option value="'+esc(u.id)+'"'+(F.comercial_id === u.id ? ' selected' : '')+'>'+esc(u.n || u.mail)+'</option>'; }).join('')+'</select>' :
+        '<input class="inp" value="'+esc(S.name)+'" readonly>')+'</div>'+
+      '<div class="field"><label class="f">Día</label><input class="inp" type="date" id="agf-dia" value="'+esc(F.dia)+'"></div>'+
+      '<div class="grid g-2"><div class="field"><label class="f">Hora</label><input class="inp" type="time" id="agf-hora" value="'+esc(F.hora)+'"></div>'+
+        '<div class="field"><label class="f">Minutos</label><input class="inp" type="number" min="5" max="600" step="5" id="agf-dur" value="'+F.duracion+'"></div></div>'+
+      '<div class="field"><label class="f">Sector</label><input class="inp" id="agf-sector" value="'+esc(F.sector)+'" placeholder="Clínicas, inmobiliarias…"></div>'+
+      '<div class="field"><label class="f">Lugar</label><input class="inp" id="agf-lugar" value="'+esc(F.lugar)+'" placeholder="Dirección, Meet, teléfono…"></div></div>'+
+    '<div class="field"><label class="f">Notas</label><textarea class="inp" id="agf-notas" rows="2">'+esc(F.notas)+'</textarea></div>'+
+    '<div class="row" style="gap:10px;justify-content:space-between;margin-top:6px">'+(F.id ? '<button class="btn btn-s" id="agf-borrar">'+ic('x',14)+' Eliminar</button>' : '<span></span>')+
+      '<div class="row" style="gap:8px"><button class="btn btn-s" id="agf-x">Cancelar</button><button class="btn btn-p" id="agf-ok">'+ic('save',14)+' Guardar</button></div></div>'+
+  '</div></div>';
+}
+function agdLeeForm(){
+  var F = AGD.form, g = function(id){ var e = q(id); return e ? e.value : undefined; };
+  ['titulo','tipo','dia','hora','sector','lugar','notas'].forEach(function(k){ var x = g('#agf-' + k); if(x !== undefined) F[k] = x; });
+  if(g('#agf-com') !== undefined) F.comercial_id = g('#agf-com');
+  if(g('#agf-dur') !== undefined) F.duracion = Number(g('#agf-dur')) || 45;
+  if(g('#agf-buscar') !== undefined) F.buscar = g('#agf-buscar');
+}
+function agdGuarda(){
+  agdLeeForm(); var F = AGD.form;
+  if(String(F.titulo).trim().length < 2){ toast('Ponle un título a la cita.'); return; }
+  var ini = new Date(F.dia + 'T' + (F.hora || '09:00') + ':00'), fin = new Date(ini.getTime() + Math.max(5, F.duracion)*60000);
+  if(isNaN(ini)){ toast('Revisa el día y la hora.'); return; }
+  var k = F.contacto_id ? ctContactoPorId(Number(F.contacto_id)) : null;
+  var fila = {titulo:F.titulo.trim(), tipo:F.tipo, inicio:ini.toISOString(), fin:fin.toISOString(), comercial_id:F.comercial_id || (SB.sesion && SB.sesion.uid),
+    contacto_id: F.contacto_id ? Number(F.contacto_id) : null, sector: F.sector.trim(), lugar: F.lugar.trim(), notas: F.notas};
+  var p = F.id ? sbUpdate('citas', 'id=eq.' + F.id, fila) : sbInsert('citas', Object.assign({creado_por:(SB.sesion && SB.sesion.uid) || null}, fila));
+  p.then(function(r){
+    if(!(r && r.ok)){ toast('No se ha podido guardar: ' + sbMensaje(r)); return; }
+    toast(F.id ? 'Cita reprogramada.' : 'Cita agendada' + (k ? ' con ' + (k.empresa || k.nombre) : '') + '.');
+    AGD.form = null; AGD.fecha = new Date(ini); AGD.fecha.setHours(0,0,0,0);
+    if(k && !k.proximo_contacto){ k.proximo_contacto = ini.toISOString(); sbUpdate('contactos', 'id=eq.' + k.id, {proximo_contacto: ini.toISOString()}); }
+    agdCarga(true); if(SALA) SALA.datos = null;
+    if(AGD.volverA && AGD.volverA !== 'calendar'){ var v = AGD.volverA; AGD.volverA = null; S.view = v; }
+    renderApp();
+  });
+}
+
+function agdEventos(){
+  qa('[data-agd-vista]').forEach(function(b){ b.onclick = function(){ AGD.vista = b.dataset.agdVista; agdCarga(); renderApp(); }; });
+  var mueve = function(n){ var d = new Date(AGD.fecha || agdHoy());
+    if(AGD.vista === 'dia') d.setDate(d.getDate() + n); else if(AGD.vista === 'mes') d.setMonth(d.getMonth() + n); else d.setDate(d.getDate() + 7*n);
+    AGD.fecha = d; agdCarga(); renderApp(); };
+  q('#ag-ant').onclick = function(){ mueve(-1); }; q('#ag-sig').onclick = function(){ mueve(1); };
+  q('#ag-hoy').onclick = function(){ AGD.fecha = agdHoy(); agdCarga(); renderApp(); };
+  q('#ag-fecha').onchange = function(){ if(this.value){ AGD.fecha = new Date(this.value + 'T00:00:00'); agdCarga(); renderApp(); } };
+  q('#ag-q').oninput = function(){ AGD.q = this.value; var p = this.selectionStart; renderApp(); var n = q('#ag-q'); if(n){ n.focus(); n.setSelectionRange(p, p); } };
+  if(q('#ag-com')) q('#ag-com').onchange = function(){ AGD.com = this.value; renderApp(); };
+  q('#ag-tipo').onchange = function(){ AGD.tipo = this.value; renderApp(); };
+  q('#ag-estado').onchange = function(){ AGD.estado = this.value; renderApp(); };
+  q('#ag-sector').onchange = function(){ AGD.sector = this.value; renderApp(); };
+  qa('[data-agd-per]').forEach(function(b){ b.onclick = function(){ AGD.com = AGD.com === b.dataset.agdPer ? '' : b.dataset.agdPer; renderApp(); }; });
+  q('#ag-nueva').onclick = function(){ agdNuevaCita({fecha: AGD.vista === 'dia' ? (function(){ var d = new Date(AGD.fecha); d.setHours(10); return d; })() : null}); };
+  qa('[data-agd-cita]').forEach(function(el){
+    el.onclick = function(){ AGD.det = Number(el.dataset.agdCita); AGD.prueba = null; renderApp(); };
+    el.addEventListener('dragstart', function(e){ AGD.arrastra = Number(el.dataset.agdCita); try{ e.dataTransfer.setData('text/plain', el.dataset.agdCita); }catch(x){} });
+  });
+  qa('[data-agd-dia]').forEach(function(col){
+    col.addEventListener('dragover', function(e){ e.preventDefault(); col.classList.add('ng-sobre'); });
+    col.addEventListener('dragleave', function(e){ if(!col.contains(e.relatedTarget)) col.classList.remove('ng-sobre'); });
+    col.addEventListener('drop', function(e){ e.preventDefault(); col.classList.remove('ng-sobre');
+      var c = AGD.citas.filter(function(x){ return x.id === AGD.arrastra; })[0]; AGD.arrastra = null; if(!c) return;
+      var a = new Date(c.inicio), b = new Date(c.fin), dur = b - a, dest = new Date(col.dataset.agdDia + 'T00:00:00');
+      dest.setHours(a.getHours(), a.getMinutes(), 0, 0); if(agdMismoDia(dest, a)) return;
+      var cambios = {inicio: dest.toISOString(), fin: new Date(dest.getTime() + dur).toISOString()};
+      Object.assign(c, cambios); renderApp();
+      sbUpdate('citas', 'id=eq.' + c.id, cambios).then(function(r){ if(r && r.ok) toast('Cita movida al ' + agdFechaLarga(dest) + '.'); else { toast('No se ha podido mover: ' + sbMensaje(r)); agdCarga(true); } });
+    });
+  });
+  qa('[data-agd-hueco]').forEach(function(el){ el.onclick = function(){ var d = new Date(el.dataset.agdHueco + 'T10:00:00'); agdNuevaCita({fecha: d}); }; });
+  qa('[data-agd-h]').forEach(function(el){ el.onclick = function(){ var d = new Date(AGD.fecha); d.setHours(Number(el.dataset.agdH), 0, 0, 0); agdNuevaCita({fecha: d}); }; });
+  qa('[data-agd-ir]').forEach(function(el){ el.onclick = function(){ AGD.fecha = new Date(el.dataset.agdIr + 'T00:00:00'); AGD.vista = 'dia'; agdCarga(); renderApp(); }; });
+
+  /* Detalle */
+  if(AGD.det){
+    var c = AGD.citas.filter(function(x){ return x.id === AGD.det; })[0];
+    q('#ag-det-x').onclick = function(){ AGD.det = null; AGD.prueba = null; renderApp(); };
+    if(q('#ag-ficha')) q('#ag-ficha').onclick = function(){ AGD.det = null; ngAbreFicha(c.contacto_id, 'calendar'); };
+    if(q('#ag-editar')) q('#ag-editar').onclick = function(){
+      var a = new Date(c.inicio);
+      AGD.form = {id:c.id, titulo:c.titulo, tipo:c.tipo, dia:agdISOdia(a), hora:String(a.getHours()).padStart(2,'0')+':'+String(a.getMinutes()).padStart(2,'0'),
+        duracion: Math.round((new Date(c.fin) - a)/60000), comercial_id:c.comercial_id, contacto_id:c.contacto_id || '', sector:c.sector || '', lugar:c.lugar || '', notas:c.notas || '', buscar:''};
+      AGD.det = null; renderApp(); };
+    if(q('#ag-wa')) q('#ag-wa').addEventListener('click', function(){
+      sbInsert('contacto_eventos', {contacto_id:c.contacto_id, autor_id:(SB.sesion && SB.sesion.uid) || null, tipo:'whatsapp', texto:'Recordatorio de cita enviado por WhatsApp: ' + c.titulo});
+      toast('Recordatorio abierto en WhatsApp y anotado en la ficha.'); });
+    if(q('#ag-prueba')) q('#ag-prueba').onclick = function(){
+      var k = ctContactoPorId(c.contacto_id), tel = window.prompt('¿A qué teléfono lanzamos la llamada de prueba del asistente?', k ? ctTelCompleto(k) : '');
+      if(!tel) return;
+      AGD.prueba = {cita:c.id, cargando:true}; renderApp();
+      ngApi('/ia/probar-llamada', 'POST', {contacto_id:c.contacto_id, telefono:tel}).then(function(d){ AGD.prueba = Object.assign({cita:c.id}, d); renderApp(); })
+        .catch(function(e){ AGD.prueba = {cita:c.id, error:e.message}; renderApp(); });
+    };
+    qa('[data-agd-est]').forEach(function(b){ b.onclick = function(){
+      var cambios = {estado: b.dataset.agdEst}, r = q('#ag-resumen');
+      if(r) cambios.resumen = r.value.trim();
+      if(cambios.estado === 'realizada' && !cambios.resumen && !window.confirm('¿Cerrar la cita sin resumen? Luego aparecerá en «Realizadas sin resumen».')) return;
+      sbUpdate('citas', 'id=eq.' + c.id, cambios).then(function(res){
+        if(!(res && res.ok)){ toast('No se ha podido guardar: ' + sbMensaje(res)); return; }
+        Object.assign(c, cambios); toast(ESTADOS_CITA[cambios.estado][0] + '.'); if(cambios.estado !== 'confirmada') AGD.det = null;
+        if(SALA) SALA.datos = null; agdCarga(true); renderApp();
+      });
+    }; });
+  }
+  /* Formulario */
+  if(AGD.form){
+    var F = AGD.form;
+    if(q('#agf-buscar')) q('#agf-buscar').oninput = function(){ agdLeeForm(); var p = this.selectionStart; renderApp(); var n = q('#agf-buscar'); if(n){ n.focus(); n.setSelectionRange(p, p); } };
+    qa('[data-agf-c]').forEach(function(b){ b.onclick = function(){ agdLeeForm(); F.contacto_id = Number(b.dataset.agfC); F.buscar = '';
+      var k = ctContactoPorId(F.contacto_id); if(k && !F.titulo) F.titulo = 'Demo IA · ' + (k.empresa || k.nombre); renderApp(); }; });
+    if(q('#agf-quitar')) q('#agf-quitar').onclick = function(){ agdLeeForm(); F.contacto_id = ''; renderApp(); };
+    q('#agf-x').onclick = function(){ AGD.form = null; if(AGD.volverA && AGD.volverA !== 'calendar'){ S.view = AGD.volverA; AGD.volverA = null; } renderApp(); };
+    q('#agf-ok').onclick = agdGuarda;
+    if(q('#agf-borrar')) q('#agf-borrar').onclick = function(){
+      if(!window.confirm('¿Eliminar esta cita?')) return;
+      sbDelete('citas', 'id=eq.' + F.id).then(function(r){ if(r && r.ok){ toast('Cita eliminada.'); AGD.form = null; agdCarga(true); } else toast('No se ha podido eliminar: ' + sbMensaje(r)); });
+    };
+  }
+}
+
+/* ==========================================================================
+   FICHA 360° · Resumen y timeline omnicanal, Sign-Engine y Configurador IA
+   (se integra en la ficha de Contactos)
+   ========================================================================== */
+var SERVICIO_SOL = {voz:'Asistente de voz IA 24/7', whatsapp:'Bot de WhatsApp con IA y base de conocimiento', embudo:'Embudo automático de captación y citas'};
+var PLANTILLAS_EMBUDO = {
+  captacion:   {n:'Captación 24/7', pasos:['Formulario web o Meta Ads entra por el webhook', 'Respuesta por WhatsApp en menos de 1 minuto', 'Cualificación con IA (3 preguntas)', 'Agenda la cita automáticamente', 'Recordatorios 24 h y 1 h antes']},
+  cita:        {n:'Cita automática por voz', pasos:['Llamada entrante atendida por el asistente de voz', 'Consulta la agenda disponible', 'Reserva y confirma por SMS o WhatsApp', 'Registra la cita en el CRM']},
+  reactivacion:{n:'Reactivación de leads', pasos:['Selecciona leads sin actividad en 30 días', 'Mensaje de WhatsApp personalizado', 'Llamada del asistente si responde', 'Pasa al comercial si hay interés']},
+  postventa:   {n:'Postventa y reseñas', pasos:['Encuesta de satisfacción a los 7 días', 'Pide reseña en Google si la nota es alta', 'Alerta al comercial si la nota es baja']}
+};
+var FILTROS_TL = [['todo','Todo'],['llamada','Llamadas'],['whatsapp','WhatsApp'],['correo','Correo'],['nota','Notas'],['firma','Firma'],['cita','Citas'],['ia','IA']];
+
+function ct360Defecto(){
+  return {voz:{activo:false, proveedor:'vapi', numero:'', modelo:'gpt-4o', voz:'nova', temperatura:0.4, nombre_agente:'Laura', saludo:'', prompt:'', transferencias:[]},
+    whatsapp:{activo:false, proveedor:'twilio', numero:'', bienvenida:'', horario:'L-V 9:00-19:00', conocimiento:'', rag:[]},
+    embudo:{activo:false, plantilla:'captacion', pasos:PLANTILLAS_EMBUDO.captacion.pasos.map(function(p){ return {t:p, on:true}; })}};
+}
+function ct360Carga(id){
+  var ids;
+  return Promise.all([
+    sbSelect('citas', 'contacto_id=eq.' + id + '&order=inicio.desc'),
+    sbSelect('contratos', 'select=id,codigo,servicio,estado,setup,mensual,meses,token,token_expira,firmado_ts,email,telefono,creado&contacto_id=eq.' + id + '&order=creado.desc'),
+    sbSelect('ia_config', 'contacto_id=eq.' + id)
+  ]).then(function(rs){
+    if(CT.det !== id) return;
+    CT.citas = (rs[0] && rs[0].ok) ? rs[0].datos || [] : [];
+    CT.contratos = (rs[1] && rs[1].ok) ? rs[1].datos || [] : [];
+    var base = ct360Defecto(), f = (rs[2] && rs[2].ok && rs[2].datos[0]) || null;
+    CT.ia = {existe: !!f, estado: f ? f.estado : 'borrador', desplegado: f ? f.desplegado : null,
+      voz: Object.assign(base.voz, f ? f.voz : {}), whatsapp: Object.assign(base.whatsapp, f ? f.whatsapp : {}), embudo: Object.assign(base.embudo, f ? f.embudo : {})};
+    ids = CT.contratos.map(function(k){ return k.id; });
+    return ids.length ? sbSelect('firma_eventos', 'contrato_id=in.(' + ids.join(',') + ')&order=ts.asc') : null;
+  }).then(function(r){
+    if(CT.det !== id) return;
+    CT.firmaEv = (r && r.ok) ? r.datos || [] : [];
+    renderApp();
+  });
+}
+
+/* --- Resumen + timeline --------------------------------------------------- */
+function ct360Timeline(){
+  var it = [];
+  CT.eventos.forEach(function(e){ it.push({ts:e.ts, tipo:e.tipo, texto:e.texto, autor:e.autor_id}); });
+  CT.comentarios.forEach(function(e){ it.push({ts:e.ts, tipo:'comentario', texto:e.texto, autor:e.autor_id}); });
+  (CT.firmaEv || []).forEach(function(e){
+    if(['abierto','firmado'].indexOf(e.evento) < 0) return;
+    var k = (CT.contratos || []).filter(function(x){ return x.id === e.contrato_id; })[0];
+    it.push({ts:e.ts, tipo: e.evento === 'firmado' ? 'firmado' : 'abierto', texto:(e.evento === 'firmado' ? 'Contrato firmado por el cliente' : 'El cliente ha abierto el contrato') + (k ? ' · ' + k.codigo : ''), grupo:'firma'});
+  });
+  return it.sort(function(a, b){ return String(b.ts).localeCompare(String(a.ts)); });
+}
+function ct360Grupo(t){
+  return t.grupo || ({reunion:'nota', comentario:'nota', estado:'nota', evento:'cita', webhook:'ia'}[t.tipo] || t.tipo);
+}
+function ct360PintaTexto(t){
+  var l = String(t.texto || '').split('\n'), cab = l[0], resto = l.slice(1);
+  var trans = resto.filter(function(x){ return /^(IA|Cliente|Asistente|Agente|Usuario|assistant|user)\s*:/i.test(x); });
+  var grab = resto.filter(function(x){ return /^Grabación: https:\/\//.test(x); })[0];
+  var otros = resto.filter(function(x){ return trans.indexOf(x) < 0 && x !== grab; });
+  return '<div class="small" style="color:#E2E8F0;white-space:pre-line">'+esc(cab)+(otros.length ? '\n'+esc(otros.join('\n')) : '')+'</div>'+
+    (trans.length ? '<details class="ng-transc"'+(trans.length <= 6 ? ' open' : '')+'><summary>'+ic('mic',11)+' Transcripción ('+trans.length+' turnos)</summary>'+trans.map(function(x){
+      var m = /^([^:]+):\s*(.*)$/.exec(x), ia = /^(IA|Asistente|Agente|assistant)$/i.test(m[1].trim());
+      return '<div class="ng-burbuja '+(ia ? 'ia' : 'cli')+'"><b>'+esc(m[1].trim())+'</b> '+esc(m[2])+'</div>'; }).join('')+'</details>' : '')+
+    (grab ? '<a class="tiny" href="'+esc(grab.replace('Grabación: ', ''))+'" target="_blank" rel="noopener">'+ic('play',11)+' Escuchar grabación</a>' : '');
+}
+function ct360Resumen(c){
+  var f = ngFase(c.fase), s = ngSla(c), t = ngTemperatura(c), prox = (CT.citas || []).filter(function(x){ return new Date(x.inicio) > new Date() && ['programada','confirmada'].indexOf(x.estado) > -1; })
+    .sort(function(a, b){ return String(a.inicio).localeCompare(String(b.inicio)); })[0];
+  var ia = CT.ia || {estado:'borrador'}, iaTxt = {borrador:['Sin desplegar', 'amber'], simulado:['Simulado (listo)', 'blue'], desplegado:['En producción', 'green'], error:['Con errores', 'red']}[ia.estado] || ['—', ''];
+  var tl = ct360Timeline().filter(function(x){ return CT.filtroTl === 'todo' || !CT.filtroTl || ct360Grupo(x) === CT.filtroTl; });
+  var tipos = ['llamada','whatsapp','correo','reunion','nota'];
+  return '<div class="ng-mini">'+
+      '<div class="ng-mini-c" style="--mc:'+f.c+'"><span>Fase</span><b>'+esc(f.n)+'</b>'+(s ? '<em class="chip '+s.col+' ng-chip">'+ic('clock',10)+' '+esc(s.txt)+'</em>' : '')+'</div>'+
+      '<div class="ng-mini-c" style="--mc:#17C8C0"><span>Valor del deal</span><b>'+ngEuros(c.valor)+'</b><em class="tiny muted">ponderado '+ngEuros((Number(c.valor)||0)*f.p/100)+'</em></div>'+
+      '<div class="ng-mini-c" style="--mc:'+t.c+'"><span>Temperatura</span><b>'+ngTermo(t)+' '+esc(t.n)+'</b>'+ngChipsSol(c)+'</div>'+
+      '<div class="ng-mini-c" style="--mc:#2DD4BF"><span>Asistente IA</span><b><span class="chip '+iaTxt[1]+'">'+esc(iaTxt[0])+'</span></b><button class="ng-link" data-cttab="ia">Configurar →</button></div>'+
+    '</div>'+
+    '<div class="ng-prox">'+ic('calendar',15)+'<div style="flex:1;min-width:0">'+(prox ? '<b>Próxima cita:</b> '+esc(new Date(prox.inicio).toLocaleString('es-ES', {weekday:'long', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'}))+' · '+esc(prox.titulo) :
+      '<span style="color:#FDE68A">Sin próxima cita.</span> Agenda una para no perder el ritmo.')+'</div><button class="btn btn-p btn-xs" id="ct-agendar">'+ic('plus',12)+' Agendar</button></div>'+
+    '<div class="ct-act-nueva">'+
+      '<div class="row" style="gap:6px;flex-wrap:wrap;margin-bottom:8px">'+tipos.map(function(k){
+        return '<button class="ct-tipo'+(CT.nuevoTipo===k?' on':'')+'" data-ct-tipo="'+k+'">'+ic(TIPOS_ACT_CT[k][1],13)+' '+TIPOS_ACT_CT[k][0]+'</button>'; }).join('')+'</div>'+
+      '<textarea class="inp" id="ct-hist-txt" rows="2" placeholder="¿Qué ha pasado? Ej.: Le he llamado, interesado en el asistente de voz. Pide propuesta el lunes.">'+esc(CT.nuevoTexto)+'</textarea>'+
+      '<div class="row" style="gap:8px;margin-top:8px;justify-content:space-between;flex-wrap:wrap"><span class="tiny muted">Se guarda con tu nombre, la fecha y la hora.</span>'+
+        '<button class="btn btn-p" id="ct-hist-add">'+ic('plus',14)+' Registrar</button></div></div>'+
+    '<div class="row" style="gap:6px;flex-wrap:wrap;margin:14px 0 4px">'+FILTROS_TL.map(function(x){
+      return '<button class="ng-filtro'+((CT.filtroTl || 'todo') === x[0] ? ' on' : '')+'" data-ct-tl="'+x[0]+'">'+x[1]+'</button>'; }).join('')+'</div>'+
+    '<div class="ng-tl">'+(tl.map(function(x){
+      var k = NG_ICONO_EV[x.tipo] || NG_ICONO_EV.nota, nombre = (TIPOS_ACT_CT[x.tipo] || [x.tipo === 'comentario' ? 'Comentario' : x.tipo === 'firmado' || x.tipo === 'abierto' ? 'Firma' :
+        x.tipo === 'firma' ? 'Firma' : x.tipo === 'ia' ? 'Asistente IA' : x.tipo === 'webhook' ? 'Webhook' : 'Evento'])[0];
+      return '<div class="ng-tl-i" style="--tc:'+k[1]+'"><span class="ng-tl-ic">'+ic(k[0],13)+'</span><div style="flex:1;min-width:0">'+
+        '<div class="tiny" style="color:'+k[1]+';font-weight:700">'+esc(nombre)+(x.autor ? ' <span class="muted" style="font-weight:400">· '+esc(ctNombreGestor(x.autor) || 'equipo')+'</span>' : '')+
+        '<span class="muted" style="font-weight:400;float:right">'+esc(ctFechaCorta(x.ts, true))+'</span></div>'+ct360PintaTexto(x)+'</div></div>';
+    }).join('') || '<p class="tiny muted" style="padding:10px 0">Nada en este canal todavía.</p>')+'</div>';
+}
+
+/* --- Documentos & Sign-Engine -------------------------------------------- */
+function ct360Firma(c){
+  var sol = ngSoluciones(c), F = CT.firmaForm || (CT.firmaForm = {servicio: sol.map(function(s){ return SERVICIO_SOL[s]; }).join(' + ') || 'Asistente de voz IA 24/7',
+    setup: Number(c.valor) || 0, mensual: 0, meses: 12, dias: 15});
+  var st = CT.iaEstado || {};
+  var paso = function(ok, n, ts){ return '<div class="ng-paso'+(ok ? ' ok' : '')+'"><span>'+(ok ? ic('check',11) : '')+'</span><b>'+n+'</b><i>'+(ts ? esc(ctFechaCorta(ts, true)) : '—')+'</i></div>'; };
+  return '<div class="ng-sign">'+
+    '<div class="card-h" style="margin:0 0 10px"><div><h3>'+ic('file',15)+'Sign-Engine · contrato en un clic</h3>'+
+      '<p>Genera el contrato con los datos del cliente y envíale el enlace de firma. Verás cuándo lo abre y cuándo firma.</p></div>'+
+      '<span class="chip '+(st.sms_real ? 'green' : 'amber')+'">'+(st.sms_real ? 'SMS por Twilio activo' : 'SMS desde tu móvil')+'</span></div>'+
+    '<div class="grid g-2">'+
+      '<div class="field" style="grid-column:1/-1"><label class="f">Servicio</label><input class="inp" data-cf="servicio" value="'+esc(F.servicio)+'"></div>'+
+      '<div class="field"><label class="f">Alta / implantación (€)</label><input class="inp" type="number" min="0" step="0.01" data-cf="setup" value="'+esc(F.setup)+'"></div>'+
+      '<div class="field"><label class="f">Cuota mensual (€)</label><input class="inp" type="number" min="0" step="0.01" data-cf="mensual" value="'+esc(F.mensual)+'"></div>'+
+      '<div class="field"><label class="f">Meses</label><input class="inp" type="number" min="1" max="120" data-cf="meses" value="'+esc(F.meses)+'"></div>'+
+      '<div class="field"><label class="f">El enlace caduca en (días)</label><input class="inp" type="number" min="1" max="90" data-cf="dias" value="'+esc(F.dias)+'"></div></div>'+
+    '<button class="btn btn-p" id="cf-generar"'+(CT.generando ? ' disabled' : '')+'>'+ic('bolt',14)+' '+(CT.generando ? 'Generando…' : 'Generar contrato y enlace de firma')+'</button>'+
+    ((CT.contratos || []).length ? '<div class="stack" style="gap:10px;margin-top:16px">'+CT.contratos.map(function(k){
+      var ev = (CT.firmaEv || []).filter(function(e){ return e.contrato_id === k.id; }), u = function(n){ var x = ev.filter(function(e){ return e.evento === n; }); return x.length ? x[x.length-1].ts : null; };
+      var env = ev.filter(function(e){ return e.evento === 'enviado_sms' || e.evento === 'enviado_email'; }).slice(-1)[0];
+      var firmado = k.estado === 'Firmado' || u('firmado'), url = k.token ? baseFirma() + '#t=' + k.token : '';
+      return '<div class="ng-contrato"><div class="row" style="justify-content:space-between;gap:10px;flex-wrap:wrap"><div style="min-width:0">'+
+          '<b class="mono" style="color:#fff">'+esc(k.codigo)+'</b> <span class="chip '+(firmado ? 'green' : k.estado === 'Anulado' ? 'red' : 'blue')+'">'+esc(firmado ? 'Firmado' : k.estado)+'</span>'+
+          '<div class="tiny muted trunc">'+esc(k.servicio)+' · '+ngEuros(k.setup, true)+' + '+ngEuros(k.mensual, true)+'/mes × '+k.meses+'</div></div>'+
+        (firmado ? '' : '<div class="row" style="gap:6px;flex-wrap:wrap">'+
+          '<button class="btn btn-s btn-xs" data-cf-sms="'+k.id+'">'+ic('phone',12)+' Enviar por SMS</button>'+
+          '<button class="btn btn-s btn-xs" data-cf-mail="'+k.id+'">'+ic('mail',12)+' Enviar por email</button>'+
+          (url ? '<button class="btn btn-s btn-xs" data-cf-copia="'+esc(url)+'">'+ic('link',12)+' Copiar enlace</button>' : '')+'</div>')+'</div>'+
+        '<div class="ng-pasos">'+paso(true, 'Emitido', u('emitido') || k.creado)+paso(!!env, env ? (env.evento === 'enviado_sms' ? 'SMS' : 'Email') : 'Enviado', env && env.ts)+
+          paso(!!u('abierto'), 'Abierto', u('abierto'))+paso(!!firmado, 'Firmado', u('firmado') || k.firmado_ts)+'</div></div>';
+    }).join('')+'</div><div class="tiny muted" style="margin-top:8px">'+ic('refresh',11)+' El seguimiento se actualiza solo cada 10 segundos.</div>' : '')+
+  '</div>';
+}
+
+/* --- Configurador IA ------------------------------------------------------- */
+function ct360IA(c){
+  var I = CT.ia; if(!I) return '<p class="tiny muted">Cargando la configuración…</p>';
+  var tab = CT.iaTab || 'voz', st = CT.iaEstado || {}, V = I.voz, W = I.whatsapp, E = I.embudo;
+  var sw = function(m, on){ return '<label class="ng-switch"><input type="checkbox" data-ia-on="'+m+'"'+(on ? ' checked' : '')+'><span></span> '+(on ? 'Activo' : 'Inactivo')+'</label>'; };
+  var inp = function(m, k, et, tipo, ph, extra){ return '<div class="field"><label class="f">'+et+'</label><input class="inp" data-ia="'+m+'.'+k+'" type="'+(tipo || 'text')+'" value="'+esc(I[m][k] === undefined ? '' : I[m][k])+'"'+(ph ? ' placeholder="'+esc(ph)+'"' : '')+(extra || '')+'></div>'; };
+  var sel = function(m, k, et, ops){ return '<div class="field"><label class="f">'+et+'</label><select class="inp" data-ia="'+m+'.'+k+'">'+ops.map(function(o){
+    return '<option value="'+esc(o[0])+'"'+(String(I[m][k]) === o[0] ? ' selected' : '')+'>'+esc(o[1])+'</option>'; }).join('')+'</select></div>'; };
+  var cuerpo;
+  if(tab === 'voz'){
+    cuerpo = '<div class="row" style="justify-content:space-between;align-items:center;margin-bottom:10px"><h4 class="ft-t" style="margin:0">'+ic('mic',14)+' Asistente de voz</h4>'+sw('voz', V.activo)+'</div>'+
+      '<div class="grid g-2">'+sel('voz', 'proveedor', 'Plataforma de voz', [['vapi','Vapi'],['telnyx','Telnyx'],['twilio','Twilio Voice']])+
+        inp('voz', 'numero', 'Número de Twilio / línea', 'tel', '+34 900 000 000')+
+        sel('voz', 'modelo', 'Modelo LLM', [['gpt-4o','OpenAI GPT-4o'],['gpt-4o-mini','OpenAI GPT-4o mini'],['gpt-4.1','OpenAI GPT-4.1']])+
+        sel('voz', 'voz', 'Voz', [['nova','Nova (femenina)'],['shimmer','Shimmer (femenina suave)'],['alloy','Alloy (neutra)'],['onyx','Onyx (masculina)']])+
+        inp('voz', 'nombre_agente', 'Nombre del asistente', 'text', 'Laura')+
+        '<div class="field"><label class="f">Temperatura: <b id="ia-temp-v">'+esc(V.temperatura)+'</b></label><input type="range" min="0" max="1" step="0.1" data-ia="voz.temperatura" value="'+esc(V.temperatura)+'" style="width:100%"></div></div>'+
+      inp('voz', 'saludo', 'Saludo inicial', 'text', 'Hola, soy Laura, de '+(c.empresa || c.nombre)+'. ¿En qué puedo ayudarte?')+
+      '<div class="field"><label class="f">System prompt <button class="ng-link" id="ia-prompt-base">Generar base con los datos del cliente</button></label>'+
+        '<textarea class="inp mono" data-ia="voz.prompt" rows="7" style="font-size:12px" placeholder="Instrucciones del asistente: quién es, qué hace, qué no debe hacer…">'+esc(V.prompt)+'</textarea>'+
+        '<div class="tiny muted" style="margin-top:4px">'+String(V.prompt || '').length+' caracteres</div></div>'+
+      '<div class="field"><label class="f">Variables de transferencia (cuándo pasa la llamada a una persona)</label>'+
+        (V.transferencias || []).map(function(t, i){ return '<div class="row" style="gap:6px;margin-bottom:6px"><input class="inp" data-ia-tr="'+i+'.si" value="'+esc(t.si)+'" placeholder="Si el cliente… (urgencia, quiere hablar con alguien)">'+
+          '<input class="inp" data-ia-tr="'+i+'.a" value="'+esc(t.a)+'" placeholder="+34 600 000 000" style="max-width:170px"><button class="btn btn-s btn-xs" data-ia-trx="'+i+'">'+ic('x',12)+'</button></div>'; }).join('')+
+        '<button class="btn btn-s btn-xs" id="ia-tr-add">'+ic('plus',12)+' Añadir transferencia</button></div>'+
+      '<div class="ng-probar"><input class="inp" id="ia-tel-prueba" type="tel" placeholder="Teléfono para la prueba" value="'+esc(CT.telPrueba || ctTelCompleto(c))+'">'+
+        '<button class="btn btn-p" id="ia-probar"'+(CT.probando ? ' disabled' : '')+'>'+ic('phone',14)+' '+(CT.probando ? 'Llamando…' : '📞 Probar llamada ahora')+'</button></div>'+
+      (CT.prueba ? '<div class="ng-trans"><div class="tiny" style="margin-bottom:8px;color:'+(CT.prueba.modo === 'real' ? '#86EFAC' : '#FDE68A')+'">'+esc(CT.prueba.mensaje || '')+'</div>'+
+        (CT.prueba.transcripcion || []).map(function(l){ return '<div class="ng-burbuja '+(l.quien === 'IA' ? 'ia' : 'cli')+'"><b>'+esc(l.quien)+'</b> '+esc(l.texto)+'</div>'; }).join('')+'</div>' : '');
+  } else if(tab === 'whatsapp'){
+    cuerpo = '<div class="row" style="justify-content:space-between;align-items:center;margin-bottom:10px"><h4 class="ft-t" style="margin:0">'+ic('chat',14)+' Bot de WhatsApp</h4>'+sw('whatsapp', W.activo)+'</div>'+
+      '<div class="ng-wa"><div>'+
+        '<div class="grid g-2">'+sel('whatsapp', 'proveedor', 'Canal', [['twilio','Twilio WhatsApp'],['meta','Meta Cloud API'],['360dialog','360dialog']])+
+          inp('whatsapp', 'numero', 'Número del canal', 'tel', '+34 600 000 000')+inp('whatsapp', 'horario', 'Horario de atención', 'text', 'L-V 9:00-19:00')+
+          inp('whatsapp', 'bienvenida', 'Mensaje de bienvenida', 'text', '¡Hola! Soy el asistente de '+(c.empresa || c.nombre)+'. ¿En qué te ayudo?')+'</div>'+
+        '<div class="field"><label class="f">Base de conocimiento (RAG): precios, servicios, horarios, preguntas frecuentes</label>'+
+          '<textarea class="inp" data-ia="whatsapp.conocimiento" rows="6" placeholder="Pega aquí tarifas, servicios, condiciones… El bot responderá con esta información.">'+esc(W.conocimiento)+'</textarea></div>'+
+        '<div class="field"><label class="f">Documentos para el RAG (PDF con tarifas, catálogos…)</label>'+
+          (W.rag || []).map(function(d, i){ return '<div class="row" style="gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line-soft)">'+ic('file',13)+'<span class="small trunc" style="flex:1;color:#fff">'+esc(d.nombre)+'</span>'+
+            '<span class="tiny muted">'+(d.tamano ? Math.round(d.tamano/1024)+' KB' : '')+'</span><button class="btn btn-s btn-xs" data-ia-ragx="'+i+'">'+ic('x',11)+'</button></div>'; }).join('')+
+          '<label class="btn btn-s btn-xs" style="margin-top:8px;cursor:pointer">'+ic('upload',12)+' '+(CT.subiendoRag ? 'Subiendo…' : 'Subir PDF')+'<input type="file" id="ia-rag" accept=".pdf" hidden></label></div>'+
+      '</div><div class="ng-movil"><div class="ng-movil-h">'+ic('chat',13)+' '+esc(c.empresa || c.nombre)+'<span>vista previa simulada</span></div><div class="ng-movil-b" id="ia-chat">'+
+        [{quien:'bot', texto: W.bienvenida || '¡Hola! ¿En qué te puedo ayudar?'}].concat(CT.chat || []).map(function(m){ return '<div class="ng-msg '+(m.quien === 'bot' ? 'bot' : 'yo')+'">'+esc(m.texto)+'</div>'; }).join('')+
+        '</div><div class="ng-movil-in"><input class="inp" id="ia-chat-in" placeholder="Escribe como si fueras el cliente…"><button class="btn btn-p btn-xs" id="ia-chat-env">'+ic('send',12)+'</button></div></div></div>';
+  } else {
+    cuerpo = '<div class="row" style="justify-content:space-between;align-items:center;margin-bottom:10px"><h4 class="ft-t" style="margin:0">'+ic('filter',14)+' Embudo y workflows</h4>'+sw('embudo', E.activo)+'</div>'+
+      '<div class="ng-plantillas">'+Object.keys(PLANTILLAS_EMBUDO).map(function(k){ var p = PLANTILLAS_EMBUDO[k];
+        return '<button class="ng-plantilla'+(E.plantilla === k ? ' on' : '')+'" data-ia-pl="'+k+'"><b>'+esc(p.n)+'</b><span>'+p.pasos.length+' pasos</span></button>'; }).join('')+'</div>'+
+      '<div class="ng-flujo">'+(E.pasos || []).map(function(p, i){ return '<div class="ng-flujo-p'+(p.on ? '' : ' off')+'"><span class="ng-flujo-n">'+(i+1)+'</span><span style="flex:1">'+esc(p.t)+'</span>'+
+        '<label class="ng-switch"><input type="checkbox" data-ia-paso="'+i+'"'+(p.on ? ' checked' : '')+'><span></span></label></div>'; }).join('')+'</div>'+
+      '<div class="field" style="margin-top:14px"><label class="f">Webhook URL de este cliente (entrada de leads, transcripciones y mensajes)</label>'+
+        (CT.hook ? '<div class="seg-clave mono" style="color:#fff">'+esc(CT.hook)+'</div><div class="row" style="gap:6px;margin-top:8px">'+
+          '<button class="btn btn-s btn-xs" data-cf-copia="'+esc(CT.hook)+'">'+ic('link',12)+' Copiar</button><button class="btn btn-s btn-xs" id="ia-hook-nuevo">'+ic('refresh',12)+' Regenerar</button></div>'+
+          '<details class="tiny muted" style="margin-top:8px"><summary style="cursor:pointer">Ejemplo de envío (n8n, Make, formulario web)</summary><pre class="mono ng-pre">POST '+esc(CT.hook)+'\nContent-Type: application/json\n\n{"mensaje": "Hola, quiero información", "de": "+34600000000"}\n{"transcripcion": [{"quien":"IA","texto":"Hola"}], "duracion": 42, "grabacion": "https://…"}</pre></details>'
+          : '<button class="btn btn-s" id="ia-hook-nuevo">'+ic('plug',13)+' Generar webhook</button>')+'</div>';
+  }
+  return '<div class="ng-ia-h"><div><h3 style="margin:0;color:#fff">'+ic('spark',16)+' Configurador IA a 1 clic</h3><p class="tiny muted" style="margin:4px 0 0">'+
+      (st.orquestador ? '<span style="color:#86EFAC">● Orquestador conectado: los despliegues y las pruebas son reales.</span>' :
+        '<span style="color:#FDE68A">● Modo simulación: no hay orquestador (n8n/Make) configurado.</span>')+
+      (S.role === 'admin' ? ' <button class="ng-link" id="ia-integra">Integraciones</button>' : '')+'</p></div>'+
+      '<span class="chip '+({desplegado:'green', simulado:'blue', error:'red'}[I.estado] || 'amber')+'">'+esc({desplegado:'En producción', simulado:'Simulado', error:'Error', borrador:'Borrador'}[I.estado] || I.estado)+
+      (I.desplegado ? ' · '+esc(ctFechaCorta(I.desplegado, true)) : '')+'</span></div>'+
+    '<div class="ng-seg" style="margin:12px 0">'+[['voz','Asistente de voz', V.activo],['whatsapp','Bot de WhatsApp', W.activo],['embudo','Embudo / Workflows', E.activo]].map(function(x){
+      return '<button class="'+(tab === x[0] ? 'on' : '')+'" data-ia-tab="'+x[0]+'">'+x[1]+(x[2] ? ' ●' : '')+'</button>'; }).join('')+'</div>'+
+    '<div class="ng-ia-b">'+cuerpo+'</div>'+
+    '<div class="ng-ia-pie"><button class="btn btn-s" id="ia-guardar"'+(CT.iaGuardando ? ' disabled' : '')+'>'+ic('save',14)+' Guardar configuración</button>'+
+      '<button class="btn ng-desplegar" id="ia-desplegar"'+(CT.consola && !CT.consola.fin ? ' disabled' : '')+'>⚡ Desplegar &amp; Aprovisionar</button></div>';
+}
+
+/* Consola flotante de despliegue */
+function ngConsolaHTML(){
+  var K = CT.consola; if(!K) return '';
+  var col = {info:'#94A3B8', ok:'#4ADE80', warn:'#FBBF24', error:'#F87171'};
+  return '<div class="ng-consola" id="ng-consola"><div class="ng-consola-h"><span>'+ic('bolt',13)+' Consola de despliegue</span>'+
+    '<span class="chip '+(K.modo === 'real' ? 'green' : 'amber')+' ng-chip">'+(K.modo === 'real' ? 'REAL' : K.modo === 'simulacion' ? 'SIMULACIÓN' : '…')+'</span>'+
+    '<button class="icon-btn" id="ng-consola-x" style="width:26px;height:26px">'+ic('x',12)+'</button></div><div class="ng-consola-b" id="ng-consola-b">'+
+    K.lineas.map(function(l){ return '<div style="color:'+(col[l.nivel] || '#E2E8F0')+'"><span class="muted">'+esc(l.h)+'</span> '+esc(l.texto)+'</div>'; }).join('')+
+    (K.fin ? '' : '<div class="ng-cursor">▋</div>')+'</div></div>';
+}
+function ngConsolaLinea(nivel, texto){
+  var K = CT.consola; if(!K) return;
+  K.lineas.push({nivel:nivel, texto:texto, h:new Date().toLocaleTimeString('es-ES')});
+  var b = q('#ng-consola-b');
+  if(b){ var d = document.createElement('div'); d.style.color = {info:'#94A3B8', ok:'#4ADE80', warn:'#FBBF24', error:'#F87171'}[nivel] || '#E2E8F0';
+    d.innerHTML = '<span class="muted">'+esc(K.lineas[K.lineas.length-1].h)+'</span> '+esc(texto); var cur = b.querySelector('.ng-cursor'); b.insertBefore(d, cur); b.scrollTop = b.scrollHeight; }
+}
+
+/* --- Bot de WhatsApp: respuesta simulada con la base de conocimiento ------ */
+function ngRespuestaBot(W, msg){
+  var palabras = String(msg).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').split(/[^a-z0-9ñ]+/).filter(function(p){ return p.length > 3; });
+  var frases = String(W.conocimiento || '').split(/[.!?\n]+\s*/).map(function(f){ return f.trim(); }).filter(Boolean);
+  var mejor = null, max = 0;
+  frases.forEach(function(f){ var t = f.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''), n = palabras.filter(function(p){ return t.indexOf(p) > -1; }).length;
+    if(n > max){ max = n; mejor = f; } });
+  if(mejor) return mejor + (/precio|cuesta|tarifa/.test(msg.toLowerCase()) ? ' ¿Quieres que te reserve una cita para verlo en detalle?' : '');
+  return frases.length ? 'No tengo ese dato exacto en mi información. Te paso con una persona del equipo o, si prefieres, te reservo una cita. ¿Qué te viene mejor?' :
+    'Todavía no tengo base de conocimiento: añade tarifas y servicios en el configurador para que pueda responder.';
+}
+
+/* --- Eventos de la ficha 360 ---------------------------------------------- */
+function ct360Eventos(c){
+  qa('[data-ct-tl]').forEach(function(b){ b.onclick = function(){ CT.filtroTl = b.dataset.ctTl; renderApp(); }; });
+  if(q('#ct-agendar')) q('#ct-agendar').onclick = function(){ agdNuevaCita({contacto_id:c.id}, 'contactos'); };
+  qa('[data-cf]').forEach(function(el){ el.oninput = function(){ CT.firmaForm[el.dataset.cf] = el.value; }; });
+  if(q('#cf-generar')) q('#cf-generar').onclick = function(){
+    var F = CT.firmaForm; CT.generando = true; renderApp();
+    sbRpc('contrato_desde_contacto', {p_contacto:c.id, p_servicio:F.servicio, p_setup:Number(F.setup), p_mensual:Number(F.mensual), p_meses:Number(F.meses), p_dias:Number(F.dias)})
+      .then(function(d){ CT.generando = false; toast('Contrato ' + d.codigo + ' generado. Envíalo por SMS o email.'); ct360Carga(c.id); ctCargaDetalle(c.id); })
+      .catch(function(e){ CT.generando = false; toast(e.message); renderApp(); });
+  };
+  var envia = function(id, canal){
+    var k = CT.contratos.filter(function(x){ return x.id === id; })[0];
+    var dest = window.prompt(canal === 'sms' ? 'Teléfono al que enviar el SMS de firma:' : 'Correo al que enviar la firma:', canal === 'sms' ? (k.telefono || ctTelCompleto(c)) : (k.email || c.email || ''));
+    if(!dest) return;
+    ngApi('/ia/firma-enviar', 'POST', {contrato_id:id, canal:canal, destino:dest}).then(function(r){
+      if(r.modo === 'real') toast((canal === 'sms' ? 'SMS enviado por Twilio a ' : 'Correo enviado a ') + r.destino + '.');
+      else { if(r.aviso) toast(r.aviso); else toast('Se abre la app de ' + (canal === 'sms' ? 'mensajes' : 'correo') + ' con el enlace listo.'); window.location.href = r.enlace; }
+      ct360Carga(c.id); ctCargaDetalle(c.id);
+    }).catch(function(e){ toast(e.message); });
+  };
+  qa('[data-cf-sms]').forEach(function(b){ b.onclick = function(){ envia(Number(b.dataset.cfSms), 'sms'); }; });
+  qa('[data-cf-mail]').forEach(function(b){ b.onclick = function(){ envia(Number(b.dataset.cfMail), 'email'); }; });
+  qa('[data-cf-copia]').forEach(function(b){ b.onclick = function(){ var t = b.dataset.cfCopia;
+    (navigator.clipboard && window.isSecureContext ? navigator.clipboard.writeText(t) : Promise.reject()).then(function(){ toast('Copiado.'); }, function(){ if(typeof copiaAntigua === 'function') copiaAntigua(t); toast('Copiado.'); }); }; });
+
+  /* Configurador IA */
+  var I = CT.ia; if(!I) return;
+  qa('[data-ia-tab]').forEach(function(b){ b.onclick = function(){ CT.iaTab = b.dataset.iaTab; renderApp(); }; });
+  qa('[data-ia]').forEach(function(el){ var ev = el.tagName === 'SELECT' || el.type === 'range' ? 'oninput' : 'oninput';
+    el[ev] = function(){ var p = el.dataset.ia.split('.'); I[p[0]][p[1]] = el.type === 'range' ? Number(el.value) : el.value; CT.iaSucio = true;
+      if(el.type === 'range' && q('#ia-temp-v')) q('#ia-temp-v').textContent = el.value; };
+    if(el.tagName === 'SELECT') el.onchange = el[ev]; });
+  qa('[data-ia-on]').forEach(function(el){ el.onchange = function(){ I[el.dataset.iaOn].activo = el.checked; CT.iaSucio = true; renderApp(); }; });
+  qa('[data-ia-tr]').forEach(function(el){ el.oninput = function(){ var p = el.dataset.iaTr.split('.'); I.voz.transferencias[Number(p[0])][p[1]] = el.value; CT.iaSucio = true; }; });
+  qa('[data-ia-trx]').forEach(function(b){ b.onclick = function(){ I.voz.transferencias.splice(Number(b.dataset.iaTrx), 1); CT.iaSucio = true; renderApp(); }; });
+  if(q('#ia-tr-add')) q('#ia-tr-add').onclick = function(){ I.voz.transferencias = (I.voz.transferencias || []).concat([{si:'', a:''}]); renderApp(); };
+  if(q('#ia-prompt-base')) q('#ia-prompt-base').onclick = function(){
+    var emp = c.empresa || c.nombre, ag = I.voz.nombre_agente || 'Laura', tr = (I.voz.transferencias || []).filter(function(t){ return t.a; })[0];
+    I.voz.prompt = 'Eres ' + ag + ', la asistente de voz de ' + emp + '. Atiendes llamadas en español de España con un tono cercano, claro y profesional.\n\n' +
+      'OBJETIVO: resolver dudas sobre los servicios, cualificar al cliente y agendar una cita.\n\nREGLAS:\n- Frases cortas; una pregunta cada vez.\n' +
+      '- No inventes precios ni condiciones: si no los sabes, ofrece una cita con un asesor.\n- Pide nombre, teléfono y motivo antes de agendar.\n' +
+      '- Confirma siempre día y hora en voz alta.\n' + (tr ? '- Si ' + (tr.si || 'el cliente pide hablar con una persona') + ', transfiere la llamada al ' + tr.a + '.\n' : '- Si piden hablar con una persona, toma nota y avisa de que les llamarán.\n') +
+      '- Al terminar, despídete y resume lo acordado.';
+    CT.iaSucio = true; renderApp();
+  };
+  if(q('#ia-guardar')) q('#ia-guardar').onclick = function(){ ct360GuardaIA(c).then(function(ok){ if(ok) toast('Configuración guardada.'); }); };
+  if(q('#ia-probar')) q('#ia-probar').onclick = function(){
+    var tel = q('#ia-tel-prueba').value.trim(); CT.telPrueba = tel;
+    ct360GuardaIA(c).then(function(ok){
+      if(!ok) return; CT.probando = true; CT.prueba = null; renderApp();
+      ngApi('/ia/probar-llamada', 'POST', {contacto_id:c.id, telefono:tel}).then(function(d){ CT.probando = false; CT.prueba = d; ctCargaDetalle(c.id); renderApp(); })
+        .catch(function(e){ CT.probando = false; toast(e.message); renderApp(); });
+    });
+  };
+  if(q('#ia-chat-env')){
+    var envia2 = function(){ var t = q('#ia-chat-in').value.trim(); if(!t) return; CT.chat = (CT.chat || []).concat([{quien:'yo', texto:t}]); renderApp();
+      setTimeout(function(){ CT.chat.push({quien:'bot', texto:ngRespuestaBot(I.whatsapp, t)}); renderApp(); var b = q('#ia-chat'); if(b) b.scrollTop = b.scrollHeight;
+        var i2 = q('#ia-chat-in'); if(i2) i2.focus(); }, 700); };
+    q('#ia-chat-env').onclick = envia2; q('#ia-chat-in').onkeydown = function(e){ if(e.key === 'Enter') envia2(); };
+    var b = q('#ia-chat'); if(b) b.scrollTop = b.scrollHeight;
+  }
+  if(q('#ia-rag')) q('#ia-rag').onchange = function(){
+    var f = this.files[0]; if(!f) return;
+    var ruta = 'contactos/' + c.id + '/rag-' + Date.now() + '-' + String(f.name).replace(/[^A-Za-z0-9.\-_]/g, '_');
+    CT.subiendoRag = true; renderApp();
+    subeArchivo(ruta, f, 'application/pdf').then(function(r){
+      if(!r.ok) throw new Error(r.mensaje || 'código ' + r.estado);
+      return sbInsert('contacto_documentos', {contacto_id:c.id, nombre:f.name, tipo:'application/pdf', ruta:ruta, tamano_bytes:f.size, subido_por:(SB.sesion && SB.sesion.uid) || null});
+    }).then(function(){ CT.subiendoRag = false; I.whatsapp.rag = (I.whatsapp.rag || []).concat([{nombre:f.name, ruta:ruta, tamano:f.size}]);
+      return ct360GuardaIA(c); }).then(function(){ toast('Documento añadido a la base de conocimiento.'); ctCargaDetalle(c.id); })
+      .catch(function(e){ CT.subiendoRag = false; toast('No se ha podido subir: ' + e.message); renderApp(); });
+  };
+  qa('[data-ia-ragx]').forEach(function(b){ b.onclick = function(){ I.whatsapp.rag.splice(Number(b.dataset.iaRagx), 1); CT.iaSucio = true; renderApp(); }; });
+  qa('[data-ia-pl]').forEach(function(b){ b.onclick = function(){ var k = b.dataset.iaPl; I.embudo.plantilla = k;
+    I.embudo.pasos = PLANTILLAS_EMBUDO[k].pasos.map(function(p){ return {t:p, on:true}; }); CT.iaSucio = true; renderApp(); }; });
+  qa('[data-ia-paso]').forEach(function(el){ el.onchange = function(){ I.embudo.pasos[Number(el.dataset.iaPaso)].on = el.checked; CT.iaSucio = true; renderApp(); }; });
+  if(q('#ia-hook-nuevo')) q('#ia-hook-nuevo').onclick = function(){
+    if(CT.hook && !window.confirm('Si regeneras el webhook, el anterior deja de funcionar. ¿Seguir?')) return;
+    ct360GuardaIA(c).then(function(ok){ if(!ok) return; ngApi('/ia/webhook/' + c.id, 'POST', {}).then(function(d){ CT.hook = d.url; toast('Webhook listo.'); renderApp(); }).catch(function(e){ toast(e.message); }); });
+  };
+  if(q('#ia-integra')) q('#ia-integra').onclick = function(){ ngIntegraciones(); };
+  if(q('#ia-desplegar')) q('#ia-desplegar').onclick = function(){
+    ct360GuardaIA(c).then(function(ok){
+      if(!ok) return;
+      CT.consola = {lineas:[], modo:null, fin:false}; renderApp();
+      ngConsolaLinea('info', '$ labs deploy --contacto ' + c.id + ' --cliente "' + (c.empresa || c.nombre) + '"');
+      ngApi('/ia/desplegar/' + c.id, 'POST', {}).then(function(d){
+        CT.consola.modo = d.modo; var i = 0;
+        var cab = q('.ng-consola-h .chip'); if(cab){ cab.textContent = d.modo === 'real' ? 'REAL' : 'SIMULACIÓN'; cab.className = 'chip ' + (d.modo === 'real' ? 'green' : 'amber') + ' ng-chip'; }
+        (function sig(){
+          if(!CT.consola) return;
+          if(i >= d.pasos.length){ CT.consola.fin = true; CT.ia.estado = d.estado; CT.ia.desplegado = new Date().toISOString(); if(d.webhook) CT.hook = d.webhook;
+            ctCargaDetalle(c.id); renderApp(); return; }
+          var p = d.pasos[i++]; ngConsolaLinea(p.nivel, p.texto); setTimeout(sig, Math.min(900, p.ms || 300));
+        })();
+      }).catch(function(e){ ngConsolaLinea('error', '✖ ' + e.message); CT.consola.fin = true; renderApp(); });
+    });
+  };
+  if(q('#ng-consola-x')) q('#ng-consola-x').onclick = function(){ CT.consola = null; renderApp(); };
+}
+function ct360GuardaIA(c){
+  var I = CT.ia; CT.iaGuardando = true;
+  return sbConSesion(function(){ return sbFetch('/rest/v1/ia_config', {method:'POST', headers:{Prefer:'resolution=merge-duplicates,return=representation'},
+    body:{contacto_id:c.id, voz:I.voz, whatsapp:I.whatsapp, embudo:I.embudo}}); }).then(function(r){
+    CT.iaGuardando = false;
+    if(!r.ok){ toast('No se ha podido guardar la configuración: ' + sbMensaje(r)); renderApp(); return false; }
+    CT.iaSucio = false; I.existe = true; return true;
+  });
+}
+
+/* --- Integraciones (solo administración) ---------------------------------- */
+function ngIntegraciones(){
+  ngApi('/ia/ajustes').then(function(a){ CT.integra = a; renderApp(); }).catch(function(e){ toast(e.message); });
+}
+function ngIntegraModal(){
+  var A = CT.integra; if(!A) return '';
+  var c = function(k, et, tipo, ph, ayuda){ return '<div class="field"><label class="f">'+et+'</label><input class="inp" data-int="'+k+'" type="'+(tipo || 'text')+'" value="'+esc(A[k] || '')+'" placeholder="'+esc(ph || '')+'" autocomplete="off">'+
+    (ayuda ? '<div class="tiny muted" style="margin-top:4px">'+ayuda+'</div>' : '')+'</div>'; };
+  return '<div class="ov" data-ov="ng-integra"><div class="modal" style="max-width:560px">'+
+    '<h3 style="margin:0 0 6px">'+ic('plug',16)+' Integraciones IA</h3><p class="tiny muted" style="margin:0 0 14px">Con estos datos, el envío de firmas por SMS y los despliegues pasan de simulación a reales. Los tokens se guardan en el servidor y nunca se vuelven a mostrar.</p>'+
+    '<h4 class="ft-t">Twilio (SMS de firma)</h4>'+c('twilio_sid', 'Account SID', 'text', 'AC…')+c('twilio_token', 'Auth Token', 'password', '', A.twilio_token ? 'Guardado. Déjalo así para no cambiarlo.' : '')+
+      c('twilio_from', 'Número remitente', 'tel', '+34 600 000 000')+
+    '<h4 class="ft-t" style="margin-top:10px">Orquestador (n8n / Make)</h4>'+c('n8n_url', 'Webhook de despliegue y llamadas de prueba', 'url', 'https://tu-n8n.com/webhook/labs',
+      'Recibe {evento: "desplegar" | "llamada_prueba", contacto, voz, whatsapp, embudo, webhook_entrada}. Desde ahí creas el asistente en Vapi/Twilio/OpenAI.')+
+      c('n8n_token', 'Token secreto (cabecera X-Labs-Token)', 'password', '', A.n8n_token ? 'Guardado.' : '')+
+    '<div class="row" style="gap:8px;justify-content:flex-end;margin-top:8px"><button class="btn btn-s" id="int-x">Cancelar</button><button class="btn btn-p" id="int-ok">'+ic('save',14)+' Guardar</button></div></div></div>';
+}
+function ngIntegraEventos(){
+  if(!CT.integra) return;
+  q('#int-x').onclick = function(){ CT.integra = null; renderApp(); };
+  q('#int-ok').onclick = function(){
+    var d = {}; qa('[data-int]').forEach(function(el){ d[el.dataset.int] = el.value.trim(); });
+    ngApi('/ia/ajustes', 'POST', d).then(function(r){ CT.integra = null; CT.iaEstado = {sms_real:r.sms_real, orquestador:r.orquestador}; toast('Integraciones guardadas.'); renderApp(); })
+      .catch(function(e){ toast(e.message); });
+  };
+}
+
+/* ==========================================================================
    CONTACTOS · leads y clientes con ficha individual · Labs Command Center 360
    Lista con filtros → cada fila abre la FICHA a pantalla completa: datos
    editables, acciones rápidas (llamar, WhatsApp, correo), próximo seguimiento,
@@ -3898,9 +5238,10 @@ function hrEventos(){
 var ESTADOS_CT = ['Nuevo','Contactado','Cualificado','Propuesta enviada','Cliente','Perdido'];
 var COLOR_EST_CT = {'Nuevo':'blue','Contactado':'violet','Cualificado':'amber','Propuesta enviada':'amber','Cliente':'green','Perdido':'red'};
 var TABS_CT = [
-  {k:'hist',    n:'Seguimiento',              i:'clock'},
+  {k:'hist',    n:'Resumen & Timeline',       i:'clock'},
+  {k:'docs',    n:'Documentos & Firma',       i:'file'},
+  {k:'ia',      n:'Configurador IA',          i:'spark'},
   {k:'coment',  n:'Comentarios',              i:'chat'},
-  {k:'docs',    n:'Documentación',            i:'file'},
   {k:'spec',    n:'Especificaciones técnicas', i:'cog'}
 ];
 var TIPOS_ACT_CT = {nota:['Nota','file'], llamada:['Llamada','phone'], whatsapp:['WhatsApp','chat'], correo:['Correo','mail'],
@@ -3960,20 +5301,31 @@ function ctCargaDetalle(id){
     if(rs[2] && rs[2].ok) CT.documentos = rs[2].datos || [];
     renderApp();
   });
+  if(typeof ct360Carga === 'function') ct360Carga(id);
 }
 
 function ctAbre(id){
   var c = ctContactoPorId(id); if(!c) return;
   CT.det = id; CT.tab = 'hist'; CT.eventos = []; CT.comentarios = []; CT.documentos = [];
   CT.nuevoTexto = ''; CT.nuevoComentario = '';
+  /* Ficha 360: citas, contratos, configurador IA (se cargan en ct360Carga). */
+  CT.citas = []; CT.contratos = []; CT.firmaEv = []; CT.ia = null; CT.iaTab = 'voz'; CT.chat = []; CT.prueba = null;
+  CT.consola = null; CT.firmaForm = null; CT.hook = null; CT.filtroTl = 'todo';
+  if(!CT.iaEstado) ngApi('/ia/estado').then(function(d){ CT.iaEstado = d; renderApp(); }, function(){});
+  ngApi('/ia/webhook/' + id).then(function(d){ if(CT.det === id){ CT.hook = d.url; renderApp(); } }, function(){});
   CT.edit = {nombre:c.nombre||'', empresa:c.empresa||'', email:c.email||'', prefijo:c.prefijo||'+34', telefono:c.telefono||'',
     origen:c.origen||'', tipo:c.tipo||'lead', estado:c.estado||'Nuevo', gestor_id:c.gestor_id||'',
-    proximo_contacto:ctLocal(c.proximo_contacto), etiquetas:c.etiquetas||''};
+    proximo_contacto:ctLocal(c.proximo_contacto), etiquetas:c.etiquetas||'',
+    fase:c.fase||'lead', valor:c.valor||0, soluciones:c.soluciones||''};
   renderApp();
   window.scrollTo(0, 0);
   ctCargaDetalle(id);
 }
-function ctCierra(){ CT.det = null; CT.edit = null; renderApp(); }
+function ctCierra(){
+  CT.det = null; CT.edit = null; CT.consola = null;
+  if(CT.volverA){ S.view = CT.volverA; CT.volverA = null; }
+  renderApp();
+}
 
 function ctNuevo(){
   CT.nuevo = {nombre:'', empresa:'', email:'', prefijo:'+34', telefono:'', origen:'', tipo:'lead'};
@@ -4008,7 +5360,9 @@ function ctGuardaFicha(){
   var cambios = {nombre:e.nombre.trim(), empresa:e.empresa.trim(), email:e.email.trim().toLowerCase(),
     prefijo:(e.prefijo||'+34').trim(), telefono:e.telefono.replace(/[^\d]/g,''), origen:e.origen.trim(),
     tipo:e.tipo, estado:e.estado, etiquetas:e.etiquetas.split(',').map(function(t){ return t.trim(); }).filter(Boolean).join(', '),
-    proximo_contacto:e.proximo_contacto ? new Date(e.proximo_contacto).toISOString() : null};
+    proximo_contacto:e.proximo_contacto ? new Date(e.proximo_contacto).toISOString() : null,
+    valor: Math.max(0, Number(String(e.valor).replace(',', '.')) || 0), soluciones: e.soluciones || ''};
+  if(e.fase !== c.fase) cambios.fase = e.fase;
   if(ctPuedeGestionar() && e.gestor_id) cambios.gestor_id = e.gestor_id;
   var antes = c.estado;
   CT.guardando = true; renderApp();
@@ -4018,8 +5372,8 @@ function ctGuardaFicha(){
     var fila = Array.isArray(r.datos) ? r.datos[0] : null;
     Object.assign(c, fila || cambios);
     toast('Ficha guardada.');
-    if(antes !== cambios.estado) ctRegistra('estado', 'Estado: ' + antes + ' → ' + cambios.estado);
-    else renderApp();
+    if(antes !== c.estado || cambios.fase){ ctCargaDetalle(c.id); if(typeof SALA !== 'undefined') SALA.datos = null; }
+    renderApp();
   });
 }
 
@@ -4030,9 +5384,12 @@ function ctCambiaEstado(nuevo){
   if(nuevo === 'Cliente') cambios.tipo = 'cliente';
   sbUpdate('contactos', 'id=eq.'+c.id, cambios).then(function(r){
     if(!(r && r.ok)){ toast('No se ha podido cambiar: ' + sbMensaje(r)); return; }
-    Object.assign(c, cambios); if(CT.edit){ CT.edit.estado = nuevo; if(cambios.tipo) CT.edit.tipo = 'cliente'; }
+    var fila = Array.isArray(r.datos) ? r.datos[0] : null;
+    Object.assign(c, fila || cambios);
+    if(CT.edit){ CT.edit.estado = c.estado; CT.edit.fase = c.fase || CT.edit.fase; if(c.tipo === 'cliente') CT.edit.tipo = 'cliente'; }
     toast('Estado: ' + nuevo);
-    ctRegistra('estado', 'Estado: ' + antes + ' → ' + nuevo);
+    if(typeof SALA !== 'undefined') SALA.datos = null;
+    ctCargaDetalle(c.id);   // el servidor ya ha anotado «Pipeline: …» en el historial
   });
 }
 
@@ -4189,7 +5546,8 @@ function ctFichaPagina(){
   var nav = TABS_CT.map(function(t){
     var n = t.k === 'hist' ? CT.eventos.length : t.k === 'coment' ? CT.comentarios.length : t.k === 'docs' ? CT.documentos.length : 0;
     return '<button class="lms-tab'+(CT.tab===t.k?' on':'')+'" data-cttab="'+t.k+'">'+t.n+(n ? ' ('+n+')' : '')+'</button>'; }).join('');
-  var cuerpo = CT.tab==='spec' ? ctTabSpec(c) : CT.tab==='docs' ? ctTabDocs(c) : CT.tab==='coment' ? ctTabComentarios(c) : ctTabHist(c);
+  var cuerpo = CT.tab==='spec' ? ctTabSpec(c) : CT.tab==='docs' ? ct360Firma(c) + '<div style="margin-top:18px">' + ctTabDocs(c) + '</div>' :
+    CT.tab==='ia' ? ct360IA(c) : CT.tab==='coment' ? ctTabComentarios(c) : ct360Resumen(c);
 
   return '<div class="row" style="justify-content:space-between;gap:10px;margin-bottom:14px;flex-wrap:wrap">'+
       '<button class="btn btn-s" id="ct-volver">'+ic('arrowLeft',15)+' Volver a contactos</button>'+
@@ -4236,6 +5594,13 @@ function ctFichaPagina(){
             '<option value="cliente"'+(e.tipo==='cliente'?' selected':'')+'>Cliente</option></select></div>'+
           '<div class="field"><label class="f">Estado</label><select class="inp" data-ct-ed="estado">'+ESTADOS_CT.map(function(x){
             return '<option'+(e.estado===x?' selected':'')+'>'+x+'</option>'; }).join('')+'</select></div></div>'+
+        '<div class="grid g-2">'+
+          '<div class="field"><label class="f">Fase del pipeline</label><select class="inp" data-ct-ed="fase">'+FASES_NG.map(function(f){
+            return '<option value="'+f.k+'"'+(e.fase===f.k?' selected':'')+'>'+esc(f.n)+'</option>'; }).join('')+'</select></div>'+
+          '<div class="field"><label class="f">Valor del deal (€)</label><input class="inp" data-ct-ed="valor" type="number" min="0" step="10" value="'+esc(e.valor)+'"></div></div>'+
+        '<div class="field"><label class="f">Soluciones de IA</label><div class="row" style="gap:6px;flex-wrap:wrap">'+Object.keys(SOLUCIONES_NG).map(function(k){
+          var on = String(e.soluciones).split(',').indexOf(k) > -1;
+          return '<button type="button" class="ct-tipo'+(on?' on':'')+'" data-ct-sol="'+k+'">'+ic(SOLUCIONES_NG[k].i,13)+' '+SOLUCIONES_NG[k].n+'</button>'; }).join('')+'</div></div>'+
         campo('proximo_contacto', 'Próximo seguimiento', 'datetime-local')+
         (ctPuedeGestionar() && gestores.length ? '<div class="field"><label class="f">Responsable</label><select class="inp" data-ct-ed="gestor_id">'+
           '<option value="">—</option>'+gestores.map(function(u){ return '<option value="'+esc(u.id)+'"'+(e.gestor_id===u.id?' selected':'')+'>'+esc(u.n || u.mail)+'</option>'; }).join('')+
@@ -4247,7 +5612,7 @@ function ctFichaPagina(){
           esc(ctFechaCorta(c.actualizado, true))+(c.ref_externa ? '<br>Id en el CRM anterior: <span class="mono">'+esc(c.ref_externa)+'</span>' : '')+'</div>'+
       '</div>'+
       '<div class="card" style="min-width:0"><div class="lms-tabs" style="margin-bottom:16px;overflow-x:auto">'+nav+'</div>'+cuerpo+'</div>'+
-    '</div>';
+    '</div>'+ngConsolaHTML()+ngIntegraModal();
 }
 
 /* ------------------------------ IMPORTAR CSV ------------------------------ */
@@ -4449,6 +5814,15 @@ function viewContactos(v){
 function ctEventosFicha(){
   var c = ctContactoPorId(CT.det);
   q('#ct-volver').onclick = ctCierra;
+  ct360Eventos(c); ngIntegraEventos();
+  qa('[data-ct-sol]').forEach(function(b){ b.onclick = function(){
+    var l = String(CT.edit.soluciones || '').split(',').filter(Boolean), k = b.dataset.ctSol, i = l.indexOf(k);
+    if(i > -1) l.splice(i, 1); else l.push(k); CT.edit.soluciones = l.join(','); renderApp(); }; });
+  /* Seguimiento de firmas en tiempo real mientras la pestaña está abierta. */
+  clearTimeout(CT.firmaTimer);
+  if(CT.tab === 'docs' && (CT.contratos || []).some(function(k){ return k.estado !== 'Firmado' && k.estado !== 'Anulado'; })){
+    var id = c.id; CT.firmaTimer = setTimeout(function(){ if(CT.det === id && CT.tab === 'docs' && S.view === 'contactos') ct360Carga(id); }, 10000);
+  }
   var lista = ctListaFiltrada(), pos = lista.map(function(x){ return x.id; }).indexOf(CT.det);
   if(q('#ct-ant')) q('#ct-ant').onclick = function(){ if(pos > 0) ctAbre(lista[pos-1].id); };
   if(q('#ct-sig')) q('#ct-sig').onclick = function(){ if(pos >= 0 && pos < lista.length-1) ctAbre(lista[pos+1].id); };

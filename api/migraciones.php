@@ -151,7 +151,8 @@ function labs_migra(PDO $db)
         // Cada contacto entra en el pipeline en la fase que corresponde a su estado.
         $db->exec("UPDATE contactos SET fase = CASE estado WHEN 'Contactado' THEN 'cualificacion' WHEN 'Cualificado' THEN 'demo'
                      WHEN 'Propuesta enviada' THEN 'propuesta' WHEN 'Cliente' THEN 'produccion' WHEN 'Perdido' THEN 'perdido' ELSE 'lead' END,
-                     fase_desde = COALESCE(fase_desde, actualizado)");
+                     fase_desde = COALESCE(fase_desde, UTC_TIMESTAMP(6))");
+        // El SLA empieza a contar al activar el pipeline (no desde la fecha antigua de cada contacto).
     }
     $db->prepare("INSERT INTO ajustes (clave, valor) VALUES ('version_esquema', ?) ON DUPLICATE KEY UPDATE valor = VALUES(valor)")
         ->execute(array((string) LABS_VERSION_ESQUEMA));

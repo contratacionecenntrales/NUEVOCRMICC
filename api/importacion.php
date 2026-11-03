@@ -192,7 +192,7 @@ function labs_importa_contactos($filas, $gestor_id, $origen = 'Importación CSV'
             'lead', $nombre, mb_substr($empresa, 0, 200), $email, $prefijo, mb_substr($tel, 0, 40), mb_substr($origen, 0, 120),
             $est, '', $gestor_id, mb_substr(implode(', ', $etq), 0, 500), $ref !== '' ? $ref : null,
             $actividad, $creado ?: $ahora, $actividad ?: ($creado ?: $ahora)),
-            $tiene_fase ? array(function_exists('labs_fase_de_estado') ? labs_fase_de_estado($est) : 'lead', $actividad ?: ($creado ?: $ahora)) : array()));
+            $tiene_fase ? array(function_exists('labs_fase_de_estado') ? labs_fase_de_estado($est) : 'lead', $ahora) : array()));
         $id = (int) labs_db()->lastInsertId();
         labs_q('INSERT INTO contacto_eventos (contacto_id, autor_id, tipo, texto, ts) VALUES (?,?,?,?,?)', array(
             $id, $autor, 'evento', 'Importado desde ' . $origen . '.' . ($tags_raw !== '' ? ' Etiquetas de origen: ' . mb_substr($tags_raw, 0, 400) . '.' : ''),
