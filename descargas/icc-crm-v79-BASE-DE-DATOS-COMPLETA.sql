@@ -1,11 +1,11 @@
 -- =============================================================================
--- ICC CRM v78 · BASE DE DATOS COMPLETA (instalar o actualizar en un solo paso)
+-- ICC CRM v79 · BASE DE DATOS COMPLETA (instalar o actualizar en un solo paso)
 --
 -- Cómo usarlo: phpMyAdmin > tu base de datos > Importar > este archivo > Continuar.
 --
 -- - Si la base de datos YA TIENE datos (tu CRM actual): NO borra nada.
 --   Solo crea las tablas, columnas e índices que falten y amplía lo necesario
---   para la versión v78. Sirve vengas de la versión que vengas (v55 en adelante).
+--   para la versión v79. Sirve vengas de la versión que vengas (v55 en adelante).
 -- - Si la base de datos está VACÍA: crea el CRM completo y un usuario
 --   Super Administrador inicial (ver el final del archivo).
 -- - Se puede ejecutar MÁS DE UNA VEZ sin errores ni duplicados.
@@ -427,6 +427,14 @@ CREATE TABLE IF NOT EXISTS `ficheros` (
   `ruta_archivo` varchar(255) NOT NULL,
   `subido_por` int(10) unsigned DEFAULT NULL,
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `titulo` varchar(200) DEFAULT NULL,
+  `descripcion` varchar(400) DEFAULT NULL,
+  `categoria` varchar(20) DEFAULT NULL,
+  `ruta_paso` smallint(6) DEFAULT NULL,
+  `duracion_min` smallint(6) DEFAULT NULL,
+  `paginas` smallint(6) DEFAULT NULL,
+  `orden` int(11) NOT NULL DEFAULT 0,
+  `vistas` int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   KEY `fk_fichero_usuario` (`subido_por`),
   KEY `idx_ficheros_carpeta` (`carpeta_id`),
@@ -450,6 +458,16 @@ CREATE TABLE IF NOT EXISTS `ficheros_carpetas` (
   CONSTRAINT `fk_carpeta_creador` FOREIGN KEY (`creado_por`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_carpeta_parent` FOREIGN KEY (`parent_id`) REFERENCES `ficheros_carpetas` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_carpeta_propietario` FOREIGN KEY (`propietario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `ficheros_progreso` (
+  `usuario_id` int(10) unsigned NOT NULL,
+  `fichero_id` int(10) unsigned NOT NULL,
+  `completado_en` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`usuario_id`,`fichero_id`),
+  KEY `fk_fprog_fichero` (`fichero_id`),
+  CONSTRAINT `fk_fprog_fichero` FOREIGN KEY (`fichero_id`) REFERENCES `ficheros` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_fprog_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `firmas` (
@@ -1357,6 +1375,22 @@ SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE t
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'ficheros' AND column_name = 'created_at'), 'ALTER TABLE `ficheros` ADD COLUMN `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'ficheros' AND column_name = 'titulo'), 'ALTER TABLE `ficheros` ADD COLUMN `titulo` varchar(200) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'ficheros' AND column_name = 'descripcion'), 'ALTER TABLE `ficheros` ADD COLUMN `descripcion` varchar(400) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'ficheros' AND column_name = 'categoria'), 'ALTER TABLE `ficheros` ADD COLUMN `categoria` varchar(20) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'ficheros' AND column_name = 'ruta_paso'), 'ALTER TABLE `ficheros` ADD COLUMN `ruta_paso` smallint(6) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'ficheros' AND column_name = 'duracion_min'), 'ALTER TABLE `ficheros` ADD COLUMN `duracion_min` smallint(6) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'ficheros' AND column_name = 'paginas'), 'ALTER TABLE `ficheros` ADD COLUMN `paginas` smallint(6) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'ficheros' AND column_name = 'orden'), 'ALTER TABLE `ficheros` ADD COLUMN `orden` int(11) NOT NULL DEFAULT 0', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'ficheros' AND column_name = 'vistas'), 'ALTER TABLE `ficheros` ADD COLUMN `vistas` int(11) NOT NULL DEFAULT 0', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'ficheros_carpetas' AND column_name = 'id'), 'ALTER TABLE `ficheros_carpetas` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
@@ -1373,6 +1407,13 @@ PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'ficheros_carpetas' AND column_name = 'orden'), 'ALTER TABLE `ficheros_carpetas` ADD COLUMN `orden` int(11) NOT NULL DEFAULT 0', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'ficheros_carpetas' AND column_name = 'created_at'), 'ALTER TABLE `ficheros_carpetas` ADD COLUMN `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'ficheros_progreso' AND column_name = 'usuario_id'), 'ALTER TABLE `ficheros_progreso` ADD COLUMN `usuario_id` int(10) unsigned NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'ficheros_progreso' AND column_name = 'fichero_id'), 'ALTER TABLE `ficheros_progreso` ADD COLUMN `fichero_id` int(10) unsigned NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'ficheros_progreso' AND column_name = 'completado_en'), 'ALTER TABLE `ficheros_progreso` ADD COLUMN `completado_en` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'firmas' AND column_name = 'id'), 'ALTER TABLE `firmas` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
@@ -2010,6 +2051,8 @@ SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHER
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'ficheros_carpetas' AND index_name = 'idx_ficheros_carpetas_propietario'), 'CREATE INDEX `idx_ficheros_carpetas_propietario` ON `ficheros_carpetas` (`propietario_id`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'ficheros_progreso' AND index_name = 'fk_fprog_fichero'), 'CREATE INDEX `fk_fprog_fichero` ON `ficheros_progreso` (`fichero_id`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'firmas' AND index_name = 'fk_firma_cliente'), 'CREATE INDEX `fk_firma_cliente` ON `firmas` (`cliente_id`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'firmas' AND index_name = 'fk_firma_documento'), 'CREATE INDEX `fk_firma_documento` ON `firmas` (`documento_id`)', 'DO 0'));
@@ -2201,6 +2244,10 @@ PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'ficheros_carpetas' AND constraint_name = 'fk_carpeta_parent' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `ficheros_carpetas` ADD CONSTRAINT `fk_carpeta_parent` FOREIGN KEY (`parent_id`) REFERENCES `ficheros_carpetas` (`id`) ON DELETE CASCADE', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'ficheros_carpetas' AND constraint_name = 'fk_carpeta_propietario' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `ficheros_carpetas` ADD CONSTRAINT `fk_carpeta_propietario` FOREIGN KEY (`propietario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'ficheros_progreso' AND constraint_name = 'fk_fprog_fichero' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `ficheros_progreso` ADD CONSTRAINT `fk_fprog_fichero` FOREIGN KEY (`fichero_id`) REFERENCES `ficheros` (`id`) ON DELETE CASCADE', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'ficheros_progreso' AND constraint_name = 'fk_fprog_usuario' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `ficheros_progreso` ADD CONSTRAINT `fk_fprog_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'firmas' AND constraint_name = 'fk_firma_cliente' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `firmas` ADD CONSTRAINT `fk_firma_cliente` FOREIGN KEY (`cliente_id`) REFERENCES `clientes` (`id`) ON DELETE CASCADE', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
@@ -2474,4 +2521,4 @@ UPDATE usuarios SET numero_relacion = CONCAT('ICC-', LPAD(id, 5, '0')) WHERE num
 SET FOREIGN_KEY_CHECKS = 1;
 SET SESSION sql_mode = @icc_modo_anterior;
 
--- Listo. Base de datos al dia para ICC CRM v78.
+-- Listo. Base de datos al dia para ICC CRM v79.
