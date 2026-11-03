@@ -62,7 +62,7 @@ AddType "image/svg+xml; charset=UTF-8" .svg
 
 # config.php y las piezas internas (*_lib.php, cmp_comun.php) solo se usan via
 # "require" desde otros scripts PHP, nunca se piden directamente por URL.
-<FilesMatch "^(config|config\.local|seguridad_lib|anuncios_lib|tarifas_novedades_lib|cmp_comun)\.php$">
+<FilesMatch "^(config|config\.local|seguridad_lib|copias_lib|anuncios_lib|tarifas_novedades_lib|cmp_comun)\.php$">
   <IfModule mod_authz_core.c>
     Require all denied
   </IfModule>
