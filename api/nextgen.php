@@ -471,129 +471,7 @@ function labs_enmascara($v)
 /* ===========================================================================
    DESPLIEGUE Y LLAMADA DE PRUEBA
    ========================================================================= */
-function labs_ia_desplegar($contacto_id)
-{
-    $c = labs_contacto_para_ia($contacto_id);
-    $cfg = labs_ia_config_de($c['id']);
-    $sol = array_filter(array_map('trim', explode(',', (string) $c['soluciones'])));
-    $pasos = array();
-    $paso = function ($nivel, $texto, $ms = 350) use (&$pasos) {
-        $pasos[] = array('nivel' => $nivel, 'texto' => $texto, 'ms' => $ms);
-    };
-    $voz = $cfg['voz'];
-    $wa = $cfg['whatsapp'];
-    $emb = $cfg['embudo'];
-    // Se despliega lo que está activado en el configurador (las soluciones del deal son solo orientativas).
-    $usaVoz = !empty($voz['activo']);
-    $usaWa = !empty($wa['activo']);
-    $usaEmb = !empty($emb['activo']);
-    if (!$usaVoz && !$usaWa && !$usaEmb) {
-        throw new ErrorApi('Activa al menos un módulo (asistente de voz, bot de WhatsApp o embudo) antes de desplegar.', 400, 'P0001');
-    }
-    $faltan = array();
-    if ($usaVoz && mb_strlen(trim((string) ($voz['prompt'] ?? ''))) < 20) {
-        $faltan[] = 'el system prompt del asistente de voz (mínimo 20 caracteres)';
-    }
-    if ($usaWa && trim((string) ($wa['numero'] ?? '')) === '') {
-        $faltan[] = 'el número del canal de WhatsApp';
-    }
-    if ($faltan) {
-        throw new ErrorApi('Falta ' . implode(' y ', $faltan) . '.', 400, 'P0001');
-    }
-    if (!$cfg['webhook_token']) {
-        $cfg['webhook_token'] = bin2hex(random_bytes(16));
-        labs_q('UPDATE ia_config SET webhook_token = ? WHERE contacto_id = ?', array($cfg['webhook_token'], $c['id']));
-    }
-    $hook = labs_url_webhook($cfg['webhook_token']);
-    $cliente = $c['empresa'] !== '' ? $c['empresa'] : $c['nombre'];
-    $paso('info', 'Iniciando aprovisionamiento para «' . $cliente . '» (#' . $c['id'] . ')', 200);
-    $paso('info', 'Validando configuración: ' . implode(' · ', array_filter(array($usaVoz ? 'Asistente de voz' : '', $usaWa ? 'Bot de WhatsApp' : '', $usaEmb ? 'Embudo' : ''))), 300);
-    $a = labs_ia_ajustes();
-    $real = $a['n8n_url'] !== '';
-    if ($usaVoz) {
-        $paso('info', 'Twilio › reservando número ' . ($voz['numero'] ?? 'nuevo') . ' para voz entrante/saliente', 500);
-        $paso('info', 'OpenAI › modelo ' . ($voz['modelo'] ?? 'gpt-4o') . ' · temperatura ' . ($voz['temperatura'] ?? '0.4') . ' · voz «' . ($voz['voz'] ?? 'nova') . '»', 450);
-        $paso('info', 'Cargando system prompt (' . mb_strlen((string) $voz['prompt']) . ' caracteres) y ' . count((array) ($voz['transferencias'] ?? array())) . ' regla(s) de transferencia', 350);
-    }
-    if ($usaWa) {
-        $docs = count((array) ($wa['rag'] ?? array()));
-        $paso('info', 'WhatsApp › canal ' . ($wa['proveedor'] ?? 'Twilio') . ' en ' . ($wa['numero'] ?? ''), 450);
-        $paso('info', 'RAG › indexando ' . $docs . ' documento(s) y ' . mb_strlen((string) ($wa['conocimiento'] ?? '')) . ' caracteres de base de conocimiento', 600);
-    }
-    if ($usaEmb) {
-        $paso('info', 'n8n › instalando plantilla «' . ($emb['plantilla'] ?? 'captacion') . '» con ' . count((array) ($emb['pasos'] ?? array())) . ' paso(s)', 500);
-    }
-    $paso('info', 'Webhook de entrada listo: ' . $hook, 250);
-    $estado = 'desplegado';
-    if ($real) {
-        $paso('info', 'Enviando la configuración a tu orquestador (n8n/Make)…', 300);
-        list($cod, $resp, $err) = labs_n8n('desplegar', array(
-            'contacto' => array('id' => (int) $c['id'], 'nombre' => $c['nombre'], 'empresa' => $c['empresa'], 'email' => $c['email'],
-                'telefono' => trim($c['prefijo'] . ' ' . $c['telefono'])),
-            'voz' => $usaVoz ? $voz : null, 'whatsapp' => $usaWa ? $wa : null, 'embudo' => $usaEmb ? $emb : null, 'webhook_entrada' => $hook));
-        if ($cod >= 200 && $cod < 300) {
-            $paso('ok', 'Orquestador › aceptado (HTTP ' . $cod . ')' . ($resp ? ' · ' . mb_substr(preg_replace('/\s+/', ' ', $resp), 0, 140) : ''), 300);
-        } else {
-            $estado = 'error';
-            $paso('error', 'Orquestador › ' . ($err ?: 'respondió HTTP ' . $cod) . '. Revisa la URL de n8n en Configuración → Integraciones IA.', 300);
-        }
-    } else {
-        $paso('warn', 'MODO SIMULACIÓN: no hay orquestador configurado. Nada se ha creado en Twilio, OpenAI ni n8n. ' .
-            'Conéctalo en Configuración → Integraciones IA para despliegues reales.', 400);
-    }
-    if ($estado === 'desplegado') {
-        $paso('ok', $real ? '✔ Despliegue completado. El asistente está en producción.' : '✔ Simulación completada: la configuración es válida y está lista para desplegar.', 200);
-    }
-    labs_q('UPDATE ia_config SET estado = ?, desplegado = ?, actualizado = ? WHERE contacto_id = ?',
-        array($real ? $estado : 'simulado', labs_ahora(), labs_ahora(), $c['id']));
-    labs_evento_contacto($c['id'], 'ia', ($real ? ($estado === 'desplegado' ? 'Despliegue IA completado' : 'Despliegue IA con errores') : 'Despliegue IA simulado') .
-        ' · ' . implode(', ', array_filter(array($usaVoz ? 'voz' : '', $usaWa ? 'WhatsApp' : '', $usaEmb ? 'embudo' : ''))));
-    return array('modo' => $real ? 'real' : 'simulacion', 'ok' => $estado === 'desplegado', 'pasos' => $pasos, 'webhook' => $hook,
-        'estado' => $real ? $estado : 'simulado');
-}
-
-function labs_ia_probar_llamada($b)
-{
-    $c = labs_contacto_para_ia($b['contacto_id'] ?? 0);
-    $cfg = labs_ia_config_de($c['id']);
-    $voz = $cfg['voz'];
-    $pedido = trim((string) ($b['telefono'] ?? ''));
-    $tel = preg_replace('/[^\d+]/', '', $pedido === '' ? $c['prefijo'] . $c['telefono'] : $pedido);
-    if (!preg_match('/^\+?\d{8,15}$/', $tel)) {
-        throw new ErrorApi('Indica un teléfono válido para la llamada de prueba.', 400, 'P0001');
-    }
-    if (labs_freno('llamada|' . labs_uid(), 20, 3600)) {
-        throw new ErrorApi('Demasiadas llamadas de prueba seguidas. Espera un rato.', 429, 'FRENO');
-    }
-    $r = labs_n8n('llamada_prueba', array('contacto_id' => (int) $c['id'], 'telefono' => $tel, 'voz' => $voz));
-    if ($r !== null) {
-        list($cod, $resp, $err) = $r;
-        $ok = $cod >= 200 && $cod < 300;
-        labs_evento_contacto($c['id'], 'llamada', ($ok ? 'Llamada de prueba lanzada a ' : 'No se pudo lanzar la llamada de prueba a ') . labs_enmascara($tel) .
-            ($ok ? '' : ' (' . ($err ?: 'HTTP ' . $cod) . ')'));
-        if (!$ok) {
-            throw new ErrorApi('El orquestador no ha lanzado la llamada: ' . ($err ?: 'HTTP ' . $cod), 502, 'N8N');
-        }
-        return array('modo' => 'real', 'mensaje' => 'Llamada lanzada. La transcripción llegará al historial por el webhook.');
-    }
-    // Simulación: conversación de ejemplo a partir de la configuración.
-    $agente = trim((string) ($voz['nombre_agente'] ?? '')) ?: 'Laura';
-    $empresa = $c['empresa'] !== '' ? $c['empresa'] : 'la empresa';
-    $saludo = trim((string) ($voz['saludo'] ?? '')) ?: 'Hola, soy ' . $agente . ', la asistente virtual de ' . $empresa . '. ¿En qué puedo ayudarte?';
-    $trans = array(
-        array('quien' => 'IA', 'texto' => $saludo),
-        array('quien' => 'Cliente', 'texto' => 'Hola, quería información sobre vuestros servicios y precios.'),
-        array('quien' => 'IA', 'texto' => 'Claro. Te cuento lo principal y, si quieres, te reservo una cita con un asesor. ¿Te viene bien esta semana?'),
-        array('quien' => 'Cliente', 'texto' => 'Sí, el jueves por la mañana.'),
-        array('quien' => 'IA', 'texto' => 'Perfecto, te dejo el jueves a las 10:00. Te llegará la confirmación por WhatsApp. ¡Gracias!'),
-    );
-    $lineas = array_map(function ($l) {
-        return $l['quien'] . ': ' . $l['texto'];
-    }, $trans);
-    labs_evento_contacto($c['id'], 'llamada', "[SIMULACIÓN] Llamada de prueba del asistente «" . $agente . "» a " . labs_enmascara($tel) . " · 1 min 12 s\n" . implode("\n", $lineas));
-    return array('modo' => 'simulacion', 'transcripcion' => $trans, 'duracion' => 72,
-        'mensaje' => 'Simulación: no hay orquestador configurado, no se ha llamado a nadie.');
-}
+/* El despliegue y la llamada de prueba están en api/configurador.php. */
 
 /* ===========================================================================
    WEBHOOK DE ENTRADA (público)
@@ -804,7 +682,7 @@ function labs_ia($metodo, $sub, $b, $pares)
             labs_pon_ajuste('ia.twilio_sid', $sid);
             labs_pon_ajuste('ia.twilio_from', $from);
             labs_pon_ajuste('ia.n8n_url', $url);
-            foreach (array('twilio_token', 'n8n_token') as $k) {
+            foreach (array('twilio_token', 'n8n_token', 'elevenlabs_key') as $k) {
                 if (array_key_exists($k, $b) && $b[$k] !== '********') {
                     labs_pon_ajuste('ia.' . $k, mb_substr(trim((string) $b[$k]), 0, 200));
                 }
@@ -818,18 +696,28 @@ function labs_ia($metodo, $sub, $b, $pares)
         return array(200, array('twilio_sid' => $a['twilio_sid'], 'twilio_from' => $a['twilio_from'],
             'twilio_token' => $a['twilio_token'] !== '' ? '********' : '', 'n8n_url' => $a['n8n_url'],
             'n8n_token' => $a['n8n_token'] !== '' ? '********' : '', 'objetivo_mes' => (int) labs_ajuste('sala.objetivo_mes', '10'),
+            'elevenlabs_key' => labs_ajuste('ia.elevenlabs_key', '') !== '' ? '********' : '', 'elevenlabs' => labs_ajuste('ia.elevenlabs_key', '') !== '',
             'sms_real' => $a['twilio_sid'] !== '' && $a['twilio_token'] !== '' && $a['twilio_from'] !== '', 'orquestador' => $a['n8n_url'] !== ''));
     }
     if ($sub === '/estado' && $metodo === 'GET') {
         $a = labs_ia_ajustes();
         return array(200, array('sms_real' => $a['twilio_sid'] !== '' && $a['twilio_token'] !== '' && $a['twilio_from'] !== '',
-            'orquestador' => $a['n8n_url'] !== '', 'correo' => function_exists('mail')));
+            'orquestador' => $a['n8n_url'] !== '', 'correo' => function_exists('mail'), 'elevenlabs' => labs_ajuste('ia.elevenlabs_key', '') !== ''));
     }
     if ($sub === '/firma-enviar' && $metodo === 'POST') {
         return array(200, labs_ia_firma_enviar($b));
     }
     if (preg_match('#^/desplegar/(\d+)$#', $sub, $m) && $metodo === 'POST') {
-        return array(200, labs_ia_desplegar((int) $m[1]));
+        return array(200, labs_ia_desplegar((int) $m[1], $b));
+    }
+    if ($sub === '/numeros' && $metodo === 'GET') {
+        return array(200, labs_ia_numeros($pares));
+    }
+    if ($sub === '/voz-preview' && $metodo === 'POST') {
+        return array(200, labs_ia_voz_preview($b));
+    }
+    if (preg_match('#^/secreto/(\d+)$#', $sub, $m)) {
+        return array(200, labs_ia_secreto($metodo, (int) $m[1], $b));
     }
     if ($sub === '/probar-llamada' && $metodo === 'POST') {
         return array(200, labs_ia_probar_llamada($b));

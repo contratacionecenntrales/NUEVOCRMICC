@@ -32,6 +32,7 @@ require __DIR__ . '/seguridad.php';
 require __DIR__ . '/cumplimiento.php';
 require __DIR__ . '/importacion.php';
 require __DIR__ . '/nextgen.php';
+require __DIR__ . '/configurador.php';
 
 ini_set('display_errors', '0');
 

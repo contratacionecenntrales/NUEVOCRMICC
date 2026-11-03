@@ -8,7 +8,7 @@
  */
 defined('LABS') || exit;
 
-define('LABS_VERSION_ESQUEMA', 6);
+define('LABS_VERSION_ESQUEMA', 7);
 
 function labs_columna_existe(PDO $db, $tabla, $col)
 {
@@ -130,6 +130,8 @@ function labs_migra(PDO $db)
         array('contactos', 'soluciones', "ALTER TABLE contactos ADD COLUMN soluciones VARCHAR(60) NOT NULL DEFAULT ''"),
         array('contactos', 'fase_desde', 'ALTER TABLE contactos ADD COLUMN fase_desde DATETIME(6) NULL'),
         array('contactos', 'motivo_perdida', "ALTER TABLE contactos ADD COLUMN motivo_perdida VARCHAR(200) NOT NULL DEFAULT ''"),
+        // --- Credenciales cifradas por cliente (versión 7) ---------------------
+        array('ia_config', 'secretos', 'ALTER TABLE ia_config ADD COLUMN secretos TEXT NULL'),
         array('contratos', 'contacto_id', 'ALTER TABLE contratos ADD COLUMN contacto_id BIGINT UNSIGNED NULL, ADD KEY contratos_contacto_idx (contacto_id)'),
     );
     foreach ($columnas as $c) {

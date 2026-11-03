@@ -2,7 +2,7 @@
 
 Sala de Ventas, Pipeline IA, Agenda comercial y Ficha 360° con configurador de
 asistentes de IA. Todo con datos reales de la base de datos de Hostalia; se
-instala con el zip, sin tocar SQL (la base de datos se actualiza sola, versión 6).
+instala con el zip, sin tocar SQL (la base de datos se actualiza sola, versión 7).
 
 ## Módulos
 
@@ -31,24 +31,79 @@ Integraciones**:
   mensajes del móvil con el texto y el enlace listos.
 - **Orquestador n8n / Make** (URL https y token opcional): recibe los
   despliegues y las llamadas de prueba. Desde ahí se crea el asistente en
-  Vapi/Telnyx/Twilio y OpenAI.
+  Twilio, OpenAI y ElevenLabs.
+- **ElevenLabs** (API key): el ▶ de cada voz suena con la voz real. Sin clave,
+  se oye una aproximación con la voz del navegador.
+- Con Twilio conectado, el buscador de números muestra números libres reales.
 
 El correo de firma se envía con el correo del propio hosting; si el servidor
 no puede, se abre el programa de correo con el mensaje listo.
+
+## Configurador de IA a 1 clic
+
+En cada ficha, pestaña **Configurador IA**, con tres pestañas y el porcentaje
+de «listo para desplegar» arriba:
+
+- **📞 Asistente de Voz IA**
+  1. Línea: número nuevo de Twilio (local por prefijo, móvil o 900, con
+     buscador), SIP Trunk de la centralita del cliente o desvío desde su número.
+  2. Motor: GPT-4o Realtime, GPT-4o, GPT-4o mini, GPT-4.1 y GPT-4.1 mini, con
+     latencia, coste por minuto y capacidad; creatividad y longitud de respuesta.
+  3. Voz: 10 voces de ElevenLabs con ▶ escucha (o el ID de una voz propia o
+     clonada), estabilidad, claridad, velocidad del habla y velocidad de respuesta.
+  4. System prompt con plantillas (inmobiliaria, clínicas, cierres B2B,
+     restaurantes, soporte) y variables `[Nombre_Empresa]`, `[Nombre_Agente]`,
+     `[Servicio_Principal]`, `[Telefono_Soporte]`, `[Horario]`, `[Web]`,
+     `[Direccion]`. Se rellenan con la ficha y se pueden sobrescribir; «Ver vista
+     final» muestra lo que dirá el asistente.
+  5. Reglas de transferencia a humano: cuándo, a qué número y qué dice antes.
+  6. Zona de pruebas: «📞 Probar Llamada de Voz Ahora» con registro en vivo
+     (conexión, marcado, conversación, fin).
+- **💬 Bot de WhatsApp**: MetaTok, Meta Cloud API, Twilio o 360dialog; el token
+  de la instancia se guarda **cifrado** en el servidor y no vuelve al navegador.
+  Personalidad, horario y mensajes, base de conocimiento arrastrando PDF, TXT,
+  CSV o DOCX (hasta 300 MB) y chat de prueba a la derecha que responde con ese
+  conocimiento.
+- **⚡ Embudo Automático**: plantillas de workflow de n8n y el webhook del cliente.
+
+**⚡ Desplegar Sistema & Aprovisionar API** abre primero la comprobación
+(qué falta, mover el pipeline, enviar credenciales por SMS, email o ambos) y
+luego una consola flotante con las 4 fases:
+
+1. **Twilio**: compra o reserva el número y enruta la voz entrante (o SIP /
+   WhatsApp).
+2. **OpenAI**: crea el Assistant con el prompt ya resuelto y el vector store con
+   los documentos.
+3. **ElevenLabs + n8n**: sincroniza la voz, aplica las transferencias y activa
+   los nodos del embudo.
+4. **Pipeline y credenciales**: mueve el deal a «En producción» (real) o
+   «Despliegue» (simulación), nunca hacia atrás, y envía las credenciales al
+   cliente. En simulación **no se envía nada al cliente** y lo dice.
+
+No despliega si falta el valor de alguna variable usada en el prompt, si el
+prompt es demasiado corto o si falta el número.
 
 ### Lo que recibe el orquestador
 
 ```json
 {"evento": "desplegar", "origen": "labs24k-crm", "ts": "…",
  "contacto": {"id": 12, "nombre": "…", "empresa": "…", "email": "…", "telefono": "…"},
- "voz": {"activo": true, "proveedor": "vapi", "numero": "+34…", "modelo": "gpt-4o", "voz": "nova",
-         "temperatura": 0.4, "nombre_agente": "Laura", "saludo": "…", "prompt": "…",
-         "transferencias": [{"si": "urgencia", "a": "+34…"}]},
- "whatsapp": {"activo": true, "proveedor": "twilio", "numero": "+34…", "bienvenida": "…",
-              "conocimiento": "…", "rag": [{"nombre": "tarifas.pdf", "ruta": "contactos/12/…"}]},
- "embudo": {"activo": true, "plantilla": "captacion", "pasos": [{"t": "…", "on": true}]},
+ "voz": {"activo": true, "linea": {"tipo": "twilio", "numero": "+34 984…"},
+         "motor": {"modelo": "gpt-4o-realtime", "temperatura": 0.3, "max_tokens": 250},
+         "voz": {"proveedor": "elevenlabs", "id": "FGY2WhTYpPnrIDTdsKH5", "nombre": "Laura",
+                 "estabilidad": 0.5, "claridad": 0.75, "velocidad": 1, "latencia": 2},
+         "nombre_agente": "Laura", "saludo": "…", "prompt": "… [Nombre_Empresa] …",
+         "prompt_resuelto": "… Clínica Dental Sonrisa …", "variables": {"Nombre_Empresa": "…"},
+         "transferencias": [{"cuando": "Es una urgencia", "destino": "+34…", "mensaje": "…"}]},
+ "whatsapp": {"activo": true, "proveedor": "metatok", "numero": "+34…", "instancia": "…",
+              "bienvenida": "…", "conocimiento": "…", "rag": [{"nombre": "tarifas.pdf", "ruta": "contactos/12/…"}]},
+ "embudo": {"activo": true, "plantilla": "cita", "pasos": [{"t": "…", "on": true}]},
+ "secretos": {"whatsapp_token": "…", "sip_password": "…"},
  "webhook_entrada": "https://crm.labs24k.com/api/index.php?ruta=%2Fhook%2F…"}
 ```
+
+Los módulos inactivos llegan como `null`. Los `secretos` solo viajan del
+servidor al orquestador (https), nunca al navegador.
 
 `{"evento": "llamada_prueba", "contacto_id": 12, "telefono": "+34…", "voz": {…}}`
 para la llamada de prueba. Cabecera `X-Labs-Token` si se configura el token.
@@ -70,11 +125,12 @@ tiene freno de peticiones.
 Las reglas de siempre siguen mandando: un comercial solo ve y mueve sus deals,
 sus citas y la configuración IA de sus contactos; no puede asignar citas a
 otros, ni desplegar, ver webhooks, generar contratos o enviar firmas de
-contactos ajenos. Los tokens de Twilio y n8n nunca se devuelven al navegador.
+contactos ajenos. Las claves de Twilio, n8n y ElevenLabs y los tokens de WhatsApp de cada cliente
+(cifrados con AES-256-GCM) nunca se devuelven al navegador.
 Las tablas nuevas (citas, ia_config, pipeline_movimientos) entran en las copias
 de seguridad cifradas.
 
 ## Pruebas
 
-45 pruebas del servidor y 43 comprobaciones en el navegador, incluido el móvil,
+45 + 25 pruebas del servidor y 34 + 36 comprobaciones en el navegador, incluido el móvil,
 además de todas las anteriores del CRM.

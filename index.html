@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-a0c0MgsAXkG5a8lDKRxF2Mo/bhfWQCyR6i2KhOvH/xM='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-mTg9zT3MG6HUwxYToj3jBj+h8L/RNrd2wShhmlx3eWc='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Labs Command Center 360 - Oficina virtual SaaS de la red comercial de Labs24k.">
 <meta name="theme-color" content="#0B0F19">
@@ -1349,6 +1349,104 @@ a.btn.btn-g:hover{color:#fff}
   .ng-wa{grid-template-columns:minmax(0,1fr)}.ng-plantillas{grid-template-columns:repeat(2,minmax(0,1fr))}.ng-semana{grid-template-columns:repeat(7,minmax(160px,1fr))}}
 @media (max-width:640px){.ng-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}.ng-nodos{grid-template-columns:minmax(0,1fr)}.ng-h1{font-size:24px}
   .ng-reloj{font-size:22px;min-width:0}.ng-col{flex-basis:84vw}.ng-pasos{grid-template-columns:repeat(2,minmax(0,1fr))}.ng-hero{padding:16px}}
+
+/* =========================== CONFIGURADOR IA A 1 CLIC ========================== */
+.cia{position:relative}
+.cia-top{display:flex;gap:16px;align-items:center;flex-wrap:wrap;padding:16px 18px;border-radius:16px;border:1px solid rgba(23,200,192,.35);
+  background:radial-gradient(100% 160% at 0% 0%,rgba(23,200,192,.22),rgba(15,23,42,0) 60%),radial-gradient(80% 140% at 100% 100%,rgba(74,222,128,.14),rgba(15,23,42,0) 60%),#0B1220;
+  box-shadow:0 0 0 1px rgba(23,200,192,.08),0 18px 50px -28px rgba(23,200,192,.8)}
+.cia-kicker{font-size:10.5px;letter-spacing:.18em;color:#5EEAD4;font-weight:800}
+.cia-h{margin:4px 0 6px;font-size:21px;color:#fff;text-shadow:0 0 22px rgba(23,200,192,.4)}
+.cia-modo{font-size:12px;color:#CBD5E1;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.cia-led{width:8px;height:8px;border-radius:50%;display:inline-block}.cia-led.ok{background:#4ADE80;box-shadow:0 0 10px #4ADE80}.cia-led.warn{background:#FBBF24;box-shadow:0 0 10px #FBBF24;animation:ngParp 1.6s infinite}
+.cia-prep{min-width:170px;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.cia-prep-n{font-size:30px;font-weight:900;color:#fff;line-height:1;background:linear-gradient(135deg,#17C8C0,#4ADE80);-webkit-background-clip:text;background-clip:text;color:transparent}
+.cia-prep-b{width:160px;height:6px;border-radius:4px;background:rgba(148,163,184,.18);overflow:hidden}.cia-prep-b i{display:block;height:100%;background:linear-gradient(90deg,#17C8C0,#4ADE80);box-shadow:0 0 10px #17C8C0}
+.cia-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:14px 0}
+.cia-tab{position:relative;padding:13px 14px;border-radius:14px;border:1px solid var(--line);background:linear-gradient(160deg,rgba(30,41,59,.9),rgba(15,23,42,.9));color:#CBD5E1;
+  font:inherit;font-size:13.5px;font-weight:700;cursor:pointer;text-align:left;transition:.15s}
+.cia-tab:hover{color:#fff;border-color:rgba(23,200,192,.4)}
+.cia-tab.on{color:#fff;border-color:#17C8C0;box-shadow:0 0 0 1px rgba(23,200,192,.4),0 10px 30px -14px #17C8C0;background:linear-gradient(160deg,rgba(23,200,192,.18),rgba(15,23,42,.95))}
+.cia-on{position:absolute;right:10px;top:10px;font-size:9px;letter-spacing:.08em;color:#04231A;background:#4ADE80;border-radius:6px;padding:2px 6px;box-shadow:0 0 10px #4ADE80}
+.cia-sec-h{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;color:#fff;font-size:15px;flex-wrap:wrap}
+.cia-bloque{padding:14px;border-radius:14px;border:1px solid rgba(148,163,184,.14);background:rgba(15,23,42,.6);margin-bottom:12px}
+.cia-bt{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;color:#fff;margin-bottom:10px;flex-wrap:wrap}
+.cia-bt>span{width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;color:#04231A;background:linear-gradient(135deg,#17C8C0,#4ADE80);box-shadow:0 0 10px -2px #17C8C0}
+.cia-opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.cia-opt,.cia-motor,.cia-num{display:flex;flex-direction:column;gap:3px;text-align:left;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--card-2);color:#fff;font:inherit;cursor:pointer;transition:.12s}
+.cia-opt span,.cia-motor span,.cia-num span{font-size:11px;color:var(--txt-3)}.cia-opt b,.cia-motor b,.cia-num b{font-size:12.5px}
+.cia-opt:hover,.cia-motor:hover,.cia-num:hover{border-color:rgba(23,200,192,.5)}
+.cia-opt.on,.cia-motor.on,.cia-num.on{border-color:#17C8C0;background:rgba(23,200,192,.1);box-shadow:0 0 18px -8px #17C8C0}
+.cia-opt.on span,.cia-motor.on span,.cia-num.on span{color:#99F6E4}
+.cia-nums{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:6px;margin:10px 0}
+.cia-motores{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.cia-medidor{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:12px}
+.cia-barra{height:6px;border-radius:4px;background:rgba(148,163,184,.16);overflow:hidden;margin-top:5px}.cia-barra i{display:block;height:100%;border-radius:4px;transition:width .3s}
+.cia-rango{padding:8px 0}.cia-rango input{width:100%;accent-color:#17C8C0}
+.cia-voces{display:grid;grid-template-columns:repeat(auto-fill,minmax(205px,1fr));gap:8px}
+.cia-voz{display:flex;gap:10px;align-items:center;padding:9px 10px;border-radius:12px;border:1px solid var(--line);background:var(--card-2);cursor:pointer;transition:.12s}
+.cia-voz b{display:block;color:#fff;font-size:12.5px}.cia-voz span{display:block;font-size:10.5px;color:var(--txt-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cia-voz.on{border-color:#4ADE80;box-shadow:0 0 18px -8px #4ADE80;background:rgba(74,222,128,.08)}
+.cia-voz-av{width:32px;height:32px;flex:0 0 32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;color:#04231A;font-size:13px}
+.cia-voz-av.f{background:linear-gradient(135deg,#F0ABFC,#17C8C0)}.cia-voz-av.m{background:linear-gradient(135deg,#60A5FA,#4ADE80)}
+.cia-play{width:28px;height:28px;flex:0 0 28px;border-radius:50%;border:1px solid rgba(23,200,192,.5);background:#0F172A;color:#5EEAD4;cursor:pointer;font-size:11px}
+.cia-play:hover{background:#17C8C0;color:#04231A}
+.cia-plantillas{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.cia-pl{padding:7px 12px;border-radius:18px;border:1px solid var(--line);background:var(--card-2);color:#E2E8F0;font:inherit;font-size:12px;cursor:pointer}
+.cia-pl:hover{border-color:#17C8C0}.cia-pl.on{border-color:#17C8C0;background:rgba(23,200,192,.14);color:#99F6E4;box-shadow:0 0 14px -6px #17C8C0}
+.cia-vars{display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin:4px 0 8px}
+.cia-var{padding:3px 8px;border-radius:7px;border:1px dashed rgba(192,132,252,.6);background:rgba(192,132,252,.1);color:#E9D5FF;font:inherit;font-size:11px;font-family:ui-monospace,Menlo,monospace;cursor:pointer}
+.cia-var:hover{background:rgba(192,132,252,.25)}
+.cia-prompt{font-size:12.5px;line-height:1.6;min-height:220px;background:#060A12;border-color:rgba(23,200,192,.3);color:#E2E8F0}
+.cia-prompt:focus{box-shadow:0 0 0 3px rgba(23,200,192,.18),0 0 30px -10px #17C8C0}
+.cia-resuelto{white-space:pre-wrap;font-family:ui-monospace,Menlo,monospace;font-size:12px;line-height:1.6;color:#CBD5E1;background:#060A12;border:1px solid rgba(74,222,128,.3);border-radius:11px;padding:12px;margin-top:8px;max-height:300px;overflow:auto}
+.cia-det{margin-top:10px}.cia-det summary{cursor:pointer;font-size:12.5px;color:#99F6E4}
+.cia-tr{display:grid;grid-template-columns:1.2fr 1fr 1fr 1.4fr auto;gap:6px;align-items:center;margin-bottom:8px}
+.cia-tr .inp{padding:8px 10px;font-size:12.5px}
+.cia-live{border-color:rgba(74,222,128,.35);background:linear-gradient(160deg,rgba(74,222,128,.07),rgba(15,23,42,.65))}
+.cia-llamar{background:linear-gradient(135deg,#4ADE80,#17C8C0);color:#04231A;font-weight:800;border:none;box-shadow:0 10px 26px -10px #4ADE80}
+.cia-log{margin-top:10px;padding:10px 12px;border-radius:11px;background:#05080F;border:1px solid rgba(23,200,192,.25);font-family:ui-monospace,Menlo,monospace;font-size:12px;min-height:44px}
+.cia-log-l{display:flex;gap:8px;align-items:center;padding:3px 0;color:#CBD5E1}.cia-log-l i{width:8px;height:8px;border-radius:50%;background:#4ADE80;flex:0 0 8px}
+.cia-log-l.run{color:#fff}.cia-log-l.run i{background:#17C8C0;box-shadow:0 0 10px #17C8C0;animation:ngParp 1s infinite}
+.cia-log-l.warn{color:#FDE68A}.cia-log-l.warn i{background:#FBBF24}.cia-log-l.mal{color:#FCA5A5}.cia-log-l.mal i{background:#F87171}
+.cia-wa{display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:14px;align-items:start}
+.cia-chat-col{position:sticky;top:80px}.cia-movil .ng-movil-b{height:380px}
+.cia-sugs{display:flex;gap:5px;flex-wrap:wrap;padding:6px 8px;background:#111B21}
+.cia-sugs button{border:1px solid rgba(74,222,128,.35);background:none;color:#86EFAC;font:inherit;font-size:11px;padding:4px 9px;border-radius:14px;cursor:pointer}
+.cia-escribe{display:flex;gap:4px;width:52px}.cia-escribe i{width:6px;height:6px;border-radius:50%;background:#8696A0;animation:ciaPunto 1s infinite}
+.cia-escribe i:nth-child(2){animation-delay:.15s}.cia-escribe i:nth-child(3){animation-delay:.3s}@keyframes ciaPunto{50%{transform:translateY(-4px);opacity:.5}}
+.cia-drop{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;padding:24px 14px;border-radius:14px;border:2px dashed rgba(23,200,192,.45);
+  background:rgba(23,200,192,.05);color:#99F6E4;transition:.15s}
+.cia-drop b{color:#fff;font-size:13.5px}.cia-drop span{font-size:12px;color:var(--txt-2)}.cia-drop svg{color:#17C8C0}
+.cia-drop.on{border-color:#4ADE80;background:rgba(74,222,128,.12);box-shadow:0 0 30px -10px #4ADE80;transform:scale(1.01)}
+.cia-subidas{margin-top:8px;display:flex;flex-direction:column;gap:6px}
+.cia-subida{display:grid;grid-template-columns:minmax(0,1fr) 120px 34px;gap:8px;align-items:center;font-size:12px;color:#E2E8F0}
+.cia-pie{display:flex;gap:10px;justify-content:flex-end;align-items:center;flex-wrap:wrap;position:sticky;bottom:0;z-index:5;margin-top:6px;padding:12px;border-radius:14px;
+  background:rgba(11,15,25,.94);border:1px solid rgba(23,200,192,.25);backdrop-filter:blur(8px)}
+.cia-pie #cia-sucio{margin-right:auto}
+.cia-deploy{background:linear-gradient(135deg,#17C8C0,#4ADE80);color:#04231A;font-weight:900;border:none;padding:12px 20px;border-radius:12px;letter-spacing:.01em;
+  box-shadow:0 0 0 1px rgba(74,222,128,.45),0 14px 34px -10px rgba(23,200,192,.95);animation:ngBrillo 2.8s ease-in-out infinite}
+.cia-deploy:disabled{opacity:.5;animation:none;cursor:not-allowed}
+.cia-modal{border:1px solid rgba(23,200,192,.35);box-shadow:0 30px 80px -20px rgba(0,0,0,.95),0 0 60px -20px rgba(23,200,192,.6)}
+.cia-check{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.cia-check>div{display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 10px;border-radius:10px;background:var(--card-2);border:1px solid var(--line);font-size:12.5px}
+.cia-check i{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-style:normal;font-weight:900;font-size:11px}
+.cia-check .ok i{background:#4ADE80;color:#04231A}.cia-check .aviso i{background:#FBBF24;color:#1F1300}.cia-check .mal i{background:#F87171;color:#2B0606}
+.cia-check b{color:#fff;font-weight:600}.cia-check span{color:var(--txt-2);font-size:11.5px;text-align:right}
+.cia-op{display:flex;gap:8px;align-items:center;font-size:13px;color:#E2E8F0;margin:8px 0;flex-wrap:wrap}.cia-op input[type=checkbox]{accent-color:#17C8C0;width:16px;height:16px}
+.cia-consola{width:min(640px,calc(100vw - 36px))}
+.cia-fases{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;padding:12px 12px 6px;background:#0B1220}
+.cia-fase{display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center;opacity:.45;transition:.2s}
+.cia-fase i{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-style:normal;font-weight:900;font-size:12px;border:2px solid #334155;color:#94A3B8}
+.cia-fase b{font-size:11px;color:#fff}.cia-fase span{font-size:9.5px;color:var(--txt-3)}
+.cia-fase.run{opacity:1}.cia-fase.run i{border-color:#17C8C0;color:#5EEAD4;box-shadow:0 0 14px #17C8C0;animation:ngParp 1s infinite}
+.cia-fase.ok{opacity:1}.cia-fase.ok i{background:#4ADE80;border-color:#4ADE80;color:#04231A;box-shadow:0 0 12px -2px #4ADE80}
+.cia-prog{height:3px;background:#111827}.cia-prog i{display:block;height:100%;background:linear-gradient(90deg,#17C8C0,#4ADE80);box-shadow:0 0 10px #17C8C0;transition:width .3s}
+.cia-res{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:10px 12px;border-top:1px solid rgba(74,222,128,.25);background:#0B1220}
+.cia-res span{display:block;font-size:10.5px;color:var(--txt-3)}.cia-res b{font-size:12.5px;color:#fff}
+@media (max-width:900px){.cia-wa{grid-template-columns:minmax(0,1fr)}.cia-chat-col{position:static}.cia-tr{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.cia-tr .cia-tr-msg{grid-column:1/-1}}
+@media (max-width:640px){.cia-tabs{grid-template-columns:minmax(0,1fr)}.cia-medidor{grid-template-columns:minmax(0,1fr)}.cia-prep{align-items:flex-start;text-align:left}.cia-fases span{display:none}
+  .cia-pie{justify-content:stretch}.cia-pie .btn{flex:1}}
 
 /* =========================== CONTACTOS · FICHA ========================== */
 .ct-fila{cursor:pointer;transition:background .12s}
@@ -4872,8 +4970,8 @@ var PLANTILLAS_EMBUDO = {
 var FILTROS_TL = [['todo','Todo'],['llamada','Llamadas'],['whatsapp','WhatsApp'],['correo','Correo'],['nota','Notas'],['firma','Firma'],['cita','Citas'],['ia','IA']];
 
 function ct360Defecto(){
-  return {voz:{activo:false, proveedor:'vapi', numero:'', modelo:'gpt-4o', voz:'nova', temperatura:0.4, nombre_agente:'Laura', saludo:'', prompt:'', transferencias:[]},
-    whatsapp:{activo:false, proveedor:'twilio', numero:'', bienvenida:'', horario:'L-V 9:00-19:00', conocimiento:'', rag:[]},
+  return {voz:{activo:false, nombre_agente:'', saludo:'', prompt:'', plantilla:'', transferencias:[], variables:{}},
+    whatsapp:{activo:false, proveedor:'metatok', numero:'', instancia:'', bienvenida:'', horario:'L-V 9:00-19:00', tono:'cercano', prompt:'', fuera_horario:'', conocimiento:'', rag:[]},
     embudo:{activo:false, plantilla:'captacion', pasos:PLANTILLAS_EMBUDO.captacion.pasos.map(function(p){ return {t:p, on:true}; })}};
 }
 function ct360Carga(id){
@@ -4989,93 +5087,6 @@ function ct360Firma(c){
   '</div>';
 }
 
-/* --- Configurador IA ------------------------------------------------------- */
-function ct360IA(c){
-  var I = CT.ia; if(!I) return '<p class="tiny muted">Cargando la configuración…</p>';
-  var tab = CT.iaTab || 'voz', st = CT.iaEstado || {}, V = I.voz, W = I.whatsapp, E = I.embudo;
-  var sw = function(m, on){ return '<label class="ng-switch"><input type="checkbox" data-ia-on="'+m+'"'+(on ? ' checked' : '')+'><span></span> '+(on ? 'Activo' : 'Inactivo')+'</label>'; };
-  var inp = function(m, k, et, tipo, ph, extra){ return '<div class="field"><label class="f">'+et+'</label><input class="inp" data-ia="'+m+'.'+k+'" type="'+(tipo || 'text')+'" value="'+esc(I[m][k] === undefined ? '' : I[m][k])+'"'+(ph ? ' placeholder="'+esc(ph)+'"' : '')+(extra || '')+'></div>'; };
-  var sel = function(m, k, et, ops){ return '<div class="field"><label class="f">'+et+'</label><select class="inp" data-ia="'+m+'.'+k+'">'+ops.map(function(o){
-    return '<option value="'+esc(o[0])+'"'+(String(I[m][k]) === o[0] ? ' selected' : '')+'>'+esc(o[1])+'</option>'; }).join('')+'</select></div>'; };
-  var cuerpo;
-  if(tab === 'voz'){
-    cuerpo = '<div class="row" style="justify-content:space-between;align-items:center;margin-bottom:10px"><h4 class="ft-t" style="margin:0">'+ic('mic',14)+' Asistente de voz</h4>'+sw('voz', V.activo)+'</div>'+
-      '<div class="grid g-2">'+sel('voz', 'proveedor', 'Plataforma de voz', [['vapi','Vapi'],['telnyx','Telnyx'],['twilio','Twilio Voice']])+
-        inp('voz', 'numero', 'Número de Twilio / línea', 'tel', '+34 900 000 000')+
-        sel('voz', 'modelo', 'Modelo LLM', [['gpt-4o','OpenAI GPT-4o'],['gpt-4o-mini','OpenAI GPT-4o mini'],['gpt-4.1','OpenAI GPT-4.1']])+
-        sel('voz', 'voz', 'Voz', [['nova','Nova (femenina)'],['shimmer','Shimmer (femenina suave)'],['alloy','Alloy (neutra)'],['onyx','Onyx (masculina)']])+
-        inp('voz', 'nombre_agente', 'Nombre del asistente', 'text', 'Laura')+
-        '<div class="field"><label class="f">Temperatura: <b id="ia-temp-v">'+esc(V.temperatura)+'</b></label><input type="range" min="0" max="1" step="0.1" data-ia="voz.temperatura" value="'+esc(V.temperatura)+'" style="width:100%"></div></div>'+
-      inp('voz', 'saludo', 'Saludo inicial', 'text', 'Hola, soy Laura, de '+(c.empresa || c.nombre)+'. ¿En qué puedo ayudarte?')+
-      '<div class="field"><label class="f">System prompt <button class="ng-link" id="ia-prompt-base">Generar base con los datos del cliente</button></label>'+
-        '<textarea class="inp mono" data-ia="voz.prompt" rows="7" style="font-size:12px" placeholder="Instrucciones del asistente: quién es, qué hace, qué no debe hacer…">'+esc(V.prompt)+'</textarea>'+
-        '<div class="tiny muted" style="margin-top:4px">'+String(V.prompt || '').length+' caracteres</div></div>'+
-      '<div class="field"><label class="f">Variables de transferencia (cuándo pasa la llamada a una persona)</label>'+
-        (V.transferencias || []).map(function(t, i){ return '<div class="row" style="gap:6px;margin-bottom:6px"><input class="inp" data-ia-tr="'+i+'.si" value="'+esc(t.si)+'" placeholder="Si el cliente… (urgencia, quiere hablar con alguien)">'+
-          '<input class="inp" data-ia-tr="'+i+'.a" value="'+esc(t.a)+'" placeholder="+34 600 000 000" style="max-width:170px"><button class="btn btn-s btn-xs" data-ia-trx="'+i+'">'+ic('x',12)+'</button></div>'; }).join('')+
-        '<button class="btn btn-s btn-xs" id="ia-tr-add">'+ic('plus',12)+' Añadir transferencia</button></div>'+
-      '<div class="ng-probar"><input class="inp" id="ia-tel-prueba" type="tel" placeholder="Teléfono para la prueba" value="'+esc(CT.telPrueba || ctTelCompleto(c))+'">'+
-        '<button class="btn btn-p" id="ia-probar"'+(CT.probando ? ' disabled' : '')+'>'+ic('phone',14)+' '+(CT.probando ? 'Llamando…' : '📞 Probar llamada ahora')+'</button></div>'+
-      (CT.prueba ? '<div class="ng-trans"><div class="tiny" style="margin-bottom:8px;color:'+(CT.prueba.modo === 'real' ? '#86EFAC' : '#FDE68A')+'">'+esc(CT.prueba.mensaje || '')+'</div>'+
-        (CT.prueba.transcripcion || []).map(function(l){ return '<div class="ng-burbuja '+(l.quien === 'IA' ? 'ia' : 'cli')+'"><b>'+esc(l.quien)+'</b> '+esc(l.texto)+'</div>'; }).join('')+'</div>' : '');
-  } else if(tab === 'whatsapp'){
-    cuerpo = '<div class="row" style="justify-content:space-between;align-items:center;margin-bottom:10px"><h4 class="ft-t" style="margin:0">'+ic('chat',14)+' Bot de WhatsApp</h4>'+sw('whatsapp', W.activo)+'</div>'+
-      '<div class="ng-wa"><div>'+
-        '<div class="grid g-2">'+sel('whatsapp', 'proveedor', 'Canal', [['twilio','Twilio WhatsApp'],['meta','Meta Cloud API'],['360dialog','360dialog']])+
-          inp('whatsapp', 'numero', 'Número del canal', 'tel', '+34 600 000 000')+inp('whatsapp', 'horario', 'Horario de atención', 'text', 'L-V 9:00-19:00')+
-          inp('whatsapp', 'bienvenida', 'Mensaje de bienvenida', 'text', '¡Hola! Soy el asistente de '+(c.empresa || c.nombre)+'. ¿En qué te ayudo?')+'</div>'+
-        '<div class="field"><label class="f">Base de conocimiento (RAG): precios, servicios, horarios, preguntas frecuentes</label>'+
-          '<textarea class="inp" data-ia="whatsapp.conocimiento" rows="6" placeholder="Pega aquí tarifas, servicios, condiciones… El bot responderá con esta información.">'+esc(W.conocimiento)+'</textarea></div>'+
-        '<div class="field"><label class="f">Documentos para el RAG (PDF con tarifas, catálogos…)</label>'+
-          (W.rag || []).map(function(d, i){ return '<div class="row" style="gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line-soft)">'+ic('file',13)+'<span class="small trunc" style="flex:1;color:#fff">'+esc(d.nombre)+'</span>'+
-            '<span class="tiny muted">'+(d.tamano ? Math.round(d.tamano/1024)+' KB' : '')+'</span><button class="btn btn-s btn-xs" data-ia-ragx="'+i+'">'+ic('x',11)+'</button></div>'; }).join('')+
-          '<label class="btn btn-s btn-xs" style="margin-top:8px;cursor:pointer">'+ic('upload',12)+' '+(CT.subiendoRag ? 'Subiendo…' : 'Subir PDF')+'<input type="file" id="ia-rag" accept=".pdf" hidden></label></div>'+
-      '</div><div class="ng-movil"><div class="ng-movil-h">'+ic('chat',13)+' '+esc(c.empresa || c.nombre)+'<span>vista previa simulada</span></div><div class="ng-movil-b" id="ia-chat">'+
-        [{quien:'bot', texto: W.bienvenida || '¡Hola! ¿En qué te puedo ayudar?'}].concat(CT.chat || []).map(function(m){ return '<div class="ng-msg '+(m.quien === 'bot' ? 'bot' : 'yo')+'">'+esc(m.texto)+'</div>'; }).join('')+
-        '</div><div class="ng-movil-in"><input class="inp" id="ia-chat-in" placeholder="Escribe como si fueras el cliente…"><button class="btn btn-p btn-xs" id="ia-chat-env">'+ic('send',12)+'</button></div></div></div>';
-  } else {
-    cuerpo = '<div class="row" style="justify-content:space-between;align-items:center;margin-bottom:10px"><h4 class="ft-t" style="margin:0">'+ic('filter',14)+' Embudo y workflows</h4>'+sw('embudo', E.activo)+'</div>'+
-      '<div class="ng-plantillas">'+Object.keys(PLANTILLAS_EMBUDO).map(function(k){ var p = PLANTILLAS_EMBUDO[k];
-        return '<button class="ng-plantilla'+(E.plantilla === k ? ' on' : '')+'" data-ia-pl="'+k+'"><b>'+esc(p.n)+'</b><span>'+p.pasos.length+' pasos</span></button>'; }).join('')+'</div>'+
-      '<div class="ng-flujo">'+(E.pasos || []).map(function(p, i){ return '<div class="ng-flujo-p'+(p.on ? '' : ' off')+'"><span class="ng-flujo-n">'+(i+1)+'</span><span style="flex:1">'+esc(p.t)+'</span>'+
-        '<label class="ng-switch"><input type="checkbox" data-ia-paso="'+i+'"'+(p.on ? ' checked' : '')+'><span></span></label></div>'; }).join('')+'</div>'+
-      '<div class="field" style="margin-top:14px"><label class="f">Webhook URL de este cliente (entrada de leads, transcripciones y mensajes)</label>'+
-        (CT.hook ? '<div class="seg-clave mono" style="color:#fff">'+esc(CT.hook)+'</div><div class="row" style="gap:6px;margin-top:8px">'+
-          '<button class="btn btn-s btn-xs" data-cf-copia="'+esc(CT.hook)+'">'+ic('link',12)+' Copiar</button><button class="btn btn-s btn-xs" id="ia-hook-nuevo">'+ic('refresh',12)+' Regenerar</button></div>'+
-          '<details class="tiny muted" style="margin-top:8px"><summary style="cursor:pointer">Ejemplo de envío (n8n, Make, formulario web)</summary><pre class="mono ng-pre">POST '+esc(CT.hook)+'\nContent-Type: application/json\n\n{"mensaje": "Hola, quiero información", "de": "+34600000000"}\n{"transcripcion": [{"quien":"IA","texto":"Hola"}], "duracion": 42, "grabacion": "https://…"}</pre></details>'
-          : '<button class="btn btn-s" id="ia-hook-nuevo">'+ic('plug',13)+' Generar webhook</button>')+'</div>';
-  }
-  return '<div class="ng-ia-h"><div><h3 style="margin:0;color:#fff">'+ic('spark',16)+' Configurador IA a 1 clic</h3><p class="tiny muted" style="margin:4px 0 0">'+
-      (st.orquestador ? '<span style="color:#86EFAC">● Orquestador conectado: los despliegues y las pruebas son reales.</span>' :
-        '<span style="color:#FDE68A">● Modo simulación: no hay orquestador (n8n/Make) configurado.</span>')+
-      (S.role === 'admin' ? ' <button class="ng-link" id="ia-integra">Integraciones</button>' : '')+'</p></div>'+
-      '<span class="chip '+({desplegado:'green', simulado:'blue', error:'red'}[I.estado] || 'amber')+'">'+esc({desplegado:'En producción', simulado:'Simulado', error:'Error', borrador:'Borrador'}[I.estado] || I.estado)+
-      (I.desplegado ? ' · '+esc(ctFechaCorta(I.desplegado, true)) : '')+'</span></div>'+
-    '<div class="ng-seg" style="margin:12px 0">'+[['voz','Asistente de voz', V.activo],['whatsapp','Bot de WhatsApp', W.activo],['embudo','Embudo / Workflows', E.activo]].map(function(x){
-      return '<button class="'+(tab === x[0] ? 'on' : '')+'" data-ia-tab="'+x[0]+'">'+x[1]+(x[2] ? ' ●' : '')+'</button>'; }).join('')+'</div>'+
-    '<div class="ng-ia-b">'+cuerpo+'</div>'+
-    '<div class="ng-ia-pie"><button class="btn btn-s" id="ia-guardar"'+(CT.iaGuardando ? ' disabled' : '')+'>'+ic('save',14)+' Guardar configuración</button>'+
-      '<button class="btn ng-desplegar" id="ia-desplegar"'+(CT.consola && !CT.consola.fin ? ' disabled' : '')+'>⚡ Desplegar &amp; Aprovisionar</button></div>';
-}
-
-/* Consola flotante de despliegue */
-function ngConsolaHTML(){
-  var K = CT.consola; if(!K) return '';
-  var col = {info:'#94A3B8', ok:'#4ADE80', warn:'#FBBF24', error:'#F87171'};
-  return '<div class="ng-consola" id="ng-consola"><div class="ng-consola-h"><span>'+ic('bolt',13)+' Consola de despliegue</span>'+
-    '<span class="chip '+(K.modo === 'real' ? 'green' : 'amber')+' ng-chip">'+(K.modo === 'real' ? 'REAL' : K.modo === 'simulacion' ? 'SIMULACIÓN' : '…')+'</span>'+
-    '<button class="icon-btn" id="ng-consola-x" style="width:26px;height:26px">'+ic('x',12)+'</button></div><div class="ng-consola-b" id="ng-consola-b">'+
-    K.lineas.map(function(l){ return '<div style="color:'+(col[l.nivel] || '#E2E8F0')+'"><span class="muted">'+esc(l.h)+'</span> '+esc(l.texto)+'</div>'; }).join('')+
-    (K.fin ? '' : '<div class="ng-cursor">▋</div>')+'</div></div>';
-}
-function ngConsolaLinea(nivel, texto){
-  var K = CT.consola; if(!K) return;
-  K.lineas.push({nivel:nivel, texto:texto, h:new Date().toLocaleTimeString('es-ES')});
-  var b = q('#ng-consola-b');
-  if(b){ var d = document.createElement('div'); d.style.color = {info:'#94A3B8', ok:'#4ADE80', warn:'#FBBF24', error:'#F87171'}[nivel] || '#E2E8F0';
-    d.innerHTML = '<span class="muted">'+esc(K.lineas[K.lineas.length-1].h)+'</span> '+esc(texto); var cur = b.querySelector('.ng-cursor'); b.insertBefore(d, cur); b.scrollTop = b.scrollHeight; }
-}
-
 /* --- Bot de WhatsApp: respuesta simulada con la base de conocimiento ------ */
 function ngRespuestaBot(W, msg){
   var palabras = String(msg).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').split(/[^a-z0-9ñ]+/).filter(function(p){ return p.length > 3; });
@@ -5114,80 +5125,8 @@ function ct360Eventos(c){
   qa('[data-cf-copia]').forEach(function(b){ b.onclick = function(){ var t = b.dataset.cfCopia;
     (navigator.clipboard && window.isSecureContext ? navigator.clipboard.writeText(t) : Promise.reject()).then(function(){ toast('Copiado.'); }, function(){ if(typeof copiaAntigua === 'function') copiaAntigua(t); toast('Copiado.'); }); }; });
 
-  /* Configurador IA */
-  var I = CT.ia; if(!I) return;
-  qa('[data-ia-tab]').forEach(function(b){ b.onclick = function(){ CT.iaTab = b.dataset.iaTab; renderApp(); }; });
-  qa('[data-ia]').forEach(function(el){ var ev = el.tagName === 'SELECT' || el.type === 'range' ? 'oninput' : 'oninput';
-    el[ev] = function(){ var p = el.dataset.ia.split('.'); I[p[0]][p[1]] = el.type === 'range' ? Number(el.value) : el.value; CT.iaSucio = true;
-      if(el.type === 'range' && q('#ia-temp-v')) q('#ia-temp-v').textContent = el.value; };
-    if(el.tagName === 'SELECT') el.onchange = el[ev]; });
-  qa('[data-ia-on]').forEach(function(el){ el.onchange = function(){ I[el.dataset.iaOn].activo = el.checked; CT.iaSucio = true; renderApp(); }; });
-  qa('[data-ia-tr]').forEach(function(el){ el.oninput = function(){ var p = el.dataset.iaTr.split('.'); I.voz.transferencias[Number(p[0])][p[1]] = el.value; CT.iaSucio = true; }; });
-  qa('[data-ia-trx]').forEach(function(b){ b.onclick = function(){ I.voz.transferencias.splice(Number(b.dataset.iaTrx), 1); CT.iaSucio = true; renderApp(); }; });
-  if(q('#ia-tr-add')) q('#ia-tr-add').onclick = function(){ I.voz.transferencias = (I.voz.transferencias || []).concat([{si:'', a:''}]); renderApp(); };
-  if(q('#ia-prompt-base')) q('#ia-prompt-base').onclick = function(){
-    var emp = c.empresa || c.nombre, ag = I.voz.nombre_agente || 'Laura', tr = (I.voz.transferencias || []).filter(function(t){ return t.a; })[0];
-    I.voz.prompt = 'Eres ' + ag + ', la asistente de voz de ' + emp + '. Atiendes llamadas en español de España con un tono cercano, claro y profesional.\n\n' +
-      'OBJETIVO: resolver dudas sobre los servicios, cualificar al cliente y agendar una cita.\n\nREGLAS:\n- Frases cortas; una pregunta cada vez.\n' +
-      '- No inventes precios ni condiciones: si no los sabes, ofrece una cita con un asesor.\n- Pide nombre, teléfono y motivo antes de agendar.\n' +
-      '- Confirma siempre día y hora en voz alta.\n' + (tr ? '- Si ' + (tr.si || 'el cliente pide hablar con una persona') + ', transfiere la llamada al ' + tr.a + '.\n' : '- Si piden hablar con una persona, toma nota y avisa de que les llamarán.\n') +
-      '- Al terminar, despídete y resume lo acordado.';
-    CT.iaSucio = true; renderApp();
-  };
-  if(q('#ia-guardar')) q('#ia-guardar').onclick = function(){ ct360GuardaIA(c).then(function(ok){ if(ok) toast('Configuración guardada.'); }); };
-  if(q('#ia-probar')) q('#ia-probar').onclick = function(){
-    var tel = q('#ia-tel-prueba').value.trim(); CT.telPrueba = tel;
-    ct360GuardaIA(c).then(function(ok){
-      if(!ok) return; CT.probando = true; CT.prueba = null; renderApp();
-      ngApi('/ia/probar-llamada', 'POST', {contacto_id:c.id, telefono:tel}).then(function(d){ CT.probando = false; CT.prueba = d; ctCargaDetalle(c.id); renderApp(); })
-        .catch(function(e){ CT.probando = false; toast(e.message); renderApp(); });
-    });
-  };
-  if(q('#ia-chat-env')){
-    var envia2 = function(){ var t = q('#ia-chat-in').value.trim(); if(!t) return; CT.chat = (CT.chat || []).concat([{quien:'yo', texto:t}]); renderApp();
-      setTimeout(function(){ CT.chat.push({quien:'bot', texto:ngRespuestaBot(I.whatsapp, t)}); renderApp(); var b = q('#ia-chat'); if(b) b.scrollTop = b.scrollHeight;
-        var i2 = q('#ia-chat-in'); if(i2) i2.focus(); }, 700); };
-    q('#ia-chat-env').onclick = envia2; q('#ia-chat-in').onkeydown = function(e){ if(e.key === 'Enter') envia2(); };
-    var b = q('#ia-chat'); if(b) b.scrollTop = b.scrollHeight;
-  }
-  if(q('#ia-rag')) q('#ia-rag').onchange = function(){
-    var f = this.files[0]; if(!f) return;
-    var ruta = 'contactos/' + c.id + '/rag-' + Date.now() + '-' + String(f.name).replace(/[^A-Za-z0-9.\-_]/g, '_');
-    CT.subiendoRag = true; renderApp();
-    subeArchivo(ruta, f, 'application/pdf').then(function(r){
-      if(!r.ok) throw new Error(r.mensaje || 'código ' + r.estado);
-      return sbInsert('contacto_documentos', {contacto_id:c.id, nombre:f.name, tipo:'application/pdf', ruta:ruta, tamano_bytes:f.size, subido_por:(SB.sesion && SB.sesion.uid) || null});
-    }).then(function(){ CT.subiendoRag = false; I.whatsapp.rag = (I.whatsapp.rag || []).concat([{nombre:f.name, ruta:ruta, tamano:f.size}]);
-      return ct360GuardaIA(c); }).then(function(){ toast('Documento añadido a la base de conocimiento.'); ctCargaDetalle(c.id); })
-      .catch(function(e){ CT.subiendoRag = false; toast('No se ha podido subir: ' + e.message); renderApp(); });
-  };
-  qa('[data-ia-ragx]').forEach(function(b){ b.onclick = function(){ I.whatsapp.rag.splice(Number(b.dataset.iaRagx), 1); CT.iaSucio = true; renderApp(); }; });
-  qa('[data-ia-pl]').forEach(function(b){ b.onclick = function(){ var k = b.dataset.iaPl; I.embudo.plantilla = k;
-    I.embudo.pasos = PLANTILLAS_EMBUDO[k].pasos.map(function(p){ return {t:p, on:true}; }); CT.iaSucio = true; renderApp(); }; });
-  qa('[data-ia-paso]').forEach(function(el){ el.onchange = function(){ I.embudo.pasos[Number(el.dataset.iaPaso)].on = el.checked; CT.iaSucio = true; renderApp(); }; });
-  if(q('#ia-hook-nuevo')) q('#ia-hook-nuevo').onclick = function(){
-    if(CT.hook && !window.confirm('Si regeneras el webhook, el anterior deja de funcionar. ¿Seguir?')) return;
-    ct360GuardaIA(c).then(function(ok){ if(!ok) return; ngApi('/ia/webhook/' + c.id, 'POST', {}).then(function(d){ CT.hook = d.url; toast('Webhook listo.'); renderApp(); }).catch(function(e){ toast(e.message); }); });
-  };
-  if(q('#ia-integra')) q('#ia-integra').onclick = function(){ ngIntegraciones(); };
-  if(q('#ia-desplegar')) q('#ia-desplegar').onclick = function(){
-    ct360GuardaIA(c).then(function(ok){
-      if(!ok) return;
-      CT.consola = {lineas:[], modo:null, fin:false}; renderApp();
-      ngConsolaLinea('info', '$ labs deploy --contacto ' + c.id + ' --cliente "' + (c.empresa || c.nombre) + '"');
-      ngApi('/ia/desplegar/' + c.id, 'POST', {}).then(function(d){
-        CT.consola.modo = d.modo; var i = 0;
-        var cab = q('.ng-consola-h .chip'); if(cab){ cab.textContent = d.modo === 'real' ? 'REAL' : 'SIMULACIÓN'; cab.className = 'chip ' + (d.modo === 'real' ? 'green' : 'amber') + ' ng-chip'; }
-        (function sig(){
-          if(!CT.consola) return;
-          if(i >= d.pasos.length){ CT.consola.fin = true; CT.ia.estado = d.estado; CT.ia.desplegado = new Date().toISOString(); if(d.webhook) CT.hook = d.webhook;
-            ctCargaDetalle(c.id); renderApp(); return; }
-          var p = d.pasos[i++]; ngConsolaLinea(p.nivel, p.texto); setTimeout(sig, Math.min(900, p.ms || 300));
-        })();
-      }).catch(function(e){ ngConsolaLinea('error', '✖ ' + e.message); CT.consola.fin = true; renderApp(); });
-    });
-  };
-  if(q('#ng-consola-x')) q('#ng-consola-x').onclick = function(){ CT.consola = null; renderApp(); };
+  /* Configurador IA a 1 clic (módulo cia*) */
+  ciaEventos(c);
 }
 function ct360GuardaIA(c){
   var I = CT.ia; CT.iaGuardando = true;
@@ -5197,6 +5136,507 @@ function ct360GuardaIA(c){
     if(!r.ok){ toast('No se ha podido guardar la configuración: ' + sbMensaje(r)); renderApp(); return false; }
     CT.iaSucio = false; I.existe = true; return true;
   });
+}
+
+/* ==========================================================================
+   CONFIGURADOR DE IA A 1 CLIC · Ficha 360
+   Pensado para usarlo en directo con el cliente al teléfono o en la reunión:
+   plantillas de prompt con variables, catálogo de voces con escucha previa,
+   motores con su latencia y coste orientativos, reglas de transferencia,
+   prueba de llamada con registro de estados, conexión de WhatsApp (MetaTok y
+   otros), base de conocimiento por arrastrar y soltar, chat de prueba en vivo
+   y despliegue en 4 fases con consola. Servidor: api/configurador.php.
+   ========================================================================== */
+var CIA_MOTORES = {
+  'gpt-4o-realtime': {n:'GPT-4o Realtime (voz a voz)', lat:320, coste:0.28, razon:90, nota:'La conversación más natural y la latencia más baja. Usa las voces nativas de OpenAI.'},
+  'gpt-4o':          {n:'GPT-4o', lat:850, coste:0.07, razon:90, nota:'Equilibrio entre calidad y coste. Compatible con voces de ElevenLabs.'},
+  'gpt-4o-mini':     {n:'GPT-4o mini', lat:600, coste:0.02, razon:70, nota:'El más barato y rápido para recepción y citas sencillas.'},
+  'gpt-4.1':         {n:'GPT-4.1', lat:900, coste:0.08, razon:95, nota:'Más capacidad para guiones largos y ventas complejas.'},
+  'gpt-4.1-mini':    {n:'GPT-4.1 mini', lat:650, coste:0.025, razon:78, nota:'Buena relación calidad/precio para cualificación.'}
+};
+/* Voces de la biblioteca de ElevenLabs (modelo multilingüe: hablan español). */
+var CIA_VOCES = [
+  {id:'FGY2WhTYpPnrIDTdsKH5', n:'Laura', d:'Femenina · joven y cercana', g:'f'},
+  {id:'21m00Tcm4TlvDq8ikWAM', n:'Rachel', d:'Femenina · serena y profesional', g:'f'},
+  {id:'EXAVITQu4vr4xnSDxMaL', n:'Sarah', d:'Femenina · suave, de confianza', g:'f'},
+  {id:'XB0fDUnXU5powFXDhCwa', n:'Charlotte', d:'Femenina · segura, comercial', g:'f'},
+  {id:'XrExE9yKIg1WjnnlVkGX', n:'Matilda', d:'Femenina · amable, de recepción', g:'f'},
+  {id:'pNInz6obpgDQGcFmaJgB', n:'Adam', d:'Masculina · grave y firme', g:'m'},
+  {id:'ErXwobaYiN019PkySvjV', n:'Antoni', d:'Masculina · cálida y clara', g:'m'},
+  {id:'onwK4e9ZLuTAKqWW03F9', n:'Daniel', d:'Masculina · formal, de negocios', g:'m'},
+  {id:'nPczCjzI2devNBz1zQrb', n:'Brian', d:'Masculina · resonante, de soporte', g:'m'},
+  {id:'TxGEqnHWrfWFTfGW9XjX', n:'Josh', d:'Masculina · joven y dinámica', g:'m'}
+];
+var CIA_VARIABLES = ['Nombre_Empresa', 'Nombre_Agente', 'Servicio_Principal', 'Telefono_Soporte', 'Horario', 'Web', 'Direccion'];
+var CIA_PLANTILLAS = {
+  inmobiliaria: {n:'🏠 Agente inmobiliario', saludo:'Hola, soy [Nombre_Agente], de [Nombre_Empresa]. ¿Buscas comprar, vender o alquilar?',
+    p:'Eres [Nombre_Agente], asistente de voz de [Nombre_Empresa], agencia inmobiliaria. Hablas en español de España, con tono cercano y profesional.\n\nOBJETIVO: cualificar a quien llama y agendar una visita o una valoración.\n- Si compra o alquila: zona, presupuesto, tipo de vivienda, plazo y si necesita hipoteca.\n- Si vende: dirección aproximada, metros, estado y plazo.\n\nREGLAS:\n- Frases cortas, una pregunta cada vez.\n- No inventes precios ni disponibilidad: ofrece una visita con un asesor.\n- Servicio principal: [Servicio_Principal]. Horario: [Horario].\n- Antes de colgar, confirma nombre, teléfono, día y hora de la cita.\n- Si piden hablar con una persona o es urgente, transfiere al [Telefono_Soporte].'},
+  clinica: {n:'🩺 Recepción de clínicas', saludo:'Hola, has llamado a [Nombre_Empresa], soy [Nombre_Agente]. ¿En qué puedo ayudarte?',
+    p:'Eres [Nombre_Agente], la recepcionista virtual de [Nombre_Empresa]. Hablas en español de España con un tono amable, calmado y claro.\n\nOBJETIVO: dar, cambiar o anular citas y resolver dudas sobre horarios, tratamientos y precios publicados.\n\nREGLAS:\n- Nunca des diagnósticos ni consejos médicos.\n- Pide solo los datos necesarios para la cita: nombre, teléfono y motivo general.\n- Si hay una urgencia, dolor fuerte o algo grave, indica que llame al 112 y transfiere al [Telefono_Soporte].\n- Horario de la clínica: [Horario]. Dirección: [Direccion].\n- Confirma siempre día y hora en voz alta antes de terminar.'},
+  b2b: {n:'💼 Cierres B2B', saludo:'Hola, soy [Nombre_Agente], de [Nombre_Empresa]. ¿Tienes dos minutos?',
+    p:'Eres [Nombre_Agente], asesora comercial de [Nombre_Empresa]. Vendes [Servicio_Principal] a empresas. Tono seguro, directo y respetuoso.\n\nOBJETIVO: descubrir la necesidad y cerrar una demo con un consultor.\n1. Pregunta a qué se dedica la empresa y cuántas personas atienden llamadas o mensajes.\n2. Identifica el problema: llamadas perdidas, leads sin responder, horas en tareas repetitivas.\n3. Explica el beneficio en una frase y con un ejemplo de su sector.\n4. Resuelve objeciones (precio, tiempo, desconfianza) sin presionar.\n5. Propón dos huecos concretos para la demo.\n\nREGLAS:\n- No des precios cerrados: «depende del volumen, en la demo te lo calculamos».\n- Si quiere contratar ya o pide hablar con alguien, transfiere al [Telefono_Soporte].'},
+  restaurante: {n:'🍽️ Reservas de restaurante', saludo:'¡Hola! Bienvenido a [Nombre_Empresa]. ¿Quieres hacer una reserva?',
+    p:'Eres [Nombre_Agente], del restaurante [Nombre_Empresa]. Tono alegre y ágil.\n\nOBJETIVO: gestionar reservas (día, hora, número de personas, nombre y teléfono) y resolver dudas de carta, alergias y horario ([Horario]).\n\nREGLAS:\n- Si piden un grupo de más de 10 personas o un evento, transfiere al [Telefono_Soporte].\n- Repite la reserva completa antes de colgar.'},
+  soporte: {n:'🛠️ Soporte al cliente', saludo:'Hola, soporte de [Nombre_Empresa], soy [Nombre_Agente]. Cuéntame qué ha pasado.',
+    p:'Eres [Nombre_Agente], del equipo de soporte de [Nombre_Empresa]. Tono paciente y resolutivo.\n\nOBJETIVO: entender la incidencia, resolver las dudas frecuentes y, si no se puede, abrir un aviso con prioridad.\n\nREGLAS:\n- Pide nombre, empresa y descripción breve del problema.\n- Si el cliente está molesto o es una avería crítica, transfiere al [Telefono_Soporte].\n- Web de ayuda: [Web]. Horario de soporte: [Horario].'}
+};
+var CIA_CUANDO = ['Pide hablar con una persona', 'Es una urgencia', 'Quiere contratar ya', 'Tiene una queja', 'Pregunta por precios especiales'];
+var CIA_PROVEEDORES_WA = {
+  metatok:   {n:'MetaTok', d:'app.metatok.ai · tu instancia actual', campo:'ID de instancia de MetaTok'},
+  meta:      {n:'Meta Cloud API', d:'WhatsApp Business oficial', campo:'Phone number ID'},
+  twilio:    {n:'Twilio WhatsApp', d:'Sender de Twilio', campo:'Messaging Service SID'},
+  '360dialog': {n:'360dialog', d:'Partner oficial de Meta', campo:'Channel ID'}
+};
+
+/* --- Modelo de datos ------------------------------------------------------ */
+function ciaNormaliza(I, c){
+  var v = I.voz || {};
+  if(!v.linea) v.linea = {tipo:'twilio', numero: v.numero || '', sip_uri:'', sip_usuario:''};
+  if(!v.motor) v.motor = {modelo: CIA_MOTORES[v.modelo] ? v.modelo : 'gpt-4o', temperatura: v.temperatura === undefined ? 0.4 : Number(v.temperatura), max_tokens:250};
+  if(!v.voz || typeof v.voz !== 'object') v.voz = {proveedor:'elevenlabs', id:CIA_VOCES[0].id, nombre:CIA_VOCES[0].n, estabilidad:0.5, claridad:0.75, velocidad:1, latencia:2};
+  if(!v.variables) v.variables = {};
+  if(!v.nombre_agente) v.nombre_agente = v.voz.nombre || 'Laura';
+  v.transferencias = (v.transferencias || []).map(function(t){ return {cuando: t.cuando || t.si || '', destino: t.destino || t.a || '', mensaje: t.mensaje || ''}; });
+  I.voz = v;
+  var w = I.whatsapp || {};
+  if(!CIA_PROVEEDORES_WA[w.proveedor]) w.proveedor = 'metatok';
+  w.tono = w.tono || 'cercano'; w.rag = w.rag || []; w.prompt = w.prompt || ''; w.fuera_horario = w.fuera_horario || '';
+  I.whatsapp = w;
+  return I;
+}
+function ciaVars(c){
+  var V = CT.ia.voz, x = V.variables || {};
+  var base = {Nombre_Empresa: c.empresa || c.nombre, Nombre_Agente: V.nombre_agente || 'Laura', Telefono_Soporte: ((c.prefijo || '') + ' ' + (c.telefono || '')).trim()};
+  var r = {}; CIA_VARIABLES.forEach(function(k){ r[k] = (x[k] !== undefined && String(x[k]).trim() !== '') ? String(x[k]).trim() : (base[k] || ''); });
+  return r;
+}
+function ciaResuelve(t, vars){ return String(t || '').replace(/\[([A-Za-z_]{2,40})\]/g, function(m, k){ return vars[k] ? vars[k] : m; }); }
+function ciaSinResolver(t, vars){ var l = []; String(t || '').replace(/\[([A-Za-z_]{2,40})\]/g, function(m, k){ if(!vars[k] && l.indexOf(k) < 0) l.push(k); return m; }); return l; }
+
+/* Preparación de cada módulo (para el pre-vuelo y la barra de progreso). */
+function ciaChecklist(c){
+  var I = CT.ia, V = I.voz, W = I.whatsapp, E = I.embudo, vars = ciaVars(c), l = [];
+  if(V.activo){
+    l.push({ok: V.linea.tipo === 'sip' ? !!V.linea.sip_uri : !!V.linea.numero, t:'Voz · línea telefónica', d: V.linea.tipo === 'sip' ? (V.linea.sip_uri || 'falta la dirección SIP') : (V.linea.numero || 'elige un número')});
+    l.push({ok: String(V.prompt || '').trim().length >= 20, t:'Voz · system prompt', d: String(V.prompt || '').length + ' caracteres'});
+    var sr = ciaSinResolver(V.prompt, vars);
+    l.push({ok: !sr.length, t:'Voz · variables', d: sr.length ? 'sin valor: ' + sr.map(function(k){ return '[' + k + ']'; }).join(', ') : 'todas con valor'});
+    l.push({ok: true, aviso: !V.transferencias.some(function(t){ return t.destino; }), t:'Voz · transferencia a humano', d: V.transferencias.filter(function(t){ return t.destino; }).length + ' regla(s)'});
+  }
+  if(W.activo){
+    l.push({ok: !!W.numero, t:'WhatsApp · número del canal', d: W.numero || 'falta'});
+    l.push({ok: true, aviso: !(CT.ciaSecretos || []).length, t:'WhatsApp · credencial de ' + CIA_PROVEEDORES_WA[W.proveedor].n, d: (CT.ciaSecretos || []).length ? 'guardada' : 'sin guardar (la pondrá el orquestador)'});
+    l.push({ok: true, aviso: !(W.conocimiento || W.rag.length), t:'WhatsApp · base de conocimiento', d: W.rag.length + ' documento(s) · ' + String(W.conocimiento || '').length + ' caracteres'});
+  }
+  if(E.activo) l.push({ok: (E.pasos || []).some(function(p){ return p.on; }), t:'Embudo · ' + (PLANTILLAS_EMBUDO[E.plantilla] || {n:''}).n, d: (E.pasos || []).filter(function(p){ return p.on; }).length + ' pasos activos'});
+  if(!V.activo && !W.activo && !E.activo) l.push({ok:false, t:'Ningún módulo activo', d:'activa voz, WhatsApp o embudo'});
+  return l;
+}
+
+/* --- Vista principal ------------------------------------------------------ */
+function ciaVista(c){
+  var I = CT.ia; if(!I) return '<p class="tiny muted">Cargando la configuración…</p>';
+  ciaNormaliza(I, c);
+  var tab = CT.iaTab || 'voz', st = CT.iaEstado || {}, chk = ciaChecklist(c), listo = chk.filter(function(x){ return x.ok; }).length;
+  var pct = chk.length ? Math.round(listo*100/chk.length) : 0;
+  var cuerpo = tab === 'whatsapp' ? ciaWhatsApp(c) : tab === 'embudo' ? ciaEmbudo(c) : ciaVoz(c);
+  return '<div class="cia">'+
+    '<div class="cia-top"><div style="min-width:0;flex:1"><div class="cia-kicker">CONFIGURADOR IA · 1 CLIC</div>'+
+      '<h3 class="cia-h">'+esc(c.empresa || c.nombre)+'</h3>'+
+      '<div class="cia-modo">'+(st.orquestador ? '<span class="cia-led ok"></span> Orquestador conectado: el despliegue es real' :
+        '<span class="cia-led warn"></span> Modo simulación: sin orquestador (n8n/Make)')+
+        (st.elevenlabs ? ' · <span style="color:#86EFAC">ElevenLabs conectado</span>' : '')+
+        (S.role === 'admin' ? ' · <button class="ng-link" id="cia-integra">Integraciones</button>' : '')+'</div></div>'+
+      '<div class="cia-prep"><div class="cia-prep-n">'+pct+'%</div><div class="tiny muted">listo para desplegar</div><div class="cia-prep-b"><i style="width:'+pct+'%"></i></div>'+
+        '<span class="chip '+({desplegado:'green', simulado:'blue', error:'red'}[I.estado] || 'amber')+' ng-chip">'+esc({desplegado:'En producción', simulado:'Simulado', error:'Con errores', borrador:'Borrador'}[I.estado] || I.estado)+
+        (I.desplegado ? ' · '+esc(ctFechaCorta(I.desplegado, true)) : '')+'</span></div></div>'+
+    '<div class="cia-tabs">'+[['voz','📞 Asistente de Voz IA', I.voz.activo],['whatsapp','💬 Bot de WhatsApp', I.whatsapp.activo],['embudo','⚡ Embudo Automático', I.embudo.activo]].map(function(x){
+      return '<button class="cia-tab'+(tab === x[0] ? ' on' : '')+'" data-cia-tab="'+x[0]+'">'+x[1]+(x[2] ? '<span class="cia-on">ACTIVO</span>' : '')+'</button>'; }).join('')+'</div>'+
+    '<div class="cia-body">'+cuerpo+'</div>'+
+    '<div class="cia-pie"><span class="tiny muted" id="cia-sucio">'+(CT.iaSucio ? '● Cambios sin guardar' : 'Todo guardado')+'</span>'+
+      '<button class="btn btn-s" id="cia-guardar"'+(CT.iaGuardando ? ' disabled' : '')+'>'+ic('save',14)+' Guardar</button>'+
+      '<button class="btn cia-deploy" id="cia-desplegar"'+(CT.ciaDespliegue && !CT.ciaDespliegue.fin ? ' disabled' : '')+'>⚡ Desplegar Sistema &amp; Aprovisionar API</button></div>'+
+  '</div>';
+}
+function ciaSw(m, on){ return '<label class="ng-switch cia-sw"><input type="checkbox" data-cia-on="'+m+'"'+(on ? ' checked' : '')+'><span></span> '+(on ? 'Activo' : 'Inactivo')+'</label>'; }
+function ciaCampo(ruta, et, val, tipo, ph, extra){
+  return '<div class="field"><label class="f">'+et+'</label><input class="inp" data-cia="'+ruta+'" type="'+(tipo || 'text')+'" value="'+esc(val === undefined || val === null ? '' : val)+'"'+(ph ? ' placeholder="'+esc(ph)+'"' : '')+(extra || '')+'></div>';
+}
+function ciaRango(ruta, et, val, min, max, paso, fmt){
+  return '<div class="cia-rango"><div class="row" style="justify-content:space-between"><span class="tiny">'+et+'</span><b class="tiny" data-cia-v="'+ruta+'">'+(fmt ? fmt(val) : val)+'</b></div>'+
+    '<input type="range" min="'+min+'" max="'+max+'" step="'+paso+'" data-cia="'+ruta+'" data-cia-num="1" value="'+esc(val)+'"></div>';
+}
+
+/* --- 📞 Asistente de voz -------------------------------------------------- */
+function ciaVoz(c){
+  var V = CT.ia.voz, L = V.linea, M = V.motor, Z = V.voz, mot = CIA_MOTORES[M.modelo] || CIA_MOTORES['gpt-4o'], vars = ciaVars(c), sr = ciaSinResolver(V.prompt, vars);
+  var gente = (typeof USUARIOS !== 'undefined' ? USUARIOS : []).filter(function(u){ return u.est === 'Activo' && (u.num || u.tel); });
+  var N = CT.ciaNumeros;
+  return '<div class="cia-sec-h"><div><b>📞 Asistente de voz</b><span class="tiny muted"> · estilo Vapi / ElevenLabs / Telnyx</span></div>'+ciaSw('voz', V.activo)+'</div>'+
+  /* 1 · Línea */
+  '<div class="cia-bloque"><div class="cia-bt"><span>1</span> Número de teléfono</div>'+
+    '<div class="cia-opts">'+[['twilio','Número nuevo de Twilio','Local, móvil o 900'],['sip','SIP Trunk','Centralita propia del cliente'],['cliente','Número del cliente','Desvío desde su línea actual']].map(function(o){
+      return '<button class="cia-opt'+(L.tipo === o[0] ? ' on' : '')+'" data-cia-linea="'+o[0]+'"><b>'+o[1]+'</b><span>'+o[2]+'</span></button>'; }).join('')+'</div>'+
+    (L.tipo === 'twilio' ? '<div class="row" style="gap:8px;flex-wrap:wrap;margin-top:10px;align-items:flex-end">'+
+        '<div class="field" style="margin:0"><label class="f">Tipo</label><select class="inp" id="cia-num-tipo"><option value="local">Local</option><option value="movil">Móvil</option><option value="gratuito">900 gratuito</option></select></div>'+
+        '<div class="field" style="margin:0;max-width:110px"><label class="f">Prefijo</label><input class="inp" id="cia-num-area" value="984" maxlength="3"></div>'+
+        '<button class="btn btn-s" id="cia-num-buscar">'+ic('search',13)+' Buscar números</button></div>'+
+      (N ? '<div class="cia-nums">'+(N.numeros.map(function(n){ return '<button class="cia-num'+(L.numero === n.numero ? ' on' : '')+'" data-cia-num="'+esc(n.numero)+'"><b>'+esc(n.numero)+'</b><span>'+esc(n.zona || '')+
+          (n.sms ? ' · SMS' : '')+'</span></button>'; }).join('') || '')+'</div>'+(N.aviso ? '<div class="tiny" style="color:#FDE68A;margin-top:6px">'+esc(N.aviso)+'</div>' : '') : '')+
+      ciaCampo('voz.linea.numero', 'Número asignado', L.numero, 'tel', '+34 984 000 000') :
+     L.tipo === 'sip' ? '<div class="grid g-2" style="margin-top:10px">'+ciaCampo('voz.linea.sip_uri', 'Dirección SIP del trunk', L.sip_uri, 'text', 'sip:centralita.cliente.es:5060')+
+        ciaCampo('voz.linea.sip_usuario', 'Usuario SIP', L.sip_usuario, 'text', 'labs-ia')+'</div>'+
+        '<div class="row" style="gap:8px;align-items:flex-end"><div class="field" style="flex:1;margin:0"><label class="f">Contraseña SIP</label><input class="inp" type="password" id="cia-sip-pass" placeholder="'+((CT.ciaSecretos || []).indexOf('sip_password') > -1 ? 'guardada ✓ (escribe para cambiarla)' : '')+'" autocomplete="new-password"></div>'+
+        '<button class="btn btn-s" data-cia-secreto="sip_password" data-cia-de="#cia-sip-pass">'+ic('shield',13)+' Guardar cifrada</button></div>' :
+      ciaCampo('voz.linea.numero', 'Número actual del cliente (se desviará al asistente)', L.numero, 'tel', c.prefijo + ' ' + (c.telefono || ''))+'<div class="tiny muted">Se configura un desvío condicional (no contesta / fuera de horario) hacia el asistente.</div>')+
+  '</div>'+
+  /* 2 · Motor */
+  '<div class="cia-bloque"><div class="cia-bt"><span>2</span> Motor LLM e IA</div><div class="cia-motores">'+Object.keys(CIA_MOTORES).map(function(k){ var m = CIA_MOTORES[k];
+      return '<button class="cia-motor'+(M.modelo === k ? ' on' : '')+'" data-cia-motor="'+k+'"><b>'+esc(m.n)+'</b><span>'+m.lat+' ms · '+m.coste.toFixed(3).replace('.', ',')+' €/min</span></button>'; }).join('')+'</div>'+
+    '<div class="cia-medidor">'+[['Latencia de respuesta', mot.lat+' ms', Math.max(8, 100 - mot.lat/12), mot.lat < 500 ? '#4ADE80' : mot.lat < 800 ? '#FBBF24' : '#FB923C'],
+      ['Coste del motor', mot.coste.toFixed(3).replace('.', ',')+' €/min', Math.min(100, mot.coste/0.3*100), '#38BDF8'], ['Capacidad de razonamiento', mot.razon+'/100', mot.razon, '#C084FC']].map(function(m){
+      return '<div><div class="row" style="justify-content:space-between"><span class="tiny muted">'+m[0]+'</span><b class="tiny" style="color:'+m[3]+'">'+m[1]+'</b></div><div class="cia-barra"><i style="width:'+m[2]+'%;background:'+m[3]+'"></i></div></div>'; }).join('')+'</div>'+
+    '<div class="tiny muted" style="margin:6px 0 10px">'+esc(mot.nota)+' Valores orientativos (sin telefonía).</div>'+
+    '<div class="grid g-2">'+ciaRango('voz.motor.temperatura', 'Creatividad (temperatura)', M.temperatura, 0, 1, 0.1)+ciaRango('voz.motor.max_tokens', 'Longitud máxima de respuesta', M.max_tokens || 250, 50, 600, 25, function(v){ return v + ' tokens'; })+'</div>'+
+  '</div>'+
+  /* 3 · Voz */
+  '<div class="cia-bloque"><div class="cia-bt"><span>3</span> Voz '+(M.modelo === 'gpt-4o-realtime' ? '<em class="chip amber ng-chip">Realtime usa voz nativa de OpenAI</em>' : '<em class="chip violet ng-chip">ElevenLabs</em>')+'</div>'+
+    '<div class="cia-voces">'+CIA_VOCES.map(function(x){
+      return '<div class="cia-voz'+(Z.id === x.id ? ' on' : '')+'" data-cia-voz="'+x.id+'"><span class="cia-voz-av '+x.g+'">'+esc(x.n.charAt(0))+'</span><div style="min-width:0;flex:1"><b>'+esc(x.n)+'</b><span>'+esc(x.d)+'</span></div>'+
+        '<button class="cia-play" data-cia-oir="'+x.id+'" title="Escuchar">'+(CT.ciaSonando === x.id ? '■' : '▶')+'</button></div>'; }).join('')+'</div>'+
+    '<div class="row" style="gap:8px;align-items:flex-end;margin-top:8px"><div class="field" style="flex:1;margin:0"><label class="f">…o el ID de una voz propia o clonada de ElevenLabs</label>'+
+      '<input class="inp mono" data-cia="voz.voz.id" value="'+esc(Z.id)+'" placeholder="ID de voz"></div></div>'+
+    '<div class="grid g-2" style="margin-top:10px">'+ciaRango('voz.voz.estabilidad', 'Estabilidad', Z.estabilidad, 0, 1, 0.05)+ciaRango('voz.voz.claridad', 'Claridad (similitud)', Z.claridad, 0, 1, 0.05)+
+      ciaRango('voz.voz.velocidad', 'Velocidad del habla', Z.velocidad, 0.7, 1.2, 0.05, function(v){ return Number(v).toFixed(2) + '×'; })+
+      ciaRango('voz.voz.latencia', 'Velocidad de respuesta (streaming)', Z.latencia, 0, 4, 1, function(v){ return ['Máxima calidad','Equilibrada','Rápida','Muy rápida','Instantánea'][v]; })+'</div>'+
+    '<div class="tiny muted">'+(CT.iaEstado && CT.iaEstado.elevenlabs ? 'La escucha usa la voz real de ElevenLabs.' : 'Sin clave de ElevenLabs, la escucha es una aproximación con la voz del navegador; la voz real se oye en la llamada de prueba.')+'</div>'+
+  '</div>'+
+  /* 4 · Prompt */
+  '<div class="cia-bloque"><div class="cia-bt"><span>4</span> System prompt inteligente</div>'+
+    '<div class="cia-plantillas">'+Object.keys(CIA_PLANTILLAS).map(function(k){
+      return '<button class="cia-pl'+(V.plantilla === k ? ' on' : '')+'" data-cia-pl="'+k+'">'+esc(CIA_PLANTILLAS[k].n)+'</button>'; }).join('')+'</div>'+
+    '<div class="grid g-2">'+ciaCampo('voz.nombre_agente', 'Nombre del asistente', V.nombre_agente, 'text', 'Laura')+ciaCampo('voz.saludo', 'Saludo inicial', V.saludo, 'text', 'Hola, soy [Nombre_Agente] de [Nombre_Empresa]…')+'</div>'+
+    '<div class="cia-vars"><span class="tiny muted">Insertar variable:</span>'+CIA_VARIABLES.map(function(k){ return '<button class="cia-var" data-cia-ins="'+k+'">['+k+']</button>'; }).join('')+'</div>'+
+    '<textarea class="inp mono cia-prompt" id="cia-prompt" data-cia="voz.prompt" rows="12" placeholder="Elige una plantilla o escribe las instrucciones del asistente…">'+esc(V.prompt)+'</textarea>'+
+    '<div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:6px;margin-top:6px"><span class="tiny" id="cia-prompt-info">'+ciaPromptInfo(V.prompt, vars)+'</span>'+
+      '<button class="ng-link" id="cia-ver-resuelto">'+(CT.ciaResuelto ? 'Ocultar vista final' : 'Ver cómo queda con los datos del cliente')+'</button></div>'+
+    (CT.ciaResuelto ? '<pre class="cia-resuelto" id="cia-resuelto">'+esc(ciaResuelve(V.prompt, vars))+'</pre>' : '')+
+    '<details class="cia-det"'+(sr.length ? ' open' : '')+'><summary>Valores de las variables'+(sr.length ? ' · <b style="color:#FDE68A">'+sr.length+' sin valor</b>' : '')+'</summary><div class="grid g-2" style="margin-top:8px">'+
+      CIA_VARIABLES.filter(function(k){ return k !== 'Nombre_Agente'; }).map(function(k){
+        return '<div class="field"><label class="f">['+k+']</label><input class="inp" data-cia-varv="'+k+'" value="'+esc((V.variables || {})[k] || '')+'" placeholder="'+esc(vars[k] || 'sin valor')+'"></div>'; }).join('')+'</div></details>'+
+  '</div>'+
+  /* 5 · Transferencias */
+  '<div class="cia-bloque"><div class="cia-bt"><span>5</span> Reglas de transferencia a humano</div>'+
+    (V.transferencias.map(function(t, i){
+      var esPreset = CIA_CUANDO.indexOf(t.cuando) > -1 || !t.cuando;
+      return '<div class="cia-tr"><select class="inp" data-cia-tr="'+i+'.cuando_sel">'+CIA_CUANDO.map(function(x){ return '<option'+(t.cuando === x ? ' selected' : '')+'>'+esc(x)+'</option>'; }).join('')+
+          '<option value="__otro"'+(!esPreset ? ' selected' : '')+'>Otro motivo…</option></select>'+
+        (!esPreset ? '<input class="inp" data-cia-tr="'+i+'.cuando" value="'+esc(t.cuando)+'" placeholder="Describe cuándo">' : '')+
+        '<select class="inp" data-cia-tr="'+i+'.destino_sel"><option value="">Número…</option>'+gente.map(function(u){ var tel = (u.pre + ' ' + u.num).trim();
+          return '<option value="'+esc(tel)+'"'+(t.destino === tel ? ' selected' : '')+'>'+esc(u.n)+' · '+esc(tel)+'</option>'; }).join('')+'</select>'+
+        '<input class="inp" data-cia-tr="'+i+'.destino" value="'+esc(t.destino)+'" placeholder="+34 600 000 000">'+
+        '<input class="inp cia-tr-msg" data-cia-tr="'+i+'.mensaje" value="'+esc(t.mensaje)+'" placeholder="Lo que dice antes de pasar la llamada">'+
+        '<button class="btn btn-s btn-xs" data-cia-trx="'+i+'">'+ic('x',12)+'</button></div>'; }).join('') || '<p class="tiny muted" style="margin:0 0 8px">Sin reglas: si piden una persona, el asistente toma nota y avisa.</p>')+
+    '<button class="btn btn-s btn-xs" id="cia-tr-add">'+ic('plus',12)+' Añadir regla</button></div>'+
+  /* 6 · Pruebas en vivo */
+  '<div class="cia-bloque cia-live"><div class="cia-bt"><span>6</span> Zona de pruebas en vivo</div>'+
+    '<div class="ng-probar"><input class="inp" id="cia-tel" type="tel" placeholder="Teléfono para la prueba" value="'+esc(CT.telPrueba || ctTelCompleto(c))+'">'+
+      '<button class="btn cia-llamar" id="cia-probar"'+(CT.ciaProbando ? ' disabled' : '')+'>📞 '+(CT.ciaProbando ? 'Llamando…' : 'Probar Llamada de Voz Ahora')+'</button></div>'+
+    '<div class="cia-log" id="cia-log">'+((CT.ciaLog || []).map(function(l){ return '<div class="cia-log-l '+(l.k || '')+'"><i></i>'+esc(l.t)+'</div>'; }).join('') ||
+      '<div class="tiny muted">El registro de la llamada aparecerá aquí: conexión, marcado, conversación y fin.</div>')+'</div>'+
+    (CT.prueba && CT.prueba.transcripcion ? '<div class="ng-trans" style="margin-top:10px">'+CT.prueba.transcripcion.map(function(l){ return '<div class="ng-burbuja '+(l.quien === 'IA' ? 'ia' : 'cli')+'"><b>'+esc(l.quien)+'</b> '+esc(l.texto)+'</div>'; }).join('')+'</div>' : '')+
+  '</div>';
+}
+function ciaPromptInfo(p, vars){
+  var sr = ciaSinResolver(p, vars), n = String(p || '').length;
+  return n + ' caracteres · ~' + Math.ceil(n/4) + ' tokens' + (sr.length ? ' · <span style="color:#FDE68A">sin valor: ' + sr.map(function(k){ return '[' + esc(k) + ']'; }).join(' ') + '</span>' : ' · <span style="color:#86EFAC">variables completas</span>');
+}
+
+/* --- 💬 Bot de WhatsApp ---------------------------------------------------- */
+function ciaWhatsApp(c){
+  var W = CT.ia.whatsapp, P = CIA_PROVEEDORES_WA[W.proveedor], sec = CT.ciaSecretos || [];
+  return '<div class="cia-sec-h"><div><b>💬 Bot de WhatsApp</b><span class="tiny muted"> · conexión, cerebro y prueba en vivo</span></div>'+ciaSw('whatsapp', W.activo)+'</div>'+
+  '<div class="cia-wa"><div>'+
+    '<div class="cia-bloque"><div class="cia-bt"><span>1</span> Conexión de instancia</div>'+
+      '<div class="cia-opts">'+Object.keys(CIA_PROVEEDORES_WA).map(function(k){ var x = CIA_PROVEEDORES_WA[k];
+        return '<button class="cia-opt'+(W.proveedor === k ? ' on' : '')+'" data-cia-prov="'+k+'"><b>'+esc(x.n)+'</b><span>'+esc(x.d)+'</span></button>'; }).join('')+'</div>'+
+      '<div class="grid g-2" style="margin-top:10px">'+ciaCampo('whatsapp.numero', 'Número de WhatsApp', W.numero, 'tel', '+34 600 000 000')+ciaCampo('whatsapp.instancia', P.campo, W.instancia, 'text', '')+'</div>'+
+      '<div class="row" style="gap:8px;align-items:flex-end"><div class="field" style="flex:1;margin:0"><label class="f">Token de la API de '+esc(P.n)+'</label>'+
+        '<input class="inp" type="password" id="cia-wa-token" autocomplete="new-password" placeholder="'+(sec.indexOf('whatsapp_token') > -1 ? 'guardado y cifrado ✓ (escribe para cambiarlo)' : 'pega aquí el token')+'"></div>'+
+        '<button class="btn btn-s" data-cia-secreto="whatsapp_token" data-cia-de="#cia-wa-token">'+ic('shield',13)+' Guardar cifrado</button></div>'+
+      '<div class="tiny muted" style="margin-top:6px">El token se guarda cifrado en el servidor, no se vuelve a mostrar y solo se envía al orquestador al desplegar.</div></div>'+
+    '<div class="cia-bloque"><div class="cia-bt"><span>2</span> Personalidad</div>'+
+      '<div class="grid g-2"><div class="field"><label class="f">Tono</label><select class="inp" data-cia="whatsapp.tono">'+[['cercano','Cercano y con emojis'],['profesional','Profesional'],['formal','Formal']].map(function(o){
+        return '<option value="'+o[0]+'"'+(W.tono === o[0] ? ' selected' : '')+'>'+o[1]+'</option>'; }).join('')+'</select></div>'+
+        ciaCampo('whatsapp.horario', 'Horario de atención', W.horario, 'text', 'L-V 9:00-19:00')+'</div>'+
+      ciaCampo('whatsapp.bienvenida', 'Mensaje de bienvenida', W.bienvenida, 'text', '¡Hola! Soy el asistente de '+(c.empresa || c.nombre)+'. ¿En qué te ayudo?')+
+      ciaCampo('whatsapp.fuera_horario', 'Fuera de horario', W.fuera_horario, 'text', 'Ahora estamos cerrados, te respondemos mañana a primera hora.')+
+      '<div class="field"><label class="f">Instrucciones del bot (prompt)</label><textarea class="inp" data-cia="whatsapp.prompt" rows="4" placeholder="Qué hace, qué no hace, cuándo pasa a una persona…">'+esc(W.prompt)+'</textarea></div></div>'+
+    '<div class="cia-bloque"><div class="cia-bt"><span>3</span> Base de conocimiento (RAG)</div>'+
+      '<div class="cia-drop'+(CT.ciaArrastra ? ' on' : '')+'" id="cia-drop">'+ic('upload',22)+'<b>Arrastra aquí PDFs de tarifas, catálogos o FAQs</b><span>o <label class="ng-link" style="cursor:pointer">elige archivos<input type="file" id="cia-files" multiple accept=".pdf,.txt,.csv,.docx" hidden></label> · PDF, TXT, CSV, DOCX · hasta 300 MB</span></div>'+
+      ((CT.ciaSubidas || []).length ? '<div class="cia-subidas">'+CT.ciaSubidas.map(function(s){ return '<div class="cia-subida"><span class="trunc">'+esc(s.n)+'</span><div class="cia-barra"><i style="width:'+Math.round(s.p*100)+'%;background:'+(s.err ? '#F87171' : '#17C8C0')+'"></i></div><span class="tiny">'+(s.err ? '✖' : s.p >= 1 ? '✓' : Math.round(s.p*100)+'%')+'</span></div>'; }).join('')+'</div>' : '')+
+      (W.rag.length ? '<div style="margin-top:8px">'+W.rag.map(function(d, i){ return '<div class="row" style="gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line-soft)">'+ic('file',13)+
+        '<span class="small trunc" style="flex:1;color:#fff">'+esc(d.nombre)+'</span><span class="tiny muted">'+(d.tamano ? cumTam ? cumTam(d.tamano) : '' : '')+'</span><button class="btn btn-s btn-xs" data-cia-ragx="'+i+'">'+ic('x',11)+'</button></div>'; }).join('')+'</div>' : '')+
+      '<div class="field" style="margin-top:10px"><label class="f">Conocimiento en texto (el chat de prueba responde con esto; los PDF se indexan al desplegar)</label>'+
+        '<textarea class="inp" data-cia="whatsapp.conocimiento" rows="5" placeholder="Precios, servicios, horarios, condiciones, preguntas frecuentes…">'+esc(W.conocimiento)+'</textarea></div></div>'+
+  '</div>'+
+  '<div class="cia-chat-col"><div class="ng-movil cia-movil"><div class="ng-movil-h">'+ic('chat',13)+' '+esc(c.empresa || c.nombre)+'<span>en directo · simulado</span></div>'+
+    '<div class="ng-movil-b" id="cia-chat">'+[{quien:'bot', texto: W.bienvenida || '¡Hola! ¿En qué te puedo ayudar?'}].concat(CT.chat || []).map(function(m){
+      return '<div class="ng-msg '+(m.quien === 'bot' ? 'bot' : 'yo')+'">'+esc(m.texto)+'</div>'; }).join('')+(CT.ciaEscribe ? '<div class="ng-msg bot cia-escribe"><i></i><i></i><i></i></div>' : '')+'</div>'+
+    '<div class="cia-sugs">'+['¿Qué precio tiene?','¿Qué horario tenéis?','Quiero una cita','Hablar con una persona'].map(function(s){ return '<button data-cia-sug="'+esc(s)+'">'+esc(s)+'</button>'; }).join('')+'</div>'+
+    '<div class="ng-movil-in"><input class="inp" id="cia-chat-in" placeholder="Escribe como si fueras el cliente…"><button class="btn btn-p btn-xs" id="cia-chat-env">'+ic('send',12)+'</button></div></div>'+
+    '<button class="ng-link" id="cia-chat-reset" style="margin-top:6px">Reiniciar conversación</button>'+
+    '<div class="tiny muted" style="margin-top:6px">Responde al momento con la base de conocimiento y el tono que estás configurando. La IA real responde tras el despliegue.</div></div>'+
+  '</div>';
+}
+function ciaBot(W, msg, c){
+  var t = String(msg).toLowerCase(), r;
+  if(/persona|humano|comercial|asesor|hablar con/.test(t)) r = 'Claro, te paso con una persona del equipo de ' + (c.empresa || c.nombre) + '. En breve te escribe.';
+  else if(/cita|reserv|agend|visita/.test(t)) r = '¡Perfecto! ¿Qué día y franja te viene mejor? Te propongo mañana a las 10:00 o a las 17:00.';
+  else if(/horario|abr[ií]s|cerr|hora/.test(t) && W.horario) r = 'Nuestro horario es ' + W.horario + '.';
+  else r = ngRespuestaBot(W, msg);
+  if(W.tono === 'cercano') r += /\?$/.test(r) ? ' 😊' : ' 🙌';
+  if(W.tono === 'formal') r = r.replace(/^¡?Claro,? ?/i, 'Por supuesto. ');
+  return r;
+}
+
+/* --- ⚡ Embudo ------------------------------------------------------------ */
+function ciaEmbudo(c){
+  var E = CT.ia.embudo;
+  return '<div class="cia-sec-h"><div><b>⚡ Embudo automático</b><span class="tiny muted"> · workflows en n8n</span></div>'+ciaSw('embudo', E.activo)+'</div>'+
+    '<div class="cia-bloque"><div class="cia-bt"><span>1</span> Plantilla</div><div class="ng-plantillas">'+Object.keys(PLANTILLAS_EMBUDO).map(function(k){ var p = PLANTILLAS_EMBUDO[k];
+      return '<button class="ng-plantilla'+(E.plantilla === k ? ' on' : '')+'" data-cia-emb="'+k+'"><b>'+esc(p.n)+'</b><span>'+p.pasos.length+' pasos</span></button>'; }).join('')+'</div>'+
+      '<div class="ng-flujo">'+(E.pasos || []).map(function(p, i){ return '<div class="ng-flujo-p'+(p.on ? '' : ' off')+'"><span class="ng-flujo-n">'+(i+1)+'</span><span style="flex:1">'+esc(p.t)+'</span>'+
+        '<label class="ng-switch"><input type="checkbox" data-cia-paso="'+i+'"'+(p.on ? ' checked' : '')+'><span></span></label></div>'; }).join('')+'</div></div>'+
+    '<div class="cia-bloque"><div class="cia-bt"><span>2</span> Webhook URL de este cliente</div>'+
+      (CT.hook ? '<div class="seg-clave mono" style="color:#fff;word-break:break-all">'+esc(CT.hook)+'</div><div class="row" style="gap:6px;margin-top:8px">'+
+        '<button class="btn btn-s btn-xs" data-cf-copia="'+esc(CT.hook)+'">'+ic('link',12)+' Copiar</button><button class="btn btn-s btn-xs" id="cia-hook">'+ic('refresh',12)+' Regenerar</button></div>'+
+        '<pre class="mono ng-pre">POST (JSON) · leads, mensajes y transcripciones\n{"mensaje": "Hola, quiero información", "de": "+34600000000"}\n{"transcripcion": [{"quien":"IA","texto":"Hola"}], "duracion": 42}</pre>' :
+        '<button class="btn btn-s" id="cia-hook">'+ic('plug',13)+' Generar webhook</button>')+'</div>';
+}
+
+/* --- Pre-vuelo y consola de despliegue (4 fases) -------------------------- */
+var CIA_FASES = [['Twilio', 'Número y enrutamiento'], ['OpenAI', 'Assistant y vector store'], ['ElevenLabs + n8n', 'Voz y nodos'], ['Pipeline y credenciales', 'Estado y aviso al cliente']];
+function ciaPrevueloHTML(c){
+  var P = CT.ciaPrevuelo; if(!P) return '';
+  var chk = ciaChecklist(c), bloquea = chk.some(function(x){ return !x.ok; }), st = CT.iaEstado || {};
+  return '<div class="ov" data-ov="cia-prev"><div class="modal cia-modal" style="max-width:600px">'+
+    '<div class="cia-kicker">PRE-VUELO</div><h3 style="margin:4px 0 12px;color:#fff">Desplegar el sistema de «'+esc(c.empresa || c.nombre)+'»</h3>'+
+    '<div class="cia-check">'+chk.map(function(x){ return '<div class="'+(x.ok ? (x.aviso ? 'aviso' : 'ok') : 'mal')+'"><i>'+(x.ok ? (x.aviso ? '!' : '✓') : '✕')+'</i><b>'+esc(x.t)+'</b><span>'+esc(x.d)+'</span></div>'; }).join('')+'</div>'+
+    '<label class="cia-op"><input type="checkbox" id="cia-op-pipe"'+(P.mover ? ' checked' : '')+'> Mover el cliente en el pipeline ('+(st.orquestador ? 'a «En producción»' : 'a «Despliegue»')+')</label>'+
+    '<label class="cia-op"><input type="checkbox" id="cia-op-cred"'+(P.cred ? ' checked' : '')+'> Enviar al cliente sus datos de acceso por '+
+      '<select class="inp" id="cia-op-canal" style="width:auto;display:inline-block;padding:4px 26px 4px 8px;margin-left:4px">'+[['email','email'],['sms','SMS'],['ambos','SMS y email']].map(function(o){
+        return '<option value="'+o[0]+'"'+(P.canal === o[0] ? ' selected' : '')+'>'+o[1]+'</option>'; }).join('')+'</select></label>'+
+    '<div class="nota" style="margin-top:10px">'+ic('help',15)+'<span>'+(st.orquestador ? 'Despliegue <b>real</b>: tu orquestador creará el número, el asistente y la voz, y el cliente recibirá sus datos.' :
+      '<b>Simulación</b>: se valida todo y se muestran los pasos, pero no se crea nada en Twilio, OpenAI ni ElevenLabs y no se envía nada al cliente.')+'</span></div>'+
+    '<div class="row" style="gap:8px;justify-content:flex-end;margin-top:14px"><button class="btn btn-s" id="cia-prev-x">Cancelar</button>'+
+      '<button class="btn cia-deploy" id="cia-prev-ok"'+(bloquea ? ' disabled title="Completa lo marcado en rojo"' : '')+'>⚡ Desplegar ahora</button></div></div></div>';
+}
+function ciaConsolaHTML(){
+  var K = CT.ciaDespliegue; if(!K) return '';
+  var col = {info:'#94A3B8', ok:'#4ADE80', warn:'#FBBF24', error:'#F87171'};
+  return '<div class="ng-consola cia-consola" id="cia-consola"><div class="ng-consola-h"><span>'+ic('bolt',13)+' Despliegue · '+esc(K.cliente)+'</span>'+
+    '<span class="chip '+(K.modo === 'real' ? 'green' : K.modo ? 'amber' : '')+' ng-chip" id="cia-k-modo">'+(K.modo === 'real' ? 'REAL' : K.modo ? 'SIMULACIÓN' : 'CONECTANDO')+'</span>'+
+    (K.fin ? '<button class="icon-btn" id="cia-k-x" style="width:26px;height:26px">'+ic('x',12)+'</button>' : '')+'</div>'+
+    '<div class="cia-fases">'+CIA_FASES.map(function(f, i){ var n = i+1, e = K.fase > n || (K.fin && K.fase >= n && K.ok) ? 'ok' : K.fase === n ? 'run' : '';
+      return '<div class="cia-fase '+e+'" data-cia-fase="'+n+'"><i>'+(e === 'ok' ? '✓' : n)+'</i><b>'+esc(f[0])+'</b><span>'+esc(f[1])+'</span></div>'; }).join('')+'</div>'+
+    '<div class="cia-prog"><i id="cia-k-prog" style="width:'+(K.total ? Math.round(K.hechos/K.total*100) : 3)+'%"></i></div>'+
+    '<div class="ng-consola-b" id="cia-k-b">'+K.lineas.map(function(l){ return '<div style="color:'+(col[l.nivel] || '#E2E8F0')+'"><span class="muted">'+esc(l.h)+'</span> '+esc(l.texto)+'</div>'; }).join('')+
+      (K.fin ? '' : '<div class="ng-cursor">▋</div>')+'</div>'+
+    (K.fin && K.res ? '<div class="cia-res"><div><span>Estado</span><b style="color:'+(K.ok ? '#4ADE80' : '#F87171')+'">'+(K.ok ? (K.modo === 'real' ? 'En producción' : 'Simulación OK') : 'Con errores')+'</b></div>'+
+      '<div><span>Pipeline</span><b>'+esc(ngFase(K.res.fase).n)+'</b></div><div><span>Número</span><b>'+esc(K.res.numero || '—')+'</b></div></div>' : '')+'</div>';
+}
+function ciaLinea(nivel, texto, fase){
+  var K = CT.ciaDespliegue; if(!K) return;
+  var l = {nivel:nivel, texto:texto, h:new Date().toLocaleTimeString('es-ES')}; K.lineas.push(l);
+  if(fase !== undefined && fase > K.fase){
+    K.fase = fase; qa('[data-cia-fase]').forEach(function(el){ var n = Number(el.dataset.ciaFase); el.className = 'cia-fase ' + (n < fase ? 'ok' : n === fase ? 'run' : '');
+      el.querySelector('i').textContent = n < fase ? '✓' : n; }); }
+  K.hechos++;
+  var b = q('#cia-k-b'), pr = q('#cia-k-prog');
+  if(pr) pr.style.width = (K.total ? Math.round(K.hechos/K.total*100) : 10) + '%';
+  if(b){ var d = document.createElement('div'); d.style.color = {info:'#94A3B8', ok:'#4ADE80', warn:'#FBBF24', error:'#F87171'}[nivel] || '#E2E8F0';
+    d.innerHTML = '<span class="muted">'+esc(l.h)+'</span> '+esc(texto); b.insertBefore(d, b.querySelector('.ng-cursor')); b.scrollTop = b.scrollHeight; }
+}
+
+/* --- Voz: escucha previa --------------------------------------------------- */
+function ciaEscucha(c, id){
+  var x = CIA_VOCES.filter(function(v){ return v.id === id; })[0] || {n:'', g:'f'}, Z = CT.ia.voz.voz, vars = ciaVars(c);
+  var texto = ciaResuelve(CT.ia.voz.saludo || 'Hola, soy [Nombre_Agente], la asistente virtual de [Nombre_Empresa]. ¿En qué puedo ayudarte?', Object.assign({}, vars, {Nombre_Agente: x.n || vars.Nombre_Agente}));
+  if(CT.ciaAudio){ try{ CT.ciaAudio.pause(); }catch(e){} CT.ciaAudio = null; }
+  if(window.speechSynthesis) window.speechSynthesis.cancel();
+  if(CT.ciaSonando === id){ CT.ciaSonando = null; renderApp(); return; }
+  CT.ciaSonando = id; renderApp();
+  var fin = function(){ if(CT.ciaSonando === id){ CT.ciaSonando = null; renderApp(); } };
+  var local = function(){
+    if(!window.speechSynthesis){ toast('Este navegador no puede reproducir la muestra.'); fin(); return; }
+    var u = new SpeechSynthesisUtterance(texto), vs = window.speechSynthesis.getVoices().filter(function(v){ return /^es/i.test(v.lang); });
+    var elegida = vs.filter(function(v){ return x.g === 'm' ? /male|jorge|pablo|diego|enrique|alvaro/i.test(v.name) && !/female/i.test(v.name) : /female|monica|helena|laura|elvira|lucia|paulina/i.test(v.name); })[0] || vs[0];
+    if(elegida) u.voice = elegida; u.lang = 'es-ES'; u.rate = Number(Z.velocidad) || 1; u.pitch = x.g === 'm' ? 0.85 : 1.1;
+    u.onend = fin; u.onerror = fin; window.speechSynthesis.speak(u);
+  };
+  if(CT.iaEstado && CT.iaEstado.elevenlabs){
+    ngApi('/ia/voz-preview', 'POST', {voz_id:id, texto:texto, estabilidad:Z.estabilidad, claridad:Z.claridad, velocidad:Z.velocidad}).then(function(r){
+      if(r.sin_clave || !r.audio){ local(); return; }
+      var a = new Audio(r.audio); CT.ciaAudio = a; a.onended = fin; a.play().catch(function(){ local(); });
+    }).catch(function(e){ toast(e.message); local(); });
+  } else local();
+}
+
+/* --- RAG: subida de archivos ---------------------------------------------- */
+function ciaSubeArchivos(c, files){
+  var W = CT.ia.whatsapp; files = Array.prototype.slice.call(files || []).filter(function(f){ return /\.(pdf|txt|csv|docx)$/i.test(f.name); });
+  if(!files.length){ toast('Solo PDF, TXT, CSV o DOCX.'); return; }
+  CT.ciaSubidas = files.map(function(f){ return {n:f.name, p:0}; }); renderApp();
+  var tipos = {pdf:'application/pdf', txt:'text/plain', csv:'text/csv', docx:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'};
+  var i = 0;
+  (function sig(){
+    if(i >= files.length){ ct360GuardaIA(c).then(function(){ toast(files.length + ' documento(s) añadidos a la base de conocimiento.'); ctCargaDetalle(c.id); }); return; }
+    var f = files[i], s = CT.ciaSubidas[i++], ext = f.name.split('.').pop().toLowerCase();
+    var ruta = 'contactos/' + c.id + '/rag-' + Date.now() + '-' + String(f.name).replace(/[^A-Za-z0-9.\-_]/g, '_');
+    var leeTexto = (ext === 'txt' || ext === 'csv') ? f.text().then(function(t){ W.conocimiento = (W.conocimiento ? W.conocimiento + '\n' : '') + t.slice(0, 20000); }) : Promise.resolve();
+    leeTexto.then(function(){ return subeArchivo(ruta, f, tipos[ext], function(p){ s.p = p; var b = qa('.cia-subida .cia-barra i')[i-1]; if(b) b.style.width = Math.round(p*100) + '%'; }); })
+      .then(function(r){
+        if(!r.ok) throw new Error(r.mensaje || 'código ' + r.estado);
+        return sbInsert('contacto_documentos', {contacto_id:c.id, nombre:f.name, tipo:tipos[ext], ruta:ruta, tamano_bytes:f.size, subido_por:(SB.sesion && SB.sesion.uid) || null});
+      }).then(function(){ s.p = 1; W.rag.push({nombre:f.name, ruta:ruta, tamano:f.size}); CT.iaSucio = true; renderApp(); sig(); },
+        function(e){ s.err = true; s.p = 1; toast(f.name + ': ' + e.message); renderApp(); sig(); });
+  })();
+}
+
+/* --- Eventos ---------------------------------------------------------------- */
+function ciaSet(ruta, val){
+  var p = ruta.split('.'), o = CT.ia; for(var i = 0; i < p.length - 1; i++){ if(!o[p[i]]) o[p[i]] = {}; o = o[p[i]]; } o[p[p.length - 1]] = val;
+  CT.iaSucio = true; var e = q('#cia-sucio'); if(e) e.textContent = '● Cambios sin guardar';
+}
+function ciaEventos(c){
+  if(q('#cia-k-x')) q('#cia-k-x').onclick = function(){ CT.ciaDespliegue = null; renderApp(); };
+  if(!CT.ia || CT.tab !== 'ia'){ return; }
+  ciaNormaliza(CT.ia, c);
+  var V = CT.ia.voz, W = CT.ia.whatsapp, E = CT.ia.embudo;
+  if(CT.ciaSecretos === undefined){ CT.ciaSecretos = []; ngApi('/ia/secreto/' + c.id).then(function(d){ CT.ciaSecretos = d.guardados || []; renderApp(); }, function(){}); }
+  qa('[data-cia-tab]').forEach(function(b){ b.onclick = function(){ CT.iaTab = b.dataset.ciaTab; renderApp(); }; });
+  qa('[data-cia-on]').forEach(function(el){ el.onchange = function(){ CT.ia[el.dataset.ciaOn].activo = el.checked; CT.iaSucio = true; renderApp(); }; });
+  qa('[data-cia]').forEach(function(el){
+    var h = function(){ var v = el.dataset.ciaNum ? Number(el.value) : el.value; ciaSet(el.dataset.cia, v);
+      var out = q('[data-cia-v="'+el.dataset.cia+'"]'); if(out){ out.textContent = el.dataset.cia === 'voz.voz.velocidad' ? Number(v).toFixed(2) + '×' :
+        el.dataset.cia === 'voz.voz.latencia' ? ['Máxima calidad','Equilibrada','Rápida','Muy rápida','Instantánea'][v] : el.dataset.cia === 'voz.motor.max_tokens' ? v + ' tokens' : v; }
+      if(el.dataset.cia === 'voz.prompt'){ var info = q('#cia-prompt-info'); if(info) info.innerHTML = ciaPromptInfo(el.value, ciaVars(c)); var rs = q('#cia-resuelto'); if(rs) rs.textContent = ciaResuelve(el.value, ciaVars(c)); }
+      if(el.dataset.cia === 'voz.voz.id'){ V.voz.nombre = (CIA_VOCES.filter(function(x){ return x.id === el.value; })[0] || {n:'voz personalizada'}).n; } };
+    el.oninput = h; if(el.tagName === 'SELECT') el.onchange = h;
+  });
+  qa('[data-cia-varv]').forEach(function(el){ el.oninput = function(){ V.variables[el.dataset.ciaVarv] = el.value; CT.iaSucio = true;
+    var info = q('#cia-prompt-info'); if(info) info.innerHTML = ciaPromptInfo(V.prompt, ciaVars(c)); var rs = q('#cia-resuelto'); if(rs) rs.textContent = ciaResuelve(V.prompt, ciaVars(c)); }; });
+  /* Línea y números */
+  qa('[data-cia-linea]').forEach(function(b){ b.onclick = function(){ V.linea.tipo = b.dataset.ciaLinea; CT.iaSucio = true; renderApp(); }; });
+  if(q('#cia-num-buscar')) q('#cia-num-buscar').onclick = function(){
+    var b = this; b.disabled = true; b.textContent = 'Buscando…';
+    ngApi('/ia/numeros?tipo=' + q('#cia-num-tipo').value + '&area=' + encodeURIComponent(q('#cia-num-area').value)).then(function(d){ CT.ciaNumeros = d; renderApp(); })
+      .catch(function(e){ toast(e.message); renderApp(); });
+  };
+  qa('[data-cia-num]').forEach(function(b){ b.onclick = function(){ V.linea.numero = b.dataset.ciaNum; CT.iaSucio = true; renderApp(); }; });
+  /* Motor y voz */
+  qa('[data-cia-motor]').forEach(function(b){ b.onclick = function(){ V.motor.modelo = b.dataset.ciaMotor; CT.iaSucio = true; renderApp(); }; });
+  qa('[data-cia-voz]').forEach(function(el){ el.onclick = function(e){ if(e.target.closest('[data-cia-oir]')) return;
+    var x = CIA_VOCES.filter(function(v){ return v.id === el.dataset.ciaVoz; })[0]; V.voz.id = x.id; V.voz.nombre = x.n; V.voz.proveedor = 'elevenlabs';
+    if(!V.nombre_agente || CIA_VOCES.some(function(v){ return v.n === V.nombre_agente; })) V.nombre_agente = x.n; CT.iaSucio = true; renderApp(); }; });
+  qa('[data-cia-oir]').forEach(function(b){ b.onclick = function(e){ e.stopPropagation(); ciaEscucha(c, b.dataset.ciaOir); }; });
+  /* Prompt */
+  qa('[data-cia-pl]').forEach(function(b){ b.onclick = function(){
+    var k = b.dataset.ciaPl, t = CIA_PLANTILLAS[k];
+    if(String(V.prompt || '').trim() && V.plantilla !== k && !window.confirm('¿Sustituir el prompt actual por la plantilla «' + t.n + '»?')) return;
+    V.plantilla = k; V.prompt = t.p; if(!V.saludo || Object.keys(CIA_PLANTILLAS).some(function(x){ return CIA_PLANTILLAS[x].saludo === V.saludo; })) V.saludo = t.saludo;
+    CT.iaSucio = true; renderApp(); }; });
+  qa('[data-cia-ins]').forEach(function(b){ b.onclick = function(){
+    var ta = q('#cia-prompt'); if(!ta) return; var ins = '[' + b.dataset.ciaIns + ']', i = ta.selectionStart || ta.value.length, j = ta.selectionEnd || i;
+    ta.value = ta.value.slice(0, i) + ins + ta.value.slice(j); ta.focus(); ta.setSelectionRange(i + ins.length, i + ins.length); ta.oninput();
+    if(!ciaVars(c)[b.dataset.ciaIns]){ var det = q('.cia-det'); if(det) det.open = true; } }; });
+  if(q('#cia-ver-resuelto')) q('#cia-ver-resuelto').onclick = function(){ CT.ciaResuelto = !CT.ciaResuelto; renderApp(); };
+  /* Transferencias */
+  if(q('#cia-tr-add')) q('#cia-tr-add').onclick = function(){ V.transferencias.push({cuando:CIA_CUANDO[0], destino:'', mensaje:'Ahora mismo te paso con un compañero.'}); CT.iaSucio = true; renderApp(); };
+  qa('[data-cia-trx]').forEach(function(b){ b.onclick = function(){ V.transferencias.splice(Number(b.dataset.ciaTrx), 1); CT.iaSucio = true; renderApp(); }; });
+  qa('[data-cia-tr]').forEach(function(el){ var p = el.dataset.ciaTr.split('.'), t = V.transferencias[Number(p[0])];
+    var h = function(){
+      if(p[1] === 'cuando_sel'){ t.cuando = el.value === '__otro' ? '' : el.value; renderApp(); }
+      else if(p[1] === 'destino_sel'){ if(el.value) t.destino = el.value; renderApp(); }
+      else t[p[1]] = el.value;
+      CT.iaSucio = true; };
+    if(el.tagName === 'SELECT') el.onchange = h; else el.oninput = h; });
+  /* Secretos (cifrados en el servidor) */
+  qa('[data-cia-secreto]').forEach(function(b){ b.onclick = function(){
+    var inp = q(b.dataset.ciaDe), v = inp ? inp.value.trim() : '';
+    if(!v){ toast('Escribe primero el valor.'); return; }
+    ngApi('/ia/secreto/' + c.id, 'POST', {clave:b.dataset.ciaSecreto, valor:v}).then(function(d){ CT.ciaSecretos = d.guardados; toast('Guardado y cifrado.'); renderApp(); }).catch(function(e){ toast(e.message); });
+  }; });
+  /* Prueba en vivo */
+  if(q('#cia-probar')) q('#cia-probar').onclick = function(){
+    var tel = q('#cia-tel').value.trim(); CT.telPrueba = tel;
+    ct360GuardaIA(c).then(function(ok){
+      if(!ok) return; CT.ciaProbando = true; CT.prueba = null; CT.ciaLog = [{t:'Guardando configuración y preparando la llamada…', k:'run'}]; renderApp();
+      ngApi('/ia/probar-llamada', 'POST', {contacto_id:c.id, telefono:tel}).then(function(d){
+        var i = 0; CT.ciaLog = [];
+        (function sig(){
+          if(i >= (d.estados || []).length){ CT.ciaProbando = false; CT.ciaLog.push({t:d.mensaje, k: d.modo === 'real' ? 'ok' : 'warn'}); CT.prueba = d; ctCargaDetalle(c.id); renderApp(); return; }
+          var e = d.estados[i++]; CT.ciaLog.forEach(function(l){ if(l.k === 'run') l.k = 'ok'; }); CT.ciaLog.push({t:e.t, k:'run'});
+          var lg = q('#cia-log'); if(lg) lg.innerHTML = CT.ciaLog.map(function(l){ return '<div class="cia-log-l '+l.k+'"><i></i>'+esc(l.t)+'</div>'; }).join('');
+          setTimeout(sig, Math.min(900, e.ms || 400));
+        })();
+      }).catch(function(e){ CT.ciaProbando = false; CT.ciaLog = [{t:e.message, k:'mal'}]; renderApp(); });
+    });
+  };
+  /* WhatsApp */
+  qa('[data-cia-prov]').forEach(function(b){ b.onclick = function(){ W.proveedor = b.dataset.ciaProv; CT.iaSucio = true; renderApp(); }; });
+  var drop = q('#cia-drop');
+  if(drop){
+    drop.addEventListener('dragover', function(e){ e.preventDefault(); if(!CT.ciaArrastra){ CT.ciaArrastra = true; drop.classList.add('on'); } });
+    drop.addEventListener('dragleave', function(){ CT.ciaArrastra = false; drop.classList.remove('on'); });
+    drop.addEventListener('drop', function(e){ e.preventDefault(); CT.ciaArrastra = false; ciaSubeArchivos(c, e.dataTransfer.files); });
+  }
+  if(q('#cia-files')) q('#cia-files').onchange = function(){ ciaSubeArchivos(c, this.files); };
+  qa('[data-cia-ragx]').forEach(function(b){ b.onclick = function(){ W.rag.splice(Number(b.dataset.ciaRagx), 1); CT.iaSucio = true; renderApp(); }; });
+  var enviaChat = function(t){ t = String(t || '').trim(); if(!t || CT.ciaEscribe) return; CT.chat = (CT.chat || []).concat([{quien:'yo', texto:t}]); CT.ciaEscribe = true; renderApp();
+    setTimeout(function(){ CT.ciaEscribe = false; CT.chat.push({quien:'bot', texto:ciaBot(W, t, c)}); renderApp(); var b = q('#cia-chat'); if(b) b.scrollTop = b.scrollHeight;
+      var i2 = q('#cia-chat-in'); if(i2) i2.focus(); }, 650 + Math.min(900, t.length * 15)); };
+  if(q('#cia-chat-env')){ q('#cia-chat-env').onclick = function(){ enviaChat(q('#cia-chat-in').value); }; q('#cia-chat-in').onkeydown = function(e){ if(e.key === 'Enter') enviaChat(this.value); };
+    var cb = q('#cia-chat'); if(cb) cb.scrollTop = cb.scrollHeight; }
+  qa('[data-cia-sug]').forEach(function(b){ b.onclick = function(){ enviaChat(b.dataset.ciaSug); }; });
+  if(q('#cia-chat-reset')) q('#cia-chat-reset').onclick = function(){ CT.chat = []; renderApp(); };
+  /* Embudo */
+  qa('[data-cia-emb]').forEach(function(b){ b.onclick = function(){ var k = b.dataset.ciaEmb; E.plantilla = k; E.pasos = PLANTILLAS_EMBUDO[k].pasos.map(function(p){ return {t:p, on:true}; }); CT.iaSucio = true; renderApp(); }; });
+  qa('[data-cia-paso]').forEach(function(el){ el.onchange = function(){ E.pasos[Number(el.dataset.ciaPaso)].on = el.checked; CT.iaSucio = true; renderApp(); }; });
+  if(q('#cia-hook')) q('#cia-hook').onclick = function(){
+    if(CT.hook && !window.confirm('Si regeneras el webhook, el anterior deja de funcionar. ¿Seguir?')) return;
+    ct360GuardaIA(c).then(function(ok){ if(ok) ngApi('/ia/webhook/' + c.id, 'POST', {}).then(function(d){ CT.hook = d.url; toast('Webhook listo.'); renderApp(); }).catch(function(e){ toast(e.message); }); });
+  };
+  if(q('#cia-integra')) q('#cia-integra').onclick = function(){ ngIntegraciones(); };
+  /* Guardar y desplegar */
+  if(q('#cia-guardar')) q('#cia-guardar').onclick = function(){ ct360GuardaIA(c).then(function(ok){ if(ok){ toast('Configuración guardada.'); renderApp(); } }); };
+  if(q('#cia-desplegar')) q('#cia-desplegar').onclick = function(){ CT.ciaPrevuelo = {mover:true, cred:false, canal:'email'}; renderApp(); };
+  if(CT.ciaPrevuelo){
+    q('#cia-prev-x').onclick = function(){ CT.ciaPrevuelo = null; renderApp(); };
+    q('#cia-prev-ok').onclick = function(){
+      var op = {mover_pipeline: q('#cia-op-pipe').checked, enviar_credenciales: q('#cia-op-cred').checked, canal: q('#cia-op-canal').value};
+      CT.ciaPrevuelo = null;
+      ct360GuardaIA(c).then(function(ok){
+        if(!ok) return;
+        CT.ciaDespliegue = {cliente: c.empresa || c.nombre, lineas:[], fase:0, hechos:0, total:0, modo:null, fin:false}; renderApp();
+        ciaLinea('info', '$ labs deploy --cliente "' + (c.empresa || c.nombre) + '" --modulos ' + ['voz','whatsapp','embudo'].filter(function(m){ return CT.ia[m].activo; }).join(','));
+        ngApi('/ia/desplegar/' + c.id, 'POST', op).then(function(d){
+          var K = CT.ciaDespliegue; K.modo = d.modo; K.total = d.pasos.length + 1;
+          var m = q('#cia-k-modo'); if(m){ m.textContent = d.modo === 'real' ? 'REAL' : 'SIMULACIÓN'; m.className = 'chip ' + (d.modo === 'real' ? 'green' : 'amber') + ' ng-chip'; }
+          var i = 0;
+          (function sig(){
+            if(!CT.ciaDespliegue) return;
+            if(i >= d.pasos.length){ K.fin = true; K.ok = d.ok; K.res = d; K.fase = 4; CT.ia.estado = d.estado; CT.ia.desplegado = new Date().toISOString(); if(d.webhook) CT.hook = d.webhook;
+              var k = ctContactoPorId(c.id); if(k && d.fase && k.fase !== d.fase){ k.fase = d.fase; if(CT.edit) CT.edit.fase = d.fase; if(typeof SALA !== 'undefined') SALA.datos = null; }
+              ctCargaDetalle(c.id); renderApp(); return; }
+            var p = d.pasos[i++]; ciaLinea(p.nivel, p.texto, p.fase || undefined); setTimeout(sig, Math.min(900, p.ms || 300));
+          })();
+        }).catch(function(e){ ciaLinea('error', '✖ ' + e.message); CT.ciaDespliegue.fin = true; CT.ciaDespliegue.ok = false; renderApp(); });
+      });
+    };
+  }
+  if(q('#cia-k-x')) q('#cia-k-x').onclick = function(){ CT.ciaDespliegue = null; renderApp(); };
 }
 
 /* --- Integraciones (solo administración) ---------------------------------- */
@@ -5214,6 +5654,7 @@ function ngIntegraModal(){
     '<h4 class="ft-t" style="margin-top:10px">Orquestador (n8n / Make)</h4>'+c('n8n_url', 'Webhook de despliegue y llamadas de prueba', 'url', 'https://tu-n8n.com/webhook/labs',
       'Recibe {evento: "desplegar" | "llamada_prueba", contacto, voz, whatsapp, embudo, webhook_entrada}. Desde ahí creas el asistente en Vapi/Twilio/OpenAI.')+
       c('n8n_token', 'Token secreto (cabecera X-Labs-Token)', 'password', '', A.n8n_token ? 'Guardado.' : '')+
+    '<h4 class="ft-t" style="margin-top:10px">ElevenLabs (escucha de voces)</h4>'+c('elevenlabs_key', 'API key', 'password', 'xi-…', A.elevenlabs_key ? 'Guardada.' : 'Opcional: sin ella, la escucha usa la voz del navegador.')+
     '<div class="row" style="gap:8px;justify-content:flex-end;margin-top:8px"><button class="btn btn-s" id="int-x">Cancelar</button><button class="btn btn-p" id="int-ok">'+ic('save',14)+' Guardar</button></div></div></div>';
 }
 function ngIntegraEventos(){
@@ -5221,7 +5662,7 @@ function ngIntegraEventos(){
   q('#int-x').onclick = function(){ CT.integra = null; renderApp(); };
   q('#int-ok').onclick = function(){
     var d = {}; qa('[data-int]').forEach(function(el){ d[el.dataset.int] = el.value.trim(); });
-    ngApi('/ia/ajustes', 'POST', d).then(function(r){ CT.integra = null; CT.iaEstado = {sms_real:r.sms_real, orquestador:r.orquestador}; toast('Integraciones guardadas.'); renderApp(); })
+    ngApi('/ia/ajustes', 'POST', d).then(function(r){ CT.integra = null; CT.iaEstado = {sms_real:r.sms_real, orquestador:r.orquestador, elevenlabs:r.elevenlabs}; toast('Integraciones guardadas.'); renderApp(); })
       .catch(function(e){ toast(e.message); });
   };
 }
@@ -5311,6 +5752,7 @@ function ctAbre(id){
   /* Ficha 360: citas, contratos, configurador IA (se cargan en ct360Carga). */
   CT.citas = []; CT.contratos = []; CT.firmaEv = []; CT.ia = null; CT.iaTab = 'voz'; CT.chat = []; CT.prueba = null;
   CT.consola = null; CT.firmaForm = null; CT.hook = null; CT.filtroTl = 'todo';
+  CT.ciaSecretos = undefined; CT.ciaNumeros = null; CT.ciaLog = []; CT.ciaDespliegue = null; CT.ciaPrevuelo = null; CT.ciaSubidas = []; CT.ciaResuelto = false;
   if(!CT.iaEstado) ngApi('/ia/estado').then(function(d){ CT.iaEstado = d; renderApp(); }, function(){});
   ngApi('/ia/webhook/' + id).then(function(d){ if(CT.det === id){ CT.hook = d.url; renderApp(); } }, function(){});
   CT.edit = {nombre:c.nombre||'', empresa:c.empresa||'', email:c.email||'', prefijo:c.prefijo||'+34', telefono:c.telefono||'',
@@ -5322,7 +5764,7 @@ function ctAbre(id){
   ctCargaDetalle(id);
 }
 function ctCierra(){
-  CT.det = null; CT.edit = null; CT.consola = null;
+  CT.det = null; CT.edit = null; CT.consola = null; CT.ciaDespliegue = null; CT.ciaPrevuelo = null;
   if(CT.volverA){ S.view = CT.volverA; CT.volverA = null; }
   renderApp();
 }
@@ -5547,7 +5989,7 @@ function ctFichaPagina(){
     var n = t.k === 'hist' ? CT.eventos.length : t.k === 'coment' ? CT.comentarios.length : t.k === 'docs' ? CT.documentos.length : 0;
     return '<button class="lms-tab'+(CT.tab===t.k?' on':'')+'" data-cttab="'+t.k+'">'+t.n+(n ? ' ('+n+')' : '')+'</button>'; }).join('');
   var cuerpo = CT.tab==='spec' ? ctTabSpec(c) : CT.tab==='docs' ? ct360Firma(c) + '<div style="margin-top:18px">' + ctTabDocs(c) + '</div>' :
-    CT.tab==='ia' ? ct360IA(c) : CT.tab==='coment' ? ctTabComentarios(c) : ct360Resumen(c);
+    CT.tab==='ia' ? ciaVista(c) : CT.tab==='coment' ? ctTabComentarios(c) : ct360Resumen(c);
 
   return '<div class="row" style="justify-content:space-between;gap:10px;margin-bottom:14px;flex-wrap:wrap">'+
       '<button class="btn btn-s" id="ct-volver">'+ic('arrowLeft',15)+' Volver a contactos</button>'+
@@ -5612,7 +6054,7 @@ function ctFichaPagina(){
           esc(ctFechaCorta(c.actualizado, true))+(c.ref_externa ? '<br>Id en el CRM anterior: <span class="mono">'+esc(c.ref_externa)+'</span>' : '')+'</div>'+
       '</div>'+
       '<div class="card" style="min-width:0"><div class="lms-tabs" style="margin-bottom:16px;overflow-x:auto">'+nav+'</div>'+cuerpo+'</div>'+
-    '</div>'+ngConsolaHTML()+ngIntegraModal();
+    '</div>'+ciaConsolaHTML()+ciaPrevueloHTML(c)+ngIntegraModal();
 }
 
 /* ------------------------------ IMPORTAR CSV ------------------------------ */
