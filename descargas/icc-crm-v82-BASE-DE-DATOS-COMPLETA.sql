@@ -1,11 +1,11 @@
 -- =============================================================================
--- ICC CRM v80 · BASE DE DATOS COMPLETA (instalar o actualizar en un solo paso)
+-- ICC CRM v82 · BASE DE DATOS COMPLETA (instalar o actualizar en un solo paso)
 --
 -- Cómo usarlo: phpMyAdmin > tu base de datos > Importar > este archivo > Continuar.
 --
 -- - Si la base de datos YA TIENE datos (tu CRM actual): NO borra nada.
 --   Solo crea las tablas, columnas e índices que falten y amplía lo necesario
---   para la versión v80. Sirve vengas de la versión que vengas (v55 en adelante).
+--   para la versión v82. Sirve vengas de la versión que vengas (v55 en adelante).
 -- - Si la base de datos está VACÍA: crea el CRM completo y un usuario
 --   Super Administrador inicial (ver el final del archivo).
 -- - Se puede ejecutar MÁS DE UNA VEZ sin errores ni duplicados.
@@ -550,6 +550,25 @@ CREATE TABLE IF NOT EXISTS `oficinas` (
   KEY `fk_oficina_responsable` (`responsable_id`),
   KEY `idx_oficinas_provincia` (`provincia`),
   CONSTRAINT `fk_oficina_responsable` FOREIGN KEY (`responsable_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `papelera` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `tipo` varchar(20) NOT NULL,
+  `ref_id` int(10) unsigned NOT NULL,
+  `titulo` varchar(255) NOT NULL DEFAULT '',
+  `detalle` varchar(255) NOT NULL DEFAULT '',
+  `borrado_por` int(10) unsigned DEFAULT NULL,
+  `borrado_por_nombre` varchar(190) NOT NULL DEFAULT '',
+  `como_nombre` varchar(190) NOT NULL DEFAULT '',
+  `borrado_en` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `copia` varchar(120) NOT NULL,
+  `restaurado_en` datetime DEFAULT NULL,
+  `restaurado_por_nombre` varchar(190) DEFAULT NULL,
+  `descartado` tinyint(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`),
+  KEY `idx_papelera_fecha` (`borrado_en`),
+  KEY `idx_papelera_ref` (`tipo`,`ref_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `presupuestos` (
@@ -1504,6 +1523,33 @@ PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'oficinas' AND column_name = 'created_at'), 'ALTER TABLE `oficinas` ADD COLUMN `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'papelera' AND column_name = 'id'), 'ALTER TABLE `papelera` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'papelera' AND column_name = 'tipo'), 'ALTER TABLE `papelera` ADD COLUMN `tipo` varchar(20) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'papelera' AND column_name = 'ref_id'), 'ALTER TABLE `papelera` ADD COLUMN `ref_id` int(10) unsigned NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'papelera' AND column_name = 'titulo'), 'ALTER TABLE `papelera` ADD COLUMN `titulo` varchar(255) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'papelera' AND column_name = 'detalle'), 'ALTER TABLE `papelera` ADD COLUMN `detalle` varchar(255) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'papelera' AND column_name = 'borrado_por'), 'ALTER TABLE `papelera` ADD COLUMN `borrado_por` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'papelera' AND column_name = 'borrado_por_nombre'), 'ALTER TABLE `papelera` ADD COLUMN `borrado_por_nombre` varchar(190) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'papelera' AND column_name = 'como_nombre'), 'ALTER TABLE `papelera` ADD COLUMN `como_nombre` varchar(190) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'papelera' AND column_name = 'borrado_en'), 'ALTER TABLE `papelera` ADD COLUMN `borrado_en` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'papelera' AND column_name = 'copia'), 'ALTER TABLE `papelera` ADD COLUMN `copia` varchar(120) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'papelera' AND column_name = 'restaurado_en'), 'ALTER TABLE `papelera` ADD COLUMN `restaurado_en` datetime DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'papelera' AND column_name = 'restaurado_por_nombre'), 'ALTER TABLE `papelera` ADD COLUMN `restaurado_por_nombre` varchar(190) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'papelera' AND column_name = 'descartado'), 'ALTER TABLE `papelera` ADD COLUMN `descartado` tinyint(1) NOT NULL DEFAULT 0', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'presupuestos' AND column_name = 'id'), 'ALTER TABLE `presupuestos` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'presupuestos' AND column_name = 'cliente_id'), 'ALTER TABLE `presupuestos` ADD COLUMN `cliente_id` int(10) unsigned NOT NULL', 'DO 0'));
@@ -2078,6 +2124,10 @@ SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHER
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'oficinas' AND index_name = 'idx_oficinas_provincia'), 'CREATE INDEX `idx_oficinas_provincia` ON `oficinas` (`provincia`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'papelera' AND index_name = 'idx_papelera_fecha'), 'CREATE INDEX `idx_papelera_fecha` ON `papelera` (`borrado_en`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'papelera' AND index_name = 'idx_papelera_ref'), 'CREATE INDEX `idx_papelera_ref` ON `papelera` (`tipo`, `ref_id`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'presupuestos' AND index_name = 'fk_presupuesto_contrato'), 'CREATE INDEX `fk_presupuesto_contrato` ON `presupuestos` (`contrato_id`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'presupuestos' AND index_name = 'idx_presupuestos_cliente'), 'CREATE INDEX `idx_presupuestos_cliente` ON `presupuestos` (`cliente_id`)', 'DO 0'));
@@ -2524,4 +2574,4 @@ UPDATE usuarios SET numero_relacion = CONCAT('ICC-', LPAD(id, 5, '0')) WHERE num
 SET FOREIGN_KEY_CHECKS = 1;
 SET SESSION sql_mode = @icc_modo_anterior;
 
--- Listo. Base de datos al dia para ICC CRM v80.
+-- Listo. Base de datos al dia para ICC CRM v82.
