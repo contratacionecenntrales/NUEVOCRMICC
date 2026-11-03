@@ -90,6 +90,32 @@ function labs_telefono_partido($tel)
     return array(substr($tel, 0, 3), substr($tel, 3));
 }
 
+/** Texto comparable: minúsculas, sin tildes ni signos. */
+function labs_norma_texto($t)
+{
+    $t = mb_strtolower(trim((string) $t));
+    $t = strtr($t, array('á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u', 'ü' => 'u', 'ñ' => 'n', 'à' => 'a', 'è' => 'e', 'ò' => 'o', 'ç' => 'c'));
+    return trim(preg_replace('/[^a-z0-9]+/', ' ', $t));
+}
+
+/**
+ * ¿El contacto existente $c es la misma empresa que la fila nueva?
+ * 2 = mismo nombre exacto · 1 = compatible (sin empresa, o una contiene a la otra) · 0 = otra empresa.
+ */
+function labs_misma_empresa($c, $nombre, $empresa)
+{
+    $n = labs_norma_texto($nombre);
+    $e = labs_norma_texto($empresa);
+    if ($n !== '' && labs_norma_texto($c['nombre']) === $n) {
+        return 2;
+    }
+    $ce = labs_norma_texto($c['empresa']);
+    if ($ce === '' || $e === '') {
+        return 1;
+    }
+    return ($ce === $e || strpos($ce, $e) !== false || strpos($e, $ce) !== false) ? 1 : 0;
+}
+
 /** Toma un valor de la fila por cualquiera de sus nombres de columna. */
 function labs_col($fila, $nombres)
 {
@@ -111,6 +137,7 @@ function labs_importa_contactos($filas, $gestor_id, $origen = 'Importación CSV'
 {
     $res = array('creados' => 0, 'actualizados' => 0, 'omitidos' => 0, 'errores' => array());
     $ahora = labs_ahora();
+    $nuevos = array();
     foreach ($filas as $i => $f) {
         if (!is_array($f)) {
             $res['omitidos']++;
@@ -125,6 +152,21 @@ function labs_importa_contactos($filas, $gestor_id, $origen = 'Importación CSV'
         $creado = labs_fecha_importada(labs_col($f, array('created', 'creado', 'fecha alta', 'date created')));
         $actividad = labs_fecha_importada(labs_col($f, array('last activity', 'última actividad', 'ultima actividad')));
         $tags_raw = labs_col($f, array('tags', 'etiquetas'));
+        // Listas de empresas (p. ej. de Google Places): dirección y localidad.
+        $direccion = labs_col($f, array('dirección', 'direccion', 'address', 'domicilio'));
+        $localidad = labs_col($f, array('localidad', 'ciudad', 'municipio', 'city', 'población', 'poblacion'));
+        $sector = labs_col($f, array('sector', 'categoría', 'categoria', 'actividad'));
+        if ($localidad !== '') {
+            $tags_raw = trim($tags_raw . ', ' . $localidad, ', ');
+        }
+        if ($sector !== '') {
+            $tags_raw = trim($tags_raw . ', ' . $sector, ', ');
+        }
+        if ($empresa === '' && $direccion !== '' && $ape === '') {
+            // Lista de negocios (nombre + dirección): el nombre es también la empresa.
+            $empresa = $nom;
+        }
+        $espec = trim(($direccion !== '' ? 'Dirección: ' . $direccion . ($localidad !== '' ? ', ' . $localidad : '') : ($localidad !== '' ? 'Localidad: ' . $localidad : '')));
         $etq = array();
         foreach (preg_split('/\s*,\s*/', $tags_raw) as $t) {
             $l = labs_etiqueta_limpia($t);
@@ -154,7 +196,20 @@ function labs_importa_contactos($filas, $gestor_id, $origen = 'Importación CSV'
             $ya = labs_fila('SELECT * FROM contactos WHERE email = ? LIMIT 1 FOR UPDATE', array($email));
         }
         if (!$ya && $tel !== '') {
-            $ya = labs_fila('SELECT * FROM contactos WHERE telefono = ? AND prefijo = ? LIMIT 1 FOR UPDATE', array($tel, $prefijo));
+            // Mismo teléfono: es el mismo contacto salvo que sea otra empresa (dos oficinas con centralita común).
+            foreach (labs_q('SELECT * FROM contactos WHERE telefono = ? AND prefijo = ? ORDER BY id FOR UPDATE', array($tel, $prefijo))->fetchAll() as $cand) {
+                if (in_array((int) $cand['id'], $nuevos, true) && labs_misma_empresa($cand, $nombre, $empresa) !== 2) {
+                    continue;
+                }
+                if (labs_misma_empresa($cand, $nombre, $empresa)) {
+                    $ya = $cand;
+                    break;
+                }
+            }
+        }
+        if (!$ya && $email === '' && $tel === '' && $empresa !== '') {
+            // Sin correo ni teléfono: la misma empresa con el mismo nombre es el mismo contacto.
+            $ya = labs_fila('SELECT * FROM contactos WHERE nombre = ? AND (empresa = ? OR empresa = \'\') LIMIT 1 FOR UPDATE', array($nombre, mb_substr($empresa, 0, 200)));
         }
 
         if ($ya) {
@@ -166,6 +221,7 @@ function labs_importa_contactos($filas, $gestor_id, $origen = 'Importación CSV'
                 'telefono' => $ya['telefono'] !== '' ? $ya['telefono'] : $tel,
                 'prefijo' => $ya['telefono'] !== '' ? $ya['prefijo'] : $prefijo,
                 'etiquetas' => mb_substr(implode(', ', $todas), 0, 500),
+                'especificaciones' => trim((string) $ya['especificaciones']) !== '' ? $ya['especificaciones'] : $espec,
                 'ref_externa' => $ya['ref_externa'] ?: ($ref !== '' ? $ref : null),
                 'ultima_actividad' => ($actividad && (!$ya['ultima_actividad'] || $actividad > $ya['ultima_actividad'])) ? $actividad : $ya['ultima_actividad']);
             $cambia = false;
@@ -175,8 +231,10 @@ function labs_importa_contactos($filas, $gestor_id, $origen = 'Importación CSV'
                 }
             }
             if ($cambia) {
-                labs_q('UPDATE contactos SET empresa = ?, email = ?, telefono = ?, prefijo = ?, etiquetas = ?, ref_externa = ?, ultima_actividad = ?, actualizado = ? WHERE id = ?',
-                    array($set['empresa'], $set['email'], $set['telefono'], $set['prefijo'], $set['etiquetas'], $set['ref_externa'], $set['ultima_actividad'], $ahora, $ya['id']));
+                labs_q('UPDATE contactos SET empresa = ?, email = ?, telefono = ?, prefijo = ?, etiquetas = ?, especificaciones = ?, ref_externa = ?, ultima_actividad = ?, actualizado = ? WHERE id = ?',
+                    array($set['empresa'], $set['email'], $set['telefono'], $set['prefijo'], $set['etiquetas'], $set['especificaciones'], $set['ref_externa'], $set['ultima_actividad'], $ahora, $ya['id']));
+                labs_q('INSERT INTO contacto_eventos (contacto_id, autor_id, tipo, texto, ts) VALUES (?,?,?,?,?)', array(
+                    $ya['id'], $autor, 'evento', 'Ficha completada con ' . $origen . ($espec !== '' ? ' · ' . $espec : '') . '.', $ahora));
                 $res['actualizados']++;
             } else {
                 $res['omitidos']++;
@@ -190,10 +248,11 @@ function labs_importa_contactos($filas, $gestor_id, $origen = 'Importación CSV'
                   etiquetas, ref_externa, ultima_actividad, creado, actualizado' . ($tiene_fase ? ', fase, fase_desde' : '') . ')
                 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?' . ($tiene_fase ? ',?,?' : '') . ')', array_merge(array(
             'lead', $nombre, mb_substr($empresa, 0, 200), $email, $prefijo, mb_substr($tel, 0, 40), mb_substr($origen, 0, 120),
-            $est, '', $gestor_id, mb_substr(implode(', ', $etq), 0, 500), $ref !== '' ? $ref : null,
+            $est, mb_substr($espec, 0, 2000), $gestor_id, mb_substr(implode(', ', $etq), 0, 500), $ref !== '' ? $ref : null,
             $actividad, $creado ?: $ahora, $actividad ?: ($creado ?: $ahora)),
             $tiene_fase ? array(function_exists('labs_fase_de_estado') ? labs_fase_de_estado($est) : 'lead', $ahora) : array()));
         $id = (int) labs_db()->lastInsertId();
+        $nuevos[] = $id;
         labs_q('INSERT INTO contacto_eventos (contacto_id, autor_id, tipo, texto, ts) VALUES (?,?,?,?,?)', array(
             $id, $autor, 'evento', 'Importado desde ' . $origen . '.' . ($tags_raw !== '' ? ' Etiquetas de origen: ' . mb_substr($tags_raw, 0, 400) . '.' : ''),
             $creado ?: $ahora));

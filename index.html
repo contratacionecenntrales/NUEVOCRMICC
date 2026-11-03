@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-lmustYBlL5t8rDsBgTHoh1I32w9LEa68n6au2uIzwr0='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-r2MMsOZOq3f7jajr9hEA5RjmiVBS/ujFRYVEkpACnKw='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Labs Command Center 360 - Oficina virtual SaaS de la red comercial de Labs24k.">
 <meta name="theme-color" content="#0B0F19">
@@ -6406,6 +6406,40 @@ function ctLeeCsv(txt){
     var o = {}; cab.forEach(function(h, k){ o[h] = f[k] === undefined ? '' : f[k]; }); return o; })};
 }
 
+/* Excel (.xlsx): primera hoja, primera fila como cabecera. Usa el lector de ZIP del visor. */
+function ctLeeXlsx(file){
+  var lee = function(a, z){ return file.slice(a, Math.min(z, file.size)).arrayBuffer().then(function(b){ return new Uint8Array(b); }); };
+  return lee(Math.max(0, file.size - 66000), file.size).then(function(fin){ return rzIndice(lee, file.size, fin); }).then(function(z){
+    return Promise.all([z.xml('xl/workbook.xml'), ppRels(z, 'xl/workbook.xml'), z.xml('xl/sharedStrings.xml')]).then(function(a){
+      if(!a[0]) throw new Error('No parece un archivo de Excel.');
+      var hoja = a[0].getElementsByTagNameNS('*', 'sheet')[0], rid = hoja && hoja.getAttribute('r:id');
+      var ruta = (rid && a[1][rid] && a[1][rid].t) || 'xl/worksheets/sheet1.xml';
+      var comp = a[2] ? Array.prototype.map.call(a[2].getElementsByTagNameNS('*', 'si'), function(si){
+        return Array.prototype.map.call(si.getElementsByTagNameNS('*', 't'), function(t){ return t.textContent; }).join(''); }) : [];
+      return z.xml(ruta).then(function(x){
+        if(!x) throw new Error('La hoja está vacía.');
+        var col = function(ref){ var l = String(ref || '').replace(/\d+/g, ''), n = 0; for(var i = 0; i < l.length; i++) n = n * 26 + l.charCodeAt(i) - 64; return n - 1; };
+        var filas = Array.prototype.map.call(x.getElementsByTagNameNS('*', 'row'), function(row){
+          var f = [], k = 0;
+          Array.prototype.forEach.call(row.getElementsByTagNameNS('*', 'c'), function(c){
+            var i = c.getAttribute('r') ? col(c.getAttribute('r')) : k, t = c.getAttribute('t'), v = ppDesc(c, 'v'), val = '';
+            if(t === 's') val = comp[Number(v && v.textContent)] || '';
+            else if(t === 'inlineStr') val = Array.prototype.map.call(c.getElementsByTagNameNS('*', 't'), function(e){ return e.textContent; }).join('');
+            else if(t === 'b') val = v && v.textContent === '1' ? 'Sí' : 'No';
+            else val = v ? v.textContent : '';
+            f[i] = val; k = i + 1;
+          });
+          for(var j = 0; j < f.length; j++) if(f[j] === undefined) f[j] = '';
+          return f;
+        }).filter(function(f){ return f.some(function(v){ return String(v).trim() !== ''; }); });
+        if(filas.length < 2) return {cab:[], filas:[]};
+        var cab = filas[0].map(function(h){ return String(h).trim(); });
+        return {cab:cab, filas:filas.slice(1).map(function(f){ var o = {}; cab.forEach(function(h, j){ if(h) o[h] = f[j] === undefined ? '' : String(f[j]); }); return o; })};
+      });
+    });
+  });
+}
+
 function ctImportarModal(){
   var I = CT.importar;
   var gestores = (typeof USUARIOS !== 'undefined' ? USUARIOS : []).filter(function(u){ return u.est === 'Activo'; });
@@ -6417,10 +6451,10 @@ function ctImportarModal(){
       r.creados+' contacto(s) nuevos · '+r.actualizados+' completados (ya existían) · '+r.omitidos+' sin cambios.</div></div>'+
       '<div class="row" style="justify-content:flex-end;margin-top:16px"><button class="btn btn-p" id="cti-cerrar">Ver contactos</button></div>';
   } else if(!I.filas){
-    cuerpo = '<p class="small muted" style="margin:0 0 14px">Sube un archivo CSV exportado de otro CRM (GoHighLevel, Excel, Google…). '+
-      'Se reconocen las columnas de nombre, apellidos, teléfono, correo, empresa, fecha de alta, última actividad y etiquetas. '+
+    cuerpo = '<p class="small muted" style="margin:0 0 14px">Sube un Excel (.xlsx) o un CSV exportado de otro CRM (GoHighLevel, Google…). '+
+      'Se reconocen las columnas de nombre, apellidos, teléfono, correo, empresa, dirección, localidad, fecha de alta, última actividad y etiquetas. '+
       'Si un contacto ya existe (mismo id, correo o teléfono) no se duplica: solo se completan los datos que falten.</p>'+
-      '<label class="btn btn-p" style="cursor:pointer">'+ic('upload',15)+' Elegir archivo CSV<input type="file" id="cti-file" accept=".csv,text/csv" hidden></label>'+
+      '<label class="btn btn-p" style="cursor:pointer">'+ic('upload',15)+' Elegir Excel o CSV<input type="file" id="cti-file" accept=".csv,text/csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden></label>'+
       '<div class="row" style="justify-content:flex-end;margin-top:16px"><button class="btn btn-s" id="cti-x">Cancelar</button></div>';
   } else {
     var conTel = I.filas.filter(function(f){ return Object.keys(f).some(function(k){ return /phone|tel|móvil|movil/i.test(k) && String(f[k]).trim(); }); }).length;
@@ -6446,6 +6480,15 @@ function ctEventosImportar(){
   if(q('#cti-cerrar')) q('#cti-cerrar').onclick = cerrar;
   if(q('#cti-file')) q('#cti-file').onchange = function(){
     var f = this.files[0]; if(!f) return;
+    if(/\.xlsx$/i.test(f.name)){
+      ctLeeXlsx(f).then(function(r){
+        if(!r.filas.length){ toast('La primera hoja del Excel no tiene filas.'); return; }
+        CT.importar.cab = r.cab; CT.importar.filas = r.filas;
+        CT.importar.origen = 'Importación ' + f.name.replace(/\.xlsx$/i, '');
+        renderApp();
+      }).catch(function(e){ toast('No se ha podido leer el Excel: ' + e.message); });
+      return;
+    }
     var lector = new FileReader();
     lector.onload = function(){
       var r = ctLeeCsv(lector.result);
@@ -6657,7 +6700,7 @@ function viewContactos(v){
     '<div class="ctl-hero-t"><span class="rc-kick">'+ic('spark',13)+' IA COMERCIAL · PUNTUACIÓN DE LEADS</span>'+
       '<h2>Cartera de contactos</h2><p>Cada contacto con su puntuación IA, su temperatura y el siguiente paso recomendado. Pulsa cualquiera para abrir su ficha 360°.</p></div>'+
     '<div class="row" style="gap:8px;flex-wrap:wrap;align-self:flex-start">'+
-      (ctPuedeImportar() ? '<button class="btn btn-s" id="ct-importar">'+ic('upload',15)+' Importar CSV</button>' : '')+
+      (ctPuedeImportar() ? '<button class="btn btn-s" id="ct-importar">'+ic('upload',15)+' Importar Excel o CSV</button>' : '')+
       '<button class="btn btn-p" id="ct-nuevo">'+ic('plus',16)+' Nuevo contacto</button></div>'+
   '</div>'+
   '<div class="ct-kpis">'+kpis.map(function(k){ return '<div class="card kpi ct-kpi'+(k[5]?' ct-kpi-click':'')+(k[5] && CT.segF === 'pend' ? ' on' : '')+'"'+(k[5]?' data-ct-seg="'+k[5]+'"':'')+' style="--kc:'+k[3]+'">'+
