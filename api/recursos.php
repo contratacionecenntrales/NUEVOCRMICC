@@ -28,6 +28,9 @@ function labs_tablas_recursos(&$T, $AHORA)
     $r['editar'] = function () {
         return labs_si(labs_puedo('recursos.subir'));
     };
+    $r['antes_borrar'] = function ($v) {
+        labs_papelera_recurso($v);
+    };
     $r['editar_ok'] = function ($n) {
         return labs_puedo('recursos.subir');
     };

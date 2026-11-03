@@ -96,6 +96,10 @@ function labs_almacen_permiso($ruta, $accion)
         return labs_puedo($perm[$accion]) && isset($partes[1]) && ctype_digit($partes[1])
             && labs_contacto_visible_id((int) $partes[1]);
     }
+    if ($partes[0] === 'papelera') {
+        // La papelera solo se recupera desde /papelera (administración), nunca se descarga.
+        return false;
+    }
     if ($partes[0] === 'recursos') {
         $perm = array('leer' => 'recursos.ver', 'subir' => 'recursos.subir', 'borrar' => 'recursos.borrar');
         return labs_puedo($perm[$accion]);

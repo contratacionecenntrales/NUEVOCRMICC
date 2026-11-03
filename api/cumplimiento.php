@@ -313,7 +313,7 @@ function labs_tablas_copia()
         'contratos', 'firma_eventos', 'contactos', 'contacto_eventos', 'contacto_comentarios', 'contacto_documentos', 'recursos',
         'recursos_descargas', 'tickets', 'ticket_eventos', 'agente_fichas', 'agente_seguimiento', 'ajustes', 'registro_accesos',
         'bloqueos', 'incidentes', 'alertas', 'solicitudes_rgpd',
-        'citas', 'ia_config', 'pipeline_movimientos', 'recursos_progreso');
+        'citas', 'ia_config', 'pipeline_movimientos', 'recursos_progreso', 'papelera');
     $hay = labs_q('SELECT table_name FROM information_schema.tables WHERE table_schema = DATABASE()')->fetchAll(PDO::FETCH_COLUMN);
     return array_values(array_intersect($todas, $hay));
 }
@@ -673,9 +673,13 @@ function labs_rgpd_exporta($items)
 function labs_rgpd_suprime($tipo, $id)
 {
     if ($tipo === 'contacto') {
-        $c = labs_fila('SELECT id, nombre FROM contactos WHERE id = ?', array((int) $id));
+        $c = labs_fila('SELECT id, nombre, email, telefono FROM contactos WHERE id = ?', array((int) $id));
         if (!$c) {
             throw new ErrorApi('Ese contacto ya no existe.', 404, 'NO_ENCONTRADO');
+        }
+        // Derecho al olvido: también lo que hubiera de esta persona en la papelera.
+        if (function_exists('labs_papelera_olvida_contacto')) {
+            labs_papelera_olvida_contacto($c['id'], $c['email'], $c['telefono']);
         }
         foreach (labs_q('SELECT ruta FROM contacto_documentos WHERE contacto_id = ?', array($c['id']))->fetchAll(PDO::FETCH_COLUMN) as $r) {
             labs_almacen_borra_archivo($r);
@@ -834,6 +838,7 @@ function labs_mantenimiento($forzar = false)
         labs_alerta('copia_fallida', 'alta', 'No se ha podido hacer la copia de seguridad automática', $e->getMessage(), 'copia-fallida|' . gmdate('Y-m-d'));
     }
     $r['conservacion'] = labs_conservacion(true);
+    $r['papelera'] = function_exists('labs_papelera_purga') ? labs_papelera_purga() : 0;
     $b = labs_verifica_bitacora();
     $r['bitacora'] = $b['ok'];
     if (!$b['ok']) {

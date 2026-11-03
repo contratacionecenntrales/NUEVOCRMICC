@@ -2,7 +2,7 @@
 
 Sala de Ventas, Pipeline IA, Agenda comercial y Ficha 360° con configurador de
 asistentes de IA. Todo con datos reales de la base de datos de Hostalia; se
-instala con el zip, sin tocar SQL (la base de datos se actualiza sola, versión 10).
+instala con el zip, sin tocar SQL (la base de datos se actualiza sola, versión 11).
 
 ## Módulos
 
@@ -60,6 +60,25 @@ Formaciones y dosieres que **se ven dentro del CRM** y se descargan:
   repetir lo de arriba. Lo destacado sale primero en su categoría.
 - **Buscar dentro de los documentos**: el texto de cada PDF se indexa (al
   cargarlo o al subirlo) y la tarjeta enseña el fragmento que coincide.
+
+## Copias de seguridad y papelera
+
+- **Copia diaria automática**: cada día, tras la primera visita, el servidor
+  hace una copia cifrada (AES-256-GCM) de la base de datos y los documentos en
+  la carpeta privada (fuera de la web). Una vez por semana es completa, con los
+  dosieres. Se guardan las 14 últimas y siempre la última completa. Se ven,
+  descargan y restauran en *Cumplimiento RGPD → Copias* (restaurar: cuenta
+  raíz). Para que se haga aunque nadie entre, programa en Plesk la URL de la
+  tarea diaria que aparece en esa misma pantalla.
+- **Papelera (30 días)**: borrar un contacto (con historial, comentarios,
+  documentos, configuración IA y movimientos del pipeline), un documento de una
+  ficha o un recurso del Centro de Recursos no lo elimina en el acto. Queda en
+  la papelera con sus archivos y se recupera con un clic desde *Contactos →
+  Papelera* o *Centro de Recursos → Papelera*: restaurar contactos es de
+  administración; documentos y recursos, también jefatura. Las citas y los
+  contratos vuelven a unirse al contacto. A los 30 días se purga sola; admin
+  puede eliminar antes. El derecho al olvido (RGPD) no pasa por la papelera y
+  borra también lo que hubiera de esa persona en ella.
 
 ## Contactos con IA
 

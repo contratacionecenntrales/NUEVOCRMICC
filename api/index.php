@@ -34,6 +34,7 @@ require __DIR__ . '/importacion.php';
 require __DIR__ . '/nextgen.php';
 require __DIR__ . '/configurador.php';
 require __DIR__ . '/recursos.php';
+require __DIR__ . '/papelera.php';
 
 ini_set('display_errors', '0');
 
@@ -177,6 +178,11 @@ try {
         } else {
             throw new ErrorApi('Método no admitido.', 405, 'PGRST000');
         }
+    } elseif (preg_match('#^/papelera(/[0-9a-z/]*)?$#', $ruta, $m)) {
+        /* --- Papelera (30 días) ------------------------------------------- */
+        $r = labs_papelera($metodo, isset($m[1]) ? $m[1] : '');
+        $estado = $r[0];
+        $resp = $r[1];
     } elseif (preg_match('#^/recursos(/[a-z0-9/_-]*)?$#', $ruta, $m)) {
         /* --- Formación: progreso y resumen -------------------------------- */
         $r = labs_recursos($metodo, isset($m[1]) ? $m[1] : '', $metodo === 'GET' ? array() : labs_cuerpo_json(), $pares);

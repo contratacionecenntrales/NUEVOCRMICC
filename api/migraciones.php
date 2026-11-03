@@ -8,7 +8,7 @@
  */
 defined('LABS') || exit;
 
-define('LABS_VERSION_ESQUEMA', 10);
+define('LABS_VERSION_ESQUEMA', 11);
 
 function labs_columna_existe(PDO $db, $tabla, $col)
 {
@@ -106,6 +106,12 @@ function labs_migra(PDO $db)
            valor DECIMAL(12,2) NOT NULL DEFAULT 0, autor_id CHAR(36) NULL, ts DATETIME(6) NOT NULL,
            PRIMARY KEY (id), KEY pipeline_mov_ts_idx (ts, a), KEY pipeline_mov_contacto_idx (contacto_id),
            CONSTRAINT pipeline_mov_contacto_fk FOREIGN KEY (contacto_id) REFERENCES contactos(id) ON DELETE CASCADE) $opc",
+        // v11 · Papelera: lo borrado se puede recuperar durante 30 días.
+        "CREATE TABLE IF NOT EXISTS papelera (
+           id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, tipo VARCHAR(20) NOT NULL, ref_id BIGINT NOT NULL, titulo VARCHAR(200) NOT NULL,
+           datos LONGTEXT NOT NULL, archivos TEXT NOT NULL, tamano BIGINT NOT NULL DEFAULT 0, borrado_por CHAR(36) NULL,
+           borrado DATETIME(6) NOT NULL, expira DATETIME(6) NOT NULL,
+           PRIMARY KEY (id), KEY papelera_expira_idx (expira), KEY papelera_tipo_idx (tipo, ref_id)) $opc",
         // v8 · Formación: el avance de cada persona en cada recurso.
         "CREATE TABLE IF NOT EXISTS recursos_progreso (
            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, recurso_id BIGINT UNSIGNED NOT NULL, usuario_id CHAR(36) NOT NULL,

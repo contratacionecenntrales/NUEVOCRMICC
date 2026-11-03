@@ -571,6 +571,10 @@ function labs_tablas()
         'borrar' => function () {
             return labs_si(labs_mi_rol() === 'admin' && labs_puedo('contactos.borrar'));
         },
+        // Antes de borrar, una foto completa va a la papelera (30 días para recuperarlo).
+        'antes_borrar' => function ($v) {
+            labs_papelera_contacto($v);
+        },
         'despues_borrar' => function ($v) {
             // Los contratos y citas se conservan (sin contacto); sus archivos se borran del almacén.
             labs_q('UPDATE contratos SET contacto_id = NULL WHERE contacto_id = ?', array($v['id']));
@@ -652,7 +656,10 @@ function labs_tablas()
         'borrar' => function () {
             return labs_puedo('contactos.borrar') ? labs_contacto_visible('contacto_documentos.contacto_id') : '1=0';
         },
-        // Al borrar el registro se borra también el archivo del almacén.
+        // Al borrar, el registro y su archivo pasan a la papelera.
+        'antes_borrar' => function ($v) {
+            labs_papelera_documento($v);
+        },
         'despues_borrar' => function ($v) {
             labs_almacen_borra_archivo($v['ruta']);
         },

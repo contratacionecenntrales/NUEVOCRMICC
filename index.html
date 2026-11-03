@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-+3emAsjuj5fAJFrQ/IAXxEQjZCiCJlRzJWC0cmQ0iy4='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-HbiH2nRq9Soe3WWihC4cMP/HkbjBiAlbdJOlNiO8EVw='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Labs Command Center 360 - Oficina virtual SaaS de la red comercial de Labs24k.">
 <meta name="theme-color" content="#0B0F19">
@@ -1658,6 +1658,21 @@ a.btn.btn-g:hover{color:#fff}
 .rc-paso-l{flex:0 0 22px;align-self:center;height:2px;background:linear-gradient(90deg,rgba(251,191,36,.6),rgba(45,212,196,.6))}
 @media (max-width:640px){ .rc-ruta{padding:16px} .rc-ruta-h .btn{width:100%;justify-content:center} .rc-paso{flex-basis:140px} }
 
+.pap-ov{z-index:250}
+.pap-modal{max-width:760px;width:100%}
+.pap-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0 10px}
+.pap-tabs button{padding:6px 12px;border-radius:99px;border:1px solid var(--line);background:transparent;color:var(--txt-2);font-weight:600;font-size:12.5px;cursor:pointer}
+.pap-tabs button span{opacity:.65}
+.pap-tabs button.on{border-color:#2DD4C4;color:#5EEAD4;background:rgba(45,212,196,.12)}
+.pap-lista{display:flex;flex-direction:column;gap:8px;max-height:min(60vh,520px);overflow-y:auto}
+.pap-f{--pc:#38BDF8;display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;border:1px solid var(--line);background:rgba(15,23,42,.45);flex-wrap:wrap}
+.pap-ic{width:34px;height:34px;flex:0 0 auto;border-radius:10px;display:grid;place-items:center;color:var(--pc);background:color-mix(in srgb,var(--pc) 15%,transparent)}
+.pap-ic svg{display:block}
+.pap-dias{font-size:11.5px;color:var(--txt-2);padding:3px 9px;border-radius:99px;background:rgba(148,163,184,.12);white-space:nowrap}
+.pap-dias.u{color:#FCA5A5;background:rgba(248,113,113,.12)}
+.pap-vacio{display:flex;flex-direction:column;align-items:center;gap:6px;padding:34px 10px;text-align:center;color:var(--txt-2)}
+.pap-vacio svg{display:block;color:#4ADE80}
+
 /* --- Visor --- */
 html.rv-abierto{overflow:hidden}
 .rv{position:fixed;inset:0;z-index:300;display:flex;flex-direction:column;background:#070B14;color:#E2E8F0;animation:rvEntra .22s ease-out}
@@ -2197,6 +2212,23 @@ html.rv-abierto{overflow:hidden}
   .seg-fila{flex-wrap:wrap}.seg-acc{width:100%;justify-content:flex-start;padding-left:22px}
   .seg-codigos{grid-template-columns:1fr}.seg-hero{gap:14px}
 }
+/* =========================== MÓVIL · AJUSTES GENERALES ===========================
+   Las rejillas dejan encoger su contenido, las filas se parten, las tablas y las
+   pestañas se desplazan dentro de su caja y nada empuja la página hacia la derecha. */
+@media (max-width:860px){
+  .g-2,.g-3,.g-hero,.g-sideR,.g-sideL,.g-21,.g-cal{grid-template-columns:minmax(0,1fr)!important}
+  .grid>*,.stack>*,.card{min-width:0}
+}
+@media (max-width:640px){
+  .g-4{grid-template-columns:minmax(0,1fr)!important}
+  .card-h,.row{flex-wrap:wrap}
+  .card-h>*{min-width:0;max-width:100%}
+  .tbl{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .lms-tabs{max-width:100%;overflow-x:auto;flex-wrap:nowrap}
+  .search{min-width:0!important;max-width:100%}
+  .view{max-width:100%;overflow-x:clip}
+  .chip{max-width:100%;overflow:hidden;text-overflow:ellipsis}
+}
 </style>
 </head>
 <body>
@@ -2733,6 +2765,7 @@ function renderApp(){
   reponerToasts();
   vcBanda();
   if(typeof rvReengancha === 'function') rvReengancha();
+  if(typeof PAP !== 'undefined' && PAP.nodo && PAP.nodo.parentNode !== document.body) document.body.appendChild(PAP.nodo);
 }
 
 /* ==========================================================================
@@ -6458,7 +6491,7 @@ function ctBorrarModal(c){
     '<h3 style="margin:0 0 8px;color:#FCA5A5">'+ic('alert',18)+' Eliminar contacto</h3>'+
     '<p class="small" style="margin:0 0 10px">Vas a eliminar <strong>'+esc(c.nombre)+'</strong>'+(c.empresa ? ' ('+esc(c.empresa)+')' : '')+' para siempre.</p>'+
     '<ul class="small muted" style="margin:0 0 12px;padding-left:18px;line-height:1.6"><li>Se borran la ficha, el historial, los comentarios, los documentos y la configuración de IA.</li>'+
-      '<li>Las citas y los contratos se conservan, sin contacto asociado.</li><li>No se puede deshacer. Si solo quieres quitarlo de en medio, mejor <strong>desactívalo</strong>.</li></ul>'+
+      '<li>Las citas y los contratos se conservan, sin contacto asociado.</li><li>Queda <strong>30 días en la papelera</strong> por si hay que recuperarlo. Si solo quieres quitarlo de en medio, mejor <strong>desactívalo</strong>.</li></ul>'+
     '<div class="field"><label class="f">Para confirmar, escribe ELIMINAR</label><input class="inp" id="ct-del-txt" autocomplete="off" placeholder="ELIMINAR"></div>'+
     '<div class="row" style="gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:6px">'+
       '<button class="btn btn-s" id="ct-del-no">Cancelar</button>'+
@@ -6480,7 +6513,7 @@ function ctElimina(c){
     if(!(r && r.ok)){ toast('No se ha podido eliminar: ' + sbMensaje(r)); return; }
     CT.lista = CT.lista.filter(function(x){ return x.id !== c.id; });
     CT.borrar = null; CT.det = null; CT.edit = null;
-    toast('«' + c.nombre + '» eliminado.');
+    toast('«' + c.nombre + '» eliminado. Está 30 días en la papelera por si hay que recuperarlo.');
     renderApp();
   });
 }
@@ -6808,6 +6841,7 @@ function viewContactos(v){
     '<div class="ctl-hero-t"><span class="rc-kick">'+ic('spark',13)+' IA COMERCIAL · PUNTUACIÓN DE LEADS</span>'+
       '<h2>Cartera de contactos</h2><p>Cada contacto con su puntuación IA, su temperatura y el siguiente paso recomendado. Pulsa cualquiera para abrir su ficha 360°.</p></div>'+
     '<div class="row" style="gap:8px;flex-wrap:wrap;align-self:flex-start">'+
+      (papPuede() ? '<button class="btn btn-s" id="ct-papelera">'+ic('refresh',15)+' Papelera</button>' : '')+
       (ctPuedeImportar() ? '<button class="btn btn-s" id="ct-importar">'+ic('upload',15)+' Importar Excel o CSV</button>' : '')+
       '<button class="btn btn-p" id="ct-nuevo">'+ic('plus',16)+' Nuevo contacto</button></div>'+
   '</div>'+
@@ -6886,6 +6920,7 @@ function viewContactos(v){
   if(q('#ct-pag-ant')) q('#ct-pag-ant').onclick = function(){ CT.pagina--; renderApp(); };
   if(q('#ct-pag-sig')) q('#ct-pag-sig').onclick = function(){ CT.pagina++; renderApp(); };
   q('#ct-nuevo').onclick = ctNuevo;
+  if(q('#ct-papelera')) q('#ct-papelera').onclick = function(){ papAbre(''); };
   if(q('#ct-importar')) q('#ct-importar').onclick = function(){ CT.importar = {gestor:'', origen:'Importación CSV'}; renderApp(); };
   qa('[data-ct-stop]').forEach(function(a){ a.onclick = function(e){ e.stopPropagation(); }; });
   qa('[data-ct-ver]').forEach(function(b){
@@ -7696,7 +7731,8 @@ function viewResources(v){
         '<h2>Centro de Formación y Recursos</h2>'+
         '<p>Formaciones, presentaciones y dosieres de Labs24k. Míralos aquí mismo, sigue tu progreso y descarga lo que necesites para tus clientes.</p>'+
         (gest ? '<div class="row" style="gap:8px;flex-wrap:wrap;margin-top:14px"><button class="btn btn-p" id="ds-nuevo">'+ic('upload',15)+' Subir contenido</button>'+
-          '<button class="btn btn-s" id="ds-migra">'+ic('download',15)+' Traer del CRM anterior</button></div>' : '')+'</div>'+
+          '<button class="btn btn-s" id="ds-migra">'+ic('download',15)+' Traer del CRM anterior</button>'+
+          (papPuede() ? '<button class="btn btn-s" id="rc-papelera">'+ic('refresh',15)+' Papelera</button>' : '')+'</div>' : '')+'</div>'+
       '<div class="rc-hero-st">'+
         '<div class="rc-st"><b>'+forms.length+'</b><span>'+ic('cap',13)+' Formaciones</span></div>'+
         '<div class="rc-st"><b>'+dosieres.length+'</b><span>'+ic('file',13)+' Dosieres</span></div>'+
@@ -7750,6 +7786,7 @@ function viewResources(v){
     if(q('#ds-nuevo')) q('#ds-nuevo').onclick = dsNuevo;
     if(q('#rc-nuevo2')) q('#rc-nuevo2').onclick = dsNuevo;
     if(q('#ds-migra')) q('#ds-migra').onclick = dsMigraInicia;
+    if(q('#rc-papelera')) q('#rc-papelera').onclick = function(){ papAbre('recurso'); };
     if(q('#ds-migra2')) q('#ds-migra2').onclick = dsMigraInicia;
     dsMigraEventos();
     qa('[data-ds-del]').forEach(function(b){ b.onclick = function(){ if(confirm('¿Retirar este recurso del centro? Se borra el archivo y el progreso de quien lo estaba haciendo.')) dsBorra(Number(b.dataset.dsDel)); }; });
@@ -8404,6 +8441,65 @@ function rvPptx(url){
     RV.ir(ini); if(ini > 1) toast('Sigues en la diapositiva ' + ini + '.');
     if(RV.r && RV.r.paginas == null && dsPuedeGestionar()) sbUpdate('recursos', 'id=eq.' + RV.r.id, {paginas:P.total});
   });
+}
+
+
+/* ==========================================================================
+   PAPELERA · lo borrado se recupera durante 30 días (admin y jefatura)
+   Ventana propia fuera de la vista (renderApp no la destruye).
+   ========================================================================== */
+var PAP = {nodo:null, datos:null, filtro:'', cargando:false};
+function papPuede(){ return S.role === 'admin' || S.role === 'manager'; }
+function papAbre(filtro){
+  PAP.filtro = filtro || ''; PAP.datos = null; PAP.error = '';
+  if(!PAP.nodo){ PAP.nodo = document.createElement('div'); PAP.nodo.className = 'ov pap-ov'; PAP.nodo.id = 'pap-root'; document.body.appendChild(PAP.nodo); }
+  papPinta(); papCarga();
+}
+function papCierra(){ if(PAP.nodo && PAP.nodo.parentNode) PAP.nodo.parentNode.removeChild(PAP.nodo); PAP.nodo = null; }
+function papCarga(){
+  PAP.cargando = true; papPinta();
+  ngApi('/papelera').then(function(d){ PAP.datos = d; PAP.cargando = false; papPinta(); }, function(e){ PAP.cargando = false; PAP.error = e.message; papPinta(); });
+}
+var PAP_TIPOS = {contacto:{n:'Contacto', i:'user', c:'#38BDF8'}, documento:{n:'Documento', i:'file', c:'#A78BFA'}, recurso:{n:'Recurso', i:'book', c:'#FBBF24'}};
+function papPinta(){
+  if(!PAP.nodo) return;
+  var D = PAP.datos, l = D ? D.elementos : [], n = {contacto:0, documento:0, recurso:0};
+  l.forEach(function(x){ n[x.tipo] = (n[x.tipo]||0) + 1; });
+  var vis = l.filter(function(x){ return !PAP.filtro || x.tipo === PAP.filtro; });
+  var dias = function(t){ return Math.max(0, Math.ceil((new Date(t).getTime() - Date.now()) / 86400000)); };
+  PAP.nodo.innerHTML = '<div class="modal pap-modal">'+
+    '<div class="row" style="justify-content:space-between;align-items:flex-start;gap:10px">'+
+      '<div><h3 style="margin:0 0 4px">'+ic('refresh',18)+' Papelera</h3><p class="tiny muted" style="margin:0">Lo que se borra se guarda aquí '+((D && D.dias) || 30)+' días con todo su historial y sus archivos. Restáuralo con un clic; pasado el plazo se elimina solo.</p></div>'+
+      '<button class="icon-btn" id="pap-x">'+ic('x',16)+'</button></div>'+
+    '<div class="pap-tabs">'+[['','Todo',l.length]].concat(Object.keys(PAP_TIPOS).map(function(k){ return [k, PAP_TIPOS[k].n+'s', n[k]||0]; })).map(function(t){
+      return '<button class="'+(PAP.filtro===t[0]?'on':'')+'" data-pap-f="'+t[0]+'">'+t[1]+' <span>'+t[2]+'</span></button>'; }).join('')+'</div>'+
+    '<div class="pap-lista">'+(PAP.cargando && !D ? '<p class="tiny muted" style="padding:20px;text-align:center">Cargando…</p>' :
+      PAP.error && !D ? '<p class="tiny" style="padding:20px;color:#FCA5A5">'+esc(PAP.error)+'</p>' :
+      !vis.length ? '<div class="pap-vacio">'+ic('check',26)+'<b>La papelera está vacía</b><span>No hay nada borrado'+(PAP.filtro ? ' de este tipo' : '')+' en los últimos '+((D && D.dias) || 30)+' días.</span></div>' :
+      vis.map(function(x){ var T = PAP_TIPOS[x.tipo] || PAP_TIPOS.recurso, q = dias(x.expira);
+        return '<div class="pap-f" style="--pc:'+T.c+'"><span class="pap-ic">'+ic(T.i,16)+'</span>'+
+          '<div style="flex:1;min-width:0"><div class="w trunc">'+esc(x.titulo)+'</div>'+
+          '<div class="tiny muted">'+T.n+' · borrado '+esc(haceRel(new Date(x.borrado).getTime()))+(x.por ? ' por '+esc(x.por) : '')+(x.tamano ? ' · '+rcTam(x.tamano) : '')+'</div></div>'+
+          '<span class="pap-dias'+(q <= 3 ? ' u' : '')+'">'+(q ? 'quedan '+q+' día'+(q === 1 ? '' : 's') : 'se elimina hoy')+'</span>'+
+          (x.puede_restaurar ? '<button class="btn btn-p btn-xs" data-pap-rest="'+x.id+'">'+ic('refresh',13)+' Restaurar</button>' : '<span class="tiny muted" title="Restaurar contactos es de administración">Solo admin</span>')+
+          (S.role === 'admin' ? '<button class="icon-btn sm" data-pap-del="'+x.id+'" title="Eliminar definitivamente">'+ic('x',14)+'</button>' : '')+'</div>'; }).join(''))+'</div>'+
+  '</div>';
+  var $ = function(q_){ return PAP.nodo.querySelector(q_); };
+  $('#pap-x').onclick = papCierra;
+  PAP.nodo.onclick = function(e){ if(e.target === PAP.nodo) papCierra(); };
+  PAP.nodo.querySelectorAll('[data-pap-f]').forEach(function(b){ b.onclick = function(){ PAP.filtro = b.dataset.papF; papPinta(); }; });
+  PAP.nodo.querySelectorAll('[data-pap-rest]').forEach(function(b){ b.onclick = function(){
+    b.disabled = true; b.textContent = 'Restaurando…';
+    ngApi('/papelera/' + b.dataset.papRest + '/restaurar', 'POST', {}).then(function(r){
+      toast(r.tipo === 'contacto' ? 'Contacto restaurado con todo su historial.' : r.tipo === 'documento' ? 'Documento restaurado en su ficha.' : 'Recurso restaurado en el centro.');
+      if(r.tipo === 'contacto' && typeof CT !== 'undefined'){ CT.cargado = false; }
+      if(r.tipo === 'recurso' && typeof DS !== 'undefined'){ DS.cargado = false; }
+      if(r.tipo === 'documento' && typeof CT !== 'undefined' && CT.det) ctCargaDetalle(CT.det);
+      papCarga(); renderApp();
+    }, function(e){ toast(e.message); papCarga(); }); }; });
+  PAP.nodo.querySelectorAll('[data-pap-del]').forEach(function(b){ b.onclick = function(){
+    if(!confirm('¿Eliminar definitivamente? Ya no se podrá recuperar.')) return;
+    ngApi('/papelera/' + b.dataset.papDel, 'DELETE').then(function(){ toast('Eliminado definitivamente.'); papCarga(); }, function(e){ toast(e.message); }); }; });
 }
 
 /* ==========================================================================
