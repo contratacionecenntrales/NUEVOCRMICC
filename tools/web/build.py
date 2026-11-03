@@ -20,7 +20,7 @@ OUT = ROOT / "web-elite-energy"
 # ---------------------------------------------------------------------------
 # Datos de la empresa: cambiar aquí y volver a ejecutar el script.
 # ---------------------------------------------------------------------------
-SITE = "https://www.eliteeenergy.es"
+SITE = "https://www.eliteenergy.es"
 EMPRESA = {
     "marca": "Elite Energy",
     "razon_social": "ELITE ENERGY SL",
@@ -31,7 +31,7 @@ EMPRESA = {
     "provincia": "Asturias",
     "telefono": "984 518 342",
     "telefono_e164": "+34984518342",
-    "email": "info@eliteeenergy.es",
+    "email": "info@eliteenergy.es",
     "fundacion": "2020-06-17",
     "zonas": ["Oviedo", "Gijón", "Avilés", "Siero", "Langreo", "Mieres", "Llanera", "Castrillón", "Corvera", "Villaviciosa"],
 }
@@ -41,9 +41,9 @@ HOY = date.today().isoformat()
 MENU = [
     ("luz-y-gas.html", "Luz y gas"),
     ("placas-solares-asturias.html", "Placas solares"),
-    ("puntos-de-recarga-asturias.html", "Recarga coche eléctrico"),
+    ("puntos-de-recarga-asturias.html", "Recarga"),
     ("eficiencia-energetica-asturias.html", "Eficiencia"),
-    ("colaboradores.html", "Distribuye con nosotros"),
+    ("colaboradores.html", "Distribuidores"),
     ("contacto.html", "Contacto"),
 ]
 
@@ -79,7 +79,7 @@ PAGES = [
          prio="0.8", crumbs=[("Distribuye con nosotros", None)], schema=["jobs"]),
     dict(file="contacto.html", seg="hogar", nav="contacto.html",
          title="Contacto: asesoría energética en Oviedo | Elite Energy",
-         desc="Contacta con Elite Energy en Oviedo: 984 518 342, info@eliteeenergy.es. Calle Posada Herrera 6, 33002 Oviedo. Envíanos tu factura y te llamamos con el estudio.",
+         desc="Contacta con Elite Energy en Oviedo: 984 518 342, info@eliteenergy.es. Calle Posada Herrera 6, 33002 Oviedo. Envíanos tu factura y te llamamos con el estudio.",
          prio="0.7", crumbs=[("Contacto", None)]),
     dict(file="aviso-legal.html", seg=None, nav=None, legal=True,
          title="Aviso legal | Elite Energy", desc="Aviso legal de la web de ELITE ENERGY SL (CIF B01634468), con domicilio en Oviedo, Asturias.",
@@ -121,7 +121,7 @@ def org_schema():
         "@type": ["Organization", "ProfessionalService"],
         "@id": SITE + "/#empresa",
         "name": e["marca"], "legalName": e["razon_social"], "taxID": e["cif"],
-        "url": SITE + "/", "logo": SITE + "/logos/logo-elite-energy.png", "image": SITE + "/assets/img/og-elite-energy.png",
+        "url": SITE + "/", "logo": SITE + "/logos/elite-energy-light.png", "image": SITE + "/assets/img/og-elite-energy.png",
         "telephone": "+34 984 51 83 42", "email": e["email"], "foundingDate": e["fundacion"],
         "address": address_schema(),
         "areaServed": [{"@type": "AdministrativeArea", "name": "Asturias"}] + [{"@type": "City", "name": z} for z in e["zonas"][:6]],
@@ -195,9 +195,9 @@ def head(p, faqs, extra_css):
 <link rel="icon" href="logos/favicon-32.png" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="logos/favicon-180.png">
 <link rel="manifest" href="site.webmanifest">
-<meta name="theme-color" content="#002a5c">
-<link rel="preload" href="assets/fonts/dm-sans-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="assets/fonts/space-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
+<meta name="theme-color" content="#072762">
+<link rel="preload" href="assets/fonts/poppins-400-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/poppins-700-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="assets/css/site.css">
 {css}{schema}</head>"""
 
@@ -230,13 +230,13 @@ def header(p):
         items.append(f'<a href="{href}"{cur}>{txt}</a>')
     return f"""<header class="site">
   <div class="wrap nav">
-    <a href="index.html" class="logo" aria-label="Elite Energy – inicio"><img src="logos/floral-core-claro.svg" alt="" width="34" height="34"><span><span class="w1">Elite</span> <span class="w2">Energy</span></span></a>
+    <a href="index.html" class="logo" aria-label="Elite Energy – inicio"><img src="logos/elite-energy-light.svg" alt="Elite Energy" width="184" height="46"></a>
     <nav class="menu" id="menu" aria-label="Principal">
       {chr(10).join('      ' + i for i in items).strip()}
     </nav>
     <div class="nav-r">
       <a href="contacto.html" class="btn sm">Estudio gratis</a>
-      <button class="burger" id="burger" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="menu"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#002a5c" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+      <button class="burger" id="burger" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="menu"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#072762" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
     </div>
   </div>
 </header>"""
@@ -266,7 +266,7 @@ def footer():
     <div class="wrap">
       <div class="ft">
         <div class="ft-brand">
-          <a href="index.html" class="logo" aria-label="Elite Energy – inicio"><img src="logos/floral-core-oscuro.svg" alt="" width="34" height="34"><span><span class="w1">Elite</span> <span class="w2">Energy</span></span></a>
+          <a href="index.html" class="logo" aria-label="Elite Energy – inicio"><img src="logos/elite-energy-dark.svg" alt="Elite Energy" width="184" height="46"></a>
           <p>Asesoría energética en Asturias. Tarifas de luz y gas, placas solares, puntos de recarga y eficiencia energética para hogares y empresas.</p>
           <address>
             <div>{ICON['pin']}<span>{e['calle']}<br>{e['cp']} {e['ciudad']} ({e['provincia']})</span></div>

@@ -19,7 +19,7 @@ Ningún proveedor puede garantizar una posición concreta en Google: el SEO tard
 | Web rápida: fuentes alojadas en el propio servidor, sin librerías externas | Hecho |
 | Adaptada a móvil y accesible (teclado, contraste, textos alternativos) | Hecho |
 | Aviso legal, política de privacidad y de cookies; banner de cookies con aceptar, rechazar y configurar | Hecho |
-| Formularios que envían el correo con la factura adjunta a info@eliteeenergy.es | Hecho (requiere hosting con PHP) |
+| Formularios que envían el correo con la factura adjunta a info@eliteenergy.es | Hecho (requiere hosting con PHP) |
 | Medición preparada: Google Analytics 4 y conversiones de Google Ads, solo con consentimiento | Falta poner los identificadores en `assets/js/config.js` |
 
 ### Mapa de palabras clave por página
@@ -38,10 +38,10 @@ Ningún proveedor puede garantizar una posición concreta en Google: el SEO tard
 
 ## 2. Pasos para publicar y posicionar (por orden)
 
-1. **Comprobar el dominio y el correo.** La web está preparada para `www.eliteeenergy.es` y `info@eliteeenergy.es`. Si el dominio es otro, se cambia en una línea y se vuelve a generar.
+1. **Comprobar el dominio y el correo.** La web está preparada para `www.eliteenergy.es` y `info@eliteenergy.es`.
 2. **Subir la web** al hosting con certificado SSL (HTTPS) activo. Subir también `.htaccess`, `enviar.php`, `sitemap.xml` y `robots.txt`.
-3. **Probar el formulario** desde la web publicada y confirmar que llega el correo a info@eliteeenergy.es (revisar también la carpeta de spam la primera vez). Si el hosting lo pide, crear el buzón `web@eliteeenergy.es` como remitente.
-4. **Google Search Console** (search.google.com/search-console): dar de alta el dominio, verificarlo y enviar `https://www.eliteeenergy.es/sitemap.xml`. Pedir la indexación de las 7 páginas principales.
+3. **Probar el formulario** desde la web publicada y confirmar que llega el correo a info@eliteenergy.es (revisar también la carpeta de spam la primera vez). Si el hosting lo pide, crear el buzón `web@eliteenergy.es` como remitente.
+4. **Google Search Console** (search.google.com/search-console): dar de alta el dominio, verificarlo y enviar `https://www.eliteenergy.es/sitemap.xml`. Pedir la indexación de las 7 páginas principales.
 5. **Bing Webmaster Tools**: importar desde Search Console (5 minutos).
 6. **Perfil de Empresa en Google (Google Business Profile)**. Es lo que más pesa en búsquedas locales como «placas solares Oviedo».
    - Nombre: *Elite Energy* (sin añadir palabras clave al nombre, Google lo penaliza).
@@ -315,7 +315,6 @@ Cada artículo debe enlazar a la página del servicio correspondiente.
 
 ## 7. Datos a confirmar antes de publicar
 
-- Dominio y correo: `eliteeenergy.es` / `info@eliteeenergy.es` (tal como se indicó; revisar que no sea `eliteenergy.es`).
 - Datos registrales para el aviso legal (tomo, folio y hoja del Registro Mercantil de Asturias).
 - Horario de atención (para la ficha de Google y la web).
 - Que se puedan cumplir los compromisos que aparecen en la web: estudio en 48 h, pago semanal a colaboradores, instaladores habilitados.

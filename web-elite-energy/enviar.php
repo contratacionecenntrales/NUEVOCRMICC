@@ -7,8 +7,8 @@
 
 declare(strict_types=1);
 
-const DESTINO   = 'info@eliteeenergy.es';                 // Buzón que recibe las solicitudes
-const REMITENTE = 'web@eliteeenergy.es';                  // Debe ser del mismo dominio que la web
+const DESTINO   = 'info@eliteenergy.es';                 // Buzón que recibe las solicitudes
+const REMITENTE = 'web@eliteenergy.es';                  // Debe ser del mismo dominio que la web
 const MAX_MB    = 8;
 const TIPOS_OK  = [
     'application/pdf' => 'pdf', 'image/jpeg' => 'jpg', 'image/png' => 'png',

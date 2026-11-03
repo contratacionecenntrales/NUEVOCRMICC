@@ -1,21 +1,22 @@
 /* Elite Energy · hoja de estilos común */
 
-/* Fuentes alojadas en la propia web (SIL Open Font License, ver assets/fonts/OFL.txt) */
-@font-face{font-family:'DM Sans';src:url(../fonts/dm-sans-latin.woff2) format('woff2');font-weight:400 700;font-style:normal;font-display:swap}
-@font-face{font-family:'Space Grotesk';src:url(../fonts/space-grotesk-latin.woff2) format('woff2');font-weight:400 700;font-style:normal;font-display:swap}
-@font-face{font-family:'Sora';src:url(../fonts/sora-latin.woff2) format('woff2');font-weight:300 600;font-style:normal;font-display:swap}
+/* Poppins, alojada en la propia web (SIL Open Font License, ver assets/fonts/OFL.txt) */
+@font-face{font-family:'Poppins';src:url(../fonts/poppins-400-latin.woff2) format('woff2');font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:'Poppins';src:url(../fonts/poppins-500-latin.woff2) format('woff2');font-weight:500;font-style:normal;font-display:swap}
+@font-face{font-family:'Poppins';src:url(../fonts/poppins-600-latin.woff2) format('woff2');font-weight:600;font-style:normal;font-display:swap}
+@font-face{font-family:'Poppins';src:url(../fonts/poppins-700-latin.woff2) format('woff2');font-weight:700;font-style:normal;font-display:swap}
 
 :root{
-  --navy:#002a5c; --navy-2:#0b3a72; --blue:#0058b9; --sky:#00a3e0; --sky-soft:#8fd3f5;
-  --ice:#e8f2fc; --ice-2:#f4f8fc; --grey:#f2f4f7;
-  --ink:#0f2140; --muted:#56647b; --line:#dde5ef;
-  --brand-green:#0E9F6E; --brand-green-dark-bg:#10B981;
+  /* Paleta de marca Elite Energy */
+  --navy:#072762; --navy-2:#0d3577; --blue:#0A6CFF; --blue-2:#0A84F0; --sky:#22C2FE; --sky-soft:#9BDDFF;
+  --ice:#E4F5FF; --ice-2:#F2FAFF; --grey:#F2F5F9;
+  --ink:#0B1F45; --muted:#4F5F7A; --line:#D8E6F2;
   --r:20px; --r-s:12px;
-  --head:'Space Grotesk',system-ui,sans-serif; --body:'DM Sans',system-ui,sans-serif; --logo:'Sora',system-ui,sans-serif;
+  --head:'Poppins',system-ui,sans-serif; --body:'Poppins',system-ui,sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth;scroll-padding-top:96px}
-body{font-family:var(--body);color:var(--ink);background:#fff;font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body{font-family:var(--body);color:var(--ink);background:#fff;font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased;overflow-x:hidden}
 a{color:inherit;text-decoration:none}
 img{max-width:100%;height:auto}
 svg{display:block;flex:none}
@@ -25,9 +26,9 @@ svg{display:block;flex:none}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .skip{position:absolute;left:12px;top:-60px;z-index:200;background:var(--navy);color:#fff;padding:10px 16px;border-radius:10px;font-weight:700}
 .skip:focus{top:12px}
-h1,h2,h3,h4{font-family:var(--head);font-weight:600;letter-spacing:-.025em;line-height:1.1;color:var(--navy)}
+h1,h2,h3,h4{font-family:var(--head);font-weight:700;letter-spacing:-.012em;line-height:1.14;color:var(--navy)}
 h2{font-size:clamp(30px,3.8vw,46px)}
-.eyebrow{font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--blue)}
+.eyebrow{font-size:13px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--blue)}
 .sub{color:var(--muted);font-size:18px;margin-top:14px;max-width:600px}
 section{padding:clamp(70px,9vw,120px) 0}
 .soft{background:var(--ice-2)}
@@ -46,13 +47,10 @@ section{padding:clamp(70px,9vw,120px) 0}
 .more{display:inline-flex;align-items:center;gap:8px;font-weight:700;color:var(--blue);transition:gap .2s}
 .more:hover{gap:12px}
 
-/* Logotipo (isotipo del kit + texto en Sora) */
-.logo{display:inline-flex;align-items:center;gap:11px;font-family:var(--logo);font-size:22px;letter-spacing:-.01em;line-height:1;color:var(--navy)}
-.logo img{width:34px;height:34px;flex:none}
-.logo .w1{font-weight:300}
-.logo .w2{font-weight:600;color:var(--brand-green)}
-footer .logo{color:#fff}
-footer .logo .w2{color:var(--brand-green-dark-bg)}
+/* Logotipo */
+.logo{display:inline-flex;align-items:center;line-height:0;flex:none}
+.logo img{height:46px;width:auto}
+footer .logo img{height:46px}
 
 /* Barra superior */
 .topbar{background:var(--navy);color:#c6d8ef;font-size:14px}
@@ -70,13 +68,13 @@ footer .logo .w2{color:var(--brand-green-dark-bg)}
 /* Cabecera */
 header.site{position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid var(--line)}
 .nav{display:flex;align-items:center;height:76px;gap:30px}
-.menu{display:flex;gap:24px;font-weight:600;font-size:15px;margin-left:auto}
+.menu{display:flex;gap:26px;font-weight:600;font-size:15px;margin-left:auto;white-space:nowrap}
 .menu a{position:relative;padding:26px 0}
 .menu a:hover,.menu a.on{color:var(--blue)}
 .menu a.on::after{content:"";position:absolute;left:0;right:0;bottom:17px;height:3px;border-radius:3px;background:var(--blue)}
 .nav-r{display:flex;gap:12px;align-items:center}
 .burger{display:none;width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:#fff;cursor:pointer;place-items:center}
-@media (max-width:1140px){
+@media (max-width:1180px){
   .menu{position:absolute;top:76px;left:0;right:0;background:#fff;flex-direction:column;gap:0;padding:6px 20px 20px;border-bottom:1px solid var(--line);display:none;margin:0}
   .menu.open{display:flex}
   .menu a{padding:16px 0;border-bottom:1px solid var(--line);font-size:17px}
@@ -85,7 +83,7 @@ header.site{position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px s
   .nav{justify-content:space-between}
   .nav-r{margin-left:auto}
 }
-@media (max-width:520px){.nav-r .btn{display:none}.logo{font-size:20px}}
+@media (max-width:520px){.nav-r .btn{display:none}.logo img{height:36px}}
 
 /* Banner de portada */
 .hero{padding:22px 0 0}
@@ -94,7 +92,7 @@ header.site{position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px s
 .slide.on{display:grid}
 .slide .txt{padding:clamp(32px,5vw,72px) clamp(28px,5vw,72px);display:flex;flex-direction:column;justify-content:center}
 .tag{display:inline-flex;align-self:flex-start;background:rgba(255,255,255,.15);border-radius:999px;padding:7px 14px;font-size:13px;font-weight:700;margin-bottom:22px}
-.slide h1,.slide .h1{color:#fff;font-family:var(--head);font-weight:600;letter-spacing:-.03em;line-height:1.05;font-size:clamp(34px,4.6vw,58px)}
+.slide h1,.slide .h1{color:#fff;font-family:var(--head);font-weight:600;letter-spacing:-.015em;line-height:1.16;font-size:clamp(34px,4.4vw,56px)}
 .slide p{font-size:18px;color:#d5e6fa;margin:18px 0 28px;max-width:480px}
 .big-price{display:flex;align-items:flex-end;gap:14px;margin-bottom:28px}
 .big-price b{font-family:var(--head);font-size:clamp(52px,6vw,80px);line-height:.85;letter-spacing:-.04em;font-weight:600}
@@ -272,7 +270,7 @@ input[type=range]:focus-visible{outline:2px solid var(--sky);outline-offset:8px}
 .plan.star .desc{color:#b7cde9}
 .plan .fit{margin:22px 0;padding:16px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);font-size:14px;color:var(--muted)}
 .plan .fit b{display:block;color:var(--navy);font-size:15px;margin-bottom:2px}
-.plan.star .fit{border-color:#1d4a80;color:#b7cde9}
+.plan.star .fit{border-color:#1E3F7A;color:#b7cde9}
 .plan.star .fit b{color:#fff}
 .plan ul{list-style:none;display:grid;gap:10px;margin-bottom:26px;font-size:15px}
 .plan li{display:flex;gap:10px;align-items:flex-start}
@@ -332,7 +330,7 @@ input[type=range]:focus-visible{outline:2px solid var(--sky);outline-offset:8px}
 .aside-card h3{color:#fff;font-size:22px}
 .aside-card p{color:#b7cde9;margin-top:10px;font-size:15px}
 .aside-card dl{margin-top:18px;display:grid;gap:0}
-.aside-card dl div{display:flex;justify-content:space-between;gap:14px;padding:11px 0;border-top:1px solid #1d4a80;font-size:15px}
+.aside-card dl div{display:flex;justify-content:space-between;gap:14px;padding:11px 0;border-top:1px solid #1E3F7A;font-size:15px}
 .aside-card dt{color:#b7cde9}
 .aside-card dd{font-weight:700;text-align:right}
 .aside-card .btn{margin-top:22px;width:100%}
@@ -434,7 +432,7 @@ details p{padding:0 50px 22px 0;color:var(--muted)}
 
 /* Pie de página */
 footer.site{background:var(--navy);color:#b7cde9;font-size:15px}
-.ft-cta{border-bottom:1px solid #1d4a80}
+.ft-cta{border-bottom:1px solid #1E3F7A}
 .ft-cta .wrap{display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap;padding-top:34px;padding-bottom:34px}
 .ft-cta p{font-family:var(--head);font-size:clamp(20px,2.4vw,26px);color:#fff;font-weight:600;letter-spacing:-.02em}
 .ft-cta p span{display:block;font:400 15px var(--body);color:#b7cde9;letter-spacing:0;margin-top:4px}
@@ -448,9 +446,9 @@ footer.site{background:var(--navy);color:#b7cde9;font-size:15px}
 .ft-brand address{font-style:normal;margin-top:20px;display:grid;gap:10px;font-size:14.5px}
 .ft-brand address div{display:flex;gap:10px;align-items:flex-start}
 .ft-brand address svg{margin-top:3px;color:var(--sky-soft)}
-.ft-zones{margin-top:44px;padding-top:22px;border-top:1px solid #1d4a80;font-size:14px}
+.ft-zones{margin-top:44px;padding-top:22px;border-top:1px solid #1E3F7A;font-size:14px}
 .ft-zones b{color:#fff;font-weight:600}
-.ft-legal{border-top:1px solid #1d4a80;margin-top:22px}
+.ft-legal{border-top:1px solid #1E3F7A;margin-top:22px}
 .ft-legal .wrap{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px 24px;padding-top:20px;padding-bottom:26px;font-size:13px;color:#8fb0d8}
 .ft-legal nav{display:flex;gap:6px 18px;flex-wrap:wrap}
 .ft-legal button{background:none;border:0;color:inherit;font:inherit;cursor:pointer;padding:0}
@@ -515,3 +513,19 @@ body.ck-open .float{display:none}
   .ph-box .art{display:grid;place-items:center;padding:28px 20px;min-height:0}
   .ph-box .float-card{position:relative;left:auto;right:auto;bottom:auto;transform:none;width:min(320px,100%)}
 }
+
+/* Resaltado en píldora (estilo de las publicaciones de marca) */
+.pill-hl{background:var(--sky);color:var(--navy);border-radius:.6em;padding:.02em .3em .06em;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+h1:has(.pill-hl),h2:has(.pill-hl){line-height:1.24}
+.on-light .pill-hl,.pill-hl.dark{background:var(--navy);color:#fff}
+/* Marca de agua del monograma */
+.wm{position:absolute;pointer-events:none;opacity:.07}
+.cb .deco{border:0;border-radius:0;width:560px;height:302px;left:auto;right:-90px;bottom:-80px;background:url(../../logos/ee-mark-white.svg) no-repeat center/contain;opacity:.08}
+.ph-box{position:relative}
+.ph-box .txt,.slide .txt{position:relative;z-index:1}
+.ft-cta{position:relative;overflow:hidden}
+.ft-cta::after{content:"";position:absolute;right:-60px;top:50%;width:420px;height:227px;transform:translateY(-50%);background:url(../../logos/ee-mark-white.svg) no-repeat center/contain;opacity:.06;pointer-events:none}
+.ft-cta .wrap{position:relative;z-index:1}
+.btn.white{color:var(--navy)}
+.btn.cyan{background:var(--sky);border-color:var(--sky);color:var(--navy)}
+.btn.cyan:hover{background:#fff;border-color:#fff}
