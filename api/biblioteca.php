@@ -9,7 +9,7 @@
  * POST ?action=hecho        {fichero_id, hecho}  marca un paso de la ruta como completado.
  * POST ?action=vista        {fichero_id}         cuenta una apertura (estadistica).
  * POST ?action=paginas      {fichero_id, paginas} paginas de un PDF que el servidor no supo contar.
- * PUT  ?action=meta&id=     direccion: {titulo, descripcion, categoria, duracion_min}
+ * PUT  ?action=meta&id=     direccion: {titulo, descripcion, categoria, division, duracion_min}
  * POST ?action=ruta         direccion: {ids: [...]} pasos de la ruta, en orden.
  *
  * Las carpetas personales (facturacion de cada comercial) nunca salen aqui.
@@ -25,13 +25,14 @@ $miId = (int)$user['id'];
 $gestiona = icc_puede_gestionar_ficheros($user);
 
 try {
-  $db->query('SELECT titulo, categoria, ruta_paso, paginas FROM ficheros LIMIT 0');
+  $db->query('SELECT titulo, categoria, ruta_paso, paginas, division FROM ficheros LIMIT 0');
   $db->query('SELECT 1 FROM ficheros_progreso LIMIT 0');
 } catch (PDOException $e) {
   icc_json(['error' => 'Falta importar la base de datos completa (biblioteca de Ficheros).', 'sin_migracion' => true], 409);
 }
 
-const BIB_CATEGORIAS = ['presentaciones', 'tramitacion', 'formacion', 'ofertas', 'otros', 'oculto'];
+const BIB_CATEGORIAS = ['presentaciones', 'dosieres', 'tramitacion', 'formacion', 'ofertas', 'otros', 'oculto'];
+const BIB_DIVISIONES = ['energia', 'telefonia', 'alarmas', 'seguros', 'general'];
 
 function bib_normaliza(string $t): string {
   $t = mb_strtolower($t, 'UTF-8');
@@ -44,7 +45,8 @@ function bib_categoria_auto(string $archivo, string $carpeta, ?string $seccion):
   $c = ' ' . bib_normaliza($carpeta) . ' ';
   $reglas = [
     'ofertas' => '/[^a-z](oferta|promo|campana|descuento|black friday|precio|condiciones especiales)/',
-    'presentaciones' => '/[^a-z](presentaci|dossier|corporativ|catalog|brochure|folleto|portfolio|quienes somos|propuesta comercial)/',
+    'dosieres' => '/[^a-z](dosier|dossier|catalog|brochure|folleto|portfolio)/',
+    'presentaciones' => '/[^a-z](presentaci|corporativ|quienes somos|propuesta comercial|pitch)/',
     'tramitacion' => '/[^a-z](tramit|procedimiento|proceso de alta|alta de|como dar|checklist|check list|documentacion|requisitos|formulario|mandato|sepa|paso a paso|instrucciones)/',
     'formacion' => '/[^a-z](formaci|manual|curso|guia|argumentario|onboarding|tutorial|modulo|leccion|bienvenida|introduc|rutina|kit de venta|objeciones)/',
   ];
@@ -159,6 +161,11 @@ function bib_archivos(PDO $db, array $user, int $miId): array {
     $paginas = (int)($f['paginas'] ?? 0);
     $seccion = $seccionDe($cid);
     $catAuto = bib_categoria_auto($f['nombre_archivo'], $carpetas[$cid]['nombre'], $seccion);
+    // Division del dosier: la elegida, la que diga el nombre del archivo o la de su carpeta.
+    $divNombre = icc_ficheros_seccion_auto(bib_normaliza($f['nombre_archivo']));
+    $divAuto = in_array($divNombre, BIB_DIVISIONES, true) && $divNombre !== 'general' ? $divNombre
+      : (in_array($seccion, BIB_DIVISIONES, true) ? $seccion : 'general');
+    $division = in_array((string)($f['division'] ?? ''), BIB_DIVISIONES, true) ? $f['division'] : $divAuto;
     $minutos = $f['duracion_min'] !== null ? (int)$f['duracion_min'] : ($paginas ? max(2, (int)round($paginas * 1.5)) : null);
     $out[] = [
       'id' => (int)$f['id'],
@@ -172,6 +179,9 @@ function bib_archivos(PDO $db, array $user, int $miId): array {
       'seccion' => $seccion ?: 'general',
       'seccion_label' => isset($secciones[$seccion]) ? $secciones[$seccion]['label'] : 'General',
       'seccion_icono' => isset($secciones[$seccion]) ? $secciones[$seccion]['icono'] : '📁',
+      'division' => $division,
+      'division_elegida' => in_array((string)($f['division'] ?? ''), BIB_DIVISIONES, true) ? $f['division'] : null,
+      'division_auto' => $divAuto,
       'carpeta' => $carpetas[$cid]['nombre'],
       'carpeta_id' => $cid,
       'ext' => $ext,
@@ -297,6 +307,9 @@ if ($metodo === 'PUT' && $accion === 'meta') {
   $categoria = (string)($body['categoria'] ?? '');
   if ($categoria !== '' && !in_array($categoria, BIB_CATEGORIAS, true)) icc_json(['error' => 'Categoría no válida'], 400);
   $duracion = isset($body['duracion_min']) && $body['duracion_min'] !== '' && $body['duracion_min'] !== null ? max(1, min(600, (int)$body['duracion_min'])) : null;
+  $division = (string)($body['division'] ?? '');
+  if ($division !== '' && !in_array($division, BIB_DIVISIONES, true)) icc_json(['error' => 'División no válida'], 400);
+  $db->prepare('UPDATE ficheros SET division = ? WHERE id = ?')->execute([$division !== '' ? $division : null, $id]);
   $db->prepare('UPDATE ficheros SET titulo = ?, descripcion = ?, categoria = ?, duracion_min = ? WHERE id = ?')->execute([
     $titulo !== '' ? mb_substr($titulo, 0, 200) : null,
     $descripcion !== '' ? mb_substr($descripcion, 0, 400) : null,

@@ -1,11 +1,11 @@
 -- =============================================================================
--- ICC CRM v79 · BASE DE DATOS COMPLETA (instalar o actualizar en un solo paso)
+-- ICC CRM v80 · BASE DE DATOS COMPLETA (instalar o actualizar en un solo paso)
 --
 -- Cómo usarlo: phpMyAdmin > tu base de datos > Importar > este archivo > Continuar.
 --
 -- - Si la base de datos YA TIENE datos (tu CRM actual): NO borra nada.
 --   Solo crea las tablas, columnas e índices que falten y amplía lo necesario
---   para la versión v79. Sirve vengas de la versión que vengas (v55 en adelante).
+--   para la versión v80. Sirve vengas de la versión que vengas (v55 en adelante).
 -- - Si la base de datos está VACÍA: crea el CRM completo y un usuario
 --   Super Administrador inicial (ver el final del archivo).
 -- - Se puede ejecutar MÁS DE UNA VEZ sin errores ni duplicados.
@@ -435,6 +435,7 @@ CREATE TABLE IF NOT EXISTS `ficheros` (
   `paginas` smallint(6) DEFAULT NULL,
   `orden` int(11) NOT NULL DEFAULT 0,
   `vistas` int(11) NOT NULL DEFAULT 0,
+  `division` varchar(20) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `fk_fichero_usuario` (`subido_por`),
   KEY `idx_ficheros_carpeta` (`carpeta_id`),
@@ -1390,6 +1391,8 @@ PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'ficheros' AND column_name = 'orden'), 'ALTER TABLE `ficheros` ADD COLUMN `orden` int(11) NOT NULL DEFAULT 0', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'ficheros' AND column_name = 'vistas'), 'ALTER TABLE `ficheros` ADD COLUMN `vistas` int(11) NOT NULL DEFAULT 0', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'ficheros' AND column_name = 'division'), 'ALTER TABLE `ficheros` ADD COLUMN `division` varchar(20) DEFAULT NULL', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'ficheros_carpetas' AND column_name = 'id'), 'ALTER TABLE `ficheros_carpetas` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
@@ -2521,4 +2524,4 @@ UPDATE usuarios SET numero_relacion = CONCAT('ICC-', LPAD(id, 5, '0')) WHERE num
 SET FOREIGN_KEY_CHECKS = 1;
 SET SESSION sql_mode = @icc_modo_anterior;
 
--- Listo. Base de datos al dia para ICC CRM v79.
+-- Listo. Base de datos al dia para ICC CRM v80.

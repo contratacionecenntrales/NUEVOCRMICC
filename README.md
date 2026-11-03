@@ -219,7 +219,7 @@ propio CRM — ya no hace falta volver a tocar la base de datos a mano.
 
 ## Base de datos en un solo paso
 
-`sql/base-de-datos-completa-v79.sql` deja cualquier base de datos al día para la v79 importándolo una sola vez en phpMyAdmin:
+`sql/base-de-datos-completa-v80.sql` deja cualquier base de datos al día para la v80 importándolo una sola vez en phpMyAdmin:
 - Con datos (v55 en adelante): no borra nada; crea solo las tablas, columnas, índices y relaciones que falten y amplía los roles. Deja a Daniela con todo el equipo de María y las agendas de Juan y María.
 - Vacía: crea el CRM completo y un Super Administrador inicial (info@integralconnectionconsulting.es, contraseña provisional `CambiaEsta-2026`, que el CRM obliga a cambiar).
 - Se puede ejecutar varias veces sin errores ni duplicados. Los datos de ejemplo de los comparadores solo se cargan si esas tablas están vacías.
@@ -441,8 +441,9 @@ esa carpeta del servidor. Pasos a seguir, en este orden:
 
 Menú **Formación y recursos** (`#/ficheros`, `js/biblioteca.js`, `api/biblioteca.php`, columnas y tabla de `sql/migracion_ficheros_biblioteca.sql`). Las carpetas de siempre siguen en **Todas las carpetas** (`#/ficheros/carpetas`).
 
-- **Ruta de inicio del Gestor Comercial**: los documentos que debe ver un comercial nuevo, en orden, con su progreso (se completa al llegar a la última página o con «Marcar como completado»). Dirección, jefes y backoffice ven el progreso de su equipo. Si dirección aún no la ha fijado, se propone sola con los documentos de formación.
-- **Secciones**: Presentaciones para el cliente, Cómo tramitar, Formación por área (Energía, Telefonía, Alarmas…), Ofertas tácticas y Otros recursos. Cada archivo se clasifica solo por su nombre y su carpeta, y dirección puede cambiarlo.
+- **Formación de inicio del Gestor Comercial**: los documentos que debe ver un comercial nuevo, en orden, con su progreso (se completa al llegar a la última página o con «Marcar como completado»). Dirección, jefes y backoffice ven el progreso de su equipo. Si dirección aún no la ha fijado, se propone sola con los documentos de formación.
+- **Dosieres corporativos por división**: una tarjeta por división (ICC Corporativo, Energía, Telefonía, Alarmas y seguridad, Seguros) con su dosier para descargar. La división se deduce del nombre del archivo o de su carpeta, y dirección puede elegirla en Organizar.
+- **Secciones**: Material para el cliente, Cómo tramitar, Formación por área (Energía, Telefonía, Alarmas…), Ofertas tácticas y Otros recursos. Cada archivo se clasifica solo por su nombre y su carpeta, y dirección puede cambiarlo.
 - **Títulos profesionales** automáticos (sin guiones, versiones ni «copia», con tildes y marcas bien escritas) que dirección puede reescribir, con una frase de para qué sirve y los minutos.
 - **Miniaturas reales** de los PDF y **modo presentación a pantalla completa** (flechas, deslizar en el móvil, tecla F) con pdf.js (`assets/vendor/pdfjs`, licencia Apache 2.0).
 - Botón **Organizar biblioteca** (solo dirección): títulos, sección, descripción, minutos y orden de la ruta. Las carpetas personales de facturación nunca aparecen aquí.
@@ -482,7 +483,7 @@ Montarla (por ejemplo en `demo.crm.tudominio.es`):
 1. Crea el subdominio en Hostalia apuntando a una carpeta nueva y sube ahí el
    mismo zip del CRM.
 2. Crea una base de datos **nueva y vacía** e importa
-   `sql/base-de-datos-completa-v79.sql` (más las migraciones nuevas si las hay).
+   `sql/base-de-datos-completa-v80.sql` (más las migraciones nuevas si las hay).
 3. Crea `api/config.local.php` de esa carpeta con los datos de la BD nueva y
    añade `define('ICC_MODO_DEMO', true);`.
 4. Rellena la demo por SSH (el generador no se puede abrir desde el navegador):

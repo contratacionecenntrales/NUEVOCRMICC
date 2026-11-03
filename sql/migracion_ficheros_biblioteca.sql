@@ -43,3 +43,8 @@ CREATE TABLE IF NOT EXISTS ficheros_progreso (
   CONSTRAINT fk_fprog_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
   CONSTRAINT fk_fprog_fichero FOREIGN KEY (fichero_id) REFERENCES ficheros(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- v80: division del dosier corporativo (energia, telefonia, alarmas, seguros, general).
+SET @s = (SELECT IF(COUNT(*) = 0, 'ALTER TABLE ficheros ADD COLUMN division VARCHAR(20) NULL', 'DO 0')
+          FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'ficheros' AND COLUMN_NAME = 'division');
+PREPARE q FROM @s; EXECUTE q; DEALLOCATE PREPARE q;

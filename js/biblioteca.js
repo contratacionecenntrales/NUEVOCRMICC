@@ -10,18 +10,26 @@
   var U = window.icc.util;
   var API = window.icc.api;
   var esc = U.escapeHtml;
-  var VER = "79";
+  var VER = "80";
 
   var S = { datos: null, porId: {}, busca: "", miniaturas: {}, observador: null, cola: [], activos: 0 };
 
   var SECCIONES = [
-    { cat: "presentaciones", eyebrow: "Para la reunión", titulo: "Presentaciones para el cliente", sub: "Lo que se enseña y se deja en cada visita: quiénes somos y lo que ofrecemos.", icono: "🎤", estilo: "grande", etiqueta: "Material para clientes" },
+    { cat: "presentaciones", eyebrow: "Para la reunión", titulo: "Material para el cliente", sub: "Lo que se enseña y se deja en cada visita: quiénes somos y lo que ofrecemos.", icono: "🎤", estilo: "grande", etiqueta: "Material para clientes" },
+    { cat: "dosieres", eyebrow: "Para descargar y enviar", titulo: "Dosieres corporativos por división", sub: "El dosier oficial de cada división de ICC: descárgalo y envíaselo al cliente después de la visita.", icono: "💼", estilo: "divisiones", etiqueta: "Dosier corporativo" },
     { cat: "tramitacion", eyebrow: "Paso a paso", titulo: "Cómo tramitar", sub: "Procedimientos, documentación y checklists para dar de alta cada contrato sin errores.", icono: "🧾", estilo: "lista", etiqueta: "Tramitación" },
     { cat: "formacion", eyebrow: "Aprende el producto", titulo: "Formación por área", sub: "Energía, telefonía, alarmas y seguros: lo que hay que dominar de cada producto.", icono: "🎓", estilo: "grid", agrupar: true, etiqueta: "Formación" },
     { cat: "ofertas", eyebrow: "Campañas en vigor", titulo: "Ofertas tácticas", sub: "Promociones y condiciones especiales para cerrar ventas este mes.", icono: "🔥", estilo: "grid", etiqueta: "Oferta táctica" },
     { cat: "otros", eyebrow: "Más documentos", titulo: "Otros recursos", sub: "Tarifas, plantillas y documentación de apoyo.", icono: "🗂️", estilo: "grid", agrupar: true, etiqueta: "Recurso" },
   ];
-  var NOMBRE_CAT = { presentaciones: "Presentaciones", tramitacion: "Cómo tramitar", formacion: "Formación por área", ofertas: "Ofertas tácticas", otros: "Otros recursos", oculto: "Ocultar de la portada" };
+  var DIVISIONES = [
+    { clave: "general", nombre: "ICC Corporativo", ico: "🏢", c: "#D4A62A", sub: "Quiénes somos y todas las divisiones" },
+    { clave: "energia", nombre: "Energía", ico: "⚡", c: "#FBBF24", sub: "Luz, gas, autoconsumo y eficiencia" },
+    { clave: "telefonia", nombre: "Telefonía", ico: "📶", c: "#22D3EE", sub: "Fibra, móvil y centralitas" },
+    { clave: "alarmas", nombre: "Alarmas y seguridad", ico: "🚨", c: "#F87171", sub: "Hogar y negocio protegidos" },
+    { clave: "seguros", nombre: "Seguros", ico: "🛡️", c: "#A78BFA", sub: "Particulares y empresas" },
+  ];
+  var NOMBRE_CAT = { presentaciones: "Material para el cliente", dosieres: "Dosieres por división", tramitacion: "Cómo tramitar", formacion: "Formación por área", ofertas: "Ofertas tácticas", otros: "Otros recursos", oculto: "Ocultar de la portada" };
   var TIPOS = {
     pdf: { ico: "📕", nombre: "PDF", c: "#F87171" }, doc: { ico: "📘", nombre: "Word", c: "#60A5FA" }, docx: { ico: "📘", nombre: "Word", c: "#60A5FA" },
     xls: { ico: "📗", nombre: "Excel", c: "#34D399" }, xlsx: { ico: "📗", nombre: "Excel", c: "#34D399" }, ppt: { ico: "📙", nombre: "PowerPoint", c: "#FB923C" },
@@ -178,8 +186,8 @@
     visibles.forEach(function (a) { cuenta[a.categoria] = (cuenta[a.categoria] || 0) + 1; });
     var html = '<div class="icc-bib">' +
       '<header class="icc-bib-hero"><div class="icc-bib-hero-txt"><span class="icc-bib-eyebrow">Biblioteca ICC</span>' +
-      "<h1>Formación y recursos comerciales</h1>" +
-      "<p>Todo lo que necesitas para empezar, presentar, tramitar y vender: ordenado y siempre actualizado por dirección.</p>" +
+      "<h1>Formación y recursos del Gestor Comercial</h1>" +
+      "<p>Tu primer día empieza aquí: la formación de inicio paso a paso, el material para cada visita, los dosieres de cada división, cómo tramitar y las ofertas en vigor.</p>" +
       '<div class="icc-bib-chips">' +
       SECCIONES.filter(function (s) { return cuenta[s.cat]; }).map(function (s) {
         return '<button type="button" class="icc-bib-chip" data-ir="#bib-' + s.cat + '">' + s.icono + " " + esc(NOMBRE_CAT[s.cat]) + " <b>" + cuenta[s.cat] + "</b></button>";
@@ -199,6 +207,12 @@
       (d.ruta.ids || []).forEach(function (id) { enRuta[id] = true; });
       SECCIONES.forEach(function (s) {
         var lista = visibles.filter(function (a) { return a.categoria === s.cat && !(s.cat === "formacion" && enRuta[a.id]); });
+        if (!lista.length && s.cat === "dosieres" && d.puede_gestionar) {
+          html += '<section class="icc-bib-seccion" id="bib-' + s.cat + '">' + cabecera(s) + divisionesHtml(lista, true) + "</section>";
+          return;
+        }
+        // Si toda la formación ya está en la ruta de inicio, no hace falta la sección vacía.
+        if (!lista.length && s.cat === "formacion" && visibles.some(function (a) { return a.categoria === "formacion" && enRuta[a.id]; })) return;
         if (!lista.length) {
           if (d.puede_gestionar && s.cat !== "otros") {
             html += '<section class="icc-bib-seccion is-vacia" id="bib-' + s.cat + '">' + cabecera(s) + '<p class="icc-muted">Todavía no hay documentos aquí. Pulsa <b>Organizar biblioteca</b> y elige «' + esc(NOMBRE_CAT[s.cat]) + "» en los que correspondan.</p></section>";
@@ -206,7 +220,9 @@
           return;
         }
         html += '<section class="icc-bib-seccion" id="bib-' + s.cat + '">' + cabecera(s);
-        if (s.estilo === "grande") {
+        if (s.estilo === "divisiones") {
+          html += divisionesHtml(lista, d.puede_gestionar);
+        } else if (s.estilo === "grande") {
           html += '<div class="icc-bib-grandes">' + lista.map(function (a) { return tarjetaGrande(a, s.etiqueta); }).join("") + "</div>";
         } else if (s.estilo === "lista") {
           html += '<ol class="icc-bib-lista">' + lista.map(function (a, i) { return filaLista(a, i + 1); }).join("") + "</ol>";
@@ -259,6 +275,26 @@
       '<div class="icc-bib-fila-txt"><h3>' + esc(a.titulo) + "</h3>" + (a.descripcion ? "<p>" + esc(a.descripcion) + "</p>" : "") + '<small data-meta="' + a.id + '">' + esc(a.seccion_label) + " · " + esc(meta(a)) + "</small></div>" +
       '<div class="icc-bib-acc">' + botones(a, true) + "</div></li>";
   }
+  // Una tarjeta por división con su dosier (o sus dosieres) listo para descargar.
+  function divisionesHtml(lista, gestiona) {
+    return '<div class="icc-bib-divs">' + DIVISIONES.map(function (dv) {
+      var docsDiv = lista.filter(function (a) { return a.division === dv.clave; });
+      if (!docsDiv.length && !gestiona) return "";
+      var principal = docsDiv[0];
+      return '<article class="icc-bib-div" style="--c:' + dv.c + '">' +
+        '<header><span class="icc-bib-div-ico" aria-hidden="true">' + dv.ico + '</span><div><span class="icc-bib-eyebrow">División</span><h3>' + esc(dv.nombre) + "</h3><small>" + esc(dv.sub) + "</small></div></header>" +
+        (principal
+          ? '<button type="button" class="icc-bib-portada-btn" ' + (presentable(principal) ? 'data-presentar="' + principal.id + '"' : "disabled") + ' aria-label="Ver ' + esc(principal.titulo) + '">' + portada(principal) + "</button>" +
+            docsDiv.map(function (a, i) {
+              return '<div class="icc-bib-div-doc' + (i ? " is-extra" : "") + '"><div><strong>' + esc(a.titulo) + "</strong>" + (a.descripcion ? "<p>" + esc(a.descripcion) + "</p>" : "") + '<small data-meta="' + a.id + '">' + esc(meta(a)) + "</small></div>" +
+                '<div class="icc-bib-acc">' + (a.existe ? '<a class="icc-btn icc-btn-primary icc-bib-btn" href="' + esc(a.url) + '&descargar=1" data-descargar="' + a.id + '">⬇ Descargar dosier</a>' +
+                  (presentable(a) ? '<button type="button" class="icc-btn icc-btn-ghost icc-bib-btn" data-presentar="' + a.id + '">⛶ Ver</button>' : "") : '<span class="icc-bib-aviso">Archivo no disponible</span>') + "</div></div>";
+            }).join("")
+          : '<div class="icc-bib-div-falta"><span aria-hidden="true">📄</span><p>Falta el dosier de <b>' + esc(dv.nombre) + "</b>.</p><small>Súbelo a su carpeta y, en <b>Organizar biblioteca</b>, elige la sección «Dosieres por división» y la división " + esc(dv.nombre) + ".</small></div>") +
+        "</article>";
+    }).join("") + "</div>";
+  }
+
   function tarjetaGrid(a, etiqueta) {
     return '<article class="icc-bib-tarjeta"><button type="button" class="icc-bib-portada-btn" ' + (presentable(a) ? 'data-presentar="' + a.id + '"' : "disabled") + ' aria-label="Abrir ' + esc(a.titulo) + '">' + portada(a) + "</button>" +
       '<div class="icc-bib-tarjeta-txt"><span class="icc-bib-eyebrow">' + esc(etiqueta || a.seccion_label) + "</span><h3>" + esc(a.titulo) + "</h3>" +
@@ -279,7 +315,7 @@
     var d = S.datos;
     if (!pasos.length) {
       return d.puede_gestionar
-        ? '<section class="icc-bib-ruta is-vacia"><div class="icc-bib-ruta-cab"><span class="icc-bib-ruta-ico" aria-hidden="true">🎯</span><div><span class="icc-bib-eyebrow is-oro">Itinerario</span><h2>Ruta de inicio del Gestor Comercial</h2>' +
+        ? '<section class="icc-bib-ruta is-vacia"><div class="icc-bib-ruta-cab"><span class="icc-bib-ruta-ico" aria-hidden="true">🎯</span><div><span class="icc-bib-eyebrow is-oro">Itinerario</span><h2>Formación de inicio del Gestor Comercial</h2>' +
           '<p class="icc-muted">Elige en orden los documentos que debe ver cada comercial nuevo el primer día. Verán su progreso y tú el de todo el equipo.</p></div>' +
           '<button type="button" class="icc-btn icc-btn-primary" data-organizar-ruta>🎯 Crear la ruta</button></div></section>'
         : "";
@@ -289,7 +325,7 @@
     var pct = Math.round(hechos * 100 / pasos.length);
     var sig = pasos.filter(function (a) { return !a.completado; })[0];
     return '<section class="icc-bib-ruta" id="bib-ruta"><div class="icc-bib-ruta-cab"><span class="icc-bib-ruta-ico" aria-hidden="true">🎯</span><div class="icc-bib-ruta-tit">' +
-      '<span class="icc-bib-eyebrow is-oro">Itinerario · ' + pasos.length + (pasos.length === 1 ? " paso" : " pasos") + "</span><h2>Ruta de inicio del Gestor Comercial</h2>" +
+      '<span class="icc-bib-eyebrow is-oro">Itinerario · ' + pasos.length + (pasos.length === 1 ? " paso" : " pasos") + "</span><h2>Formación de inicio del Gestor Comercial</h2>" +
       '<p class="icc-muted">' + pasos.length + " pasos" + (total ? " · ≈ " + total + " min en total" : "") + " · " + hechos + " de " + pasos.length + " completados</p></div>" +
       '<div class="icc-bib-ruta-acc">' + anillo(pct) +
       (sig ? '<button type="button" class="icc-btn icc-btn-primary" data-presentar="' + sig.id + '" data-ruta="1">▶ ' + (hechos ? "Continuar la ruta" : "Empezar la ruta") + "</button>"
@@ -527,6 +563,11 @@
   }
 
   // ------------------------------------------------------- Organizar
+  function nombreDiv(k) {
+    var dv = DIVISIONES.filter(function (x) { return x.clave === k; })[0];
+    return dv ? dv.nombre : "ICC Corporativo";
+  }
+
   function organizar() {
     var d = S.datos;
     var archivos = d.archivos.filter(function (a) { return a.existe; }).slice().sort(function (x, y) {
@@ -535,14 +576,14 @@
     var ruta = (d.ruta.ids || []).slice();
     var opcionesCat = function (a) {
       return '<option value="">Automática (' + esc(NOMBRE_CAT[a.categoria_auto]) + ")</option>" +
-        ["presentaciones", "tramitacion", "formacion", "ofertas", "otros", "oculto"].map(function (c) {
+        ["presentaciones", "dosieres", "tramitacion", "formacion", "ofertas", "otros", "oculto"].map(function (c) {
           return '<option value="' + c + '"' + (a.categoria_elegida === c ? " selected" : "") + ">" + esc(NOMBRE_CAT[c]) + "</option>";
         }).join("");
     };
     U.openModal(
       '<div class="icc-bib-org"><h2>⚙️ Organizar la biblioteca</h2>' +
       '<p class="icc-muted">Pon a cada documento un título profesional, una frase que explique para qué sirve y la sección donde debe aparecer. Los cambios se ven al momento para todo el equipo.</p>' +
-      '<h3>🎯 Ruta de inicio del Gestor Comercial</h3><p class="icc-muted">Los documentos que debe ver un comercial nuevo, en orden.' + (d.ruta.sugerida ? " Ahora mismo es una propuesta automática: guárdala para fijarla." : "") + "</p>" +
+      '<h3>🎯 Formación de inicio del Gestor Comercial</h3><p class="icc-muted">Los documentos que debe ver un comercial nuevo, en orden.' + (d.ruta.sugerida ? " Ahora mismo es una propuesta automática: guárdala para fijarla." : "") + "</p>" +
       '<ol class="icc-bib-org-ruta" id="org-ruta"></ol>' +
       '<div class="icc-bib-org-anadir"><select class="icc-select" id="org-anadir"><option value="">+ Añadir un paso…</option>' +
       archivos.map(function (a) { return '<option value="' + a.id + '">' + esc(a.titulo) + " · " + esc(a.carpeta) + "</option>"; }).join("") + "</select></div>" +
@@ -552,6 +593,8 @@
           '<div class="icc-bib-org-arch"><span>' + tipo(a).ico + "</span><small>" + esc(a.carpeta) + " / " + esc(a.nombre_archivo) + "</small></div>" +
           '<label><span>Título</span><input class="icc-input" data-c="titulo" maxlength="200" value="' + esc(a.titulo_propio ? a.titulo : "") + '" placeholder="' + esc(a.titulo) + '"></label>' +
           '<label><span>Sección</span><select class="icc-select" data-c="categoria">' + opcionesCat(a) + "</select></label>" +
+          '<label><span>División</span><select class="icc-select" data-c="division"><option value="">Automática (' + esc(nombreDiv(a.division_auto)) + ")</option>" +
+          DIVISIONES.map(function (dv) { return '<option value="' + dv.clave + '"' + (a.division_elegida === dv.clave ? " selected" : "") + ">" + esc(dv.nombre) + "</option>"; }).join("") + "</select></label>" +
           '<label class="is-ancha"><span>Para qué sirve (opcional)</span><input class="icc-input" data-c="descripcion" maxlength="400" value="' + esc(a.descripcion) + '" placeholder="Ej.: Presentación para abrir la primera visita con el cliente"></label>' +
           '<label class="is-min"><span>Min.</span><input class="icc-input" data-c="duracion_min" type="number" min="1" max="600" value="' + (a.duracion_min || "") + '" placeholder="' + (a.minutos || "") + '"></label>' +
           "</div>";
@@ -598,8 +641,8 @@
           var a = S.porId[f.getAttribute("data-id")];
           var v = {};
           f.querySelectorAll("[data-c]").forEach(function (x) { v[x.getAttribute("data-c")] = x.value.trim(); });
-          var antes = { titulo: a.titulo_propio ? a.titulo : "", categoria: a.categoria_elegida || "", descripcion: a.descripcion || "", duracion_min: a.duracion_min ? String(a.duracion_min) : "" };
-          if (v.titulo !== antes.titulo || v.categoria !== antes.categoria || v.descripcion !== antes.descripcion || v.duracion_min !== antes.duracion_min) {
+          var antes = { titulo: a.titulo_propio ? a.titulo : "", categoria: a.categoria_elegida || "", division: a.division_elegida || "", descripcion: a.descripcion || "", duracion_min: a.duracion_min ? String(a.duracion_min) : "" };
+          if (v.titulo !== antes.titulo || v.categoria !== antes.categoria || v.division !== antes.division || v.descripcion !== antes.descripcion || v.duracion_min !== antes.duracion_min) {
             await API.put("api/biblioteca.php?action=meta&id=" + a.id, v);
           }
         }

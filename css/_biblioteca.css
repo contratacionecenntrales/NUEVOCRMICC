@@ -180,3 +180,32 @@ body.icc-bib-pres-abierta { overflow: hidden; }
 .icc-bib-portada-btn.is-mini .icc-bib-marca, .icc-bib-portada-btn.is-mini .icc-bib-portada-falsa i { display: none; }
 .icc-bib-portada-btn.is-mini .icc-bib-portada-falsa strong { font-size: 10.5px; -webkit-line-clamp: 3; }
 .icc-bib-paso .icc-bib-portada-falsa strong { font-size: 13px; }
+
+/* Dosieres corporativos por división */
+.icc-bib-divs { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: 14px; }
+.icc-bib-div { display: flex; flex-direction: column; gap: 12px; padding: 14px; border-radius: 16px; border: 1px solid var(--line); border-top: 4px solid var(--c);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--c) 10%, var(--card)), var(--card) 45%); }
+.icc-bib-div header { display: flex; gap: 10px; align-items: center; }
+.icc-bib-div header h3 { margin: 1px 0; font-size: 17px; }
+.icc-bib-div header small { color: var(--txt-3); font-size: 12px; }
+.icc-bib-div header .icc-bib-eyebrow { color: var(--c); }
+.icc-bib-div-ico { flex: none; display: grid; place-items: center; width: 42px; height: 42px; border-radius: 12px; font-size: 21px; background: color-mix(in srgb, var(--c) 18%, transparent); }
+.icc-bib-div-doc { display: flex; flex-direction: column; gap: 8px; }
+.icc-bib-div-doc strong { color: var(--txt); font-size: 14.5px; }
+.icc-bib-div-doc p { margin: 2px 0 0; color: var(--txt-2); font-size: 13px; }
+.icc-bib-div-doc small { display: block; margin-top: 2px; color: var(--txt-3); font-size: 12px; }
+.icc-bib-div-doc .icc-bib-acc { margin-top: 0; padding-top: 0; }
+.icc-bib-div-doc.is-extra { padding-top: 10px; border-top: 1px dashed var(--line); }
+.icc-bib-div-falta { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; padding: 22px 12px; border: 1px dashed var(--line); border-radius: 12px; color: var(--txt-2); }
+.icc-bib-div-falta span { font-size: 26px; opacity: .6; }
+.icc-bib-div-falta p { margin: 0; }
+.icc-bib-div-falta small { color: var(--txt-3); font-size: 12px; line-height: 1.45; }
+
+/* Organizar: título, sección, división y minutos en una fila; la descripción debajo */
+.icc-bib-org-fila { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr) 80px; }
+.icc-bib-org-fila label.is-min, .icc-bib-org-fila label.is-ancha + label.is-min { grid-column: 4; grid-row: 2; }
+.icc-bib-org-fila label.is-ancha { grid-column: 1 / -1; grid-row: 3; }
+@media (max-width: 760px) {
+  .icc-bib-org-fila { grid-template-columns: minmax(0, 1fr); }
+  .icc-bib-org-fila label.is-min, .icc-bib-org-fila label.is-ancha + label.is-min, .icc-bib-org-fila label.is-ancha { grid-column: auto; grid-row: auto; }
+}
