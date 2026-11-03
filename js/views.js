@@ -3281,11 +3281,11 @@ window.icc.views = (function () {
     var recientes = ficheros.filter(function (f) { var d = haceDias(f.created_at); return d === "hoy" || d === "ayer"; }).length;
 
     var migas =
-      '<a href="#/ficheros"' + (!carpetaId ? ' class="is-actual"' : "") + ">🏠 Inicio</a>" +
+      '<a href="#/ficheros">📚 Biblioteca</a><span class="icc-fi-sep">›</span><a href="#/ficheros/carpetas"' + (!carpetaId ? ' class="is-actual"' : "") + ">📁 Carpetas</a>" +
       ruta.map(function (r, i) {
         return '<span class="icc-fi-sep">›</span><a href="#/ficheros/' + r.id + '"' + (i === ruta.length - 1 ? ' class="is-actual"' : "") + ">" + esc(r.nombre) + "</a>";
       }).join("");
-    var padreHref = ruta.length > 1 ? "#/ficheros/" + ruta[ruta.length - 2].id : "#/ficheros";
+    var padreHref = ruta.length > 1 ? "#/ficheros/" + ruta[ruta.length - 2].id : "#/ficheros/carpetas";
 
     var resumen = !carpetaId
       ? "<b>" + carpetas.length + "</b> " + (carpetas.length === 1 ? "carpeta" : "carpetas") + " · <b>" + totalArchivosEnCarpetas + "</b> " + (totalArchivosEnCarpetas === 1 ? "archivo dentro" : "archivos dentro")

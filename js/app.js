@@ -253,7 +253,7 @@
       });
     }
 
-    if (puede("ficheros.ver")) items.push({ label: "Ficheros", href: "#/ficheros" });
+    if (puede("ficheros.ver")) items.push({ label: "Formación y recursos", href: "#/ficheros" });
 
     items.push({ label: "Mi ficha", href: "#/mi-ficha" });
 
@@ -647,7 +647,10 @@
       } else if (ruta.indexOf("#/ficheros") === 0) {
         var carpetaIdTxt = ruta.replace("#/ficheros", "").replace(/^\//, "");
         var carpetaId = carpetaIdTxt && /^\d+$/.test(carpetaIdTxt) ? parseInt(carpetaIdTxt, 10) : null;
-        await window.icc.views.viewFicheros(carpetaId);
+        // Portada: biblioteca de formación y recursos. Las carpetas de siempre,
+        // en #/ficheros/carpetas y #/ficheros/<id>.
+        if (!carpetaIdTxt && window.icc.biblioteca) await window.icc.biblioteca.view();
+        else await window.icc.views.viewFicheros(carpetaId);
       } else if (ruta === "#/seguridad") {
         await window.icc.seguridad.view();
       } else if (ruta === "#/proformas") {
