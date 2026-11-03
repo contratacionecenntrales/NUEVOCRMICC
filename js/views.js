@@ -2325,6 +2325,12 @@ window.icc.views = (function () {
     return viewFichaAgente(fichaActual.id, fichaActual.seccion);
   }
 
+  // Comerciales y jefes de equipo no ven nada de seguridad: en su propia ficha
+  // la pestaña es solo «Contraseña» (para poder cambiarla).
+  function sinSeguridad(datos) {
+    return !!(datos && datos.es_propia) && ["comercial", "jefe_de_equipo"].indexOf(window.icc.auth.state.rolPrincipal) !== -1;
+  }
+
   var SECCIONES_FICHA = [
     { clave: "resumen", label: "Resumen y seguimiento", icono: "📊" },
     { clave: "informacion", label: "Usuario · Información", icono: "👤" },
@@ -2385,7 +2391,9 @@ window.icc.views = (function () {
     var u = datos.usuario;
     var puede = datos.puede;
     var base = datos.es_propia && location.hash.indexOf("#/mi-ficha") === 0 ? "#/mi-ficha" : "#/agentes/" + u.id;
-    var secciones = SECCIONES_FICHA.filter(function (s) { return !s.requiere || puede[s.requiere]; });
+    var secciones = SECCIONES_FICHA.filter(function (s) { return !s.requiere || puede[s.requiere]; }).map(function (s) {
+      return s.clave === "seguridad" && sinSeguridad(datos) ? { clave: s.clave, label: "Contraseña", icono: "🔑", requiere: s.requiere } : s;
+    });
     if (!secciones.some(function (s) { return s.clave === fichaActual.seccion; })) fichaActual.seccion = "resumen";
     var pref = datos.preferencias || {};
     var disp = C.ESTADOS_DISPONIBILIDAD[pref.estado_disponibilidad] || C.ESTADOS_DISPONIBILIDAD.disponible;
@@ -2893,10 +2901,11 @@ window.icc.views = (function () {
     var p = datos.puede;
     var seg = datos.seguridad || { sesiones: [], historial: [] };
     var sinMigracion = datos.migracion_pendiente;
+    var solo = sinSeguridad(datos);
 
     cont.innerHTML =
       avisoMigracion(datos) +
-      "<h2>Credenciales</h2>" +
+      "<h2>" + (solo ? "Contraseña" : "Credenciales") + "</h2>" +
       (!sinMigracion && (p.reset_password || p.cerrar_sesiones)
         ? '<div class="icc-doc-actions">' +
           (p.reset_password ? '<button type="button" class="icc-btn icc-btn-secondary" id="btn-reset-password">↻ Restablecer contraseña</button>' : "") +
@@ -2979,6 +2988,12 @@ window.icc.views = (function () {
           "</div>"
         : '<p class="icc-empty">Sin movimientos registrados todavía.</p>');
 
+    if (solo) {
+      // Solo el formulario para cambiar la contraseña: sin sesiones, historial ni doble factor.
+      var formSolo = cont.querySelector("#form-cambiar-password");
+      cont.innerHTML = "<h2>Contraseña</h2>";
+      if (formSolo) { formSolo.style.marginTop = "8px"; cont.appendChild(formSolo); }
+    }
     var btnReset = document.getElementById("btn-reset-password");
     if (btnReset) {
       btnReset.addEventListener("click", async function () {

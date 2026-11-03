@@ -167,7 +167,9 @@ if ($metodo === 'POST' && $accion === 'login') {
     $alguna = icc_seg_fila("SELECT 1 FROM seg_accesos WHERE usuario_id = ? AND resultado = 'ok' LIMIT 1", [$user['id']]);
     if ($alguna && !$conocida) {
       icc_seg_anota('Acceso desde una conexión nueva', 'IP ' . icc_ip() . ' · ' . mb_substr((string)icc_seg_navegador(), 0, 120), (int)$user['id'], (int)$user['id']);
-      icc_notificar((int)$user['id'], 'seguridad', 'seguridad', 'Se ha entrado en tu cuenta desde una conexión nueva (IP ' . icc_ip() . '). Si no has sido tú, cambia la contraseña y avisa a dirección.');
+      if (!in_array((string)$user['rol'], ['comercial', 'jefe_de_equipo'], true)) {
+        icc_notificar((int)$user['id'], 'seguridad', 'seguridad', 'Se ha entrado en tu cuenta desde una conexión nueva (IP ' . icc_ip() . '). Si no has sido tú, cambia la contraseña y avisa a dirección.');
+      }
     }
     icc_seg_registra((int)$user['id'], $emailMin, 'ok');
   }

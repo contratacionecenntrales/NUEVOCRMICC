@@ -28,6 +28,8 @@ $accion = (string)($_GET['action'] ?? '');
 $miId = (int)$user['id'];
 $verComo = !empty($_SESSION['impersonador_id']);
 
+// Comerciales y jefes de equipo no tienen Centro de Seguridad.
+if (in_array((string)$user['rol'], ['comercial', 'jefe_de_equipo'], true)) icc_json(['error' => 'No encontrado'], 404);
 if (!icc_seg_ok()) {
   icc_json(['error' => 'Falta importar sql/migracion_seguridad.sql (o la base de datos completa v78) en la base de datos.', 'sin_migracion' => true], 409);
 }

@@ -653,6 +653,8 @@
         // en #/ficheros/carpetas y #/ficheros/<id>.
         if (!carpetaIdTxt && window.icc.biblioteca) await window.icc.biblioteca.view();
         else await window.icc.views.viewFicheros(carpetaId);
+      } else if (ruta === "#/seguridad" && ["comercial", "jefe_de_equipo"].indexOf(window.icc.auth.state.rolPrincipal) !== -1) {
+        location.hash = "#/dashboard";
       } else if (ruta === "#/seguridad") {
         await window.icc.seguridad.view();
       } else if (ruta === "#/proformas") {

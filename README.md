@@ -461,6 +461,8 @@ Menú **Formación y recursos** (`#/ficheros`, `js/biblioteca.js`, `api/bibliote
 
 ## Centro de Seguridad (blindaje, adaptado del CRM de Labs)
 
+Comerciales y jefes de equipo no ven nada de seguridad: sin menú ni Centro de Seguridad (la API les responde 404), sin avisos de conexión nueva y, en su ficha, la pestaña es solo «Contraseña» para poder cambiarla.
+
 Menú **Seguridad → Centro de Seguridad** (`#/seguridad`, `api/seguridad.php`, `api/seguridad_lib.php`, tablas de `sql/migracion_seguridad.sql`, incluidas en la base de datos completa).
 
 - **Doble factor (2FA)**: contraseña + código de 6 cifras de Google o Microsoft Authenticator (QR propio, sin librerías externas: `js/qr.js`). Cada código sirve una vez; 10 códigos de recuperación de un solo uso. Dirección puede quitárselo a quien pierda el móvil (el del Super Admin, solo el propio Super Admin). Cada persona lo activa desde Mi ficha → Seguridad avanzada.
