@@ -2661,7 +2661,7 @@ window.icc.views = (function () {
         })
         .join("") +
       '<p class="icc-muted" style="margin-top:6px">Siempre ligados al rol (no se delegan): qué datos ve cada uno según su equipo, ' +
-      'la gestión de cuentas de Admin y las copias de seguridad. Los permisos de "Equipo" solo tienen efecto en un Jefe de equipo, ' +
+      "la gestión de cuentas de Admin" + (window.icc.auth.puedeVerCopias() ? " y las copias de seguridad" : "") + '. Los permisos de "Equipo" solo tienen efecto en un Jefe de equipo, ' +
       'y siempre sobre los comerciales de su propio equipo.</p>' +
       (editable ? barraGuardar("savebar-permisos") : "") +
       "</form>";
@@ -3363,7 +3363,7 @@ window.icc.views = (function () {
       (carpetaId ? '<a class="icc-btn icc-btn-secondary" href="' + padreHref + '">← Atrás</a>' : "") +
       (!carpetaId && esAdmin
         ? '<a class="icc-btn icc-btn-ghost" href="#/diagnostico-storage">🔍 Archivos que faltan</a>' +
-          '<a class="icc-btn icc-btn-ghost" href="#/copias-seguridad">🗄️ Copias de seguridad</a>'
+          (window.icc.auth.puedeVerCopias() ? '<a class="icc-btn icc-btn-ghost" href="#/copias-seguridad">🗄️ Copias de seguridad</a>' : "")
         : "") +
       (puedeSubirAqui ? '<button type="button" class="icc-btn icc-btn-primary icc-ag-btn-nueva" id="btn-fi-subir">⬆ Subir archivos</button>' : "") +
       (!gestiona ? '<span class="icc-fi-lectura" title="Solo Administración puede subir, editar o borrar">👁 Solo consulta</span>' : "") +
@@ -3708,7 +3708,7 @@ window.icc.views = (function () {
       '<div class="icc-card">' +
       (totalFaltan === 0
         ? '<p class="icc-empty">✅ Todos los archivos registrados en la base de datos están presentes en el servidor.</p>'
-        : '<p style="color:var(--red)">⚠️ Hay ' + totalFaltan + ' archivo(s) registrados en la base de datos que ya no están físicamente en el servidor (probablemente por un borrado o una extracción de ZIP que sobrescribió "storage/"). Esto no se puede arreglar desde el propio CRM: hay que volver a subir esos documentos, o pedir a Hostalia que restaure una copia de seguridad de esas fechas si la tienen.</p>' +
+        : '<p style="color:var(--red)">⚠️ Hay ' + totalFaltan + ' archivo(s) registrados en la base de datos que ya no están físicamente en el servidor (probablemente por un borrado o una extracción de ZIP que sobrescribió "storage/"). ' + (window.icc.auth.puedeVerCopias() ? "Se pueden recuperar desde Seguridad → Copias de seguridad (restaurando el documento o el cliente), o volver a subirlos." : "Hay que volver a subir esos documentos.") + '</p>' +
           '<button class="icc-btn icc-btn-secondary" id="btn-limpiar-storage" style="margin-top:8px">🗑️ Borrar registros de archivos que ya no existen</button>' +
           '<p class="icc-muted" style="margin-top:6px">En Ficheros/Documentos/Firmas borra el registro entero (el archivo era todo su contenido). En Proformas solo desvincula el archivo perdido — la factura en sí no se borra, para no perder esos datos.</p>') +
       resultado

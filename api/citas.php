@@ -586,8 +586,8 @@ if ($metodo === 'PUT' && $id !== null) {
 
 // ==================================================================== DELETE
 if ($metodo === 'DELETE' && $id !== null) {
-  // Copia de seguridad justo antes de borrar: se puede restaurar desde Seguridad > Copias.
-  icc_copia_previa('borrar cita');
+  // Papelera: copia justo antes de borrar + apunte de que, quien y cuando (Seguridad > Papelera y copias).
+  icc_papelera_anotar('cita', $id);
   icc_require_csrf();
   try {
     $stmt = $db->prepare('SELECT * FROM citas WHERE id = ?');

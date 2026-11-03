@@ -327,12 +327,12 @@ function icc_seg_peligrosos(): array {
     // Copias antiguas del CRM (un zip extraido en una subcarpeta, por ejemplo).
     if (is_dir($ruta) && !in_array($e, ['api', 'storage', 'sql', 'js', 'css', 'assets', 'comparador'], true) && is_file($ruta . '/api/config.php')) {
       $out[] = ['ruta' => $e . '/', 'tipo' => 'carpeta', 'tamano' => null,
-        'motivo' => 'Copia antigua del CRM, con su propia configuración y su propia puerta de entrada.'];
+        'motivo' => 'Versión antigua del CRM, con su propia configuración y su propia puerta de entrada.'];
     }
   }
   if (ICC_CONFIG_EN === 'privada' && is_file(__DIR__ . '/config.local.php')) {
     $out[] = ['ruta' => 'api/config.local.php', 'tipo' => 'archivo', 'tamano' => filesize(__DIR__ . '/config.local.php'),
-      'motivo' => 'Copia de la configuración (con la contraseña de MySQL) que ya está en la carpeta privada.'];
+      'motivo' => 'Configuración duplicada (con la contraseña de MySQL): la buena ya está en la carpeta privada.'];
   }
   return $out;
 }
@@ -480,10 +480,10 @@ function icc_seg_exposicion(): array {
   $storageWeb = rtrim(ICC_STORAGE_WEB, '/');
   $cebos = [
     ['Documento subido (storage/)', 'storage/' . $nombre . '.pdf', $storageWeb . '/' . $nombre . '.pdf'],
-    ['Copia de base de datos (.sql) en la web', $nombre . '.sql', $web . '/' . $nombre . '.sql'],
+    ['Volcado de base de datos (.sql) en la web', $nombre . '.sql', $web . '/' . $nombre . '.sql'],
     ['Archivo comprimido (.zip) en la web', $nombre . '.zip', $web . '/' . $nombre . '.zip'],
     ['Nota de texto (.txt) en la web', $nombre . '.txt', $web . '/' . $nombre . '.txt'],
-    ['Copia de seguridad (.bak) en la web', $nombre . '.bak', $web . '/' . $nombre . '.bak'],
+    ['Archivo antiguo (.bak) en la web', $nombre . '.bak', $web . '/' . $nombre . '.bak'],
   ];
   $pruebas = [];
   $alguna = false;
@@ -568,8 +568,8 @@ function icc_seg_estado(): array {
 
   $pel = icc_seg_peligrosos();
   $add('peligrosos', 'Archivos sobrantes en la carpeta pública', $pel ? 'mal' : 'ok',
-    $pel ? count($pel) . ' archivo(s) o carpeta(s) que no deberían estar en la web (copias, zips, SQL, notas).'
-      : 'No hay copias, zips, SQL ni notas olvidadas en la carpeta pública.', $pel ? 'limpiar' : null, 15);
+    $pel ? count($pel) . ' archivo(s) o carpeta(s) que no deberían estar en la web (archivos antiguos, zips, SQL, notas).'
+      : 'No hay archivos antiguos, zips, SQL ni notas olvidados en la carpeta pública.', $pel ? 'limpiar' : null, 15);
 
   $roles = "'" . implode("','", ICC_ROLES_ADMIN) . "'";
   $admins = icc_seg_q("SELECT u.id, TRIM(CONCAT(u.nombre, ' ', COALESCE(u.apellidos, ''))) nombre, u.rol, COALESCE(f.activo, 0) con2fa
@@ -583,7 +583,7 @@ function icc_seg_estado(): array {
   $bit = icc_seg_verifica_bitacora();
   $add('bitacora', 'Bitácora sin manipular', $bit['ok'] ? 'ok' : 'mal', $bit['mensaje'], null, 8);
 
-  if (function_exists('icc_copias_bd_lista')) {
+  if (function_exists('icc_copias_bd_lista') && icc_ve_copias(icc_current_user())) {
     $copias = icc_copias_bd_lista();
     $ult = $copias[0] ?? null;
     $reciente = $ult && strtotime($ult['fecha']) > time() - 26 * 3600;

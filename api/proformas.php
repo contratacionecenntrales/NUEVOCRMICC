@@ -100,8 +100,8 @@ if ($metodo === 'PUT' && $id !== null) {
 }
 
 if ($metodo === 'DELETE' && $id !== null) {
-  // Copia de seguridad justo antes de borrar: se puede restaurar desde Seguridad > Copias.
-  icc_copia_previa('borrar factura');
+  // Papelera: copia justo antes de borrar + apunte de que, quien y cuando (Seguridad > Papelera y copias).
+  icc_papelera_anotar('factura', $id);
   icc_require_csrf();
   $db = icc_db();
   $stmt = $db->prepare('SELECT comercial_id, ruta_archivo FROM proformas WHERE id = ?');

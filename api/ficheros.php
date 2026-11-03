@@ -91,8 +91,8 @@ if ($metodo === 'PUT') {
 }
 
 if ($metodo === 'DELETE') {
-  // Copia de seguridad justo antes de borrar: se puede restaurar desde Seguridad > Copias.
-  icc_copia_previa('borrar fichero');
+  // Papelera: copia justo antes de borrar + apunte de que, quien y cuando (Seguridad > Papelera y copias).
+  icc_papelera_anotar('fichero', (int)($_GET['id'] ?? 0));
   icc_require_csrf();
   $id = (int)($_GET['id'] ?? 0);
   if (!$id) icc_json(['error' => 'Falta id'], 400);

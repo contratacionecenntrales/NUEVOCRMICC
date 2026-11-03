@@ -219,7 +219,7 @@ propio CRM — ya no hace falta volver a tocar la base de datos a mano.
 
 ## Base de datos en un solo paso
 
-`sql/base-de-datos-completa-v80.sql` deja cualquier base de datos al día para la v80 importándolo una sola vez en phpMyAdmin:
+`sql/base-de-datos-completa-v82.sql` deja cualquier base de datos al día para la v82 importándolo una sola vez en phpMyAdmin:
 - Con datos (v55 en adelante): no borra nada; crea solo las tablas, columnas, índices y relaciones que falten y amplía los roles. Deja a Daniela con todo el equipo de María y las agendas de Juan y María.
 - Vacía: crea el CRM completo y un Super Administrador inicial (info@integralconnectionconsulting.es, contraseña provisional `CambiaEsta-2026`, que el CRM obliga a cambiar).
 - Se puede ejecutar varias veces sin errores ni duplicados. Los datos de ejemplo de los comparadores solo se cargan si esas tablas están vacías.
@@ -439,7 +439,9 @@ esa carpeta del servidor. Pasos a seguir, en este orden:
 
 ## Copias de seguridad diarias y restauración individual
 
-Menú **Seguridad → Copias de seguridad** (`#/copias-seguridad`, `api/copias.php`, `api/copias_lib.php`). Solo dirección.
+Menú **Seguridad → Papelera y copias** (`#/copias-seguridad`, `api/copias.php`, `api/copias_lib.php`). **Solo Coordinador, Admin y Super Admin**: para el resto (Gerente incluido) no existe, ni en el menú, ni en el Centro de Seguridad, ni en la bitácora; las direcciones de la API responden 404.
+
+- **Papelera**: cada borrado (cuentas, contratos, facturas, presupuestos, citas, ficheros, carpetas, oficinas) queda apuntado con qué es, quién lo borró (también si fue desde «Ver como») y cuándo, con la copia tomada justo antes. Se restaura con un clic durante 30 días (una cuenta, devolviéndole sus clientes, contratos y citas).
 
 - **Automáticas cada día**, sin configurar nada: la primera vez que alguien usa el CRM en el día se hace (después de responder) una copia de **toda la base de datos** (`storage/_backups/bd/`, 30 días, mínimo 10) y, si ha cambiado algo, de **los archivos** (`storage/_backups/backup-*.zip`, últimas 14). Si se quiere a hora fija, sirve también la tarea programada de `api/backup.php?token=…`.
 - **Copia extra justo antes de cada borrado** (cuentas, contratos, facturas, presupuestos, citas, ficheros, carpetas, oficinas, limpieza): como mucho una cada 10 minutos.
@@ -492,7 +494,7 @@ Montarla (por ejemplo en `demo.crm.tudominio.es`):
 1. Crea el subdominio en Hostalia apuntando a una carpeta nueva y sube ahí el
    mismo zip del CRM.
 2. Crea una base de datos **nueva y vacía** e importa
-   `sql/base-de-datos-completa-v80.sql` (más las migraciones nuevas si las hay).
+   `sql/base-de-datos-completa-v82.sql` (más las migraciones nuevas si las hay).
 3. Crea `api/config.local.php` de esa carpeta con los datos de la BD nueva y
    añade `define('ICC_MODO_DEMO', true);`.
 4. Rellena la demo por SSH (el generador no se puede abrir desde el navegador):

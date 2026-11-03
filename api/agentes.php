@@ -279,8 +279,8 @@ if ($metodo === 'PUT' && $id !== null) {
 }
 
 if ($metodo === 'DELETE' && $id !== null) {
-  // Copia de seguridad justo antes de borrar: se puede restaurar desde Seguridad > Copias.
-  icc_copia_previa('borrar cuenta');
+  // Papelera: copia justo antes de borrar + apunte de que, quien y cuando (Seguridad > Papelera y copias).
+  icc_papelera_anotar('usuario', $id);
   icc_require_role(ICC_ROLES_ADMIN);
   icc_require_csrf();
   $db = icc_db();

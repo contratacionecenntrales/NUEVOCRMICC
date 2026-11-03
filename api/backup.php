@@ -72,7 +72,7 @@ function icc_crear_backup(string $storageDir, string $dirBackups): string {
 }
 
 if ($accion === 'crear' && $metodo === 'GET') {
-  if (!$tokenValido) icc_require_role(ICC_ROLES_ADMIN);
+  if (!$tokenValido && !icc_ve_copias(icc_current_user())) icc_json(['error' => 'No encontrado'], 404);
   try {
     $nombre = icc_crear_backup(ICC_STORAGE_DIR, $dirBackups);
     icc_json(['ok' => true, 'archivo' => $nombre]);
@@ -83,12 +83,12 @@ if ($accion === 'crear' && $metodo === 'GET') {
 }
 
 if ($accion === 'listar' && $metodo === 'GET') {
-  icc_require_role(ICC_ROLES_ADMIN);
+  if (!icc_ve_copias(icc_current_user())) icc_json(['error' => 'No encontrado'], 404);
   icc_json(['backups' => icc_listar_backups($dirBackups)]);
 }
 
 if ($accion === 'descargar' && $metodo === 'GET') {
-  icc_require_role(ICC_ROLES_ADMIN);
+  if (!icc_ve_copias(icc_current_user())) icc_json(['error' => 'No encontrado'], 404);
   $nombre = basename($_GET['archivo'] ?? '');
   if (!preg_match('/^backup-[0-9-]+\.zip$/', $nombre)) icc_json(['error' => 'Nombre invalido'], 400);
   $ruta = $dirBackups . '/' . $nombre;

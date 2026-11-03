@@ -143,6 +143,70 @@ function icc_copias_auto(): void {
   }
 }
 
+function icc_copias_tipos(): array {
+  return [
+  'cliente' => ['tabla' => 'clientes', 'nombre' => 'Cliente', 'campos' => ['razon_social', 'cif', 'contacto_nombre', 'email', 'telefono'], 'titulo' => ['razon_social'], 'sub' => ['cif', 'estado']],
+  'usuario' => ['tabla' => 'usuarios', 'nombre' => 'Cuenta de usuario', 'campos' => ['nombre', 'apellidos', 'email'], 'titulo' => ['nombre', 'apellidos'], 'sub' => ['email', 'rol']],
+  'contrato' => ['tabla' => 'contratos', 'nombre' => 'Contrato', 'campos' => ['titular', 'numero_contrato', 'cif_titular', 'comercializadora'], 'titulo' => ['titular'], 'sub' => ['numero_contrato', 'estado', 'fecha_alta']],
+  'factura' => ['tabla' => 'proformas', 'nombre' => 'Factura / proforma', 'campos' => ['numero', 'facturado_por', 'cliente_email', 'notas'], 'titulo' => ['numero', 'facturado_por'], 'sub' => ['importe', 'fecha', 'estado_pago']],
+  'documento' => ['tabla' => 'documentos', 'nombre' => 'Documento de cliente (factura subida, DNI…)', 'campos' => ['nombre_archivo', 'tipo', 'notas'], 'titulo' => ['nombre_archivo'], 'sub' => ['tipo', 'created_at']],
+  'presupuesto' => ['tabla' => 'presupuestos', 'nombre' => 'Presupuesto', 'campos' => ['cups', 'comercializadora_actual', 'notas', 'sector'], 'titulo' => ['sector', 'cups'], 'sub' => ['estado', 'created_at']],
+  'cita' => ['tabla' => 'citas', 'nombre' => 'Cita de agenda', 'campos' => ['cliente_nombre', 'direccion', 'notas', 'telefono'], 'titulo' => ['cliente_nombre'], 'sub' => ['fecha', 'hora_inicio', 'estado']],
+  'fichero' => ['tabla' => 'ficheros', 'nombre' => 'Archivo de Ficheros', 'campos' => ['nombre_archivo', 'titulo'], 'titulo' => ['nombre_archivo'], 'sub' => ['created_at']],
+    'carpeta' => ['tabla' => 'ficheros_carpetas', 'nombre' => 'Carpeta de Ficheros', 'campos' => ['nombre'], 'titulo' => ['nombre'], 'sub' => ['created_at']],
+    'oficina' => ['tabla' => 'oficinas', 'nombre' => 'Oficina', 'campos' => ['nombre', 'ciudad', 'provincia'], 'titulo' => ['nombre'], 'sub' => ['ciudad', 'provincia']],
+  ];
+}
+
+/** true si existe la tabla de la papelera (sql/migracion_seguridad.sql). */
+function icc_papelera_ok(): bool {
+  static $ok = null;
+  if ($ok === null) {
+    try { icc_db()->query('SELECT 1 FROM papelera LIMIT 0'); $ok = true; } catch (PDOException $e) { $ok = false; }
+  }
+  return $ok;
+}
+
+/**
+ * Antes de borrar algo: copia de la base de datos (o la de hace menos de un
+ * minuto, si ya contiene ese registro) y apunte en la papelera con que es,
+ * quien lo borra y cuando. Nunca rompe el borrado.
+ */
+function icc_papelera_anotar(string $tipo, int $id): void {
+  try {
+    $tipos = icc_copias_tipos();
+    if (!isset($tipos[$tipo]) || $id <= 0) return;
+    $cfg = $tipos[$tipo];
+    $db = icc_db();
+    $st = $db->prepare('SELECT * FROM `' . $cfg['tabla'] . '` WHERE id = ?');
+    $st->execute([$id]);
+    $fila = $st->fetch();
+    if (!$fila) return;
+    // Copia que contenga el registro: la de hace menos de un minuto si el registro ya existia entonces.
+    $copia = null;
+    $ultima = icc_copias_bd_lista()[0] ?? null;
+    if ($ultima && strtotime($ultima['fecha']) > time() - 60 && (empty($fila['created_at']) || strtotime($fila['created_at']) < strtotime($ultima['fecha']))) {
+      $copia = $ultima['nombre'];
+    }
+    if (!$copia) $copia = icc_copia_bd_crear('antes borrar ' . $tipo);
+    if (!icc_papelera_ok()) return;
+    $titulo = trim(implode(' ', array_map(function ($c) use ($fila) { return (string)($fila[$c] ?? ''); }, $cfg['titulo'])));
+    $detalle = implode(' · ', array_filter(array_map(function ($c) use ($fila) { return (string)($fila[$c] ?? ''); }, $cfg['sub'])));
+    $nombre = function ($uid) use ($db) {
+      if (!$uid) return '';
+      $s = $db->prepare("SELECT TRIM(CONCAT(nombre, ' ', COALESCE(apellidos, ''))) FROM usuarios WHERE id = ?");
+      $s->execute([$uid]);
+      return (string)$s->fetchColumn();
+    };
+    $real = icc_usuario_real_id();
+    $como = !empty($_SESSION['impersonador_id']) ? $nombre((int)$_SESSION['user_id']) : '';
+    $db->prepare('INSERT INTO papelera (tipo, ref_id, titulo, detalle, borrado_por, borrado_por_nombre, como_nombre, copia) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
+      ->execute([$tipo, $id, mb_substr($titulo !== '' ? $titulo : '#' . $id, 0, 255), mb_substr($detalle, 0, 255), $real ?: null, mb_substr($nombre($real), 0, 190), mb_substr($como, 0, 190), $copia]);
+  } catch (Throwable $e) {
+    error_log('ICC papelera: ' . $e->getMessage());
+  }
+}
+
 /** Copia extra justo antes de un borrado (como mucho una cada 10 minutos). */
 function icc_copia_previa(string $motivo): void {
   try {

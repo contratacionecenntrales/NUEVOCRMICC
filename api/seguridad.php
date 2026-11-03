@@ -156,7 +156,8 @@ if ($accion === 'quitar_bloqueo' && $metodo === 'POST') {
 }
 if ($accion === 'bitacora' && $metodo === 'GET') {
   $v = icc_seg_verifica_bitacora();
-  $v['ultimos'] = icc_seg_q('SELECT seq, ts, actor_nombre, accion, detalle, ip FROM seg_bitacora ORDER BY seq DESC LIMIT 200')->fetchAll();
+  $ocultar = icc_ve_copias($user) ? '' : " WHERE accion NOT IN ('Copia de seguridad manual', 'Restauración desde copia')";
+  $v['ultimos'] = icc_seg_q('SELECT seq, ts, actor_nombre, accion, detalle, ip FROM seg_bitacora' . $ocultar . ' ORDER BY seq DESC LIMIT 200')->fetchAll();
   icc_json($v);
 }
 if ($accion === 'limpiar' && $metodo === 'POST') {

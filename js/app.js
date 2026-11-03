@@ -277,10 +277,9 @@
     if (window.icc.auth.esAdminOSuperior()) items.push({
       label: "Seguridad",
       href: "#/seguridad",
-      submenu: [
-        { href: "#/seguridad", label: "🛡️ Centro de Seguridad" },
-        { href: "#/copias-seguridad", label: "💾 Copias de seguridad" },
-      ],
+      submenu: [{ href: "#/seguridad", label: "🛡️ Centro de Seguridad" }].concat(
+        window.icc.auth.puedeVerCopias() ? [{ href: "#/copias-seguridad", label: "🗑️ Papelera y copias" }] : []
+      ),
     });
 
     return items;
@@ -642,6 +641,8 @@
         window.icc.comparador.abrirDesdeRuta(ruta, hash);
       } else if (ruta === "#/diagnostico-storage") {
         await window.icc.views.viewDiagnosticoStorage();
+      } else if (ruta === "#/copias-seguridad" && !window.icc.auth.puedeVerCopias()) {
+        location.hash = "#/dashboard";
       } else if (ruta === "#/copias-seguridad") {
         if (window.icc.copias) await window.icc.copias.view();
         else await window.icc.views.viewCopiasSeguridad();

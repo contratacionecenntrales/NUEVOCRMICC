@@ -77,3 +77,23 @@ CREATE TABLE IF NOT EXISTS seg_ajustes (
   clave VARCHAR(60) NOT NULL PRIMARY KEY,
   valor TEXT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Papelera: cada borrado (que, quien, cuando) con la copia de la base de datos
+-- tomada justo antes, para restaurarlo con un clic durante 30 dias.
+CREATE TABLE IF NOT EXISTS papelera (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  tipo VARCHAR(20) NOT NULL,
+  ref_id INT UNSIGNED NOT NULL,
+  titulo VARCHAR(255) NOT NULL DEFAULT '',
+  detalle VARCHAR(255) NOT NULL DEFAULT '',
+  borrado_por INT UNSIGNED NULL,
+  borrado_por_nombre VARCHAR(190) NOT NULL DEFAULT '',
+  como_nombre VARCHAR(190) NOT NULL DEFAULT '',
+  borrado_en DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  copia VARCHAR(120) NOT NULL,
+  restaurado_en DATETIME NULL,
+  restaurado_por_nombre VARCHAR(190) NULL,
+  descartado TINYINT(1) NOT NULL DEFAULT 0,
+  INDEX idx_papelera_fecha (borrado_en),
+  INDEX idx_papelera_ref (tipo, ref_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

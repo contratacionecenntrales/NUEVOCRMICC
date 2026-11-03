@@ -11,29 +11,26 @@
  *        modo = "version" ademas vuelve el registro principal a como estaba en la copia
  *        devolver = true  (cuentas) le devuelve los clientes, contratos... que tenia
  *
+ * GET  ?action=papelera                            lo borrado (que, quien, cuando, dias que quedan)
+ * POST ?action=papelera_restaurar {id}             lo restaura con la copia tomada justo antes del borrado
+ * POST ?action=papelera_descartar {id}             lo quita de la lista
+ *
  * Todo lo que se restaura queda en la bitacora sellada del Centro de Seguridad.
  */
 require __DIR__ . '/config.php';
 
-$user = icc_require_role(ICC_ROLES_ADMIN);
+$user = icc_require_auth();
+// Para quien no las gestiona, esta direccion "no existe".
+if (!icc_ve_copias($user)) icc_json(['error' => 'No encontrado'], 404);
 $metodo = $_SERVER['REQUEST_METHOD'];
 $accion = (string)($_GET['action'] ?? '');
 $db = icc_db();
 if ($metodo !== 'GET') icc_require_csrf();
 $body = $metodo === 'GET' ? [] : icc_body();
 
-$TIPOS = [
-  'cliente' => ['tabla' => 'clientes', 'nombre' => 'Cliente', 'campos' => ['razon_social', 'cif', 'contacto_nombre', 'email', 'telefono'], 'titulo' => ['razon_social'], 'sub' => ['cif', 'estado']],
-  'usuario' => ['tabla' => 'usuarios', 'nombre' => 'Cuenta de usuario', 'campos' => ['nombre', 'apellidos', 'email'], 'titulo' => ['nombre', 'apellidos'], 'sub' => ['email', 'rol']],
-  'contrato' => ['tabla' => 'contratos', 'nombre' => 'Contrato', 'campos' => ['titular', 'numero_contrato', 'cif_titular', 'comercializadora'], 'titulo' => ['titular'], 'sub' => ['numero_contrato', 'estado', 'fecha_alta']],
-  'factura' => ['tabla' => 'proformas', 'nombre' => 'Factura / proforma', 'campos' => ['numero', 'facturado_por', 'cliente_email', 'notas'], 'titulo' => ['numero', 'facturado_por'], 'sub' => ['importe', 'fecha', 'estado_pago']],
-  'documento' => ['tabla' => 'documentos', 'nombre' => 'Documento de cliente (factura subida, DNI…)', 'campos' => ['nombre_archivo', 'tipo', 'notas'], 'titulo' => ['nombre_archivo'], 'sub' => ['tipo', 'created_at']],
-  'presupuesto' => ['tabla' => 'presupuestos', 'nombre' => 'Presupuesto', 'campos' => ['cups', 'comercializadora_actual', 'notas', 'sector'], 'titulo' => ['sector', 'cups'], 'sub' => ['estado', 'created_at']],
-  'cita' => ['tabla' => 'citas', 'nombre' => 'Cita de agenda', 'campos' => ['cliente_nombre', 'direccion', 'notas', 'telefono'], 'titulo' => ['cliente_nombre'], 'sub' => ['fecha', 'hora_inicio', 'estado']],
-  'fichero' => ['tabla' => 'ficheros', 'nombre' => 'Archivo de Ficheros', 'campos' => ['nombre_archivo', 'titulo'], 'titulo' => ['nombre_archivo'], 'sub' => ['created_at']],
-];
+$TIPOS = icc_copias_tipos();
 // Tablas que nunca se restauran (registros tecnicos que se regeneran solos).
-const COPIAS_SIN_RESTAURAR = ['usuarios_sesiones', 'seg_intentos', 'seg_accesos', 'seg_bloqueos', 'seg_bitacora', 'seg_ajustes', 'notificaciones', 'logs_impersonacion', 'tarifas_novedades_vistas'];
+const COPIAS_SIN_RESTAURAR = ['papelera', 'usuarios_sesiones', 'seg_intentos', 'seg_accesos', 'seg_bloqueos', 'seg_bitacora', 'seg_ajustes', 'notificaciones', 'logs_impersonacion', 'tarifas_novedades_vistas'];
 
 function copias_norm($t): string {
   $t = mb_strtolower((string)$t, 'UTF-8');
@@ -246,12 +243,8 @@ if ($accion === 'detalle' && $metodo === 'GET') {
   icc_json(['resumen' => $resumen, 'archivos_faltan' => $archivos, 'total' => count($plan)]);
 }
 
-if ($accion === 'restaurar' && $metodo === 'POST') {
-  $cfg = copias_tipo($TIPOS, (string)($body['tipo'] ?? ''));
-  $copia = copias_nombre();
-  $id = (int)($body['id'] ?? 0);
-  $modo = ($body['modo'] ?? 'faltan') === 'version' ? 'version' : 'faltan';
-  $devolver = !empty($body['devolver']) && $cfg['tabla'] === 'usuarios';
+/** Restaura un registro (y lo que cuelga de el) desde una copia. Devuelve el resumen. */
+function copias_restaurar(PDO $db, array $cfg, string $copia, int $id, string $modo, bool $devolver): array {
   @set_time_limit(300);
   // Antes de tocar nada, una copia de como esta ahora (por si hay que deshacer).
   icc_copia_bd_crear('antes de restaurar');
@@ -302,7 +295,63 @@ if ($accion === 'restaurar' && $metodo === 'POST') {
   }
   icc_seg_anota('Restauración desde copia', $cfg['nombre'] . ' #' . $id . ' desde ' . $copia . ' (' . $modo . ($devolver ? ', devolviendo sus datos' : '') . '): '
     . $hechos['insertadas'] . ' recuperados, ' . $hechos['vinculadas'] . ' revinculados, ' . $hechos['devueltas'] . ' devueltos, ' . $hechos['archivos'] . ' archivos', icc_usuario_real_id());
+  return $hechos;
+}
+
+if ($accion === 'restaurar' && $metodo === 'POST') {
+  $cfg = copias_tipo($TIPOS, (string)($body['tipo'] ?? ''));
+  $copia = copias_nombre();
+  $id = (int)($body['id'] ?? 0);
+  $modo = ($body['modo'] ?? 'faltan') === 'version' ? 'version' : 'faltan';
+  $devolver = !empty($body['devolver']) && $cfg['tabla'] === 'usuarios';
+  $hechos = copias_restaurar($db, $cfg, $copia, $id, $modo, $devolver);
   icc_json(['ok' => true] + $hechos);
+}
+
+/* ------------------------------------------------------------- Papelera */
+if ($accion === 'papelera' && $metodo === 'GET') {
+  if (!icc_papelera_ok()) icc_json(['elementos' => [], 'disponible' => false]);
+  $filas = $db->query("SELECT * FROM papelera WHERE descartado = 0 AND borrado_en > NOW() - INTERVAL " . (int)ICC_COPIAS_BD_DIAS . " DAY ORDER BY borrado_en DESC LIMIT 300")->fetchAll();
+  $out = [];
+  foreach ($filas as $f) {
+    $cfg = $TIPOS[$f['tipo']] ?? null;
+    if (!$cfg) continue;
+    $existe = false;
+    try {
+      $st = $db->prepare('SELECT 1 FROM `' . $cfg['tabla'] . '` WHERE id = ?');
+      $st->execute([$f['ref_id']]);
+      $existe = (bool)$st->fetchColumn();
+    } catch (PDOException $e) { /* tabla que ya no existe */ }
+    // Si el registro sigue ahi y nadie lo restauro, el borrado no llego a hacerse.
+    if ($existe && $f['restaurado_en'] === null) continue;
+    $dias = ICC_COPIAS_BD_DIAS - (int)floor((time() - strtotime($f['borrado_en'])) / 86400);
+    $out[] = ['id' => (int)$f['id'], 'tipo' => $f['tipo'], 'tipo_nombre' => $cfg['nombre'], 'ref_id' => (int)$f['ref_id'], 'titulo' => $f['titulo'], 'detalle' => $f['detalle'],
+      'borrado_por' => $f['borrado_por_nombre'] ?: 'Desconocido', 'como' => $f['como_nombre'], 'borrado_en' => $f['borrado_en'], 'dias_restantes' => max(0, $dias),
+      'restaurado_en' => $f['restaurado_en'], 'restaurado_por' => $f['restaurado_por_nombre'],
+      'copia_disponible' => is_file(icc_copias_dir_bd() . '/' . $f['copia'])];
+  }
+  icc_json(['elementos' => $out, 'disponible' => true, 'dias' => ICC_COPIAS_BD_DIAS]);
+}
+
+if ($accion === 'papelera_restaurar' && $metodo === 'POST') {
+  if (!icc_papelera_ok()) icc_json(['error' => 'Falta importar la base de datos completa'], 409);
+  $st = $db->prepare('SELECT * FROM papelera WHERE id = ? AND descartado = 0');
+  $st->execute([(int)($body['id'] ?? 0)]);
+  $p = $st->fetch();
+  if (!$p) icc_json(['error' => 'Ese elemento ya no está en la papelera'], 404);
+  if ($p['restaurado_en'] !== null) icc_json(['error' => 'Ya se restauró el ' . date('d/m/Y H:i', strtotime($p['restaurado_en']))], 409);
+  $cfg = copias_tipo($TIPOS, $p['tipo']);
+  if (!is_file(icc_copias_dir_bd() . '/' . $p['copia'])) icc_json(['error' => 'La copia de ese borrado ya no existe (han pasado más de ' . ICC_COPIAS_BD_DIAS . ' días).'], 410);
+  $hechos = copias_restaurar($db, $cfg, $p['copia'], (int)$p['ref_id'], 'faltan', $cfg['tabla'] === 'usuarios');
+  $yo = $db->prepare("SELECT TRIM(CONCAT(nombre, ' ', COALESCE(apellidos, ''))) FROM usuarios WHERE id = ?");
+  $yo->execute([icc_usuario_real_id()]);
+  $db->prepare('UPDATE papelera SET restaurado_en = NOW(), restaurado_por_nombre = ? WHERE id = ?')->execute([(string)$yo->fetchColumn(), $p['id']]);
+  icc_json(['ok' => true] + $hechos);
+}
+
+if ($accion === 'papelera_descartar' && $metodo === 'POST') {
+  if (icc_papelera_ok()) $db->prepare('UPDATE papelera SET descartado = 1 WHERE id = ?')->execute([(int)($body['id'] ?? 0)]);
+  icc_json(['ok' => true]);
 }
 
 icc_json(['error' => 'Acción no válida'], 404);

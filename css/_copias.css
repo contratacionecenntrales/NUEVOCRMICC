@@ -52,3 +52,22 @@
   .icc-cop-res li { flex-wrap: wrap; }
   .icc-cop-res li .icc-cop-btn { width: 100%; }
 }
+/* Papelera */
+.icc-cop-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.icc-cop-tab { font: inherit; font-size: 13px; padding: 6px 12px; border-radius: 99px; border: 1px solid var(--line); background: transparent; color: var(--txt-2); cursor: pointer; }
+.icc-cop-tab b { color: var(--txt-3); margin-left: 3px; font-weight: 700; }
+.icc-cop-tab.is-activo { border-color: var(--accent); color: var(--accent); background: rgba(16, 185, 129, .1); }
+.icc-cop-tab.is-activo b { color: var(--accent); }
+.icc-cop-pap { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.icc-cop-pap li { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--card-2); }
+.icc-cop-pap li.is-restaurado { opacity: .7; }
+.icc-cop-pap li > div { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.icc-cop-pap strong { color: var(--txt); font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.icc-cop-pap small { color: var(--txt-3); font-size: 12px; line-height: 1.4; }
+.icc-cop-pap small b { color: var(--txt-2); font-weight: 600; }
+.icc-cop-pap-ico { flex: none; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; background: rgba(34, 211, 238, .1); font-size: 16px; }
+.icc-cop-chip.is-gris { background: rgba(148, 163, 184, .14); color: var(--txt-2); }
+.icc-cop-x { flex: none; width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--line); background: transparent; color: var(--txt-3); cursor: pointer; }
+.icc-cop-x:hover, .icc-cop-x:focus-visible { color: #FCA5A5; border-color: rgba(248, 113, 113, .5); }
+.icc-cop-vacia { margin: 0; padding: 14px; border-radius: 12px; border: 1px dashed var(--line); color: var(--txt-2); text-align: center; }
+@media (max-width: 560px) { .icc-cop-pap li { flex-wrap: wrap; } .icc-cop-pap li .icc-cop-btn { flex: 1; } }

@@ -557,6 +557,15 @@ function icc_es_admin_o_superior(array $user): bool {
   return icc_es_rol_admin((string)($user['rol'] ?? ''));
 }
 
+/**
+ * Copias de seguridad: solo Coordinador, Administrador y Super Admin las ven y
+ * las restauran. El resto (Gerente incluido) no ve ningun rastro de ellas.
+ */
+const ICC_ROLES_COPIAS = ['coordinador', 'admin', 'super_admin'];
+function icc_ve_copias(?array $user): bool {
+  return $user !== null && in_array((string)($user['rol'] ?? ''), ICC_ROLES_COPIAS, true);
+}
+
 /** true para Administrador, Gerente, Coordinador y Super Admin (mismo nivel). */
 function icc_es_rol_admin(string $rol): bool {
   return in_array($rol, ICC_ROLES_ADMIN, true);

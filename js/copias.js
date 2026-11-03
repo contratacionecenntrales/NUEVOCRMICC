@@ -8,8 +8,8 @@
   var U = window.icc.util;
   var API = window.icc.api;
   var esc = U.escapeHtml;
-  var S = { datos: null, copia: "", tipo: "cliente", q: "", resultados: null, buscando: false };
-  var ICONOS = { cliente: "🏢", usuario: "👤", factura: "🧾", documento: "📎", contrato: "📝", presupuesto: "📄", cita: "📅", fichero: "📁" };
+  var S = { datos: null, copia: "", tipo: "cliente", q: "", resultados: null, buscando: false, papelera: [], filtro: "todo" };
+  var ICONOS = { cliente: "🏢", usuario: "👤", factura: "🧾", documento: "📎", contrato: "📝", presupuesto: "📄", cita: "📅", fichero: "📁", carpeta: "🗂️", oficina: "🏬" };
   var ESTADOS = { borrado: ["Borrado", "mal"], cambiado: ["Modificado", "aviso"], existe: ["Igual que ahora", "ok"] };
 
   function main() { return document.getElementById("icc-main"); }
@@ -20,13 +20,12 @@
   }
 
   async function view() {
-    if (!window.icc.auth.esAdminOSuperior()) {
-      main().innerHTML = '<p class="icc-empty">Las copias de seguridad son solo para dirección.</p>';
-      return;
-    }
+    if (!window.icc.auth.puedeVerCopias()) { location.hash = "#/dashboard"; return; }
     main().innerHTML = '<div class="icc-loading">Cargando las copias de seguridad…</div>';
     try {
-      S.datos = await API.get("api/copias.php?action=lista");
+      var r = await Promise.all([API.get("api/copias.php?action=lista"), API.get("api/copias.php?action=papelera").catch(function () { return { elementos: [] }; })]);
+      S.datos = r[0];
+      S.papelera = r[1].elementos || [];
     } catch (err) {
       main().innerHTML = '<p class="icc-empty">' + esc(err.message || "No se pudieron cargar las copias") + "</p>";
       return;
@@ -40,7 +39,7 @@
     var d = S.datos;
     var ultima = d.bd[0];
     var html = '<div class="icc-cop">' +
-      '<section class="icc-cop-hero"><div><span class="icc-cop-eyebrow">Seguridad · Copias</span><h1>💾 Copias de seguridad</h1>' +
+      '<section class="icc-cop-hero"><div><span class="icc-cop-eyebrow">Seguridad · Papelera y copias</span><h1>💾 Papelera y copias de seguridad</h1>' +
       "<p>El CRM guarda <b>cada día, solo,</b> una copia de toda la base de datos y de los archivos (facturas, contratos, fotos…), y otra copia extra <b>justo antes de cada borrado</b>. Se conservan " + d.dias + " días.</p>" +
       '<div class="icc-cop-estado">' +
       (ultima ? '<span class="icc-cop-ok">✓ Última copia: ' + esc(fecha(ultima.fecha)) + "</span>" : '<span class="icc-cop-mal">Aún no hay ninguna copia: se hará sola hoy, o pulsa «Hacer copia ahora».</span>') +
@@ -48,6 +47,7 @@
       (d.carpeta_privada ? '<span class="icc-cop-ok">🔒 Guardadas fuera de la web</span>' : '<span>🔒 Protegidas: nunca se sirven por URL</span>') + "</div></div>" +
       '<button type="button" class="icc-btn icc-btn-primary" id="cop-crear">💾 Hacer copia ahora</button></section>';
 
+    html += papeleraHtml();
     html += '<section class="icc-card icc-cop-bloque"><h2>♻️ Restaurar algo concreto</h2>' +
       '<p class="icc-muted">Si un gestor borra o estropea su cuenta, un cliente, una factura o un contrato, recupéralo aquí sin tocar nada más del CRM.</p>' +
       (d.bd.length
@@ -75,6 +75,42 @@
     html += "</div>";
     main().innerHTML = html;
     enlazar();
+  }
+
+  function hace(f) {
+    var s = Math.max(0, (Date.now() - new Date(String(f).replace(" ", "T")).getTime()) / 1000);
+    if (s < 90) return "ahora mismo";
+    if (s < 3600) return "hace " + Math.round(s / 60) + " min";
+    if (s < 86400) return "hace " + Math.round(s / 3600) + " h";
+    var d = Math.round(s / 86400);
+    return d === 1 ? "ayer" : "hace " + d + " días";
+  }
+  // Papelera: qué se ha borrado, quién y cuándo, con su botón de restaurar.
+  function papeleraHtml() {
+    var lista = S.papelera;
+    var tipos = {};
+    lista.forEach(function (e) { tipos[e.tipo] = tipos[e.tipo] || { n: 0, nombre: e.tipo_nombre }; tipos[e.tipo].n++; });
+    var visibles = lista.filter(function (e) { return S.filtro === "todo" || e.tipo === S.filtro; });
+    return '<section class="icc-card icc-cop-bloque icc-cop-papelera" id="cop-papelera"><h2>🗑️ Papelera</h2>' +
+      '<p class="icc-muted">Lo que se borra en el CRM se guarda aquí ' + (S.datos.dias || 30) + " días con todo lo suyo (contratos, citas, documentos y archivos). Ves qué se borró, quién lo hizo y cuándo, y lo restauras con un clic.</p>" +
+      (lista.length
+        ? '<div class="icc-cop-tabs" role="tablist"><button type="button" role="tab" aria-selected="' + (S.filtro === "todo") + '" class="icc-cop-tab' + (S.filtro === "todo" ? " is-activo" : "") + '" data-filtro="todo">Todo <b>' + lista.length + "</b></button>" +
+          Object.keys(tipos).map(function (k) {
+            return '<button type="button" role="tab" aria-selected="' + (S.filtro === k) + '" class="icc-cop-tab' + (S.filtro === k ? " is-activo" : "") + '" data-filtro="' + k + '">' + esc(tipos[k].nombre.split(" (")[0]) + " <b>" + tipos[k].n + "</b></button>";
+          }).join("") + "</div>" +
+          '<ul class="icc-cop-pap">' + visibles.map(function (e) {
+            var restaurado = !!e.restaurado_en;
+            return '<li class="' + (restaurado ? "is-restaurado" : "") + '"><span class="icc-cop-pap-ico" aria-hidden="true">' + (ICONOS[e.tipo] || "•") + "</span>" +
+              "<div><strong>" + esc(e.titulo) + "</strong><small>" + esc(e.tipo_nombre.split(" (")[0]) + " · borrado " + esc(hace(e.borrado_en)) + " por <b>" + esc(e.borrado_por) + "</b>" +
+              (e.como ? " (en «Ver como» " + esc(e.como) + ")" : "") + (e.detalle ? " · " + esc(e.detalle) : "") + "</small></div>" +
+              (restaurado
+                ? '<span class="icc-cop-chip is-ok">✓ Restaurado ' + esc(hace(e.restaurado_en)) + (e.restaurado_por ? " por " + esc(e.restaurado_por) : "") + "</span>"
+                : '<span class="icc-cop-chip ' + (e.dias_restantes <= 5 ? "is-mal" : "is-gris") + '">quedan ' + e.dias_restantes + (e.dias_restantes === 1 ? " día" : " días") + "</span>" +
+                  (e.copia_disponible ? '<button type="button" class="icc-btn icc-btn-primary icc-cop-btn" data-pap-restaurar="' + e.id + '">♻️ Restaurar</button>' : '<span class="icc-cop-chip is-mal">Sin copia</span>')) +
+              '<button type="button" class="icc-cop-x" data-pap-quitar="' + e.id + '" aria-label="Quitar de la papelera" title="Quitar de la lista">✕</button></li>';
+          }).join("") + "</ul>"
+        : '<p class="icc-cop-vacia">🧹 La papelera está vacía: nadie ha borrado nada en los últimos ' + (S.datos.dias || 30) + " días.</p>") +
+      "</section>";
   }
 
   function resultadosHtml() {
@@ -181,6 +217,33 @@
         b.textContent = "💾 Hacer copia ahora";
         U.toast(err.message || "No se pudo crear la copia", "error");
       }
+    });
+    main().querySelectorAll("[data-filtro]").forEach(function (b) {
+      b.addEventListener("click", function () { S.filtro = b.getAttribute("data-filtro"); var y = window.scrollY; pintar(); window.scrollTo(0, y); });
+    });
+    main().querySelectorAll("[data-pap-restaurar]").forEach(function (b) {
+      b.addEventListener("click", async function () {
+        var e = S.papelera.filter(function (x) { return String(x.id) === b.getAttribute("data-pap-restaurar"); })[0];
+        if (!e || !confirm("¿Restaurar «" + e.titulo + "»" + (e.tipo === "usuario" ? " y devolverle sus clientes, contratos y citas" : " con todo lo suyo") + "?")) return;
+        b.disabled = true;
+        b.textContent = "Restaurando…";
+        try {
+          var r = await API.post("api/copias.php?action=papelera_restaurar", { id: e.id });
+          U.toast("✓ «" + e.titulo + "» restaurado" + (r.insertadas || r.devueltas ? " (" + (r.insertadas + r.devueltas) + " registros" + (r.archivos ? ", " + r.archivos + " archivos" : "") + ")" : ""), "success");
+          view();
+        } catch (err) {
+          b.disabled = false;
+          b.textContent = "♻️ Restaurar";
+          U.toast(err.message || "No se pudo restaurar", "error");
+        }
+      });
+    });
+    main().querySelectorAll("[data-pap-quitar]").forEach(function (b) {
+      b.addEventListener("click", async function () {
+        if (!confirm("¿Quitar este elemento de la papelera? Seguirá pudiendo recuperarse buscándolo en las copias mientras existan.")) return;
+        try { await API.post("api/copias.php?action=papelera_descartar", { id: b.getAttribute("data-pap-quitar") }); view(); }
+        catch (err) { U.toast(err.message || "No se pudo quitar", "error"); }
+      });
     });
     if (q("cop-copia")) q("cop-copia").addEventListener("change", function (e) { S.copia = e.target.value; S.resultados = null; pintar(); });
     main().querySelectorAll("[data-tipo]").forEach(function (b) {

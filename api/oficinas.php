@@ -616,8 +616,8 @@ if ($metodo === 'PUT' && $id !== null) {
 
 // ===================================================================== BORRAR
 if ($metodo === 'DELETE' && $id !== null) {
-  // Copia de seguridad justo antes de borrar: se puede restaurar desde Seguridad > Copias.
-  icc_copia_previa('borrar oficina');
+  // Papelera: copia justo antes de borrar + apunte de que, quien y cuando (Seguridad > Papelera y copias).
+  icc_papelera_anotar('oficina', $id);
   icc_require_csrf();
   if (!ofi_cargar($db, $id)) icc_json(['error' => 'Oficina no encontrada'], 404);
   $stmt = $db->prepare('SELECT COUNT(*) FROM usuarios WHERE oficina_id = ?');
