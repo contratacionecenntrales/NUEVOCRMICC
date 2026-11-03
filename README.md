@@ -437,6 +437,15 @@ esa carpeta del servidor. Pasos a seguir, en este orden:
 - **Celebración a pantalla completa** (`js/estelar.js`): cada anuncio se abre una vez en cada navegador con fuegos artificiales y la foto del protagonista (la subida en el anuncio o, si no, su foto de perfil). Las ventas nuevas que entran mientras se trabaja también se celebran (foto solo si es de tu equipo). Clic en un anuncio de la cinta o de la sala para volver a verlo; en modo TV se repiten cada 5 minutos.
 - **Novedades de tarifas** (`#/comparador/novedades`) y **Oficinas** (`#/oficinas`): ver `sql/migracion_tarifas_novedades.sql` y `sql/migracion_oficinas.sql` (las dos van incluidas en la base de datos completa).
 
+## Copias de seguridad diarias y restauración individual
+
+Menú **Seguridad → Copias de seguridad** (`#/copias-seguridad`, `api/copias.php`, `api/copias_lib.php`). Solo dirección.
+
+- **Automáticas cada día**, sin configurar nada: la primera vez que alguien usa el CRM en el día se hace (después de responder) una copia de **toda la base de datos** (`storage/_backups/bd/`, 30 días, mínimo 10) y, si ha cambiado algo, de **los archivos** (`storage/_backups/backup-*.zip`, últimas 14). Si se quiere a hora fija, sirve también la tarea programada de `api/backup.php?token=…`.
+- **Copia extra justo antes de cada borrado** (cuentas, contratos, facturas, presupuestos, citas, ficheros, carpetas, oficinas, limpieza): como mucho una cada 10 minutos.
+- **Restauración individual**: se elige la copia, qué se busca (cliente, cuenta, contrato, factura, documento, presupuesto, cita o archivo) y se restaura solo eso con todo lo que cuelga de él (contratos, citas, historial, documentos y sus archivos), sin tocar el resto. Dos modos: «Recuperar lo que falta» o «Volver a como estaba». Para una cuenta borrada, opción de **devolverle sus clientes, contratos y citas** traspasados. Antes de restaurar se hace una copia del estado actual y todo queda en la bitácora sellada.
+- **Exportar datos es solo de dirección**: los botones de exportar (contratos, pipeline, facturas, cartera de clientes) no salen al resto y `api/exportar_contratos.php` responde 403 aunque alguien tenga el permiso a medida.
+
 ## Formación y recursos (portada de Ficheros)
 
 Menú **Formación y recursos** (`#/ficheros`, `js/biblioteca.js`, `api/biblioteca.php`, columnas y tabla de `sql/migracion_ficheros_biblioteca.sql`). Las carpetas de siempre siguen en **Todas las carpetas** (`#/ficheros/carpetas`).

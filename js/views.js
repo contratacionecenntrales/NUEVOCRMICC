@@ -1113,8 +1113,9 @@ window.icc.views = (function () {
       '<p class="icc-ag-hero-res"><b class="ok">' + okMes + "</b> OK este mes · <b>" + altasMes + "</b> altas este mes · <b>" + num(kwTotal) + "</b> kW vivos" +
       (nProblemas ? ' · <b class="mal">' + nProblemas + "</b> con KO o incidencias" : "") + "</p></div>" +
       '<div class="icc-ag-hero-acc icc-ct-hero-acc">' +
-      '<button class="icc-btn icc-btn-ghost" id="btn-exportar-contratos-csv">⬇ CSV</button>' +
-      '<button class="icc-btn icc-btn-ghost" id="btn-exportar-contratos-xlsx">⬇ Excel</button>' +
+      (window.icc.auth.esAdminOSuperior()
+        ? '<button class="icc-btn icc-btn-ghost" id="btn-exportar-contratos-csv">⬇ CSV</button><button class="icc-btn icc-btn-ghost" id="btn-exportar-contratos-xlsx">⬇ Excel</button>'
+        : "") +
       (puedeEditar ? '<button class="icc-btn icc-btn-primary icc-ag-btn-nueva" id="btn-nuevo-contrato">+ Nuevo contrato</button>' : "") +
       "</div></header>" +
 
@@ -1187,8 +1188,10 @@ window.icc.views = (function () {
       var filtrosActuales = Object.assign({ formato: formato }, filtros);
       window.open(D.urlExportarContratos(filtrosActuales), "_blank");
     }
-    document.getElementById("btn-exportar-contratos-csv").addEventListener("click", function () { exportarContratos("csv"); });
-    document.getElementById("btn-exportar-contratos-xlsx").addEventListener("click", function () { exportarContratos("xlsx"); });
+    if (document.getElementById("btn-exportar-contratos-csv")) {
+      document.getElementById("btn-exportar-contratos-csv").addEventListener("click", function () { exportarContratos("csv"); });
+      document.getElementById("btn-exportar-contratos-xlsx").addEventListener("click", function () { exportarContratos("xlsx"); });
+    }
     main()
       .querySelectorAll("[data-contrato-id]")
       .forEach(function (el) {
@@ -3914,7 +3917,7 @@ window.icc.views = (function () {
       "<b>" + todas.length + "</b> " + (todas.length === 1 ? "proforma" : "proformas") +
       (periodoActivo && periodoActivo.label !== "Todo" ? " · " + esc(periodoActivo.label.toLowerCase()) : desde || hasta ? " · periodo elegido" : "") + "</p></div>" +
       '<div class="icc-ag-hero-acc icc-pf-hero-acc">' +
-      '<button type="button" class="icc-btn icc-btn-ghost" id="btn-exportar-proformas">⬇ Exportar CSV</button>' +
+      (window.icc.auth.esAdminOSuperior() ? '<button type="button" class="icc-btn icc-btn-ghost" id="btn-exportar-proformas">⬇ Exportar CSV</button>' : "") +
       '<button class="icc-btn icc-btn-primary icc-ag-btn-nueva" id="btn-nueva-proforma">+ Nueva proforma</button>' +
       "</div></header>" +
 
@@ -3987,7 +3990,7 @@ window.icc.views = (function () {
     });
     document.getElementById("btn-nueva-proforma").addEventListener("click", modalProforma);
 
-    document.getElementById("btn-exportar-proformas").addEventListener("click", function () {
+    if (document.getElementById("btn-exportar-proformas")) document.getElementById("btn-exportar-proformas").addEventListener("click", function () {
       if (!visibles.length) { U.toast("No hay proformas que exportar", "error"); return; }
       var celda = function (v) { v = v == null ? "" : String(v); return /[";\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
       var filas = [["Número", "Facturado por", "Cliente (email)", "Comercial", "Importe (€)", "Estado", "Fecha", "Notas"]];
@@ -4683,7 +4686,7 @@ window.icc.views = (function () {
     var secCartera = seccion("cartera", "👥", "Clientes en cartera", clientes.length + (clientes.length === 1 ? " cliente activo" : " clientes activos"),
       (ver === "cartera"
         ? '<div class="icc-inf-herr"><input class="icc-input" id="inf-buscar" type="search" placeholder="🔎 Buscar por empresa, CIF o sector">' +
-          (clientes.length ? '<button type="button" class="icc-btn icc-btn-secondary" id="inf-csv">⬇ Exportar CSV</button>' : "") + "</div>" +
+          (clientes.length && window.icc.auth.esAdminOSuperior() ? '<button type="button" class="icc-btn icc-btn-secondary" id="inf-csv">⬇ Exportar CSV</button>' : "") + "</div>" +
           listaCartera(clientes) + '<p class="icc-empty" id="inf-sin" hidden>Ningún cliente coincide.</p>'
         : listaCartera(clientes.slice(0, 6)) +
           (clientes.length > 6 ? '<a class="icc-inf-mas" href="' + hrefInf("cartera") + '">Ver los ' + clientes.length + " →</a>" : "")));

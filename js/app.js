@@ -643,7 +643,8 @@
       } else if (ruta === "#/diagnostico-storage") {
         await window.icc.views.viewDiagnosticoStorage();
       } else if (ruta === "#/copias-seguridad") {
-        await window.icc.views.viewCopiasSeguridad();
+        if (window.icc.copias) await window.icc.copias.view();
+        else await window.icc.views.viewCopiasSeguridad();
       } else if (ruta.indexOf("#/ficheros") === 0) {
         var carpetaIdTxt = ruta.replace("#/ficheros", "").replace(/^\//, "");
         var carpetaId = carpetaIdTxt && /^\d+$/.test(carpetaIdTxt) ? parseInt(carpetaIdTxt, 10) : null;

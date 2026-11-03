@@ -583,6 +583,15 @@ function icc_seg_estado(): array {
   $bit = icc_seg_verifica_bitacora();
   $add('bitacora', 'Bitácora sin manipular', $bit['ok'] ? 'ok' : 'mal', $bit['mensaje'], null, 8);
 
+  if (function_exists('icc_copias_bd_lista')) {
+    $copias = icc_copias_bd_lista();
+    $ult = $copias[0] ?? null;
+    $reciente = $ult && strtotime($ult['fecha']) > time() - 26 * 3600;
+    $add('copias', 'Copias de seguridad diarias', $reciente ? 'ok' : 'mal',
+      $ult ? ('Última copia: ' . date('d/m/Y H:i', strtotime($ult['fecha'])) . ' · ' . count($copias) . ' copias guardadas. Se restauran de una en una desde Seguridad → Copias de seguridad.')
+        : 'Todavía no hay ninguna copia de la base de datos. Se hace sola al entrar alguien al CRM, o desde Seguridad → Copias de seguridad.', null, 12);
+  }
+
   $v = PHP_VERSION;
   $add('php', 'Versión de PHP del hosting', version_compare($v, '8.1', '>=') ? 'ok' : (version_compare($v, '7.4', '>=') ? 'aviso' : 'mal'),
     'PHP ' . $v . (version_compare($v, '8.1', '>=') ? ': recibe parches de seguridad.' : ': ya no recibe parches. Súbela a 8.2 o superior en Hostalia → Configuración de PHP.'), null, 5);

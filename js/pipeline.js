@@ -143,7 +143,7 @@ window.icc.pipeline = (function () {
       (conValor ? "<b>" + eur(valorAbierto) + "</b> en juego · previsión ponderada <b class=\"ok\">" + eur(prevision) + "</b>" : "Arrastra cada oportunidad a su fase") +
       "</p></div>" +
       '<div class="icc-ag-hero-acc">' +
-      '<button class="icc-btn icc-btn-ghost" id="pl-exportar" title="Descargar las oportunidades filtradas (se abre en Excel)">⬇ Exportar</button> ' +
+      (window.icc.auth.esAdminOSuperior() ? '<button class="icc-btn icc-btn-ghost" id="pl-exportar" title="Descargar las oportunidades filtradas (se abre en Excel)">⬇ Exportar</button> ' : "") +
       (window.icc.auth.puede("clientes.crear") ? '<button class="icc-btn icc-btn-primary icc-ag-btn-nueva" id="pl-nueva">+ Nueva oportunidad</button>' : "") +
       "</div></header>" +
       (!conValor ? '<div class="icc-aviso icc-aviso-oro">⚠️ Importa <code>sql/migracion_pipeline_oportunidades.sql</code> para poner valor y fecha de cierre a cada oportunidad (previsión de ventas).</div>' : "") +
@@ -363,7 +363,8 @@ window.icc.pipeline = (function () {
         tipo_cliente: fd.get("tipo_cliente") || "", cerrados_dias: fd.get("cerrados_dias") || "90", estancadas: !!fd.get("estancadas"),
       });
     });
-    document.getElementById("pl-exportar").addEventListener("click", function () { exportarCsv(f); });
+    var btnExp = document.getElementById("pl-exportar");
+    if (btnExp) btnExp.addEventListener("click", function () { exportarCsv(f); });
     var btnNueva = document.getElementById("pl-nueva");
     if (btnNueva) btnNueva.addEventListener("click", function () {
       window.icc.views.modalNuevoCliente(function () { view(); });
@@ -504,6 +505,7 @@ window.icc.pipeline = (function () {
   // CSV con las oportunidades filtradas (separador ";" y BOM para que Excel
   // en español lo abra bien con tildes).
   function exportarCsv(f) {
+    if (!window.icc.auth.esAdminOSuperior()) return; // exportar datos: solo dirección
     var lista = f.estancadas ? datos.oportunidades.filter(estancada) : datos.oportunidades;
     var celda = function (v) { v = v == null ? "" : String(v); return /[";\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
     var num = function (v) { return v == null ? "" : String(v).replace(".", ","); };

@@ -386,7 +386,7 @@ function icc_catalogo_permisos(): array {
       ['clave' => 'contratos.ver', 'label' => 'Ver contratos', 'desc' => 'Listado y detalle de contratos', 'roles' => ICC_TODOS_ROLES],
       ['clave' => 'contratos.crear', 'label' => 'Crear y editar contratos', 'desc' => 'Alta y cambios de estado', 'roles' => ICC_TODOS_ROLES],
       ['clave' => 'contratos.borrar', 'label' => 'Borrar contratos', 'desc' => 'Eliminar contratos', 'roles' => ICC_TODOS_ROLES],
-      ['clave' => 'contratos.exportar', 'label' => 'Exportar contratos', 'desc' => 'Descargar CSV y Excel', 'roles' => ICC_TODOS_ROLES],
+      ['clave' => 'contratos.exportar', 'label' => 'Exportar contratos', 'desc' => 'Descargar CSV y Excel (solo dirección)', 'roles' => ICC_ROLES_ADMIN],
     ]],
     ['modulo' => 'Agenda', 'permisos' => [
       ['clave' => 'agenda.ver', 'label' => 'Ver agenda', 'desc' => 'Consultar citas', 'roles' => ICC_TODOS_ROLES],
@@ -957,3 +957,5 @@ function icc_generar_xlsx(array $cabeceras, array $filas, string $nombreHoja = '
 }
 
 require_once __DIR__ . '/seguridad_lib.php';
+
+require_once __DIR__ . '/copias_lib.php';

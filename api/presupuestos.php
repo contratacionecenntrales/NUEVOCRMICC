@@ -221,6 +221,8 @@ if ($metodo === 'PUT' && $id !== null) {
 }
 
 if ($metodo === 'DELETE' && $id !== null) {
+  // Copia de seguridad justo antes de borrar: se puede restaurar desde Seguridad > Copias.
+  icc_copia_previa('borrar presupuesto');
   icc_require_csrf();
   $db = icc_db();
   $stmt = $db->prepare('SELECT * FROM presupuestos WHERE id = ?');

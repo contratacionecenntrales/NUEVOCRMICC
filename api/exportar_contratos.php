@@ -11,6 +11,8 @@ require __DIR__ . '/config.php';
 
 $user = icc_require_auth();
 icc_require_permiso_metodo($user, ['GET' => 'contratos.exportar']);
+// Blindaje: exportar datos es solo de direccion, aunque alguien tenga el permiso a medida.
+if (!icc_es_rol_admin((string)$user['rol'])) icc_json(['error' => 'Solo dirección puede exportar datos del CRM'], 403);
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') icc_json(['error' => 'Metodo no permitido'], 405);
 
 $estadosValidos = ['tramitado', 'ok', 'ko', 'incidencias', 'verificado', 'decomisionado', 'en_distribuidora'];

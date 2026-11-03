@@ -61,6 +61,8 @@ if ($metodo === 'GET') {
 }
 
 if ($metodo === 'DELETE') {
+  // Copia de seguridad justo antes de borrar: se puede restaurar desde Seguridad > Copias.
+  icc_copia_previa('limpieza de archivos');
   icc_require_csrf();
   $limpiados = [];
   foreach ($tablas as $t) {
