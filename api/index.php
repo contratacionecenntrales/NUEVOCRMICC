@@ -113,6 +113,10 @@ try {
     if (is_file(__DIR__ . '/importacion-pendiente.php')) {
         labs_importacion_pendiente();
     }
+    // Documentos corporativos incluidos en el despliegue (api/semilla/): entran al Centro de Recursos una vez.
+    if (is_file(__DIR__ . '/semilla/recursos.php')) {
+        labs_semilla_recursos();
+    }
     $estado = 200;
     $resp = null;
 

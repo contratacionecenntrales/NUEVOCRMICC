@@ -23,14 +23,15 @@ function labs_tablas_recursos(&$T, $AHORA)
     }
     $r = &$T['recursos'];
     $r['cols'] += array('seccion' => array('t', 'dosier'), 'miniatura' => array('t'), 'paginas' => array('i'),
-        'duracion' => array('i'), 'destacado' => array('i', 0), 'nivel' => array('t', ''), 'etiquetas' => array('t', ''));
+        'duracion' => array('i'), 'destacado' => array('i', 0), 'nivel' => array('t', ''), 'etiquetas' => array('t', ''),
+        'ruta_formacion' => array('t', ''), 'orden' => array('i', 0), 'texto' => array('t'));
     $r['editar'] = function () {
         return labs_si(labs_puedo('recursos.subir'));
     };
     $r['editar_ok'] = function ($n) {
         return labs_puedo('recursos.subir');
     };
-    $r['upd_cols'] = array('nombre', 'descripcion', 'categoria', 'seccion', 'miniatura', 'paginas', 'duracion', 'destacado', 'nivel', 'etiquetas', 'actualizado');
+    $r['upd_cols'] = array('nombre', 'descripcion', 'categoria', 'seccion', 'miniatura', 'paginas', 'duracion', 'destacado', 'nivel', 'etiquetas', 'ruta_formacion', 'orden', 'texto', 'actualizado');
     $vieja = $r['valida'];
     $r['valida'] = function ($f) use ($vieja) {
         if (!labs_en($f['tipo'], labs_recursos_tipos())) {
@@ -45,6 +46,12 @@ function labs_tablas_recursos(&$T, $AHORA)
         }
         if (!labs_largo($f['etiquetas'] ?? '', 0, 300) || !labs_largo($f['nivel'] ?? '', 0, 30)) {
             return 'Etiquetas o nivel demasiado largos.';
+        }
+        if (!labs_largo($f['ruta_formacion'] ?? '', 0, 60) || (int) ($f['orden'] ?? 0) < 0 || (int) ($f['orden'] ?? 0) > 999) {
+            return 'La ruta de formación admite 60 caracteres y el paso va de 0 a 999.';
+        }
+        if (strlen((string) ($f['texto'] ?? '')) > 300000) {
+            return 'El texto indexado es demasiado largo.';
         }
         // El resto de comprobaciones de siempre (salvo el tipo, que ya admite más).
         $f2 = $f;
@@ -256,4 +263,81 @@ function labs_recursos($metodo, $sub, $b, $pares)
         return array(200, array('recursos' => (object) $out, 'mio' => (object) $p, 'equipo' => (int) $equipo, 'direccion' => $todo));
     }
     throw new ErrorApi('Ruta no encontrada.', 404, 'PGRST000');
+}
+
+/* --- Documentos incluidos en el despliegue (api/semilla/) ----------------
+ * api/semilla/recursos.php devuelve la lista (clave, archivo, nombre, sección,
+ * categoría, nivel, descripción, ruta de formación, paso, destacado, portada,
+ * páginas y texto). Cada documento entra una sola vez: si ya existe uno con
+ * el mismo nombre (por ejemplo, traído del CRM anterior) se completa en vez
+ * de duplicarlo. El archivo pasa al almacén privado y se borra de api/. */
+function labs_semilla_recursos()
+{
+    $dir = __DIR__ . '/semilla';
+    $lista = include $dir . '/recursos.php';
+    if (!is_array($lista)) {
+        $lista = array();
+    }
+    labs_q("SELECT GET_LOCK('labs_semilla', 20)");
+    $raiz = labs_fila('SELECT id FROM perfiles WHERE raiz = 1 LIMIT 1');
+    $ahora = labs_ahora();
+    $hechos = 0;
+    foreach ($lista as $d) {
+        $clave = 'semilla.recurso.' . preg_replace('/[^a-z0-9._-]/', '', (string) ($d['clave'] ?? ''));
+        $origen = $dir . '/' . basename((string) ($d['archivo'] ?? ''));
+        if ($clave === 'semilla.recurso.' || labs_ajuste($clave)) {
+            continue;
+        }
+        $meta = array('seccion' => $d['seccion'] ?? 'dosier', 'categoria' => $d['categoria'] ?? 'General', 'nivel' => $d['nivel'] ?? '',
+            'descripcion' => $d['descripcion'] ?? '', 'ruta_formacion' => $d['ruta'] ?? '', 'orden' => (int) ($d['orden'] ?? 0),
+            'destacado' => empty($d['destacado']) ? 0 : 1, 'miniatura' => $d['miniatura'] ?? null, 'paginas' => $d['paginas'] ?? null,
+            'texto' => $d['texto'] ?? null, 'etiquetas' => $d['etiquetas'] ?? '');
+        $ya = null;
+        foreach (labs_q('SELECT id, nombre, ruta FROM recursos')->fetchAll() as $r) {
+            if (labs_norma_texto($r['nombre']) === labs_norma_texto($d['nombre']) || in_array(labs_norma_texto($r['nombre']), (array) ($d['alias'] ?? array()), true)) {
+                $ya = $r;
+                break;
+            }
+        }
+        if ($ya) {
+            // Ya estaba (traído del CRM anterior): se completa con la ficha profesional, sin tocar su archivo.
+            $cambios = array_merge($meta, array('nombre' => $d['nombre'], 'actualizado' => $ahora));
+            $sets = array_map(function ($k) { return '`' . $k . '` = ?'; }, array_keys($cambios));
+            labs_q('UPDATE recursos SET ' . implode(', ', $sets) . ' WHERE id = ?', array_merge(array_values($cambios), array($ya['id'])));
+        } elseif (is_file($origen)) {
+            $ruta = 'recursos/' . gmdate('YmdHis') . '-' . preg_replace('/[^A-Za-z0-9._-]/', '_', (string) ($d['nombre_archivo'] ?? basename($origen)));
+            $destino = labs_almacen_fichero($ruta);
+            if (!is_dir(dirname($destino)) && !@mkdir(dirname($destino), 0750, true)) {
+                continue;
+            }
+            if (!@copy($origen, $destino)) {
+                continue;
+            }
+            @chmod($destino, 0640);
+            $cols = array_merge(array('nombre' => $d['nombre'], 'tipo' => 'pdf', 'ruta' => $ruta, 'tamano_bytes' => filesize($destino),
+                'subido_por' => $raiz ? $raiz['id'] : null, 'creado' => $ahora, 'actualizado' => $ahora), $meta);
+            labs_q('INSERT INTO recursos (`' . implode('`, `', array_keys($cols)) . '`) VALUES (' . implode(',', array_fill(0, count($cols), '?')) . ')', array_values($cols));
+        } else {
+            continue;
+        }
+        labs_pon_ajuste($clave, $ahora);
+        $hechos++;
+    }
+    if ($hechos) {
+        labs_anota('Documentos corporativos cargados', $hechos . ' documento(s) en el Centro de Recursos.', null, null);
+    }
+    // Fuera de la carpeta pública: lo que ya está cargado se borra.
+    foreach ($lista as $d) {
+        $clave = 'semilla.recurso.' . preg_replace('/[^a-z0-9._-]/', '', (string) ($d['clave'] ?? ''));
+        if (labs_ajuste($clave)) {
+            @unlink($dir . '/' . basename((string) ($d['archivo'] ?? '')));
+        }
+    }
+    $quedan = array_diff(scandir($dir) ?: array(), array('.', '..', '.htaccess', 'recursos.php', 'index.html'));
+    if (!$quedan) {
+        @unlink($dir . '/recursos.php');
+        @unlink($dir . '/.htaccess');
+        @unlink($dir . '/index.html');
+        @rmdir($dir);
+    }
 }

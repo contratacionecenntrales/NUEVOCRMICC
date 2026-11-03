@@ -2,7 +2,7 @@
 
 Sala de Ventas, Pipeline IA, Agenda comercial y Ficha 360° con configurador de
 asistentes de IA. Todo con datos reales de la base de datos de Hostalia; se
-instala con el zip, sin tocar SQL (la base de datos se actualiza sola, versión 9).
+instala con el zip, sin tocar SQL (la base de datos se actualiza sola, versión 10).
 
 ## Módulos
 
@@ -39,6 +39,21 @@ Formaciones y dosieres que **se ven dentro del CRM** y se descargan:
   primera vez que dirección abre el centro.
 - El lector de PDF (pdf.js 3.11, licencia Apache 2.0) va en `vendor/pdfjs/`,
   sin depender de internet. Se usa con la evaluación de código desactivada.
+
+### Documentos corporativos y ruta de onboarding
+
+- El zip puede traer documentos en `api/semilla/` (carpeta cerrada al
+  público). La primera petición los pasa al almacén privado con su ficha
+  completa (sección, categoría, nivel, descripción, portada, páginas y
+  texto), y la carpeta se borra. Si ya existía uno con el mismo nombre
+  (traído del CRM anterior) se completa en vez de duplicarse; volver a subir
+  el zip no duplica ni hace reaparecer lo que se haya borrado.
+- **Rutas de formación**: los recursos con la misma ruta forman un itinerario
+  por pasos (orden editable), con el progreso de cada persona, el siguiente
+  paso recomendado y el tiempo estimado. Incluida: «Onboarding Account
+  Manager» en 6 pasos.
+- **Buscar dentro de los documentos**: el texto de cada PDF se indexa (al
+  cargarlo o al subirlo) y la tarjeta enseña el fragmento que coincide.
 
 ## Contactos con IA
 

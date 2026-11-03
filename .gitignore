@@ -6,3 +6,5 @@ storage/*
 # Datos personales que se cargan al desplegar: nunca al repositorio
 api/importacion-pendiente.php
 *.csv
+# Documentos corporativos que se cargan al desplegar: solo en el zip personal
+api/semilla/

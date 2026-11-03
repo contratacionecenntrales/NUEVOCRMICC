@@ -8,7 +8,7 @@
  */
 defined('LABS') || exit;
 
-define('LABS_VERSION_ESQUEMA', 9);
+define('LABS_VERSION_ESQUEMA', 10);
 
 function labs_columna_existe(PDO $db, $tabla, $col)
 {
@@ -148,6 +148,10 @@ function labs_migra(PDO $db)
         array('recursos', 'destacado', 'ALTER TABLE recursos ADD COLUMN destacado TINYINT(1) NOT NULL DEFAULT 0'),
         array('recursos', 'nivel', "ALTER TABLE recursos ADD COLUMN nivel VARCHAR(30) NOT NULL DEFAULT ''"),
         array('recursos', 'etiquetas', "ALTER TABLE recursos ADD COLUMN etiquetas VARCHAR(300) NOT NULL DEFAULT ''"),
+        // v10 · Rutas de formación y búsqueda dentro de los documentos.
+        array('recursos', 'ruta_formacion', "ALTER TABLE recursos ADD COLUMN ruta_formacion VARCHAR(60) NOT NULL DEFAULT ''"),
+        array('recursos', 'orden', 'ALTER TABLE recursos ADD COLUMN orden INT NOT NULL DEFAULT 0'),
+        array('recursos', 'texto', 'ALTER TABLE recursos ADD COLUMN texto MEDIUMTEXT NULL'),
         // v9 · Contactos activos / desactivados.
         array('contactos', 'activo', 'ALTER TABLE contactos ADD COLUMN activo TINYINT(1) NOT NULL DEFAULT 1, ADD KEY contactos_activo_idx (activo)'),
         array('recursos_descargas', 'accion', "ALTER TABLE recursos_descargas ADD COLUMN accion VARCHAR(12) NOT NULL DEFAULT 'descarga'"),

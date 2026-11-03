@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-LqLzbcusLkmCsMhdCA38X/z4LswAo/rKq3BmXAvDDW8='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-gwb+JEwcJtCzsJnnrMRfTvqZRN7PfUXqATRk81dnaew='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Labs Command Center 360 - Oficina virtual SaaS de la red comercial de Labs24k.">
 <meta name="theme-color" content="#0B0F19">
@@ -1599,6 +1599,45 @@ a.btn.btn-g:hover{color:#fff}
 .rc-mini-st div{padding:10px;border-radius:12px;background:rgba(15,23,42,.55);border:1px solid var(--line);text-align:center}
 .rc-mini-st b{display:block;font-size:20px;color:var(--txt)}
 .rc-mini-st span{font-size:11px;color:var(--txt-2)}
+
+.rc-c.r{color:#FDE68A;background:rgba(251,191,36,.12)}
+.rc-frag{display:flex;gap:6px;align-items:flex-start;font-size:12px;color:var(--txt-2);padding:7px 9px;border-radius:10px;background:rgba(45,212,196,.06);border:1px dashed rgba(45,212,196,.3);line-height:1.45}
+.rc-frag svg{display:block;flex:0 0 auto;margin-top:2px;color:#5EEAD4}
+.rc-frag mark{background:rgba(94,234,212,.25);color:#F0FDFA;border-radius:3px;padding:0 2px}
+.rc-ruta{position:relative;overflow:hidden;margin-bottom:18px;padding:20px 22px;border-radius:20px;border:1px solid rgba(251,191,36,.32);
+  background:radial-gradient(70% 120% at 0% 0%,rgba(251,191,36,.12),transparent 60%),radial-gradient(60% 120% at 100% 100%,rgba(45,212,196,.12),transparent 60%),var(--card)}
+.rc-ruta.fin{border-color:rgba(74,222,128,.4)}
+.rc-ruta-h{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.rc-ruta-ic{width:50px;height:50px;border-radius:15px;display:grid;place-items:center;color:#1F1300;background:linear-gradient(140deg,#FDE68A,#F59E0B);box-shadow:0 10px 26px -10px rgba(245,158,11,.8)}
+.rc-ruta.fin .rc-ruta-ic{background:linear-gradient(140deg,#86EFAC,#22C55E)}
+.rc-ruta-ic svg{display:block}
+.rc-ruta-k{font-size:10.5px;font-weight:800;letter-spacing:.14em;color:#FCD34D}
+.rc-ruta h3{margin:2px 0 2px;font-size:19px;color:var(--txt)}
+.rc-ruta-pct{position:relative;width:74px;height:74px;display:grid;place-items:center}
+.rc-ruta-pct .rc-ring{position:absolute;inset:0}
+.rc-ruta-pct b{position:relative;font-size:16px;color:var(--txt)}
+.rc-pasos{display:flex;align-items:stretch;gap:0;margin-top:18px;overflow-x:auto;padding-bottom:4px}
+.rc-paso{position:relative;flex:1 0 150px;max-width:230px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:10px;border-radius:14px;cursor:pointer;text-align:left;
+  border:1px solid var(--line);background:rgba(15,23,42,.5);color:var(--txt-2);transition:transform .15s,border-color .15s}
+.rc-paso:hover{transform:translateY(-3px);border-color:rgba(251,191,36,.6)}
+.rc-paso.ok{border-color:rgba(74,222,128,.45)}
+.rc-paso.sig{border-color:#FBBF24;box-shadow:0 0 0 3px rgba(251,191,36,.15),0 14px 30px -18px rgba(251,191,36,.9)}
+.rc-paso.curso{border-color:rgba(45,212,196,.6)}
+.rc-paso-n{position:absolute;left:-1px;top:-1px;z-index:2;min-width:26px;height:26px;padding:0 6px;border-radius:13px 0 12px 0;display:grid;place-items:center;font-size:12px;font-weight:800;color:#1F1300;background:#FBBF24}
+.rc-paso.ok .rc-paso-n{background:#4ADE80;color:#052E16}
+.rc-paso:not(.ok):not(.sig):not(.curso) .rc-paso-n{background:#334155;color:#CBD5E1}
+.rc-paso-n svg{display:block}
+.rc-paso-mini{position:relative;width:100%;aspect-ratio:16/9;border-radius:9px;overflow:hidden;display:grid;place-items:center;color:#fff}
+.rc-paso-mini img{width:100%;height:100%;object-fit:cover;object-position:top;display:block}
+.rc-paso-mini svg{display:block}
+.rc-paso-mini i{position:absolute;left:0;bottom:0;height:3px;background:linear-gradient(90deg,#2DD4C4,#A78BFA)}
+.rc-paso-t{font-size:13px;font-weight:700;color:var(--txt);line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.rc-paso-m{font-size:11px}
+.rc-paso.ok .rc-paso-m{color:#4ADE80}
+.rc-paso.sig .rc-paso-m{color:#FCD34D}
+.rc-paso.curso .rc-paso-m{color:#5EEAD4}
+.rc-paso-l{flex:0 0 22px;align-self:center;height:2px;background:linear-gradient(90deg,rgba(251,191,36,.6),rgba(45,212,196,.6))}
+@media (max-width:640px){ .rc-ruta{padding:16px} .rc-ruta-h .btn{width:100%;justify-content:center} .rc-paso{flex-basis:140px} }
 
 /* --- Visor --- */
 html.rv-abierto{overflow:hidden}
@@ -7174,10 +7213,16 @@ function rcTipoDeArchivo(nombre){
 function rcTam(b){ if(!b) return ''; return b >= 1073741824 ? (b/1073741824).toFixed(1)+' GB' : b >= 1048576 ? (b/1048576).toFixed(1)+' MB' : Math.max(1, Math.round(b/1024))+' KB'; }
 function rcDur(s){ if(!s && s !== 0) return ''; s = Math.round(s); var h = Math.floor(s/3600), m = Math.floor(s%3600/60), x = s%60;
   return h ? h+' h '+(m ? m+' min' : '') : m ? m+' min'+(m < 10 && x ? ' '+x+' s' : '') : x+' s'; }
+function rcMinutos(r){
+  var k = rcClase(r.tipo);
+  if(k === 'video') return r.duracion ? Math.max(1, Math.round(r.duracion / 60)) : 0;
+  if(k === 'pdf' || k === 'pptx') return r.paginas ? Math.max(2, Math.round(r.paginas * (k === 'pptx' ? 1 : 1.5))) : 0;
+  return 0;
+}
 function rcMeta(r){
   var k = rcClase(r.tipo), p = [];
-  if(k === 'pdf' && r.paginas) p.push(r.paginas+' págs.');
-  if(k === 'pptx' && r.paginas) p.push(r.paginas+' diapositivas');
+  if(k === 'pdf' && r.paginas) p.push(r.paginas+' págs. · ≈ '+rcMinutos(r)+' min');
+  if(k === 'pptx' && r.paginas) p.push(r.paginas+' diapositivas · ≈ '+rcMinutos(r)+' min');
   if(k === 'video' && r.duracion) p.push(rcDur(r.duracion));
   if(r.tamano_bytes) p.push(rcTam(r.tamano_bytes));
   return p.join(' · ');
@@ -7194,7 +7239,7 @@ function rcCargaResumen(){
 /* --- Portadas y datos de cada archivo (los saca el navegador de dirección) --- */
 function rcNecesitaMeta(r){
   var k = rcClase(r.tipo);
-  return (k === 'pdf' || k === 'pptx') ? r.paginas == null : k === 'video' ? r.duracion == null : k === 'imagen' ? !r.miniatura : false;
+  return k === 'pdf' ? (r.paginas == null || r.texto == null) : k === 'pptx' ? r.paginas == null : k === 'video' ? r.duracion == null : k === 'imagen' ? !r.miniatura : false;
 }
 function rcColaMeta(){
   if(!dsPuedeGestionar() || DS.metaEnMarcha) return;
@@ -7210,7 +7255,7 @@ function rcColaMeta(){
     rcAnaliza(r).then(function(m){
       if(!m) return;
       var cambios = {};
-      ['miniatura','paginas','duracion'].forEach(function(k){ if(m[k] != null) cambios[k] = m[k]; });
+      ['miniatura','paginas','duracion','texto'].forEach(function(k){ if(m[k] != null && (k !== 'miniatura' || !r.miniatura)) cambios[k] = m[k]; });
       if(rcClase(r.tipo) !== 'video' && r.paginas == null && cambios.paginas == null) cambios.paginas = 0;
       if(rcClase(r.tipo) === 'video' && cambios.duracion == null) cambios.duracion = 0;
       return sbUpdate('recursos', 'id=eq.'+r.id, cambios).then(function(x){ if(x && x.ok) for(var k in cambios) r[k] = cambios[k]; });
@@ -7233,7 +7278,14 @@ function rcAnaliza(r){
           var cv = document.createElement('canvas'); cv.width = Math.round(vp.width); cv.height = Math.round(Math.min(vp.height, 720));
           var cx = cv.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, cv.width, cv.height);
           return pg.render({canvasContext:cx, viewport:vp}).promise.then(function(){
-            var out = {paginas:doc.numPages, miniatura:cv.toDataURL('image/jpeg', .72)}; doc.destroy(); return out; });
+            var out = {paginas:doc.numPages, miniatura:cv.toDataURL('image/jpeg', .72)};
+            /* Texto de las primeras 60 páginas para buscar dentro del documento. */
+            var n = Math.min(doc.numPages, 60), partes = [];
+            var lee = function(i){ if(i > n) return Promise.resolve();
+              return doc.getPage(i).then(function(pp){ return pp.getTextContent(); }).then(function(tc){
+                partes.push(tc.items.map(function(x){ return x.str; }).join(' ')); return lee(i + 1); }).catch(function(){ return lee(i + 1); }); };
+            return lee(1).then(function(){ out.texto = partes.join('\n').replace(/[ \t]+/g, ' ').slice(0, 200000); doc.destroy(); return out; });
+          });
         });
       });
     });
@@ -7392,6 +7444,10 @@ function rcEditaModal(){
     '<div class="grid g-2"><div class="field"><label class="f">Nivel</label><select class="inp" id="rce-nivel"><option value="">Sin nivel</option>'+
       RC_NIVELES.map(function(x){ return '<option'+(e.nivel===x?' selected':'')+'>'+x+'</option>'; }).join('')+'</select></div>'+
     '<div class="field"><label class="f">Destacado</label><select class="inp" id="rce-dest"><option value="0">No</option><option value="1"'+(Number(e.destacado)?' selected':'')+'>Sí, mostrar arriba</option></select></div></div>'+
+    '<div class="grid g-2"><div class="field"><label class="f">Ruta de formación</label><input class="inp" id="rce-ruta" list="rce-rutas" value="'+esc(e.ruta_formacion||'')+'" placeholder="Ej. Onboarding Account Manager">'+
+      '<datalist id="rce-rutas">'+rcRutas(DS.lista).map(function(R){ return '<option value="'+esc(R.n)+'">'; }).join('')+'</datalist></div>'+
+    '<div class="field"><label class="f">Paso nº</label><input class="inp" id="rce-orden" type="number" min="0" max="999" value="'+(Number(e.orden)||0)+'"></div></div>'+
+    '<p class="tiny muted" style="margin:-4px 0 0">Los recursos con la misma ruta forman un itinerario por pasos con el progreso de cada persona.</p>'+
     '<div class="row" style="gap:10px;justify-content:flex-end;margin-top:14px">'+
       '<button class="btn btn-s" id="rce-cancela">Cancelar</button><button class="btn btn-p" id="rce-guarda">'+ic('save',15)+' Guardar</button></div>'+
   '</div></div>';
@@ -7401,7 +7457,8 @@ function rcEventosEdita(){
   q('#rce-cancela').onclick = function(){ DS.edit = null; renderApp(); };
   q('#rce-guarda').onclick = function(){
     var c = {nombre:q('#rce-nombre').value.trim(), descripcion:q('#rce-desc').value.trim(), seccion:q('#rce-sec').value,
-      categoria:q('#rce-cat').value.trim() || 'General', nivel:q('#rce-nivel').value, destacado:Number(q('#rce-dest').value)};
+      categoria:q('#rce-cat').value.trim() || 'General', nivel:q('#rce-nivel').value, destacado:Number(q('#rce-dest').value),
+      ruta_formacion:q('#rce-ruta').value.trim().slice(0, 60), orden:Math.max(0, Math.min(999, parseInt(q('#rce-orden').value, 10) || 0))};
     sbUpdate('recursos', 'id=eq.'+DS.edit.id, c).then(function(r){
       if(r && r.ok){ toast('Recurso actualizado.'); DS.edit = null; dsCarga(); } else toast('No se ha podido guardar: '+sbMensaje(r)); });
   };
@@ -7451,16 +7508,25 @@ function rcBotonVer(r){
   var t = pr && pr.completado ? 'Repasar' : pr && pr.avance > 0 ? 'Continuar · '+pr.avance+'%' : k === 'video' ? 'Ver vídeo' : k === 'doc' ? 'Abrir' : 'Ver';
   return '<button class="btn btn-p btn-xs" data-rc-ver="'+r.id+'">'+ic(k === 'video' ? 'play' : 'eye',13)+' '+t+'</button>';
 }
+function rcFragmento(r){
+  var t = String(DS.filtro || '').toLowerCase().trim();
+  if(t.length < 3 || !r.texto) return '';
+  if((r.nombre+' '+(r.descripcion||'')+' '+r.categoria+' '+(r.etiquetas||'')).toLowerCase().indexOf(t) > -1) return '';
+  var tx = String(r.texto).replace(/\s+/g, ' '), i = tx.toLowerCase().indexOf(t); if(i < 0) return '';
+  var a = Math.max(0, i - 60), z = Math.min(tx.length, i + t.length + 80);
+  return '<div class="rc-frag">'+ic('search',11)+' <span>'+(a ? '…' : '')+esc(tx.slice(a, i))+'<mark>'+esc(tx.slice(i, i + t.length))+'</mark>'+esc(tx.slice(i + t.length, z))+(z < tx.length ? '…' : '')+'</span></div>';
+}
 function rcTarjeta(r, gest){
   var pr = rcProg(r), st = rcStats(r);
   return '<div class="card rc-card">'+rcPortada(r)+
     '<div class="rc-body">'+
       '<div class="rc-chips">'+(rcEsFormacion(r) ? '<span class="rc-c f">'+ic('cap',11)+' Formación</span>' : '<span class="rc-c">Dosier</span>')+
         '<span class="rc-c">'+esc(r.categoria)+'</span>'+(r.nivel ? '<span class="rc-c n">'+esc(r.nivel)+'</span>' : '')+
-        (pr && pr.completado ? '<span class="rc-c ok">'+ic('check',11)+' Completado</span>' : '')+'</div>'+
+        (pr && pr.completado ? '<span class="rc-c ok">'+ic('check',11)+' Completado</span>' : '')+
+        (r.ruta_formacion ? '<span class="rc-c r" title="'+esc(r.ruta_formacion)+'">'+ic('target',11)+' Paso '+(Number(r.orden)||1)+'</span>' : '')+'</div>'+
       '<div class="rc-t" title="'+esc(r.nombre)+'">'+esc(r.nombre)+'</div>'+
       '<div class="tiny muted">'+esc(rcMeta(r))+(st.vistas ? ' · '+st.vistas+' vista'+(st.vistas === 1 ? '' : 's') : '')+'</div>'+
-      (r.descripcion ? '<p class="rc-d">'+esc(r.descripcion)+'</p>' : '')+
+      (r.descripcion ? '<p class="rc-d">'+esc(r.descripcion)+'</p>' : '')+rcFragmento(r)+
       '<div class="rc-acc">'+rcBotonVer(r)+
         '<button class="btn btn-s btn-xs" data-ds-desc="'+r.id+'" title="Descargar">'+ic('download',13)+'</button>'+
         (gest ? '<span class="spacer"></span>'+
@@ -7488,6 +7554,37 @@ function rcAnillo(pct, tam, col){
     '<defs><linearGradient id="rcg" x1="0" x2="1"><stop offset="0" stop-color="#2DD4C4"/><stop offset="1" stop-color="#A78BFA"/></linearGradient></defs></svg>';
 }
 
+/* --- Rutas de formación (onboarding por pasos) ---------------------------- */
+function rcRutas(lista){
+  var m = {}, orden = [];
+  lista.forEach(function(r){ var k = String(r.ruta_formacion || '').trim(); if(!k) return; if(!m[k]){ m[k] = []; orden.push(k); } m[k].push(r); });
+  return orden.map(function(k){ return {n:k, pasos:m[k].sort(function(a, b){ return (Number(a.orden)||0) - (Number(b.orden)||0) || a.id - b.id; })}; });
+}
+function rcRutaHTML(R){
+  var hechos = 0, suma = 0, mins = 0, sig = null;
+  R.pasos.forEach(function(r){ var p = rcProg(r), v = p ? (p.completado ? 100 : p.avance) : 0; suma += v; mins += rcMinutos(r); if(p && p.completado) hechos++; else if(!sig) sig = r; });
+  var pct = Math.round(suma / R.pasos.length), fin = hechos === R.pasos.length;
+  var cta = fin ? 'Ruta completada · Repasar' : hechos || (sig && rcProg(sig)) ? 'Continuar · Paso '+(R.pasos.indexOf(sig) + 1)+': '+sig.nombre : 'Empezar la ruta';
+  return '<div class="rc-ruta'+(fin ? ' fin' : '')+'">'+
+    '<div class="rc-ruta-h">'+
+      '<div class="rc-ruta-ic">'+ic(fin ? 'check' : 'target',22)+'</div>'+
+      '<div style="flex:1;min-width:0"><div class="rc-ruta-k">RUTA DE FORMACIÓN</div><h3>'+esc(R.n)+'</h3>'+
+        '<div class="tiny muted">'+R.pasos.length+' pasos'+(mins ? ' · ≈ '+mins+' min en total' : '')+' · '+hechos+' de '+R.pasos.length+' completados</div></div>'+
+      '<div class="rc-ruta-pct">'+rcAnillo(pct, 74, fin ? '#4ADE80' : null)+'<b>'+pct+'%</b></div>'+
+      '<button class="btn btn-p" data-rc-ver="'+(fin ? R.pasos[0].id : sig.id)+'">'+ic(fin ? 'refresh' : 'play',14)+' '+esc(cta.length > 58 ? cta.slice(0, 56)+'…' : cta)+'</button>'+
+    '</div>'+
+    '<div class="rc-pasos">'+R.pasos.map(function(r, i){
+      var p = rcProg(r), est = p && p.completado ? 'ok' : p && p.avance > 0 ? 'curso' : r === sig ? 'sig' : '', K = RC_CLASES[rcClase(r.tipo)];
+      return '<button class="rc-paso '+est+'" data-rc-ver="'+r.id+'">'+
+        '<span class="rc-paso-n">'+(est === 'ok' ? ic('check',13) : (i + 1))+'</span>'+
+        '<span class="rc-paso-mini" style="background:'+K.g+'">'+(r.miniatura ? '<img src="'+esc(r.miniatura)+'" alt="">' : ic(K.ic,18))+
+          (p && !p.completado && p.avance ? '<i style="width:'+p.avance+'%"></i>' : '')+'</span>'+
+        '<span class="rc-paso-t">'+esc(r.nombre)+'</span>'+
+        '<span class="rc-paso-m">'+(est === 'ok' ? 'Completado' : est === 'curso' ? 'En curso · '+p.avance+'%' : est === 'sig' ? 'Siguiente' : 'Pendiente')+(rcMinutos(r) ? ' · '+rcMinutos(r)+' min' : '')+'</span>'+
+      '</button>'; }).join('<span class="rc-paso-l"></span>')+'</div>'+
+  '</div>';
+}
+
 /* --- Vista ---------------------------------------------------------------- */
 function viewResources(v){
   if(!DS.cargado && !DS.cargando) dsCarga();
@@ -7511,7 +7608,7 @@ function viewResources(v){
   if(DS.tipoF && !tiposN[DS.tipoF]) DS.tipoF = '';
   var txt = String(DS.filtro||'').toLowerCase().trim();
   var lista = base.filter(function(r){
-    if(txt && (r.nombre+' '+(r.descripcion||'')+' '+r.categoria+' '+(r.etiquetas||'')+' '+(r.nivel||'')).toLowerCase().indexOf(txt) < 0) return false;
+    if(txt && (r.nombre+' '+(r.descripcion||'')+' '+r.categoria+' '+(r.etiquetas||'')+' '+(r.nivel||'')+' '+(r.ruta_formacion||'')+' '+(r.texto||'')).toLowerCase().indexOf(txt) < 0) return false;
     if(DS.catF && r.categoria !== DS.catF) return false;
     if(DS.tipoF && rcClase(r.tipo) !== DS.tipoF) return false;
     return true;
@@ -7560,6 +7657,7 @@ function viewResources(v){
       '<span class="btn btn-p btn-xs">'+ic('play',13)+' Continuar · '+rcProg(seguir).avance+'%</span></div>' : '')+
   '</div>'+
 
+  ((DS.tab === 'todo' || DS.tab === 'formacion') && !txt && !DS.catF && !DS.tipoF ? rcRutas(todos).map(rcRutaHTML).join('') : '')+
   (destacados.length ? '<div class="rc-dest"><div class="rc-sec-h"><h4>'+ic('star',15)+' Destacados</h4></div><div class="rc-dest-row">'+
     destacados.map(function(r){ return '<div class="rc-dest-c">'+rcPortada(r, true)+'<div class="rc-dest-t"><b class="trunc">'+esc(r.nombre)+'</b><span class="tiny muted">'+esc(r.categoria)+(rcMeta(r) ? ' · '+esc(rcMeta(r)) : '')+'</span></div></div>'; }).join('')+'</div></div>' : '')+
 
