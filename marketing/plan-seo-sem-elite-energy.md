@@ -24,8 +24,30 @@ Ningún proveedor puede garantizar una posición concreta en Google: el SEO tard
 
 ### Mapa de palabras clave por página
 
-| Página | Búsqueda principal | Búsquedas secundarias |
-|---|---|---|
+Cada área del menú tiene su página, su búsqueda principal y páginas de apoyo (ciudad y guía) que la enlazan. Así Google entiende qué página debe salir para cada búsqueda y le transmite autoridad.
+
+| Área del menú | Página | Búsqueda principal | Búsquedas secundarias | Páginas de apoyo que la enlazan |
+|---|---|---|---|---|
+| Inicio | `/` | empresa de energía Asturias | asesoría energética Asturias, asesor energético Oviedo | Todas |
+| Luz y gas | `luz-y-gas.html` | tarifas de luz y gas Asturias | comparar tarifas de luz, tarifa luz empresas, tarifa 3.0TD, potencia contratada | Guía «Cómo bajar la potencia contratada», páginas de Oviedo, Gijón y Avilés |
+| Placas solares | `placas-solares-asturias.html` | placas solares Asturias | instalación placas solares Oviedo / Gijón / Avilés, autoconsumo Asturias, ayudas | Guía «¿Compensan las placas solares en Asturias?», páginas de ciudad |
+| Recarga | `puntos-de-recarga-asturias.html` | cargador coche eléctrico Asturias | wallbox Asturias, cargador garaje comunitario, instalador cargador Oviedo / Gijón | Guía «Cómo instalar un cargador en un garaje comunitario», páginas de ciudad |
+| Eficiencia | `eficiencia-energetica-asturias.html` | eficiencia energética empresas Asturias | auditoría energética, energía reactiva, batería de condensadores | Guía «Energía reactiva: qué es y cómo dejar de pagarla» |
+| Distribuidores | `colaboradores.html` | distribuir luz y gas / comercial energía Asturias | comercial autónomo luz y gas, agente comercial energía | Guía «Trabajar como comercial de energía» |
+| Contacto | `contacto.html` | Elite Energy Oviedo | asesoría energética Oviedo teléfono | Pie de todas las páginas |
+
+### Páginas locales y guías (nuevas)
+
+| Página | Para qué búsquedas |
+|---|---|
+| `energia-oviedo.html` | empresa de energía Oviedo, asesor energético Oviedo, placas solares Oviedo |
+| `energia-gijon.html` | empresa de energía Gijón, asesoría energética Gijón, luz hostelería Gijón |
+| `energia-aviles.html` | empresa de energía Avilés, energía reactiva Avilés, comarca de Avilés |
+| `blog.html` y 5 guías | búsquedas informativas («compensan placas solares Asturias», «cargador garaje comunitario», «bajar potencia contratada», «qué es la energía reactiva», «trabajar comercial energía») |
+
+Todas las páginas de servicio llevan un bloque «Otros servicios» que enlaza a las demás áreas, a las tres ciudades y a las guías. Los artículos llevan marcado `Article`; las páginas con preguntas frecuentes, marcado `FAQPage`.
+
+---|---|---|
 | Inicio (`/`) | empresa de energía Asturias | asesoría energética Asturias, asesor energético Oviedo, luz y gas Asturias |
 | `luz-y-gas.html` | tarifas de luz y gas Asturias | comparar tarifas luz, tarifa luz empresas, optimizar potencia, energía reactiva, tarifa gas empresas |
 | `placas-solares-asturias.html` | placas solares Asturias | instalación placas solares Oviedo / Gijón / Avilés, autoconsumo Asturias, ayudas placas solares Asturias |
@@ -59,6 +81,22 @@ Ningún proveedor puede garantizar una posición concreta en Google: el SEO tard
 ---
 
 ## 3. Campañas de Google Ads (SEM)
+
+### Importar las campañas ya preparadas
+
+En `marketing/google-ads/` tienes las campañas listas para **Google Ads Editor** (programa gratuito de Google):
+
+| Archivo | Contenido |
+|---|---|
+| `1-campanas.csv` | 6 campañas en pausa, presupuesto diario, Asturias, español, seguimiento UTM |
+| `2-grupos-de-anuncios.csv` | 19 grupos: por servicio y por ciudad (Oviedo, Gijón, Avilés) |
+| `3-palabras-clave.csv` | 69 palabras clave en concordancia de frase y exacta |
+| `4-anuncios.csv` | 19 anuncios adaptables con 15 títulos y 4 descripciones cada uno |
+| `5-palabras-clave-negativas.csv` | Negativas por campaña |
+
+Pasos: abre Google Ads Editor, descarga tu cuenta, ve a **Cuenta › Importar › Desde archivo** e importa los archivos en orden (1 a 5). Revisa los cambios, publícalos y activa las campañas cuando hayas comprobado el presupuesto. Todo entra **en pausa** para que no se gaste nada sin revisarlo.
+
+Presupuesto de partida: 29 €/día en total (marca 3, luz y gas 6, placas 8, recarga 4, eficiencia 4, distribuidores 4). Ajústalo tras ver el coste por clic real en el Planificador de palabras clave.
 
 ### Configuración común
 - **Tipo:** campañas de búsqueda (Search), una por servicio. Sin Display ni socios de búsqueda al principio.
@@ -304,7 +342,7 @@ Cada artículo debe enlazar a la página del servicio correspondiente.
 
 | Indicador | Dónde se mira | Objetivo a 3 meses |
 |---|---|---|
-| Páginas indexadas | Search Console | Las 7 principales |
+| Páginas indexadas | Search Console | Las 18 páginas del sitemap |
 | Impresiones y clics por búsquedas locales | Search Console | Tendencia al alza mes a mes |
 | Llamadas y visitas desde la ficha de Google | Perfil de Empresa | Tendencia al alza |
 | Reseñas en Google | Perfil de Empresa | 20 o más, media superior a 4,5 |

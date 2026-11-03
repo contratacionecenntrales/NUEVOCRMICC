@@ -53,27 +53,27 @@ PAGES = [
          title="Empresa de energía en Asturias: luz y gas | Elite Energy",
          desc="Empresa de energía en Oviedo (Asturias). Revisamos tu factura de luz y gas, instalamos placas solares y cargadores para coche eléctrico. Estudio gratis.",
          prio="1.0", crumbs=None, schema=["website"]),
-    dict(file="luz-y-gas.html", interes="luz", seg="hogar", nav="luz-y-gas.html",
+    dict(file="luz-y-gas.html", related=True, interes="luz", seg="hogar", nav="luz-y-gas.html",
          title="Tarifas de luz y gas en Asturias | Elite Energy",
          desc="Comparamos tarifas de luz y gas en Asturias y ajustamos tu potencia. Asesoría para hogares, pymes e industria en Oviedo, Gijón y Avilés. Estudio gratuito.",
          prio="0.9", crumbs=[("Luz y gas", None)],
          service=("Asesoría en tarifas de luz y gas", "Comparativa de tarifas de electricidad y gas natural, optimización de potencia y revisión de facturas para hogares y empresas en Asturias.")),
-    dict(file="placas-solares-asturias.html", interes="solar", seg="hogar", nav="placas-solares-asturias.html",
+    dict(file="placas-solares-asturias.html", related=True, interes="solar", seg="hogar", nav="placas-solares-asturias.html",
          title="Placas solares en Asturias: instalación | Elite Energy",
          desc="Instalación de placas solares en Asturias para viviendas, comunidades y empresas. Estudio de tu tejado, legalización y ayudas. Calcula tu ahorro en un minuto.",
          prio="0.9", crumbs=[("Placas solares en Asturias", None)],
          service=("Instalación de placas solares y autoconsumo", "Estudio, instalación y legalización de autoconsumo fotovoltaico con o sin baterías en Asturias.")),
-    dict(file="puntos-de-recarga-asturias.html", interes="recarga", seg="hogar", nav="puntos-de-recarga-asturias.html",
+    dict(file="puntos-de-recarga-asturias.html", related=True, interes="recarga", seg="hogar", nav="puntos-de-recarga-asturias.html",
          title="Cargador para coche eléctrico en Asturias | Elite Energy",
          desc="Instalamos puntos de recarga para coche eléctrico en Asturias: vivienda, garaje comunitario y empresa. Boletín, legalización y gestión de ayudas incluidos.",
          prio="0.9", crumbs=[("Puntos de recarga en Asturias", None)],
          service=("Instalación de puntos de recarga para vehículo eléctrico", "Instalación de wallbox y puntos de recarga en viviendas, garajes comunitarios y empresas de Asturias.")),
-    dict(file="eficiencia-energetica-asturias.html", interes="eficiencia", seg="empresa", nav="eficiencia-energetica-asturias.html",
+    dict(file="eficiencia-energetica-asturias.html", related=True, interes="eficiencia", seg="empresa", nav="eficiencia-energetica-asturias.html",
          title="Eficiencia energética en Asturias | Elite Energy",
          desc="Auditorías energéticas, monitorización y eliminación de la reactiva para empresas y comunidades de Asturias. Te decimos qué cambiar y cuánto ahorras.",
          prio="0.8", crumbs=[("Eficiencia energética", None)],
          service=("Eficiencia energética y auditorías", "Auditorías energéticas, monitorización, corrección de energía reactiva y mejoras de climatización e iluminación para empresas en Asturias.")),
-    dict(file="colaboradores.html", seg="colab", nav="colaboradores.html",
+    dict(file="colaboradores.html", related=True, seg="colab", nav="colaboradores.html",
          title="Distribuye energía con nosotros | Elite Energy Asturias",
          desc="Hazte comercial o distribuidor de Elite Energy en Asturias. Vende luz, gas, placas solares y cargadores con una plataforma que analiza la factura.",
          prio="0.8", crumbs=[("Distribuye con nosotros", None)], schema=["jobs"]),
@@ -81,6 +81,21 @@ PAGES = [
          title="Contacto: asesoría energética en Oviedo | Elite Energy",
          desc="Contacta con Elite Energy en Oviedo: 984 518 342, info@eliteenergy.es. Calle Posada Herrera 6, 33002 Oviedo. Envíanos tu factura y te llamamos con el estudio.",
          prio="0.7", crumbs=[("Contacto", None)]),
+    dict(file="energia-oviedo.html", seg="hogar", nav=None, related=True,
+         title="Empresa de energía en Oviedo | Elite Energy",
+         desc="Asesoría energética en Oviedo: tarifas de luz y gas, placas solares, cargadores para coche eléctrico y eficiencia. Oficina en el centro. Estudio gratis.",
+         prio="0.8", crumbs=[("Energía en Oviedo", None)],
+         service=("Asesoría energética en Oviedo", "Tarifas de luz y gas, placas solares, puntos de recarga y eficiencia energética en Oviedo y alrededores.")),
+    dict(file="energia-gijon.html", seg="hogar", nav=None, related=True,
+         title="Empresa de energía en Gijón | Elite Energy",
+         desc="Energía para hogares, hostelería e industria de Gijón: tarifas de luz y gas, placas solares, cargadores y eficiencia energética. Estudio de factura gratis.",
+         prio="0.8", crumbs=[("Energía en Gijón", None)],
+         service=("Asesoría energética en Gijón", "Tarifas de luz y gas, placas solares, puntos de recarga y eficiencia energética en Gijón.")),
+    dict(file="energia-aviles.html", seg="hogar", nav=None, related=True,
+         title="Empresa de energía en Avilés | Elite Energy",
+         desc="Asesoría energética en Avilés y comarca: tarifas de luz y gas, energía reactiva, placas solares y cargadores. Castrillón, Corvera y Gozón. Estudio gratis.",
+         prio="0.8", crumbs=[("Energía en Avilés", None)],
+         service=("Asesoría energética en Avilés", "Tarifas de luz y gas, eficiencia, placas solares y puntos de recarga en Avilés y su comarca.")),
     dict(file="aviso-legal.html", seg=None, nav=None, legal=True,
          title="Aviso legal | Elite Energy", desc="Aviso legal de la web de ELITE ENERGY SL (CIF B01634468), con domicilio en Oviedo, Asturias.",
          prio="0.3", crumbs=[("Aviso legal", None)]),
@@ -95,6 +110,81 @@ PAGES = [
     dict(file="404.html", seg=None, nav=None, noindex=True, base=True,
          title="Página no encontrada | Elite Energy", desc="La página que buscas no existe.", crumbs=None),
 ]
+
+# Guías del blog: (slug, título SEO, descripción, H1, categoría, servicio, texto del enlace)
+ARTICLES = [
+    ("placas-solares-asturias-compensan", "¿Compensan las placas solares en Asturias? | Elite Energy",
+     "Cuánto produce una placa solar en Asturias, cuándo compensa el autoconsumo, qué pasa con los excedentes y si necesitas batería. Guía práctica.",
+     "¿Compensan las placas solares en Asturias?", "Placas solares", "placas-solares-asturias.html", "Pide tu estudio de placas solares"),
+    ("cargador-garaje-comunitario", "Cargador en garaje comunitario: guía | Elite Energy",
+     "Qué dice la Ley de Propiedad Horizontal, qué opciones técnicas hay y cuánto cuesta instalar un cargador en la plaza de tu garaje comunitario.",
+     "Cómo instalar un cargador en un garaje comunitario", "Recarga", "puntos-de-recarga-asturias.html", "Pide presupuesto para tu cargador"),
+    ("bajar-potencia-contratada", "Cómo bajar la potencia contratada de la luz | Elite Energy",
+     "Qué es la potencia contratada, cómo saber cuánta necesitas y cómo bajarla para pagar menos en tu factura de luz, en casa o en tu empresa.",
+     "Cómo bajar la potencia contratada y pagar menos luz", "Luz y gas", "luz-y-gas.html", "Revisamos tu potencia gratis"),
+    ("energia-reactiva-que-es", "Energía reactiva: qué es y cómo eliminarla | Elite Energy",
+     "Qué es la energía reactiva, cuándo se paga en la factura de una empresa (cos φ inferior a 0,95) y cómo eliminar el recargo con una batería de condensadores.",
+     "Energía reactiva: qué es y cómo dejar de pagarla", "Eficiencia", "eficiencia-energetica-asturias.html", "Solicita una auditoría"),
+    ("trabajar-comercial-energia", "Trabajar como comercial de energía autónomo | Elite Energy",
+     "Cómo funciona el trabajo de comercial o distribuidor de luz, gas y placas solares, quién puede hacerlo y qué mirar antes de elegir empresa.",
+     "Trabajar como comercial de energía: cómo funciona", "Distribuidores", "colaboradores.html", "Distribuye con nosotros"),
+]
+ART_FECHA = "2026-11-03"
+
+
+def write_articles():
+    """Crea las páginas del blog en tools/web/pages a partir de tools/web/articles."""
+    import re
+    ART = ROOT / "tools" / "web" / "articles"
+    cards = []
+    for slug, title, desc, h1, cat, serv, cta in ARTICLES:
+        body = (ART / f"{slug}.html").read_text(encoding="utf-8")
+        toc = "".join(f'<li><a href="#{i}">{re.sub("<[^>]+>", "", t)}</a></li>' for i, t in re.findall(r'<h2 id="([^"]+)">(.*?)</h2>', body))
+        words = len(re.sub(r"<[^>]+>", " ", body).split())
+        mins = max(2, round(words / 200))
+        (SRC / f"blog-{slug}.html").write_text(f"""<section class="legal-page">
+  <div class="wrap">
+    <div class="legal-head">
+      <nav class="crumbs-l" aria-label="Migas de pan"><a href="index.html">Inicio</a> <span aria-hidden="true">›</span> <a href="blog.html">Guías</a> <span aria-hidden="true">›</span> <span aria-current="page">{cat}</span></nav>
+      <p class="eyebrow" style="margin-top:22px">{cat} · {mins} min de lectura</p>
+      <h1>{h1}</h1>
+      <p>Por el equipo de Elite Energy · Publicado el <time datetime="{ART_FECHA}">{ART_FECHA[8:10]}/{ART_FECHA[5:7]}/{ART_FECHA[:4]}</time></p>
+    </div>
+    <div class="legal-body">
+      <aside>
+        <nav class="toc" aria-label="En este artículo"><b>En este artículo</b><ol>{toc}</ol></nav>
+        <div class="aside-card" style="margin-top:16px"><h3 style="font-size:19px">¿Te ayudamos?</h3><p>Estudio gratuito y sin compromiso en toda Asturias.</p><a href="{serv}" class="btn white">{cta}</a></div>
+      </aside>
+      <article class="prose">
+{body}
+      </article>
+    </div>
+  </div>
+</section>
+""", encoding="utf-8")
+        cards.append(f'<a class="rel post" href="blog-{slug}.html"><span class="eyebrow">{cat}</span><b>{h1}</b><span>{desc}</span><i aria-hidden="true">→</i></a>')
+    (SRC / "blog.html").write_text(f"""<section class="legal-page">
+  <div class="wrap">
+    <div class="legal-head">
+      <nav class="crumbs-l" aria-label="Migas de pan"><a href="index.html">Inicio</a> <span aria-hidden="true">›</span> <span aria-current="page">Guías</span></nav>
+      <h1>Guías de energía para hogares y empresas</h1>
+      <p>Explicaciones claras sobre la factura de la luz, las placas solares, la recarga del coche eléctrico y la eficiencia energética, escritas por nuestros asesores de Asturias.</p>
+    </div>
+    <div class="rel-grid blog-grid" style="margin-top:40px">{''.join(cards)}</div>
+  </div>
+</section>
+""", encoding="utf-8")
+
+
+def article_pages():
+    pages = [dict(file="blog.html", seg=None, nav=None, prio="0.6", crumbs=[("Guías", None)],
+                  title="Guías de energía: luz, placas y recarga | Elite Energy",
+                  desc="Guías prácticas sobre la factura de la luz, la potencia, las placas solares, los cargadores para coche eléctrico y la energía reactiva en Asturias.")]
+    for slug, title, desc, h1, cat, serv, cta in ARTICLES:
+        pages.append(dict(file=f"blog-{slug}.html", seg=None, nav=None, prio="0.6", title=title, desc=desc,
+                          crumbs=[("Guías", "blog.html"), (cat, None)], article=dict(h1=h1, cat=cat)))
+    return pages
+
 
 # ---------------------------------------------------------------------------
 ICON = {
@@ -137,8 +227,8 @@ def schema_for(p, faqs):
                       "publisher": {"@id": SITE + "/#empresa"}})
     if p.get("crumbs"):
         items = [{"@type": "ListItem", "position": 1, "name": "Inicio", "item": SITE + "/"}]
-        for i, (name, _) in enumerate(p["crumbs"], start=2):
-            items.append({"@type": "ListItem", "position": i, "name": name, "item": url(p["file"])})
+        for i, (name, link) in enumerate(p["crumbs"], start=2):
+            items.append({"@type": "ListItem", "position": i, "name": name, "item": url(link or p["file"])})
         graph.append({"@type": "BreadcrumbList", "itemListElement": items})
     if p.get("service"):
         name, desc = p["service"]
@@ -148,6 +238,12 @@ def schema_for(p, faqs):
     if "jobs" in p.get("schema", []):
         graph.append({"@type": "WebPage", "name": "Distribuye energía con Elite Energy", "url": url(p["file"]),
                       "about": "Captación de comerciales autónomos y distribuidores de energía en Asturias"})
+    if p.get("article"):
+        a = p["article"]
+        graph.append({"@type": "Article", "headline": a["h1"], "description": p["desc"], "inLanguage": "es-ES",
+                      "datePublished": ART_FECHA, "dateModified": ART_FECHA, "articleSection": a["cat"],
+                      "image": SITE + "/assets/img/og-elite-energy.png", "mainEntityOfPage": url(p["file"]),
+                      "author": {"@id": SITE + "/#empresa"}, "publisher": {"@id": SITE + "/#empresa"}})
     if faqs:
         graph.append({"@type": "FAQPage", "mainEntity": [
             {"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": a}} for q, a in faqs]})
@@ -247,8 +343,8 @@ def crumbs_html(p):
     if not c:
         return ""
     parts = ['<a href="index.html">Inicio</a>']
-    for name, _ in c:
-        parts.append(f'<span aria-current="page">{name}</span>')
+    for name, link in c:
+        parts.append(f'<a href="{link}">{name}</a>' if link else f'<span aria-current="page">{name}</span>')
     return '<nav class="crumbs" aria-label="Migas de pan">' + ' <span aria-hidden="true">›</span> '.join(parts) + "</nav>"
 
 
@@ -289,6 +385,7 @@ def footer():
           <h2 id="ft-emp">Elite Energy</h2>
           <ul>
             <li><a href="luz-y-gas.html#simulador">Simulador de ahorro</a></li>
+            <li><a href="blog.html">Guías de energía</a></li>
             <li><a href="luz-y-gas.html#factura">Revisión de factura</a></li>
             <li><a href="colaboradores.html">Distribuye con nosotros</a></li>
             <li><a href="contacto.html">Contacto</a></li>
@@ -304,7 +401,7 @@ def footer():
           </ul>
         </nav>
       </div>
-      <p class="ft-zones"><b>Damos servicio en toda Asturias:</b> {zonas} y resto del Principado.</p>
+      <p class="ft-zones"><b>Damos servicio en toda Asturias:</b> <a href="energia-oviedo.html">Energía en Oviedo</a> · <a href="energia-gijon.html">Energía en Gijón</a> · <a href="energia-aviles.html">Energía en Avilés</a> · {zonas} y resto del Principado.</p>
     </div>
   </div>
   <div class="ft-legal">
@@ -351,6 +448,32 @@ def consent_ui():
 <script src="assets/js/site.js"></script>"""
 
 
+# Enlazado interno entre áreas: texto del enlace con la búsqueda que queremos posicionar
+SERVICIOS = [
+    ("luz-y-gas.html", "Tarifas de luz y gas en Asturias", "Revisamos tu factura, ajustamos la potencia y comparamos ofertas."),
+    ("placas-solares-asturias.html", "Placas solares en Asturias", "Autoconsumo para casas, comunidades y empresas, legalización incluida."),
+    ("puntos-de-recarga-asturias.html", "Cargador para coche eléctrico", "Wallbox en vivienda, garaje comunitario o empresa."),
+    ("eficiencia-energetica-asturias.html", "Eficiencia energética para empresas", "Auditorías, energía reactiva, climatización e iluminación."),
+    ("colaboradores.html", "Distribuye energía con nosotros", "Para comerciales autónomos, agencias e instaladores."),
+]
+CIUDADES = [("energia-oviedo.html", "Oviedo"), ("energia-gijon.html", "Gijón"), ("energia-aviles.html", "Avilés")]
+
+
+def related_block(current):
+    cards = "".join(
+        f'<a class="rel" href="{f}"><b>{t}</b><span>{d}</span><i aria-hidden="true">→</i></a>'
+        for f, t, d in SERVICIOS if f != current)
+    cities = " ".join(f'<a href="{f}">{c}</a>' for f, c in CIUDADES if f != current)
+    return f"""<section class="related" aria-labelledby="rel-t">
+  <div class="wrap">
+    <p class="eyebrow" id="rel-t">Otros servicios de Elite Energy</p>
+    <div class="rel-grid">{cards}</div>
+    <p class="rel-more">También en: {cities} · <a href="blog.html">Guías y consejos de energía</a></p>
+  </div>
+</section>
+"""
+
+
 def expand_partials(src):
     """Sustituye <!--NOMBRE--> por el bloque de tools/web/partials/NOMBRE.html."""
     import re
@@ -366,7 +489,8 @@ def expand_partials(src):
 
 def build():
     built = []
-    for p in PAGES:
+    write_articles()
+    for p in PAGES + article_pages():
         src = (SRC / p["file"]).read_text(encoding="utf-8")
         extra_css = ""
         if src.startswith("<style>"):
@@ -386,6 +510,9 @@ def build():
         }
         for k, v in repl.items():
             src = src.replace(k, v)
+        if p.get("related"):
+            blk = related_block(p["file"])
+            src = src.replace('<section id="llamada"', blk + '<section id="llamada"', 1) if '<section id="llamada"' in src else src + "\n" + blk
         faqs = extract_faqs(src)
         conv = f' data-conversion="{p["conversion"]}"' if p.get("conversion") else ""
         html = (head(p, faqs, extra_css) + f"\n<body{conv}>\n" +
