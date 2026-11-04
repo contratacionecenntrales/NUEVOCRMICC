@@ -10,7 +10,7 @@
   var U = window.icc.util;
   var API = window.icc.api;
   var esc = U.escapeHtml;
-  var VER = "85";
+  var VER = "86";
 
   var S = { datos: null, porId: {}, busca: "", miniaturas: {}, observador: null, cola: [], activos: 0 };
 

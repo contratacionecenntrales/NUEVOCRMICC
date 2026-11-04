@@ -68,3 +68,5 @@
 .icc-dr-cab .icc-topnav-brand { order: 0; }
 .icc-dr-cab .icc-dr-cerrar { order: 1; }
 .icc-dr-cab .icc-topnav-brand div { display: block; }
+/* La tarjeta de usuario de la cabecera no lleva raya superior (la regla general va después y la pisaba). */
+.icc-user-card.icc-user-card--top { border-top: 0; padding-top: 0; }
