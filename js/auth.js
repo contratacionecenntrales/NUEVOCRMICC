@@ -152,6 +152,8 @@ window.icc.auth = (function () {
     esBackofficeOAdmin: esBackofficeOAdmin,
     // Sala de ventas: todos menos los comerciales (lo comprueba también api/sala.php).
     // Copias de seguridad: solo Coordinador, Admin y Super Admin (lo comprueba también el servidor).
+    // Oficinas: solo Coordinador, Admin y Super Admin (lo comprueba también el servidor).
+    puedeVerOficinas: function () { return !!state.user && ["coordinador", "admin", "super_admin"].indexOf(state.rolPrincipal) !== -1; },
     puedeVerCopias: function () { return !!state.user && ["coordinador", "admin", "super_admin"].indexOf(state.rolPrincipal) !== -1; },
     puedeVerSala: function () { return !!state.user && state.rolPrincipal !== "comercial"; },
     esAdminOSuperior: esAdminOSuperior,

@@ -439,6 +439,7 @@ Por debajo de 1180 px el menú superior se sustituye por un **menú lateral** (`
 - **Cinta en directo** (desactivada: `MOSTRAR_CINTA = false` en `js/cinta.js`): franja bajo el menú en todas las pantallas con los anuncios y los últimos movimientos (anónimos fuera de tu equipo). Se puede pausar y respeta «reducir movimiento».
 - **Anuncios de dirección** (`api/anuncios.php`, tabla de `sql/migracion_anuncios.sql`): en la sala, botón «📣 Anuncios». Texto, ciudad y provincia (la provincia late en el mapa), y duración: solo hoy, una semana o hasta una fecha. Caducan solos.
 - **Celebración a pantalla completa** (`js/estelar.js`): cada anuncio se abre una vez en cada navegador con fuegos artificiales y la foto del protagonista (la subida en el anuncio o, si no, su foto de perfil). Las ventas nuevas que entran mientras se trabaja también se celebran (foto solo si es de tu equipo). Clic en un anuncio de la cinta o de la sala para volver a verlo; en modo TV se repiten cada 5 minutos.
+- **Oficinas** solo la ven Coordinador, Admin y Super Admin (menú, ruta, `api/oficinas.php` con 404 y datos de oficinas de la Sala de ventas).
 - **Novedades de tarifas** (`#/comparador/novedades`) y **Oficinas** (`#/oficinas`): ver `sql/migracion_tarifas_novedades.sql` y `sql/migracion_oficinas.sql` (las dos van incluidas en la base de datos completa).
 
 ## Copias de seguridad diarias y restauración individual

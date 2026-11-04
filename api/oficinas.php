@@ -25,6 +25,8 @@
 require __DIR__ . '/config.php';
 
 $user = icc_require_auth();
+// Oficinas: solo Coordinador, Admin y Super Admin. Para el resto no existe.
+if (!icc_ve_oficinas($user)) icc_json(['error' => 'No encontrado'], 404);
 $metodo = $_SERVER['REQUEST_METHOD'];
 $id = isset($_GET['id']) ? (int)$_GET['id'] : null;
 $db = icc_db();

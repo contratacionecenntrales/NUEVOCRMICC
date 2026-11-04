@@ -250,7 +250,7 @@ if (!empty($_GET['solo_eventos'])) {
     'equipo' => $uno("SELECT COUNT(*) FROM usuarios WHERE bloqueado = 0 AND rol IN ('comercial', 'jefe_de_equipo')"),
   ];
   // Red de oficinas y distribuidores dados de alta en Oficinas (solo cifras, sin datos de contacto).
-  if ($conOficinas) {
+  if ($conOficinas && icc_ve_oficinas($user)) {
     $resumen['oficinas'] = $uno('SELECT COUNT(*) FROM oficinas WHERE activa = 1');
     $resumen['provincias'] = $uno("SELECT COUNT(DISTINCT provincia) FROM oficinas WHERE activa = 1 AND provincia <> ''");
     $resumen['oficinas_activas_hoy'] = $uno('SELECT COUNT(DISTINCT u.oficina_id) FROM usuarios u WHERE u.oficina_id IS NOT NULL AND u.id IN (
@@ -348,8 +348,9 @@ $ordenar($porEquipo);
 
 // Por oficina (si existe la red de oficinas).
 $porOficina = [];
+$veOficinas = icc_ve_oficinas($user);
 $oficinas = $conOficinas ? sala_filas($db, 'SELECT id, nombre, provincia, ciudad FROM oficinas WHERE activa = 1') : [];
-if ($conOficinas) {
+if ($conOficinas && $veOficinas) {
   $ofi = [];
   $miOficina = isset($usuarios[$miId]['oficina_id']) && $usuarios[$miId]['oficina_id'] !== null ? (int)$usuarios[$miId]['oficina_id'] : null;
   foreach ($oficinas as $o) {
@@ -409,7 +410,7 @@ $objetivos = [
 // Mapa por provincia: oficinas si existen; si no, la provincia de la ficha de cada agente.
 $mapa = [];
 $fuenteMapa = 'ninguna';
-if ($conOficinas && $oficinas) {
+if ($conOficinas && $oficinas && $veOficinas) {
   $fuenteMapa = 'oficinas';
   $provDeOficina = [];
   foreach ($oficinas as $o) {
@@ -516,5 +517,5 @@ icc_json([
   'anuncios' => $anuncios,
   'insights' => $insights,
   'anonimo' => !$esDireccion,
-  'con_oficinas' => $conOficinas,
+  'con_oficinas' => $conOficinas && $veOficinas,
 ]);

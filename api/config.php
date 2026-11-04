@@ -562,6 +562,11 @@ function icc_es_admin_o_superior(array $user): bool {
  * las restauran. El resto (Gerente incluido) no ve ningun rastro de ellas.
  */
 const ICC_ROLES_COPIAS = ['coordinador', 'admin', 'super_admin'];
+// Oficinas (red de oficinas y distribuidores): las mismas personas.
+const ICC_ROLES_OFICINAS = ['coordinador', 'admin', 'super_admin'];
+function icc_ve_oficinas(?array $user): bool {
+  return $user !== null && in_array((string)($user['rol'] ?? ''), ICC_ROLES_OFICINAS, true);
+}
 function icc_ve_copias(?array $user): bool {
   return $user !== null && in_array((string)($user['rol'] ?? ''), ICC_ROLES_COPIAS, true);
 }
