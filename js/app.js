@@ -299,9 +299,9 @@
       banner +
       '<header class="icc-topnav">' +
       '<div class="icc-topnav-inner">' +
-      '<div class="icc-brand icc-topnav-brand"><img src="assets/logo.svg" alt="ICC" class="icc-brand-logo">' +
-      "<div><strong>Integral Connection</strong><span>Consulting</span></div></div>" +
-      '<button class="icc-menu-btn" id="btn-menu">☰</button>' +
+      '<button class="icc-menu-btn" id="btn-menu" aria-label="Abrir el menú" aria-controls="icc-drawer" aria-expanded="false"><span></span><span></span><span></span></button>' +
+      '<a class="icc-brand icc-topnav-brand" href="#/dashboard"><img src="assets/logo.svg" alt="ICC" class="icc-brand-logo">' +
+      "<div><strong>Integral Connection</strong><span>Consulting</span></div></a>" +
       '<nav class="icc-topnav-nav" id="icc-nav"></nav>' +
       '<div class="icc-topnav-right">' +
       '<div class="icc-notif-wrap">' +
@@ -321,6 +321,9 @@
       "</div>" +
       "</header>" +
       "</div>" +
+      // Menú lateral para tablet y móvil (se rellena en pintarNav).
+      '<div class="icc-drawer-fondo" id="icc-drawer-fondo" hidden></div>' +
+      '<aside class="icc-drawer" id="icc-drawer" aria-label="Menú principal" aria-hidden="true" inert></aside>' +
       '<main id="icc-main"></main>' +
       '<button class="icc-fab-cita" id="btn-fab-cita" title="Agendar cita rapida">📅 +</button>' +
       "</div>";
@@ -334,9 +337,8 @@
       }
     });
     document.getElementById("btn-notif").addEventListener("click", toggleNotificaciones);
-    document.getElementById("btn-menu").addEventListener("click", function () {
-      document.getElementById("icc-nav").classList.toggle("is-open");
-    });
+    document.getElementById("btn-menu").addEventListener("click", function () { abrirDrawer(true); });
+    document.getElementById("icc-drawer-fondo").addEventListener("click", function () { abrirDrawer(false); });
     document.getElementById("btn-fab-cita").addEventListener("click", function () {
       window.icc.views.abrirModalCitaRapida();
     });
@@ -393,12 +395,89 @@
       })
       .join("");
 
-    document.querySelectorAll("#icc-nav .icc-topnav-link, #icc-nav .icc-topnav-dropdown a").forEach(function (a) {
-      a.addEventListener("click", function () {
-        document.getElementById("icc-nav").classList.remove("is-open");
+    pintarDrawer(actual);
+  }
+
+  // ------------------------------------------------ Menú lateral (tablet/móvil)
+  var ICONOS_MENU = {
+    "#/dashboard": "🏠", "#/sala-ventas": "🏆", "#/agenda": "📅", "#/pipeline": "🎯", "#/presupuestos": "📄", "#/contratos": "📝",
+    "#/agentes": "👥", "#/oficinas": "🏢", "#/comparador": "⚖️", "#/ficheros": "📚", "#/mi-ficha": "👤", "#/proformas": "🧾",
+    "#/informes": "📊", "#/seguridad": "🛡️",
+  };
+  var GRUPOS_MENU = [
+    ["Ventas", ["#/dashboard", "#/sala-ventas", "#/agenda", "#/pipeline", "#/presupuestos", "#/contratos"]],
+    ["Herramientas", ["#/comparador", "#/ficheros", "#/proformas", "#/informes"]],
+    ["Equipo", ["#/agentes", "#/oficinas", "#/mi-ficha"]],
+    ["Sistema", ["#/seguridad"]],
+  ];
+  function pintarDrawer(actual) {
+    var dr = document.getElementById("icc-drawer");
+    if (!dr) return;
+    var st = window.icc.auth.state;
+    var items = navItems();
+    var porHref = {};
+    items.forEach(function (it) { porHref[it.href.split("?")[0]] = it; });
+    var usados = {};
+    var esc = U.escapeHtml;
+    var item = function (it) {
+      var ruta = it.href.split("?")[0];
+      usados[ruta] = true;
+      var activo = actual === ruta || actual.indexOf(ruta + "/") === 0;
+      var sub = it.submenu && it.submenu.length ? it.submenu : null;
+      var aviso = sub && sub.some(function (x) { return x.badge; }) ? '<span class="icc-nov-badge icc-nov-badge--dot" data-nov-badge hidden></span>' : "";
+      if (!sub) {
+        return '<a class="icc-dr-link' + (activo ? " is-activo" : "") + '" href="' + it.href + '"' + (activo ? ' aria-current="page"' : "") + '><span class="icc-dr-ico" aria-hidden="true">' + (ICONOS_MENU[ruta] || "•") + "</span><span>" + esc(it.label) + "</span>" + aviso + "</a>";
+      }
+      var id = "dr-sub-" + ruta.replace(/[^a-z]/g, "");
+      return '<div class="icc-dr-grupo' + (activo ? " is-abierto" : "") + '"><button type="button" class="icc-dr-link' + (activo ? " is-activo" : "") + '" aria-expanded="' + activo + '" aria-controls="' + id + '" data-dr-toggle>' +
+        '<span class="icc-dr-ico" aria-hidden="true">' + (ICONOS_MENU[ruta] || "•") + "</span><span>" + esc(it.label) + "</span>" + aviso + '<span class="icc-dr-caret" aria-hidden="true">›</span></button>' +
+        '<div class="icc-dr-sub" id="' + id + '">' + sub.map(function (x) {
+          var hx = x.href;
+          var act = location.hash === hx;
+          return '<a href="' + hx + '"' + (act ? ' class="is-activo" aria-current="page"' : "") + ">" + esc(x.label) + (x.badge ? '<span class="icc-nov-badge" data-nov-badge hidden></span>' : "") + "</a>";
+        }).join("") + "</div></div>";
+    };
+    var cuerpo = GRUPOS_MENU.map(function (g) {
+      var dentro = g[1].filter(function (h) { return porHref[h]; }).map(function (h) { return item(porHref[h]); }).join("");
+      return dentro ? '<div class="icc-dr-seccion"><span class="icc-dr-tit">' + g[0] + "</span>" + dentro + "</div>" : "";
+    }).join("");
+    var resto = items.filter(function (it) { return !usados[it.href.split("?")[0]]; }).map(item).join("");
+    if (resto) cuerpo += '<div class="icc-dr-seccion"><span class="icc-dr-tit">Más</span>' + resto + "</div>";
+    dr.innerHTML =
+      '<div class="icc-dr-cab"><a class="icc-brand icc-topnav-brand" href="#/dashboard"><img src="assets/logo.svg" alt="ICC" class="icc-brand-logo"><div><strong>Integral Connection</strong><span>Consulting</span></div></a>' +
+      '<button type="button" class="icc-dr-cerrar" id="icc-dr-cerrar" aria-label="Cerrar el menú">✕</button></div>' +
+      '<a class="icc-dr-usuario" href="#/mi-ficha">' + U.avatar(st.user, 42) + "<div><strong>" + esc(st.user.nombre + (st.user.apellidos ? " " + st.user.apellidos : "")) + "</strong><span>" + esc(C.ROLES[st.rolPrincipal] || "") + "</span></div><i aria-hidden=\"true\">›</i></a>" +
+      '<nav class="icc-dr-nav">' + cuerpo + "</nav>" +
+      '<div class="icc-dr-pie"><button type="button" class="icc-dr-salir" id="icc-dr-salir">⏻ Cerrar sesión</button></div>';
+    dr.querySelectorAll("[data-dr-toggle]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var g = b.closest(".icc-dr-grupo");
+        var abierto = !g.classList.contains("is-abierto");
+        g.classList.toggle("is-abierto", abierto);
+        b.setAttribute("aria-expanded", abierto);
       });
     });
+    dr.querySelectorAll("a").forEach(function (a) { a.addEventListener("click", function () { abrirDrawer(false); }); });
+    document.getElementById("icc-dr-cerrar").addEventListener("click", function () { abrirDrawer(false); });
+    document.getElementById("icc-dr-salir").addEventListener("click", function () { document.getElementById("btn-signout").click(); });
   }
+  function abrirDrawer(abrir) {
+    var dr = document.getElementById("icc-drawer");
+    var fondo = document.getElementById("icc-drawer-fondo");
+    var btn = document.getElementById("btn-menu");
+    if (!dr) return;
+    dr.classList.toggle("is-abierto", abrir);
+    dr.setAttribute("aria-hidden", abrir ? "false" : "true");
+    if (abrir) dr.removeAttribute("inert"); else dr.setAttribute("inert", "");
+    fondo.hidden = !abrir;
+    document.body.classList.toggle("icc-drawer-abierto", abrir);
+    if (btn) btn.setAttribute("aria-expanded", abrir ? "true" : "false");
+    if (abrir) { var c = document.getElementById("icc-dr-cerrar"); if (c) setTimeout(function () { c.focus(); }, 50); }
+    else if (btn && dr.contains(document.activeElement)) btn.focus();
+  }
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && document.body.classList.contains("icc-drawer-abierto")) abrirDrawer(false);
+  });
 
   async function toggleNotificaciones() {
     var panel = document.getElementById("notif-panel");

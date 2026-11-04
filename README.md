@@ -428,6 +428,10 @@ esa carpeta del servidor. Pasos a seguir, en este orden:
    sepas el alcance real y qué hay que volver a subir a mano si Hostalia
    no puede restaurarlos.
 
+## Menú en tablet y móvil
+
+Por debajo de 1180 px el menú superior se sustituye por un **menú lateral** (`css/_menu.css`, `pintarDrawer` en `js/app.js`): botón ☰, panel que se desliza desde la izquierda con la ficha del usuario, secciones (Ventas, Herramientas, Equipo, Sistema) con iconos, submenús desplegables, la página actual resaltada y «Cerrar sesión». Se cierra con ✕, tocando fuera, con Esc o al elegir una opción.
+
 ## Sala de ventas, cinta en directo y anuncios
 
 - **Sala de ventas** (`#/sala-ventas`, modo TV con `?tv=1`), visible para todos menos los comerciales (ellos siguen viendo la cinta en directo y las celebraciones): ranking, objetivo del mes, mapa por provincias, actividad y «Análisis en directo». Todo sale de los datos reales del CRM (`api/sala.php`) y se refresca cada 30 s; las cifras solo se mueven cuando entra un movimiento real.
