@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-+LMKsBOa7LKitpTYSBDiHH7dUteYSTxPZiRPIVimHJ8='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-kt0aHesOfgAuQDz2hMhLByekApaKcFABFJxc1qU6+8I='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Labs Command Center 360 - Oficina virtual SaaS de la red comercial de Labs24k.">
 <meta name="theme-color" content="#0B0F19">
@@ -1702,6 +1702,12 @@ a.btn.btn-g:hover{color:#fff}
 @media (max-width:640px){ .rc-ruta{padding:16px} .rc-ruta-h .btn{width:100%;justify-content:center} .rc-paso{flex-basis:140px} }
 
 .pap-ov{z-index:250}
+.ucl-ov{z-index:260}
+.ucl-modal{max-width:480px;width:100%}
+.ucl-ok{display:flex;gap:8px;align-items:flex-start;margin-top:14px;padding:10px 12px;border-radius:12px;font-size:13px;color:#BBF7D0;background:rgba(74,222,128,.10);border:1px solid rgba(74,222,128,.35)}
+.ucl-ok svg{flex:0 0 auto;margin-top:2px}
+.ucl-clave{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;padding:12px 14px;border-radius:12px;background:var(--card-2);border:1px dashed rgba(45,212,196,.5)}
+.ucl-clave .mono{font-size:17px;letter-spacing:.04em;color:#99F6E4;word-break:break-all;user-select:all}
 .pap-modal{max-width:760px;width:100%}
 .pap-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0 10px}
 .pap-tabs button{padding:6px 12px;border-radius:99px;border:1px solid var(--line);background:transparent;color:var(--txt-2);font-weight:600;font-size:12.5px;cursor:pointer}
@@ -2820,6 +2826,7 @@ function renderApp(){
   vcBanda();
   if(typeof rvReengancha === 'function') rvReengancha();
   if(typeof PAP !== 'undefined' && PAP.nodo && PAP.nodo.parentNode !== document.body) document.body.appendChild(PAP.nodo);
+  if(typeof UCL !== 'undefined' && UCL.nodo && UCL.nodo.parentNode !== document.body) document.body.appendChild(UCL.nodo);
 }
 
 /* ==========================================================================
@@ -8556,6 +8563,76 @@ function papPinta(){
     ngApi('/papelera/' + b.dataset.papDel, 'DELETE').then(function(){ toast('Eliminado definitivamente.'); papCarga(); }, function(e){ toast(e.message); }); }; });
 }
 
+
+/* ==========================================================================
+   RESTABLECER CONTRASEÑA · ventana propia (sin window.prompt, que muchos
+   móviles y apps instaladas bloquean). Guarda de verdad en el servidor, cierra
+   las sesiones, quita el freno por intentos fallidos y obliga a cambiarla.
+   ========================================================================== */
+var UCL = {nodo:null, u:null, valor:'', estado:'', error:''};
+function uClaveAbre(u){
+  if(!u) return;
+  UCL.u = u; UCL.valor = claveFuerte(); UCL.estado = ''; UCL.error = '';
+  if(!UCL.nodo){ UCL.nodo = document.createElement('div'); UCL.nodo.className = 'ov ucl-ov'; UCL.nodo.id = 'ucl-root'; document.body.appendChild(UCL.nodo); }
+  uClavePinta();
+  var i = UCL.nodo.querySelector('#ucl-val'); if(i){ i.focus(); i.select(); }
+}
+function uClaveCierra(){ if(UCL.nodo && UCL.nodo.parentNode) UCL.nodo.parentNode.removeChild(UCL.nodo); UCL.nodo = null; UCL.u = null; }
+function uClavePinta(){
+  if(!UCL.nodo) return;
+  var u = UCL.u, hecho = UCL.estado === 'hecho', fal = revisaClave(UCL.valor);
+  var msg = 'Hola ' + (u.n || '').split(' ')[0] + ', te he restablecido el acceso al CRM de Labs24k.\nUsuario: ' + u.mail + '\nContraseña temporal: ' + UCL.valor + '\nAl entrar te pedirá que pongas una tuya.';
+  UCL.nodo.innerHTML = '<div class="modal ucl-modal">'+
+    '<div class="row" style="justify-content:space-between;align-items:flex-start;gap:10px"><div><h3 style="margin:0 0 4px">'+ic(hecho ? 'check' : 'refresh',18)+' '+(hecho ? 'Contraseña restablecida' : 'Restablecer contraseña')+'</h3>'+
+      '<p class="tiny muted" style="margin:0">'+esc(u.n || '')+' · '+esc(u.mail || '')+'</p></div><button class="icon-btn" id="ucl-x">'+ic('x',16)+'</button></div>'+
+    (hecho ?
+      '<div class="ucl-ok">'+ic('check',16)+'<span>Guardada. Ya puede entrar con esta contraseña; al hacerlo le pedirá elegir una suya. Sus sesiones abiertas se han cerrado.</span></div>'+
+      '<div class="ucl-clave"><span class="mono" id="ucl-ver">'+esc(UCL.valor)+'</span><button class="btn btn-s btn-xs" id="ucl-copiar">'+ic('file',13)+' Copiar</button></div>'+
+      '<div class="row" style="gap:8px;flex-wrap:wrap;margin-top:12px">'+
+        (u.num ? '<a class="btn btn-s" target="_blank" rel="noopener" href="'+esc(ngWhatsApp(u.tel, msg))+'">'+ic('chat',14)+' Enviar por WhatsApp</a>' : '')+
+        '<a class="btn btn-s" href="mailto:'+esc(u.mail)+'?subject='+encodeURIComponent('Tu acceso al CRM de Labs24k')+'&body='+encodeURIComponent(msg)+'">'+ic('mail',14)+' Enviar por correo</a>'+
+        '<span class="spacer"></span><button class="btn btn-p" id="ucl-fin">Listo</button></div>'
+    :
+      '<div class="field" style="margin-top:14px"><label class="f">Nueva contraseña</label>'+
+        '<div class="row" style="gap:8px;flex-wrap:nowrap"><input class="inp mono" id="ucl-val" value="'+esc(UCL.valor)+'" autocomplete="new-password" spellcheck="false" style="flex:1;min-width:0">'+
+        '<button class="btn btn-s" id="ucl-gen" title="Generar otra">'+ic('refresh',14)+'</button></div>'+
+        '<div class="tiny '+(fal.length ? '' : 'muted')+'" id="ucl-reglas" style="margin-top:6px;'+(fal.length ? 'color:#FCA5A5' : '')+'">'+(fal.length ? 'Le falta: '+esc(fal.join(', '))+'.' : 'Cumple las normas de seguridad (10 caracteres, mayúscula, minúscula, número y símbolo).')+'</div></div>'+
+      '<p class="tiny muted" style="margin:6px 0 0">Se cerrarán sus sesiones abiertas, se le quitará el bloqueo por intentos fallidos y tendrá que cambiarla al entrar.</p>'+
+      (UCL.error ? '<div class="tiny" style="color:#FCA5A5;margin-top:8px">'+esc(UCL.error)+'</div>' : '')+
+      '<div class="row" style="gap:8px;justify-content:flex-end;margin-top:14px"><button class="btn btn-s" id="ucl-no">Cancelar</button>'+
+        '<button class="btn btn-p" id="ucl-si"'+(fal.length || UCL.estado === 'enviando' ? ' disabled' : '')+'>'+ic('save',14)+' '+(UCL.estado === 'enviando' ? 'Guardando…' : 'Guardar contraseña')+'</button></div>')+
+  '</div>';
+  var $ = function(x){ return UCL.nodo.querySelector(x); };
+  $('#ucl-x').onclick = uClaveCierra;
+  UCL.nodo.onclick = function(e){ if(e.target === UCL.nodo && UCL.estado !== 'enviando') uClaveCierra(); };
+  if(hecho){
+    $('#ucl-fin').onclick = function(){ uClaveCierra(); renderApp(); };
+    $('#ucl-copiar').onclick = function(){
+      var ok = function(){ toast('Contraseña copiada.'); };
+      if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(UCL.valor).then(ok, function(){ toast('Mantén pulsada la contraseña para copiarla.'); });
+      else { var r = document.createRange(); r.selectNodeContents($('#ucl-ver')); var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r); toast('Contraseña seleccionada: cópiala.'); } };
+    return;
+  }
+  $('#ucl-no').onclick = uClaveCierra;
+  $('#ucl-gen').onclick = function(){ UCL.valor = claveFuerte(); uClavePinta(); };
+  $('#ucl-val').oninput = function(){ UCL.valor = this.value.trim(); var f = revisaClave(UCL.valor), r = $('#ucl-reglas');
+    r.textContent = f.length ? 'Le falta: '+f.join(', ')+'.' : 'Cumple las normas de seguridad (10 caracteres, mayúscula, minúscula, número y símbolo).';
+    r.style.color = f.length ? '#FCA5A5' : ''; $('#ucl-si').disabled = !!f.length; };
+  $('#ucl-val').onkeydown = function(e){ if(e.key === 'Enter' && !$('#ucl-si').disabled) $('#ucl-si').click(); };
+  $('#ucl-si').onclick = function(){
+    var u = UCL.u, v = UCL.valor;
+    if(revisaClave(v).length) return;
+    UCL.estado = 'enviando'; UCL.error = ''; uClavePinta();
+    sbResetClave(u.id, v).then(function(r){
+      if(!r || !r.ok){ UCL.estado = ''; UCL.error = (r && r.mensaje) || 'No se ha podido guardar.'; uClavePinta(); return; }
+      var real = usuarioPorId(u.id) || u;
+      real.pass = v; real.cambiar = true; real.ses = []; u.pass = v; u.cambiar = true; u.ses = [];
+      auditar(real, 'Contraseña restablecida', 'Deberá cambiarla en el próximo acceso. Sesiones cerradas.');
+      UCL.estado = 'hecho'; uClavePinta();
+    }, function(e){ UCL.estado = ''; UCL.error = (e && e.message) || 'Sin conexión con el servidor.'; uClavePinta(); });
+  };
+}
+
 /* ==========================================================================
    SISTEMA DE SOPORTE Y TICKETS · Escalado a dos niveles
    Nivel 1 (Responsable de Soporte) = rol manager. Nivel 2 (Responsable del
@@ -12111,21 +12188,7 @@ function eventosUsuarios(v){
 
   qa('[data-u-clave]').forEach(function(b){ b.onclick = function(e){
     if(e) e.stopPropagation();
-    var u = usuarioPorId(b.dataset.uClave);
-    /* Se propone una contraseña segura; se puede dejar o escribir otra. */
-    var elegida = window.prompt('Nueva contraseña para '+u.n+'.\n\n'+
-      'Déjala como está o escribe la que quieras (mínimo 10 caracteres, con mayúscula, minúscula, número y símbolo).',
-      claveFuerte());
-    if(elegida === null) return;
-    elegida = String(elegida).trim();
-    var fal = revisaClave(elegida);
-    if(fal.length){ toast('La contraseña necesita '+fal.join(', ')+'.'); return; }
-    sbResetClave(u.id, elegida).then(function(r){
-      if(!r.ok){ toast(r.mensaje); return; }
-      u.pass = r.password || claveFuerte(); u.cambiar = true; u.ses = [];
-      auditar(u, 'Contraseña restablecida', 'Deberá cambiarla en el próximo acceso. Sesiones cerradas.');
-      USU.creado = u; USU.aviso = 'Contraseña restablecida'; renderApp();
-    }); }; });
+    uClaveAbre(usuarioPorId(b.dataset.uClave)); }; });
 
   qa('[data-u-del]').forEach(function(b){ b.onclick = function(){
     USU.borrar = usuarioPorId(b.dataset.uDel); renderApp(); }; });
@@ -12722,12 +12785,7 @@ function detalleEventos(){
     u.ses = []; toast('Sesiones cerradas al guardar.'); renderApp(); };
   qa('[data-ses]').forEach(function(b){ b.onclick = function(){
     u.ses.splice(parseInt(b.dataset.ses,10), 1); renderApp(); }; });
-  if(q('#fs-clave')) q('#fs-clave').onclick = function(){
-    var real = usuarioPorId(u.id);
-    real.pass = claveFuerte(); real.cambiar = true; real.ses = [];
-    u.pass = real.pass; u.cambiar = true; u.ses = [];
-    auditar(real, 'Contraseña restablecida', 'Restablecida desde la ficha del usuario. Sesiones cerradas.');
-    USU.creado = real; USU.aviso = 'Contraseña restablecida'; renderApp(); };
+  if(q('#fs-clave')) q('#fs-clave').onclick = function(){ uClaveAbre(usuarioPorId(u.id) || u); };
 
   /* --- guardar --- */
   q('#ft-save').onclick = function(){
