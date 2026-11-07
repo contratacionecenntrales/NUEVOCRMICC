@@ -164,6 +164,12 @@ function labs_pon_clave($id, $clave)
     labs_q('UPDATE perfiles SET debe_cambiar = 1 WHERE id = ?', array($id));
     labs_q('DELETE FROM sesiones WHERE usuario_id = ?', array($id));
     labs_q('DELETE FROM tokens_sesion WHERE usuario_id = ?', array($id));
+    // Con la clave nueva tiene que poder entrar ya: se borran sus intentos fallidos
+    // (si no, seguía viendo «Demasiados intentos» hasta 15 minutos después).
+    $c = labs_fila('SELECT email FROM cuentas WHERE id = ?', array($id));
+    if ($c && $c['email'] !== '') {
+        labs_q('DELETE FROM intentos_acceso WHERE email = ?', array(mb_strtolower($c['email'])));
+    }
     $el = labs_fila('SELECT id, nombre, apellidos FROM perfiles WHERE id = ?', array($id));
     labs_anota('Contraseña restablecida', 'Deberá cambiarla en el próximo acceso. Sesiones cerradas.', $el);
 }
