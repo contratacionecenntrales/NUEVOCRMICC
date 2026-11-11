@@ -82,7 +82,8 @@ function labs_tablas_recursos(&$T, $AHORA)
 
 function labs_recursos_tipos()
 {
-    return array('pdf', 'pptx', 'mp4', 'webm', 'png', 'jpg', 'webp', 'docx', 'xlsx');
+    // «brief»: ficha de formación sin archivo; su contenido va en «texto» y se lee en el propio CRM.
+    return array('pdf', 'pptx', 'mp4', 'webm', 'png', 'jpg', 'webp', 'docx', 'xlsx', 'brief');
 }
 
 /* --- Firma de enlaces ------------------------------------------------------ */
@@ -299,6 +300,10 @@ function labs_semilla_recursos()
             'descripcion' => $d['descripcion'] ?? '', 'ruta_formacion' => $d['ruta'] ?? '', 'orden' => (int) ($d['orden'] ?? 0),
             'destacado' => empty($d['destacado']) ? 0 : 1, 'miniatura' => $d['miniatura'] ?? null, 'paginas' => $d['paginas'] ?? null,
             'texto' => $d['texto'] ?? null, 'etiquetas' => $d['etiquetas'] ?? '');
+        if (isset($d['duracion'])) {
+            $meta['duracion'] = (int) $d['duracion'];
+        }
+        $es_brief = ($d['tipo'] ?? 'pdf') === 'brief';
         $ya = null;
         foreach (labs_q('SELECT id, nombre, ruta FROM recursos')->fetchAll() as $r) {
             if (labs_norma_texto($r['nombre']) === labs_norma_texto($d['nombre']) || in_array(labs_norma_texto($r['nombre']), (array) ($d['alias'] ?? array()), true)) {
@@ -311,6 +316,11 @@ function labs_semilla_recursos()
             $cambios = array_merge($meta, array('nombre' => $d['nombre'], 'actualizado' => $ahora));
             $sets = array_map(function ($k) { return '`' . $k . '` = ?'; }, array_keys($cambios));
             labs_q('UPDATE recursos SET ' . implode(', ', $sets) . ' WHERE id = ?', array_merge(array_values($cambios), array($ya['id'])));
+        } elseif ($es_brief) {
+            // Brief de formación: no hay archivo, el contenido va en «texto».
+            $cols = array_merge(array('nombre' => $d['nombre'], 'tipo' => 'brief', 'ruta' => '', 'tamano_bytes' => 0,
+                'subido_por' => $raiz ? $raiz['id'] : null, 'creado' => $ahora, 'actualizado' => $ahora), $meta);
+            labs_q('INSERT INTO recursos (`' . implode('`, `', array_keys($cols)) . '`) VALUES (' . implode(',', array_fill(0, count($cols), '?')) . ')', array_values($cols));
         } elseif (is_file($origen)) {
             $ruta = 'recursos/' . gmdate('YmdHis') . '-' . preg_replace('/[^A-Za-z0-9._-]/', '_', (string) ($d['nombre_archivo'] ?? basename($origen)));
             $destino = labs_almacen_fichero($ruta);
@@ -338,8 +348,8 @@ function labs_semilla_recursos()
     $pendientes = array();
     foreach ($lista as $d) {
         $clave = 'semilla.recurso.' . preg_replace('/[^a-z0-9._-]/', '', (string) ($d['clave'] ?? ''));
-        if (!labs_ajuste($clave)) {
-            $pendientes[basename((string) ($d['archivo'] ?? ''))] = true;
+        if (!labs_ajuste($clave) && ($d['archivo'] ?? '') !== '') {
+            $pendientes[basename((string) $d['archivo'])] = true;
         }
     }
     foreach (scandir($dir) ?: array() as $f) {

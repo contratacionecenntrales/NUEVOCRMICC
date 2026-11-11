@@ -152,6 +152,63 @@ el sistema**. Todo queda registrado en el CRM.
 | Negociación | Resolver objeciones y fijar la firma | Enviar el contrato a firma |
 | Firmado / Despliegue / Producción | Kick-off, lanzamiento, cliente contento | Pedir reseña o referido |
 
+### Diagnóstico del cuello de botella y cuenta de la fuga
+
+En el modo llamada, encima del guion, se elige por dónde se le escapa el dinero
+al cliente. Cada opción cambia el gancho del guion, las preguntas de
+diagnóstico, las objeciones que salen primero y el pack recomendado:
+
+| Cuello de botella | Señales | Pack |
+|---|---|---|
+| Captación de clientes | Web o ficha de Google con visitas pero sin contactos; boca a boca | Pack 1 · El Capturador Web · 1.700 € + IVA |
+| Embudo y conversión | Anuncios, WhatsApp desbordado, respuesta lenta, sin seguimiento | Pack 2 · El Súper-Setter · 2.800 € + IVA |
+| Atención por voz y datos | Teléfono que comunica, varios canales sin conectar, datos a mano | Pack 3 · El Cerebro Absoluto · 3.900 € + IVA (agente de voz aparte) |
+
+- **La cuenta de la fuga**: clientes que se le escapan al mes × lo que deja cada
+  uno × 12, con la frase para decírsela con sus propios números y el contraste
+  de precio. Sin la cuenta, el CRM recuerda que el precio no se dice todavía.
+- Al guardar la llamada, el cuello de botella y la fuga anual quedan en la
+  ficha, en la tarjeta del embudo y en el panel de venta.
+- **Guardar y presupuestar** guarda la llamada y abre el presupuesto con el
+  cliente, la persona que decide y el pack que encaja.
+- Botón **Brief**: abre el brief de formación de ese cuello de botella encima de
+  la llamada (Escape lo cierra y deja la llamada abierta).
+
+### Presupuestos (ahora se guardan de verdad)
+
+- Catálogo con los **packs oficiales** (pago único) primero, con lo que lleva y
+  lo que no lleva cada uno; el resto de servicios aparece como «confirma el
+  importe con dirección antes de enviarlo».
+- Se abren desde la ficha, el panel del embudo o el modo llamada, ya ligados al
+  cliente. **Registrar presupuesto** lo guarda con un código correlativo
+  (PR-año-número) que pone el servidor, igual que el importe (calculado a partir
+  de las líneas, el descuento y el IVA; no se puede cambiar a mano).
+- Al registrarlo: queda en el historial del cliente, el valor del deal pasa a
+  ser el del presupuesto, el cliente pasa a **Propuesta** y se agenda el
+  **seguimiento a las 48 horas laborables**.
+- Estados: Borrador, Enviado, En revisión, Aceptado, Rechazado. **Aceptado**
+  pasa el deal a Negociación. Cada cambio queda en el historial (filtro
+  «Presupuestos»). Si se borra el cliente, sus presupuestos se conservan; al
+  restaurarlo desde la papelera vuelven a ligarse.
+
+## Briefs de speech telefónico (Centro de Formación)
+
+Ruta **«Speech telefónico · nivel experto»**, con 7 briefs que se leen en el
+propio CRM (índice, progreso, autoevaluación e impresión a PDF):
+
+1. Encuentra el cuello de botella en 3 minutos
+2. Speech A · Captación: cuando no le entran clientes (Pack 1)
+3. Speech B · Embudo: cuando le entran y se pierden (Pack 2)
+4. Speech C · Asistentes de voz y datos: cuando no da abasto (Pack 3 + voz)
+5. Objeciones nivel experto: rebatir sin discutir
+6. Del teléfono al presupuesto: cerrar con números
+7. Chuleta de bolsillo: la IA sin tecnicismos
+
+Están basados en el Kit de Venta Rápido, el Manual del Gestor Comercial y la
+Comparativa de Packs, sin cifras inventadas. Como los documentos corporativos,
+su contenido viaja solo en el zip personal (`api/semilla/`) y entra solo al
+Centro de Formación la primera vez.
+
 ## Real o simulación
 
 Sin integraciones configuradas, el CRM funciona entero en **modo simulación**
@@ -269,5 +326,5 @@ de seguridad cifradas.
 
 ## Pruebas
 
-45 + 25 + 30 + 32 pruebas del servidor y 34 + 36 + 49 + 36 comprobaciones en el navegador, incluido el móvil,
+45 + 25 + 30 + 32 + 32 pruebas del servidor y 34 + 36 + 49 + 36 + 37 comprobaciones en el navegador, incluido el móvil,
 además de todas las anteriores del CRM.

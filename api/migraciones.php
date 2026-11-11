@@ -8,7 +8,7 @@
  */
 defined('LABS') || exit;
 
-define('LABS_VERSION_ESQUEMA', 12);
+define('LABS_VERSION_ESQUEMA', 13);
 
 function labs_columna_existe(PDO $db, $tabla, $col)
 {
@@ -174,6 +174,11 @@ function labs_migra(PDO $db)
         array('contactos', 'decisor_telefono', "ALTER TABLE contactos ADD COLUMN decisor_telefono VARCHAR(40) NOT NULL DEFAULT ''"),
         array('contactos', 'decisor_email', "ALTER TABLE contactos ADD COLUMN decisor_email VARCHAR(190) NOT NULL DEFAULT ''"),
         array('contactos', 'proximo_paso', "ALTER TABLE contactos ADD COLUMN proximo_paso VARCHAR(200) NOT NULL DEFAULT ''"),
+        // v13 · Cuello de botella y fuga estimada del contacto; presupuestos ligados al contacto.
+        array('contactos', 'cuello', "ALTER TABLE contactos ADD COLUMN cuello VARCHAR(20) NOT NULL DEFAULT ''"),
+        array('contactos', 'fuga_anual', 'ALTER TABLE contactos ADD COLUMN fuga_anual DECIMAL(12,2) NOT NULL DEFAULT 0'),
+        array('presupuestos', 'contacto_id', 'ALTER TABLE presupuestos ADD COLUMN contacto_id BIGINT UNSIGNED NULL, ADD KEY presupuestos_contacto_idx (contacto_id)'),
+        array('presupuestos', 'datos', 'ALTER TABLE presupuestos ADD COLUMN datos LONGTEXT NULL'),
         // v9 · Contactos activos / desactivados.
         array('contactos', 'activo', 'ALTER TABLE contactos ADD COLUMN activo TINYINT(1) NOT NULL DEFAULT 1, ADD KEY contactos_activo_idx (activo)'),
         array('recursos_descargas', 'accion', "ALTER TABLE recursos_descargas ADD COLUMN accion VARCHAR(12) NOT NULL DEFAULT 'descarga'"),

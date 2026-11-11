@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-eiesANZgUVj6FC7xwlteyv8y34kousXPTtpGkai8zdU='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-LhTwg5YdV5/y5zDwToUjE17mtfv2qLdCLyj9Ot1xF80='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Labs Command Center 360 - Oficina virtual SaaS de la red comercial de Labs24k.">
 <meta name="theme-color" content="#0B0F19">
@@ -1810,14 +1810,120 @@ a.btn.btn-g:hover{color:#fff}
 .ven-audio{margin-top:6px}
 .ven-audio audio{width:100%;height:36px}
 .vp-e{display:flex;flex-direction:column;gap:1px;padding:6px 0;border-bottom:1px dashed var(--line)}
+.pre-ok,.pre-liga{display:flex;gap:8px;align-items:flex-start;margin-top:12px;padding:10px 12px;border-radius:12px;font-size:13px}
+.pre-ok{color:#BBF7D0;background:rgba(74,222,128,.10);border:1px solid rgba(74,222,128,.35)}
+.pre-liga{margin:0 0 12px;background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.3)}
+.pre-ok svg,.pre-liga svg{flex:0 0 auto;margin-top:2px;display:block}
+.pre-liga .icon-btn{margin-left:auto}
+select.pre-est{width:auto;min-width:130px;padding:5px 8px;font-size:12.5px}
 .ct-dec-f{margin:6px 0 4px;padding:12px 12px 2px;border-radius:14px;border:1px solid rgba(251,191,36,.35);background:rgba(251,191,36,.05)}
 .ct-llamadas{margin-top:12px;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:var(--card-2)}
+.ll-brief{margin-left:auto;padding:4px 9px}
+.ll-col h4 .ll-brief svg{display:block}
+.ll-diag,.ll-fuga{margin:0 0 12px;padding:12px;border-radius:14px;border:1px solid var(--line);background:var(--card-2)}
+.ll-fuga{margin:12px 0 0}
+.ll-diag-h{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;margin-bottom:9px}
+.ll-cus{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.ll-cu{--cc:#38BDF8;display:flex;flex-direction:column;gap:3px;align-items:flex-start;text-align:left;padding:9px 10px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--txt-2);cursor:pointer;min-width:0}
+.ll-cu svg{color:var(--cc);display:block}
+.ll-cu b{font-size:12.5px;color:var(--txt);line-height:1.2}
+.ll-cu span{font-size:11px;line-height:1.3}
+.ll-cu.on{border-color:var(--cc);background:color-mix(in srgb,var(--cc) 14%,transparent)}
+.ll-senales{display:flex;flex-direction:column;gap:4px;margin-top:10px}
+.ll-senales span{display:flex;gap:6px;align-items:flex-start;font-size:12.5px;color:var(--txt-2)}
+.ll-senales svg{flex:0 0 auto;margin-top:3px;color:#4ADE80;display:block}
+.ll-preg{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:5px;font-size:13.5px}
+.ll-fuga-f{display:flex;align-items:flex-end;gap:8px;flex-wrap:wrap}
+.ll-fuga-f label{display:flex;flex-direction:column;gap:4px;font-size:11.5px;color:var(--txt-2);flex:1 1 130px}
+.ll-fuga-f span{font-weight:700;color:var(--txt-3);padding-bottom:9px}
+.ll-fuga-r{margin-top:9px;font-size:13px;display:flex;flex-direction:column;gap:3px}
+.ll-fuga-r b{font-size:18px;color:#FBBF24}
+.ll-obj.cu{border-color:rgba(45,212,191,.45)}
+.ll-pack{--cc:#38BDF8;margin-top:12px;padding:12px 13px;border-radius:14px;border:1px solid color-mix(in srgb,var(--cc) 45%,transparent);background:color-mix(in srgb,var(--cc) 8%,transparent);font-size:13px}
+.ll-pack p{margin:6px 0 0}
+.ll-pack-p{font-weight:800;color:var(--cc);white-space:nowrap}
+.ll-pack-c{display:flex;gap:6px;align-items:flex-start;color:#86EFAC}
+.ll-pack-c.u{color:#FDE68A}
+.ll-pack-c svg{flex:0 0 auto;margin-top:3px;display:block}
+.vp-diag{display:flex;gap:9px;align-items:center;margin-top:10px;padding:10px 13px;border-radius:14px;border:1px solid rgba(45,212,191,.35);background:rgba(45,212,191,.07);font-size:13px}
+.vp-diag.u{border-color:rgba(251,191,36,.35);background:rgba(251,191,36,.06);color:#FDE68A}
+.vp-diag svg{flex:0 0 auto;display:block}
+@media (max-width:720px){ .ll-cus{grid-template-columns:minmax(0,1fr)} }
 .ng-obj{font-size:11px;color:var(--txt-3);margin-top:3px;line-height:1.3}
 .pl-sec{display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:99px;color:var(--sc);background:color-mix(in srgb,var(--sc) 14%,transparent)}
 .pl-paso{display:flex;gap:5px;align-items:center;font-size:11.5px;color:var(--txt-2);margin-top:5px;min-width:0}
 .pl-paso svg{flex:0 0 auto;display:block}
 .pl-paso.u{color:#FCA5A5}
 
+/* --- Briefs de formación --- */
+.bf{max-width:820px;margin:0 auto;padding:34px 28px 60px;color:#E2E8F0;font-size:15.5px;line-height:1.62}
+.bf svg{display:inline-block;vertical-align:-2px}
+.bf-h{padding:26px 26px 22px;border-radius:20px;background:linear-gradient(135deg,rgba(45,212,191,.16),rgba(15,23,42,.6) 70%);border:1px solid rgba(45,212,191,.3);margin-bottom:26px}
+.bf-k{font-size:11.5px;font-weight:800;letter-spacing:.12em;color:#5EEAD4}
+.bf-h h1{margin:8px 0 8px;font-size:27px;line-height:1.2;color:#fff}
+.bf-res{margin:0;font-size:16.5px;color:#CBD5E1}
+.bf-meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.bf-meta span{font-size:12px;padding:4px 10px;border-radius:99px;background:rgba(148,163,184,.14);color:#CBD5E1}
+.bf-cuando{display:flex;gap:9px;align-items:flex-start;margin-top:14px;padding:11px 13px;border-radius:12px;background:rgba(56,189,248,.10);border:1px solid rgba(56,189,248,.3);font-size:14px}
+.bf-cuando svg,.bf-box svg{flex:0 0 auto;margin-top:3px}
+.bf-s{margin-top:34px}
+.bf-s h2{display:flex;align-items:center;gap:10px;font-size:20px;color:#fff;margin:0 0 12px}
+.bf-s h2 span{width:30px;height:30px;flex:0 0 auto;border-radius:50%;display:grid;place-items:center;font-size:14px;font-weight:800;color:#04231F;background:linear-gradient(135deg,#2DD4BF,#38BDF8)}
+.bf p{margin:10px 0}
+.bf b{color:#fff}
+.bf-hueco{color:#5EEAD4;font-weight:600}
+.bf-g{position:relative;margin:12px 0;padding:13px 16px 13px 18px;border-radius:0 14px 14px 0;border-left:4px solid #2DD4BF;background:rgba(45,212,191,.08);font-size:16px;color:#F1F5F9}
+.bf-g-q{display:block;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#5EEAD4;margin-bottom:3px}
+.bf-l,.bf-n{margin:10px 0;padding-left:22px}
+.bf-l li,.bf-n li{margin:5px 0}
+.bf-t{overflow-x:auto;margin:14px 0;border-radius:14px;border:1px solid rgba(148,163,184,.2)}
+.bf-t table{width:100%;border-collapse:collapse;font-size:14px}
+.bf-t th{text-align:left;padding:10px 12px;background:rgba(45,212,191,.12);color:#99F6E4;font-size:12.5px}
+.bf-t td{padding:10px 12px;border-top:1px solid rgba(148,163,184,.14);vertical-align:top}
+.bf-box{display:flex;gap:10px;align-items:flex-start;margin:14px 0;padding:12px 14px;border-radius:14px;font-size:15px}
+.bf-box.ok{background:rgba(74,222,128,.09);border:1px solid rgba(74,222,128,.35);color:#DCFCE7}
+.bf-box.u{background:rgba(251,191,36,.09);border:1px solid rgba(251,191,36,.35);color:#FEF3C7}
+.bf-box.ej{background:rgba(167,139,250,.10);border:1px solid rgba(167,139,250,.35);color:#EDE9FE}
+.bf-nunca{margin:14px 0;border-radius:14px;overflow:hidden;border:1px solid rgba(148,163,184,.2);font-size:14px}
+.bf-nunca-h,.bf-nunca-f{display:grid;grid-template-columns:1fr 1fr}
+.bf-nunca-h span{padding:9px 12px;font-size:12px;font-weight:800;letter-spacing:.04em}
+.bf-nunca-h span:first-child{background:rgba(248,113,113,.14);color:#FCA5A5}
+.bf-nunca-h span:last-child{background:rgba(74,222,128,.12);color:#86EFAC}
+.bf-nunca-f span{padding:10px 12px;border-top:1px solid rgba(148,163,184,.14)}
+.bf-nunca-f span:first-child{color:#FECACA;text-decoration:line-through;text-decoration-color:rgba(248,113,113,.5)}
+.bf-objs{display:flex;flex-direction:column;gap:8px;margin:12px 0}
+.bf-obj{border-radius:14px;border:1px solid rgba(148,163,184,.22);background:rgba(15,23,42,.5);padding:0 14px}
+.bf-obj summary{cursor:pointer;display:flex;gap:8px;align-items:center;padding:12px 0;list-style:none}
+.bf-obj summary::-webkit-details-marker{display:none}
+.bf-obj summary svg{color:#A78BFA;flex:0 0 auto}
+.bf-obj[open]{border-color:rgba(167,139,250,.5)}
+.bf-por{display:flex;gap:6px;align-items:flex-start;font-size:13.5px;color:#C4B5FD;margin:6px 0 14px}
+.bf-por svg{flex:0 0 auto;margin-top:4px}
+.bf-quiz{margin:18px 0;padding:14px 16px;border-radius:14px;border:1px dashed rgba(45,212,191,.45)}
+.bf-quiz-h{display:flex;align-items:center;gap:7px;font-weight:800;color:#5EEAD4;margin-bottom:6px}
+.bf .bf-quiz-h svg{display:block;flex:0 0 auto}
+.bf-quiz details{padding:7px 0;border-top:1px solid rgba(148,163,184,.12)}
+.bf-quiz summary{cursor:pointer;font-weight:600}
+.bf-quiz p{color:#CBD5E1;margin:6px 0 2px 18px}
+.bf-fin{display:flex;gap:10px;align-items:flex-start;margin-top:40px;padding:16px;border-radius:16px;background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.3);color:#DCFCE7}
+.bf-fin svg{flex:0 0 auto;color:#4ADE80}
+.bf-toc{display:flex;gap:8px;align-items:flex-start;width:100%;text-align:left;padding:8px 9px;margin-bottom:3px;border:0;border-radius:10px;background:transparent;color:#94A3B8;font-size:12.5px;line-height:1.35;cursor:pointer}
+.bf-toc span{flex:0 0 auto;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:800;background:rgba(148,163,184,.16);color:#CBD5E1}
+.bf-toc.on{background:rgba(45,212,191,.12);color:#F1F5F9}
+.bf-toc.on span{background:#2DD4BF;color:#04231F}
+@media (max-width:720px){ .bf{padding:18px 14px 50px;font-size:15px} .bf-h{padding:18px} .bf-h h1{font-size:22px} .bf-nunca-h,.bf-nunca-f{grid-template-columns:1fr} .bf-nunca-h span:last-child{display:none} .bf-nunca-f span:last-child{border-top:0;padding-top:0;color:#86EFAC} }
+@media print{
+  html.rv-abierto body > *:not(#rv-root){display:none!important}
+  html.rv-abierto #rv-root{position:static!important;background:#fff!important;display:block!important}
+  html.rv-abierto .rv-top,html.rv-abierto .rv-side,html.rv-abierto .rv-pbar{display:none!important}
+  html.rv-abierto .rv-body,html.rv-abierto .rv-main{display:block!important;overflow:visible!important;height:auto!important;background:#fff!important}
+  .bf{color:#111!important;max-width:none;padding:0}
+  .bf b,.bf-h h1,.bf-s h2{color:#000!important}
+  .bf-h,.bf-g,.bf-box,.bf-cuando,.bf-t th,.bf-fin{background:#F1F5F9!important;color:#111!important}
+  .bf-obj{background:#fff!important}
+  .bf-obj:not([open]) > *:not(summary),.bf-quiz details:not([open]) > *:not(summary){display:block!important}
+  .bf-s{break-inside:auto} .bf-g,.bf-box,.bf-obj{break-inside:avoid}
+}
 /* --- Visor --- */
 html.rv-abierto{overflow:hidden}
 .rv{position:fixed;inset:0;z-index:300;display:flex;flex-direction:column;background:#070B14;color:#E2E8F0;animation:rvEntra .22s ease-out}
@@ -3324,7 +3430,15 @@ document.addEventListener('DOMContentLoaded', boot);
 
 /* ---------------------------- CATALOGO OFICIAL --------------------------- */
 var CATALOGO = [
-  { g:'Packs comerciales', items:[
+  { g:'Packs oficiales · pago único', items:[
+    {id:'pk1', n:'Pack 1 · El Capturador Web', cat:'Captación de clientes', code:'PK1', p:1700, m:0,
+     d:'Agente IA en la web y la ficha de Google 24/7 · Lead Magnet Funnel con landing capturadora · Flujos de bienvenida y recordatorio · Captura de datos en la conversación · Hasta 3 agentes · 10 diseños. No incluye: WhatsApp Business API, flujos de rescate, integración con sus programas, reseñas automáticas ni vídeos.'},
+    {id:'pk2', n:'Pack 2 · El Súper-Setter', cat:'Embudo y conversión', code:'PK2', p:2800, m:0,
+     d:'WhatsApp Business API oficial · BANT Chat Funnel: del anuncio al chat cualificado (presupuesto, urgencia y decisión antes de la agenda) · Hasta 5 flujos de rescate a las 2, 24 y 48 h · Reparto rotativo hasta 8 agentes · 10 diseños + 2 vídeos. No incluye: agente de la web, Instagram, integración con sus programas ni reseñas automáticas.'},
+    {id:'pk3', n:'Pack 3 · El Cerebro Absoluto', cat:'Atención y datos', code:'PK3', p:3900, m:0,
+     d:'Web + WhatsApp + Instagram coordinados · Omnichannel Master Funnel 360° · Cualificación cruzada y rescate entre canales · Sincronización en tiempo real con su ERP, software médico o CRM · Reseñas de Google automáticas tras cada venta o cita · Agentes ilimitados · 15 diseños + 4 vídeos premium.'}
+  ]},
+  { g:'Otros servicios · confirma el importe con dirección antes de enviarlo', items:[
     {id:'pack_voice', n:'Pack Agente de Voz IA (VAPI + Twilio)', cat:'Atención y cualificación', code:'VOZ',
      p:1800, m:400, d:'Agente de voz autónomo conversacional para llamadas salientes y entrantes con integración CRM.'},
     {id:'pack_whatsapp', n:'Pack Automatización WhatsApp y MetaTok', cat:'Captación multicanal', code:'WSP',
@@ -3359,7 +3473,8 @@ var CATALOGO = [
 /* Estado del presupuesto avanzado */
 var PRE = {
   tab:'propuesta',
-  sel:{mod_voice:1, mod_calib:1, mod_wa_citas:1, mod_wa_api:1},
+  sel:{},
+  contacto_id:null, cuello:'', codigo:'', lista:null, guardando:false,
   cliente:'', atencion:'', email:'', tel:'',
   titulo:'', desc:0, iva:21,
   iban:'ES73 3007 0100 1221 4290 7613',
@@ -3380,6 +3495,10 @@ function preTotales(){
   return {L:L, base:base, mens:mens, dto:dto, sub:sub, iva:iva, tot:sub+iva};
 }
 function preCodigo(){
+  if(PRE.codigo) return PRE.codigo;
+  return 'BORRADOR · se numera al registrar';
+}
+function preCodigoViejo(){
   var cli = (PRE.cliente||'CLIENTE').toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Z0-9]/g,'').slice(0,18);
   var codes = []; selLines().forEach(function(i){ if(codes.indexOf(i.code)<0) codes.push(i.code); });
   return 'EXP-2026-'+cli+'-'+(codes.join('')||'GEN');
@@ -3387,6 +3506,8 @@ function preCodigo(){
 function preTitulo(){
   if(PRE.titulo) return PRE.titulo;
   var c = selLines().map(function(i){ return i.code; });
+  var pk = selLines().filter(function(i){ return /^PK\d$/.test(i.code); })[0];
+  if(pk) return 'Propuesta de automatización comercial · ' + pk.n;
   var voz = c.indexOf('VOZ')>-1, wsp = c.indexOf('WSP')>-1, tri = c.indexOf('360')>-1;
   if(voz&&wsp) return 'Propuesta de automatización de la gestión de citas · Asistente de voz IA + asistente de WhatsApp';
   if(voz) return 'Propuesta de automatización telefónica · Asistente de voz IA';
@@ -3495,10 +3616,10 @@ function viewQuotes(v){
 
     '<div class="doc-sec"><span class="n">3</span> ¿Por qué confiar en Labs24k?</div>'+
     '<div class="doc-why">'+[
-      ['Doble canal 24/7','Voz y WhatsApp cubriendo cada contacto, día y noche.'],
+      ['Atención 24/7','Cada contacto atendido al instante, también de noche y en fin de semana.'],
       ['Tú mantienes el control','Los cambios y excepciones siempre pasan por ti.'],
       ['Cumplimiento RGPD','Datos tratados con la debida diligencia desde el diseño.'],
-      ['Puesta en marcha ágil','Sistema operativo en pocos días, no en meses.']
+      ['Llave en mano','Ingeniería, configuración y puesta en marcha corren de nuestra cuenta; el plazo se confirma por escrito.']
     ].map(function(w){ return '<div><div class="ok">'+ic('check',16)+'</div><div class="t">'+esc(w[0])+'</div>'+
       '<div class="tiny muted">'+esc(w[1])+'</div></div>'; }).join('')+'</div>'+
 
@@ -3595,6 +3716,9 @@ function viewQuotes(v){
           '<p>Se imprimen en la cabecera del documento</p></div>'+
           '<div class="row"><button class="btn btn-s btn-xs'+(PRE.tab==='propuesta'?' on-tab':'')+'" data-tab="propuesta">Propuesta</button>'+
           '<button class="btn btn-s btn-xs'+(PRE.tab==='ruta'?' on-tab':'')+'" data-tab="ruta">Hoja de ruta</button></div></div>'+
+        (PRE.contacto_id && ctContactoPorId(PRE.contacto_id) ? '<div class="pre-liga">'+ic('user',14)+'<span>Ligado a <b>'+esc(ctContactoPorId(PRE.contacto_id).empresa || ctContactoPorId(PRE.contacto_id).nombre)+'</b>'+
+          (PRE.cuello && VEN_CUELLOS[PRE.cuello] ? ' · cuello de botella: <b>'+esc(VEN_CUELLOS[PRE.cuello].n)+'</b> → '+esc(VEN_CUELLOS[PRE.cuello].pack) : '')+
+          '. Al registrar se anota en su ficha, pasa a Propuesta y se agenda el seguimiento.'+(PRE.cuello === 'atencion' ? ' Si lo que más le duele es el teléfono, añade el agente de voz desde «Otros servicios».' : '')+'</span>'+(PRE.codigo ? '' : '<button class="icon-btn sm" id="p-desliga" title="Quitar el vínculo">'+ic('x',12)+'</button>')+'</div>' : '')+
         '<div class="grid g-2">'+
           '<div class="field"><label class="f">Nombre / empresa cliente</label>'+
             '<input class="inp" id="p-cli" value="'+esc(PRE.cliente)+'" placeholder="Ej. Fisio En Mis Manos"></div>'+
@@ -3619,19 +3743,29 @@ function viewQuotes(v){
         '</div>'+
         '<div class="row" style="justify-content:flex-end;gap:10px">'+
           '<button class="btn btn-s" id="p-pdf">'+ic('download',15)+' Descargar PDF oficial</button>'+
-          '<button class="btn btn-g" id="p-send">'+ic('send',15)+' Registrar y enviar a Back Office</button></div>'+
+          (PRE.codigo ? '<button class="btn btn-s" id="p-nuevo">'+ic('plus',15)+' Nuevo presupuesto</button>' :
+            '<button class="btn btn-g" id="p-send"'+(PRE.guardando ? ' disabled' : '')+'>'+ic('send',15)+' '+(PRE.guardando ? 'Registrando…' : 'Registrar presupuesto')+'</button>')+'</div>'+
+        (PRE.codigo ? '<div class="pre-ok">'+ic('check',15)+'<span>Registrado como <b class="mono">'+esc(PRE.codigo)+'</b>. Descarga el PDF y envíaselo; el seguimiento a las 48 h ya está en tu agenda'+(PRE.contacto_id ? '' : ' (si lo creas desde la ficha del cliente)')+'.</span></div>' : '')+
       '</div>'+
       (PRE.tab==='propuesta'?propuesta:ruta)+
       '<div class="card no-print" style="padding:0;overflow:hidden">'+
         '<div class="card-h" style="padding:18px 18px 14px"><div><h3>Presupuestos registrados</h3>'+
-          '<p>Histórico de la red comercial</p></div></div>'+
-        '<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Referencia</th><th>Cliente</th>'+
-          '<th>Servicio</th><th>Importe</th><th>Fecha</th><th>Estado</th></tr></thead><tbody>'+
-          DB.quotes.map(function(x){
-            var cc = {'Enviado':'blue','Aceptado':'green','En revisión':'amber','Rechazado':'red'}[x.st]||'';
-            return '<tr><td class="w">'+esc(x.id)+'</td><td>'+esc(x.cli)+'</td><td class="muted">'+esc(x.srv)+'</td>'+
-              '<td class="w">'+eur(x.v)+'</td><td class="muted">'+esc(x.d)+'</td>'+
-              '<td><span class="chip '+cc+'">'+esc(x.st)+'</span></td></tr>'; }).join('')+
+          '<p>Guardados en el CRM. Cambia el estado cuando el cliente responda: «Aceptado» pasa el deal a Negociación.</p></div>'+
+          (PRE.lista && PRE.lista.length ? '<span class="chip green">'+eur(PRE.lista.filter(function(x){ return x.estado === 'Aceptado'; }).reduce(function(a, x){ return a + Number(x.base); }, 0))+' aceptado</span>' : '')+'</div>'+
+        '<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Código</th><th>Cliente</th>'+
+          '<th>Servicios</th><th>Importe</th><th>Fecha</th><th>Estado</th></tr></thead><tbody id="pre-lista">'+
+          (PRE.lista === null || (PRE.lista && !PRE.lista.length && PRE.cargandoLista) ? '<tr><td colspan="6" class="muted" style="text-align:center;padding:20px">Cargando…</td></tr>' :
+           !PRE.lista.length ? '<tr><td colspan="6" class="muted" style="text-align:center;padding:20px">Todavía no hay presupuestos registrados. Compón uno a la izquierda y pulsa «Registrar».</td></tr>' :
+          PRE.lista.map(function(x){
+            var cc = {'Enviado':'blue','Aceptado':'green','En revisión':'amber','Rechazado':'red'}[x.estado]||'';
+            var mio = x.autor_id === ((SB.sesion && SB.sesion.uid) || '') || ['admin','manager'].indexOf(S.role) > -1;
+            var serv = (x.lineas || []).map(function(l){ return l.n; }).join(' · ');
+            return '<tr><td class="w mono">'+esc(x.codigo)+'</td><td>'+esc(x.cliente)+
+                (x.contacto_id && ctContactoPorId(x.contacto_id) ? ' <button class="icon-btn sm" data-pre-ficha="'+x.contacto_id+'" title="Abrir la ficha">'+ic('eye',12)+'</button>' : '')+'</td>'+
+              '<td class="muted" style="max-width:260px"><span class="clamp2">'+esc(serv)+'</span></td>'+
+              '<td class="w" style="white-space:nowrap">'+eur2(Number(x.base))+' <span class="tiny muted">+ IVA</span></td><td class="muted">'+esc(ctFechaCorta(x.creado))+'</td>'+
+              '<td>'+(mio ? '<select class="inp pre-est '+cc+'" data-pre-est="'+x.id+'">'+['Borrador','Enviado','En revisión','Aceptado','Rechazado'].map(function(e){
+                  return '<option'+(e === x.estado ? ' selected' : '')+'>'+e+'</option>'; }).join('')+'</select>' : '<span class="chip '+cc+'">'+esc(x.estado)+'</span>')+'</td></tr>'; }).join(''))+
         '</tbody></table></div></div>'+
     '</div>'+
   '</div>';
@@ -3656,16 +3790,72 @@ function viewQuotes(v){
     if(!T.L.length){ toast('Añade al menos un servicio del catálogo.'); return; }
     window.print();
   };
-  q('#p-send').onclick=function(){
+  if(q('#p-send')) q('#p-send').onclick=function(){
     if(!PRE.cliente){ toast('Indica el nombre del cliente antes de registrar.'); return; }
     if(!T.L.length){ toast('Añade al menos un servicio del catálogo.'); return; }
-    PRE.num++;
-    DB.quotes.unshift({id:'PR-2026-0'+PRE.num, cli:PRE.cliente,
-      srv:T.L.length+' módulos · '+(T.L[0].code==='VOZ'?'Voz IA':'Automatización'),
-      v:T.tot, st:'Enviado', d:new Date().toLocaleDateString('es-ES')});
-    toast('Presupuesto '+preCodigo()+' registrado y enviado a Back Office.');
-    renderApp();
+    preRegistra(T);
   };
+  if(q('#p-desliga')) q('#p-desliga').onclick=function(){ PRE.contacto_id = null; PRE.cuello = ''; renderApp(); };
+  if(q('#p-nuevo')) q('#p-nuevo').onclick=function(){ PRE.codigo = ''; PRE.sel = {}; PRE.contacto_id = null; PRE.cuello = ''; PRE.cliente = PRE.atencion = PRE.email = PRE.tel = PRE.titulo = ''; PRE.desc = 0; renderApp(); };
+  qa('[data-pre-est]').forEach(function(sel){ sel.onchange=function(){ preCambiaEstado(Number(sel.dataset.preEst), sel.value); }; });
+  qa('[data-pre-ficha]').forEach(function(b){ b.onclick=function(){ ngAbreFicha(Number(b.dataset.preFicha), 'quotes'); }; });
+  if(PRE.lista === null) preCargaLista();
+}
+
+/* Presupuestos guardados en el servidor (el importe y el código los pone el servidor). */
+function preCargaLista(){
+  PRE.lista = PRE.lista || [];
+  sbSelect('presupuestos', 'order=id.desc&limit=200').then(function(r){
+    PRE.lista = r && r.ok ? (r.datos || []) : [];
+    if(S.view === 'quotes') renderApp();
+  });
+}
+function preRegistra(T){
+  if(PRE.guardando) return;
+  PRE.guardando = true; renderApp();
+  var fila = {cliente:PRE.cliente.trim(), autor_id:(SB.sesion && SB.sesion.uid) || null, contacto_id:PRE.contacto_id || null,
+    lineas:T.L.map(function(i){ return {id:i.id, code:i.code, n:i.n, d:i.d, p:i.p, m:i.m}; }),
+    base:T.sub, iva:PRE.iva, total:T.tot, estado:'Enviado', codigo:'',
+    datos:{atencion:PRE.atencion, email:(PRE.email || '').trim(), tel:PRE.tel, titulo:PRE.titulo, desc:PRE.desc, hito:PRE.hito, iban:PRE.iban, cuello:PRE.cuello || ''}};
+  sbInsert('presupuestos', fila).then(function(r){
+    PRE.guardando = false;
+    if(!(r && r.ok)){ toast('No se ha podido registrar: ' + sbMensaje(r)); renderApp(); return; }
+    var p = Array.isArray(r.datos) ? r.datos[0] : r.datos;
+    PRE.codigo = (p && p.codigo) || '';
+    toast('Presupuesto ' + PRE.codigo + ' registrado' + (PRE.contacto_id ? ': el cliente pasa a Propuesta y tienes el seguimiento a las 48 h en la agenda.' : '.'));
+    PRE.lista = null;
+    if(PRE.contacto_id){
+      var c = ctContactoPorId(PRE.contacto_id);
+      if(c) sbSelect('contactos', 'id=eq.' + c.id + '&select=*').then(function(x){ if(x && x.ok && x.datos && x.datos[0]) Object.assign(c, x.datos[0]); });
+      if(typeof AGD !== 'undefined') AGD.cargado = false;
+      if(typeof SALA !== 'undefined') SALA.datos = null;
+    }
+    renderApp();
+  });
+}
+function preCambiaEstado(id, estado){
+  sbUpdate('presupuestos', 'id=eq.' + id, {estado:estado}).then(function(r){
+    if(!(r && r.ok)){ toast('No se ha podido cambiar: ' + sbMensaje(r)); preCargaLista(); return; }
+    var p = (PRE.lista || []).filter(function(x){ return x.id === id; })[0];
+    if(p){ p.estado = estado;
+      var c = p.contacto_id && ctContactoPorId(p.contacto_id);
+      if(c) sbSelect('contactos', 'id=eq.' + c.id + '&select=*').then(function(x){ if(x && x.ok && x.datos && x.datos[0]) Object.assign(c, x.datos[0]); }); }
+    toast('Presupuesto ' + (p ? p.codigo : '') + ': ' + estado + (estado === 'Aceptado' ? ' · el deal pasa a Negociación.' : ''));
+    renderApp();
+  });
+}
+/* Abre Presupuestos con el cliente y el pack que encaja con su cuello de botella. */
+var PRE_PACK_CUELLO = {captacion:'pk1', embudo:'pk2', atencion:'pk3'};
+function preDesdeContacto(c, cuello){
+  if(!c) return;
+  cuello = cuello || c.cuello || '';
+  PRE.codigo = ''; PRE.contacto_id = c.id; PRE.cuello = cuello; PRE.titulo = ''; PRE.desc = 0;
+  PRE.cliente = c.empresa || c.nombre; PRE.atencion = c.decisor_nombre ? c.decisor_nombre + (c.decisor_cargo ? ' (' + c.decisor_cargo + ')' : '') : (c.empresa && c.nombre !== c.empresa ? c.nombre : '');
+  PRE.email = c.decisor_email || c.email || ''; PRE.tel = c.decisor_telefono || ((c.prefijo || '') + ' ' + (c.telefono || '')).trim();
+  PRE.sel = {}; if(PRE_PACK_CUELLO[cuello]) PRE.sel[PRE_PACK_CUELLO[cuello]] = 1;
+  PRE.tab = 'propuesta';
+  if(typeof vpCierra === 'function') vpCierra();
+  S.view = 'quotes'; renderApp(); window.scrollTo(0, 0);
 }
 
 /* ==========================================================================
@@ -4850,7 +5040,7 @@ function ngAbreFicha(id, desde){
 }
 var NG_ICONO_EV = {llamada:['phone','#C084FC'], whatsapp:['chat','#4ADE80'], correo:['mail','#38BDF8'], reunion:['users','#FBBF24'], nota:['file','#94A3B8'],
   estado:['refresh','#17C8C0'], evento:['calendar','#FBBF24'], firma:['file','#4ADE80'], ia:['spark','#2DD4BF'], webhook:['plug','#818CF8'],
-  abierto:['eye','#38BDF8'], firmado:['check','#4ADE80'], comentario:['chat','#94A3B8'], cita:['calendar','#FBBF24']};
+  abierto:['eye','#38BDF8'], firmado:['check','#4ADE80'], comentario:['chat','#94A3B8'], cita:['calendar','#FBBF24'], presupuesto:['calc','#86EFAC']};
 
 /* ==========================================================================
    SALA DE VENTAS EN DIRECTO
@@ -5044,6 +5234,7 @@ function plTarjeta(c){
   var t = ngTemperatura(c), s = ngSla(c), tel = ctTelCompleto(c);
   return '<div class="ng-card" draggable="true" data-pl-card="'+c.id+'" style="--tc:'+t.c+'" tabindex="0">'+
     '<div class="ng-card-top"><div style="min-width:0;flex:1">'+(c.sector ? '<span class="pl-sec" style="--sc:'+venSector(c).c+'">'+esc(c.sector)+'</span>' : '')+
+      (VEN_CUELLOS[c.cuello] ? ' <span class="pl-sec" style="--sc:'+VEN_CUELLOS[c.cuello].c+'" title="'+esc(VEN_CUELLOS[c.cuello].pack)+'">'+esc(VEN_CUELLOS[c.cuello].n)+'</span>' : '')+
       '<div class="ng-card-n trunc">'+esc(c.empresa || c.nombre)+'</div>'+
       (c.empresa ? '<div class="tiny muted trunc">'+esc(c.nombre)+'</div>' : '')+'</div>'+
       '<span class="ng-temp" title="Temperatura del lead">'+ngTermo(t)+' '+esc(t.n)+'</span></div>'+
@@ -5573,7 +5764,7 @@ var PLANTILLAS_EMBUDO = {
   reactivacion:{n:'Reactivación de leads', pasos:['Selecciona leads sin actividad en 30 días', 'Mensaje de WhatsApp personalizado', 'Llamada del asistente si responde', 'Pasa al comercial si hay interés']},
   postventa:   {n:'Postventa y reseñas', pasos:['Encuesta de satisfacción a los 7 días', 'Pide reseña en Google si la nota es alta', 'Alerta al comercial si la nota es baja']}
 };
-var FILTROS_TL = [['todo','Todo'],['llamada','Llamadas'],['whatsapp','WhatsApp'],['correo','Correo'],['nota','Notas'],['firma','Firma'],['cita','Citas'],['ia','IA']];
+var FILTROS_TL = [['todo','Todo'],['llamada','Llamadas'],['presupuesto','Presupuestos'],['whatsapp','WhatsApp'],['correo','Correo'],['nota','Notas'],['firma','Firma'],['cita','Citas'],['ia','IA']];
 
 function ct360Defecto(){
   return {voz:{activo:false, nombre_agente:'', saludo:'', prompt:'', plantilla:'', transferencias:[], variables:{}},
@@ -6296,7 +6487,7 @@ var TABS_CT = [
   {k:'spec',    n:'Especificaciones técnicas', i:'cog'}
 ];
 var TIPOS_ACT_CT = {nota:['Nota','file'], llamada:['Llamada','phone'], whatsapp:['WhatsApp','chat'], correo:['Correo','mail'],
-  reunion:['Reunión','users'], estado:['Cambio de estado','refresh'], evento:['Sistema','bolt']};
+  reunion:['Reunión','users'], estado:['Cambio de estado','refresh'], evento:['Sistema','bolt'], presupuesto:['Presupuesto','calc']};
 var CT = {
   lista:[], cargando:false, cargado:false, error:'',
   filtro:'', tipoF:'', estadoF:'', etiquetaF:'', segF:'', faseF:'', tempF:'', gestorF:'', calidadF:'', activoF:'activos', orden:'actividad', vistaL:'', pagina:1, borrar:null,
@@ -6609,6 +6800,7 @@ function ctFichaPagina(){
         '<div class="small muted" style="margin-top:4px">'+esc(c.empresa || 'Sin empresa')+
           (c.gestor_id ? ' · Responsable: '+esc(ctNombreGestor(c.gestor_id) || '—') : '')+'</div>'+
         '<div class="row" style="gap:8px;flex-wrap:wrap;margin-top:8px;align-items:center">'+(c.sector ? '<span class="ll-sec" style="--sc:'+venSector(c).c+'">'+esc(c.sector)+'</span>' : '<span class="tiny" style="color:#FDE68A">Sin tipo de negocio</span>')+
+          venCuelloChip(c)+(Number(c.fuga_anual) ? '<span class="tiny muted">Fuga: <b style="color:var(--txt)">'+venEurosEnteros(c.fuga_anual)+'/año</b></span>' : '')+
           '<span class="tiny muted">'+ic('star',11).replace('<svg ', '<svg style="display:inline-block;vertical-align:-2px" ')+' '+(c.decisor_nombre ? 'Decide: <b style="color:var(--txt)">'+esc(c.decisor_nombre)+'</b>'+(c.decisor_cargo ? ' ('+esc(c.decisor_cargo)+')' : '') : 'Decisor sin identificar')+'</span>'+
           (c.proximo_paso ? '<span class="tiny muted">· Próximo paso: <b style="color:var(--txt)">'+esc(c.proximo_paso)+'</b></span>' : '')+'</div>'+
         (ctEtiquetas(c).length ? '<div class="row" style="gap:6px;flex-wrap:wrap;margin-top:8px">'+ctEtiquetas(c).map(function(t){
@@ -6616,6 +6808,7 @@ function ctFichaPagina(){
       '</div>'+
       '<div class="ct-acciones">'+
         (tel || c.decisor_telefono ? '<button class="btn btn-p" id="ct-guion">'+ic('phone',15)+' Llamar con guion</button>' : '')+
+        (venPuedePresupuestar() ? '<button class="btn btn-s" id="ct-presu">'+ic('calc',15)+' Presupuesto</button>' : '')+
         (tel ? '<a class="btn btn-s" href="tel:'+esc(tel)+'" data-ct-accion="llamada">'+ic('phone',15)+' Llamar</a>' : '<button class="btn btn-s" disabled>'+ic('phone',15)+' Sin teléfono</button>')+
         (tel ? '<a class="btn btn-s" href="https://wa.me/'+esc(wa)+'" target="_blank" rel="noopener" data-ct-accion="whatsapp">'+ic('chat',15)+' WhatsApp</a>' : '')+
         (c.email ? '<a class="btn btn-s" href="mailto:'+esc(c.email)+'" data-ct-accion="correo">'+ic('mail',15)+' Correo</a>' : '')+
@@ -7136,6 +7329,7 @@ function ctEventosFicha(){
   ct360Eventos(c); ngIntegraEventos();
   if(q('#ct-activo')) q('#ct-activo').onclick = function(){ ctCambiaActivo(c, !ctActivo(c)); };
   if(q('#ct-guion')) q('#ct-guion').onclick = function(){ llAbre(c); };
+  if(q('#ct-presu')) q('#ct-presu').onclick = function(){ preDesdeContacto(c); };
   if(q('#ct-eliminar')) q('#ct-eliminar').onclick = function(){ CT.borrar = c.id; renderApp(); var i = q('#ct-del-txt'); if(i) i.focus(); };
   if(q('#ct-del-no')) q('#ct-del-no').onclick = function(){ CT.borrar = null; renderApp(); };
   if(q('#ct-del-desact')) q('#ct-del-desact').onclick = function(){ CT.borrar = null; ctCambiaActivo(c, false); };
@@ -7435,7 +7629,8 @@ var RC_CLASES = {
   pptx:{t:'Presentación', ic:'slides', col:'#FBBF24', g:'linear-gradient(135deg,#78350F,#1F2937 70%)'},
   video:{t:'Vídeo', ic:'video', col:'#A78BFA', g:'linear-gradient(135deg,#4C1D95,#111827 70%)'},
   imagen:{t:'Imagen', ic:'image', col:'#34D399', g:'linear-gradient(135deg,#064E3B,#111827 70%)'},
-  doc:{t:'Documento', ic:'file', col:'#60A5FA', g:'linear-gradient(135deg,#1E3A8A,#111827 70%)'}
+  doc:{t:'Documento', ic:'file', col:'#60A5FA', g:'linear-gradient(135deg,#1E3A8A,#111827 70%)'},
+  brief:{t:'Brief', ic:'book', col:'#2DD4BF', g:'linear-gradient(135deg,#115E59,#0F172A 72%)'}
 };
 var RC_ACEPTA = '.pdf,.pptx,.mp4,.webm,.png,.jpg,.jpeg,.webp,.docx,.xlsx';
 var RC_NIVELES = ['Básico','Intermedio','Avanzado','Experto'];
@@ -7444,6 +7639,7 @@ function rcClase(tipo){
   tipo = String(tipo||'').toLowerCase();
   if(tipo === 'pdf') return 'pdf';
   if(tipo === 'pptx') return 'pptx';
+  if(tipo === 'brief') return 'brief';
   if(tipo === 'mp4' || tipo === 'webm') return 'video';
   if(tipo === 'png' || tipo === 'jpg' || tipo === 'jpeg' || tipo === 'webp') return 'imagen';
   return 'doc';
@@ -7458,7 +7654,7 @@ function rcDur(s){ if(!s && s !== 0) return ''; s = Math.round(s); var h = Math.
   return h ? h+' h '+(m ? m+' min' : '') : m ? m+' min'+(m < 10 && x ? ' '+x+' s' : '') : x+' s'; }
 function rcMinutos(r){
   var k = rcClase(r.tipo);
-  if(k === 'video') return r.duracion ? Math.max(1, Math.round(r.duracion / 60)) : 0;
+  if(k === 'video' || k === 'brief') return r.duracion ? Math.max(1, Math.round(r.duracion / 60)) : 0;
   if(k === 'pdf' || k === 'pptx') return r.paginas ? Math.max(2, Math.round(r.paginas * (k === 'pptx' ? 1 : 1.5))) : 0;
   return 0;
 }
@@ -7467,6 +7663,7 @@ function rcMeta(r){
   if(k === 'pdf' && r.paginas) p.push(r.paginas+' págs. · ≈ '+rcMinutos(r)+' min');
   if(k === 'pptx' && r.paginas) p.push(r.paginas+' diapositivas · ≈ '+rcMinutos(r)+' min');
   if(k === 'video' && r.duracion) p.push(rcDur(r.duracion));
+  if(k === 'brief') p.push('Lectura de ' + (rcMinutos(r) || 5) + ' min · en el CRM');
   if(r.tamano_bytes) p.push(rcTam(r.tamano_bytes));
   return p.join(' · ');
 }
@@ -7709,6 +7906,7 @@ function rcEventosEdita(){
 
 /* --- Descargas y estadísticas ---------------------------------------------- */
 function dsDescarga(r){
+  if(rcClase(r.tipo) === 'brief'){ if(!RV.nodo || RV.r !== r) rvAbre(r); setTimeout(function(){ window.print(); }, 400); return; }
   var ext = String(r.ruta||'').split('.').pop().toLowerCase();
   var nombreArchivo = r.nombre.replace(/\.(pdf|pptx|mp4|webm|png|jpe?g|webp|docx|xlsx)$/i, '') + '.' + (ext || r.tipo);
   descargaDocumento(nombreArchivo, r.ruta);
@@ -8066,6 +8264,7 @@ function rvAbre(r){
     '<button class="btn btn-p" id="rv-err-d">'+ic('download',15)+' Descargar el archivo</button></div>';
     var b = n.querySelector('#rv-err-d'); if(b) b.onclick = function(){ dsDescarga(r); }; };
   if(RV.clase === 'doc'){ rvDoc(); return; }
+  if(RV.clase === 'brief'){ rvBrief(); return; }
   rvFirma(r.ruta).then(function(url){
     if(!RV.nodo || RV.r !== r) return;
     RV.url = url;
@@ -8256,6 +8455,59 @@ function rvDoc(){
   c.innerHTML = '<div class="rv-err">'+ic('file',38)+'<b>'+esc(r.nombre)+'</b><span>Los documentos de Word y Excel se abren con su programa. Descárgalo para verlo completo.</span>'+
     (r.descripcion ? '<span class="muted">'+esc(r.descripcion)+'</span>' : '')+'<button class="btn btn-p" id="rv-doc-d">'+ic('download',15)+' Descargar ('+rcTam(r.tamano_bytes)+')</button></div>';
   c.querySelector('#rv-doc-d').onclick = function(){ dsDescarga(r); rvProgreso(100, 1); };
+}
+
+/* --------------------------------------------------------------------------
+   BRIEFS DE FORMACIÓN · Fichas de venta que se leen en el propio CRM.
+   El contenido va en «texto» como JSON: {kicker, resumen, cuando, secciones:[{t, b:[bloques]}]}.
+   Bloques: p (párrafo), g (guion), l (lista), n (lista numerada), t (tabla {h, f}),
+   clave, aviso, nunca ([[no, sí]]), obj ([[objeción, respuesta, por qué]]), ej (ejercicio), quiz ([[pregunta, respuesta]]).
+   -------------------------------------------------------------------------- */
+function rvBriefTxt(t){ return esc(String(t == null ? '' : t)).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/\[([^\]]+)\]/g, '<span class="bf-hueco">[$1]</span>'); }
+function rvBriefBloque(b){
+  if(b.p) return '<p>'+rvBriefTxt(b.p)+'</p>';
+  if(b.g) return '<blockquote class="bf-g">'+(b.q ? '<span class="bf-g-q">'+esc(b.q)+'</span>' : '')+rvBriefTxt(b.g)+'</blockquote>';
+  if(b.l) return '<ul class="bf-l">'+b.l.map(function(x){ return '<li>'+rvBriefTxt(x)+'</li>'; }).join('')+'</ul>';
+  if(b.n) return '<ol class="bf-n">'+b.n.map(function(x){ return '<li>'+rvBriefTxt(x)+'</li>'; }).join('')+'</ol>';
+  if(b.t) return '<div class="bf-t"><table><thead><tr>'+b.t.h.map(function(x){ return '<th>'+rvBriefTxt(x)+'</th>'; }).join('')+'</tr></thead><tbody>'+
+    b.t.f.map(function(f){ return '<tr>'+f.map(function(x){ return '<td>'+rvBriefTxt(x)+'</td>'; }).join('')+'</tr>'; }).join('')+'</tbody></table></div>';
+  if(b.clave) return '<div class="bf-box ok">'+ic('check',15)+'<div>'+rvBriefTxt(b.clave)+'</div></div>';
+  if(b.aviso) return '<div class="bf-box u">'+ic('alert',15)+'<div>'+rvBriefTxt(b.aviso)+'</div></div>';
+  if(b.nunca) return '<div class="bf-nunca"><div class="bf-nunca-h"><span>Nunca digas</span><span>Di en su lugar</span></div>'+
+    b.nunca.map(function(x){ return '<div class="bf-nunca-f"><span>'+rvBriefTxt(x[0])+'</span><span>'+rvBriefTxt(x[1])+'</span></div>'; }).join('')+'</div>';
+  if(b.obj) return '<div class="bf-objs">'+b.obj.map(function(x){ return '<details class="bf-obj"><summary>'+ic('chat',14)+'<b>«'+rvBriefTxt(x[0])+'»</b></summary>'+
+    '<blockquote class="bf-g">'+rvBriefTxt(x[1])+'</blockquote>'+(x[2] ? '<p class="bf-por">'+ic('spark',12)+' <span>'+rvBriefTxt(x[2])+'</span></p>' : '')+'</details>'; }).join('')+'</div>';
+  if(b.ej) return '<div class="bf-box ej">'+ic('target',15)+'<div><b>Práctica</b> · '+rvBriefTxt(b.ej)+'</div></div>';
+  if(b.quiz) return '<div class="bf-quiz"><div class="bf-quiz-h">'+ic('check',14)+' Autoevaluación · pulsa cada pregunta para ver la respuesta</div>'+b.quiz.map(function(x, i){
+    return '<details><summary>'+(i + 1)+'. '+rvBriefTxt(x[0])+'</summary><p>'+rvBriefTxt(x[1])+'</p></details>'; }).join('')+'</div>';
+  return '';
+}
+function rvBrief(){
+  var n = RV.nodo, r = RV.r, d = null; rvZoomUI(false);
+  try{ d = JSON.parse(r.texto || ''); }catch(e){ d = null; }
+  if(!d || !Array.isArray(d.secciones)) d = {resumen:r.descripcion || '', secciones:[{t:r.nombre, b:String(r.texto || '').split(/\n+/).filter(Boolean).map(function(x){ return {p:x}; })}]};
+  var main = n.querySelector('#rv-main'), side = n.querySelector('#rv-side');
+  side.innerHTML = '<div class="rv-side-h">En este brief</div>'+d.secciones.map(function(x, i){ return '<button class="bf-toc" data-bf-ir="'+i+'"><span>'+(i + 1)+'</span>'+esc(x.t)+'</button>'; }).join('');
+  main.innerHTML = '<article class="bf">'+
+    '<header class="bf-h"><div class="bf-k">'+ic('book',13)+' '+esc(d.kicker || 'BRIEF DE VENTA')+'</div><h1>'+esc(r.nombre)+'</h1>'+
+      (d.resumen ? '<p class="bf-res">'+rvBriefTxt(d.resumen)+'</p>' : '')+
+      '<div class="bf-meta">'+(r.nivel ? '<span>'+esc(r.nivel)+'</span>' : '')+(rcMinutos(r) ? '<span>'+ic('clock',12)+' '+rcMinutos(r)+' min</span>' : '')+
+        (r.ruta_formacion ? '<span>'+ic('target',12)+' '+esc(r.ruta_formacion)+' · paso '+(Number(r.orden) || 1)+'</span>' : '')+'</div>'+
+      (d.cuando ? '<div class="bf-cuando">'+ic('calendar',14)+'<div><b>Cuándo usarlo</b> · '+rvBriefTxt(d.cuando)+'</div></div>' : '')+'</header>'+
+    d.secciones.map(function(x, i){ return '<section class="bf-s" id="bf-s'+i+'"><h2><span>'+(i + 1)+'</span>'+esc(x.t)+'</h2>'+(x.b || []).map(rvBriefBloque).join('')+'</section>'; }).join('')+
+    '<footer class="bf-fin">'+ic('check',18)+'<div><b>Fin del brief.</b> Practícalo en voz alta y úsalo en tu próxima llamada: en el modo llamada tienes el guion, las preguntas y las objeciones a mano.</div></footer>'+
+  '</article>';
+  rvListo();
+  var marca = function(){ var max = main.scrollHeight - main.clientHeight, av = max > 20 ? main.scrollTop / max * 100 : 100, act = 0;
+    d.secciones.forEach(function(x, i){ var e = main.querySelector('#bf-s' + i); if(e && e.offsetTop - 120 <= main.scrollTop) act = i; });
+    if(av >= 97) act = d.secciones.length - 1;
+    side.querySelectorAll('[data-bf-ir]').forEach(function(b){ b.classList.toggle('on', Number(b.dataset.bfIr) === act); });
+    rvProgreso(av >= 97 ? 100 : av, act); };
+  main.addEventListener('scroll', marca, {passive:true});
+  RV.limpia.push(function(){ main.removeEventListener('scroll', marca); });
+  side.querySelectorAll('[data-bf-ir]').forEach(function(b){ b.onclick = function(){ var e = main.querySelector('#bf-s' + b.dataset.bfIr); if(e) main.scrollTop = e.offsetTop - 16; }; });
+  if(RV.posInicial){ var e0 = main.querySelector('#bf-s' + RV.posInicial); if(e0) main.scrollTop = e0.offsetTop - 16; }
+  setTimeout(marca, 50);
 }
 
 /* --------------------------------------------------------------------------
@@ -8843,6 +9095,57 @@ var VEN_OBJ = [
   ['No me interesa la inteligencia artificial', 'Lo entiendo. No le vendo IA: le enseño cuántos clientes se le escapan. La herramienta es lo de menos.'],
   ['Ahora no es buen momento', 'Sin problema. ¿Le llamo el [día] a primera hora o prefiere por la tarde? Lo dejo apuntado.']
 ];
+/* Cuello de botella: por dónde se le escapa el dinero. Cambia el gancho, las preguntas, las objeciones y el pack. */
+var VEN_CUELLOS = {
+  captacion:{n:'Captación de clientes', corto:'No le entran o se van sin dejar rastro', pack:'Pack 1 · El Capturador Web', pk:'pk1', precio:1700, c:'#38BDF8', ic:'target',
+    senales:['Tiene web o ficha de Google con visitas, pero casi nadie rellena el formulario', 'Fuera de horario nadie atiende a quien entra en la web', 'Vive del boca a boca y no controla cuántos clientes nuevos le llegan'],
+    preguntas:['¿Cómo le llegan hoy los clientes nuevos: web, Google, recomendación o anuncios?', 'De cada diez personas que entran en su web, ¿cuántas le dejan sus datos?', 'Si alguien entra en su web un domingo por la noche con una duda, ¿quién le contesta?', '¿Cuántos clientes nuevos al mes necesitaría para estar donde quiere?'],
+    gancho:'cómo un agente atiende a quien entra en su web o en su ficha de Google a cualquier hora, le resuelve las dudas y se queda con sus datos sin formularios',
+    obj:[['Ya tengo web y no me trae nada', 'Por eso mismo: la web enseña, pero no atiende. El agente convierte la visita en una conversación y la conversación en un contacto con nombre y teléfono. ¿Lo vemos el [día] con su propia web?'],
+      ['Me llegan por recomendación', 'Es su mejor canal y no lo tocamos. Pero hoy hasta el recomendado le busca en Google antes de llamar: que ahí le atienda alguien al momento.'],
+      ['Ya tengo un formulario de contacto', '¿Y cuántos lo rellenan? Un formulario es una puerta cerrada con un timbre; una conversación es alguien que abre la puerta.']],
+    noLleva:'No lleva WhatsApp Business API, flujos de rescate, integración con sus programas, reseñas automáticas ni vídeos.',
+    subir:'Si también le entran por anuncios o Instagram, el Capturador se le queda corto: le tapa la web y deja abierta la fuga de los anuncios (Pack 2 o 3).'},
+  embudo:{n:'Embudo y conversión', corto:'Le entran, pero se pierden por el camino', pack:'Pack 2 · El Súper-Setter', pk:'pk2', precio:2800, c:'#A78BFA', ic:'filter',
+    senales:['Invierte en anuncios y el WhatsApp está desbordado', 'Tardan horas en responder y nadie hace seguimiento', 'Su comercial pierde el tiempo con curiosos sin presupuesto', 'Tiene contactos antiguos que nadie vuelve a llamar'],
+    preguntas:['¿Cuántos contactos les entran al mes y por dónde?', 'Cuando entra un WhatsApp de un anuncio un viernes por la noche, ¿cuánto tardan en responder?', 'De cada diez que preguntan, ¿cuántos acaban comprando o viniendo a la cita?', '¿Qué pasa con los contactos de hace seis meses a los que nadie volvió a llamar?', '¿Cuántos comerciales atienden esas conversaciones a la vez?'],
+    gancho:'cómo un asistente coge cada mensaje que llega de sus anuncios en segundos, filtra al curioso y le deja en la agenda solo a quien puede comprar',
+    obj:[['Ya tengo una agencia', 'Perfecto, ya invierte en captar. De cada cien que dejan sus datos, ¿cuántos acaban entrando por su puerta? La agencia le llena el correo; nosotros nos ocupamos de los diez minutos siguientes, que es donde se pierde el dinero.'],
+      ['Mi equipo ya contesta los WhatsApp', 'Exacto: cuando tiene un hueco. Si el mensaje entra a las nueve de la noche y le contestan el lunes, esa persona ya ha preguntado a otros tres. El dinero se pierde en el tiempo de respuesta.'],
+      ['Los contactos que llegan no tienen dinero', 'Por eso se filtra antes: presupuesto, urgencia y quién decide se preguntan antes de dar la cita. Su comercial solo ve a los que van en serio.']],
+    noLleva:'No lleva el agente de la web, Instagram, integración con sus programas ni reseñas automáticas. Tope de 8 agentes.',
+    subir:'Si pasan los datos a mano a su programa, o son varias sedes o más de 8 comerciales: Pack 3. Y si no invierte nada en publicidad, el Súper-Setter no le sirve: bájalo al Pack 1.'},
+  atencion:{n:'Atención por voz y datos', corto:'No da abasto: teléfono, mensajes y datos a mano', pack:'Pack 3 · El Cerebro Absoluto', pk:'pk3', precio:3900, c:'#2DD4BF', ic:'phone',
+    senales:['El teléfono comunica en horas punta o nadie lo coge fuera de horario', 'Le entran por web, WhatsApp e Instagram y nada se habla entre sí', 'Pasan los datos a mano a su programa (ERP, software médico, CRM)', 'Varias sedes o más de ocho personas atendiendo'],
+    preguntas:['¿Cuántas llamadas reciben en un día normal? ¿Cuántas se quedan sin coger?', 'Si su recepción está atendiendo a alguien y suena el teléfono con un cliente nuevo, ¿quién lo coge?', '¿Su programa de gestión habla con su WhatsApp en tiempo real, o pasan los datos a mano?', '¿Cuántas horas al día pasa su equipo con papeleo en lugar de atender?', '¿Cuántas sedes o personas atienden a clientes?'],
+    gancho:'cómo un asistente atiende las llamadas y los mensajes que hoy se pierden, deja la cita puesta y la apunta sola en su programa, sin que nadie pase datos a mano',
+    obj:[['A mis clientes no les gustan los robots', 'Con razón, si habla de los de «marque 1». Este conversa con normalidad y se identifica como asistente, que además le protege legalmente. La pregunta es otra: ¿cuántas llamadas pierde cuando la línea está ocupada o cerrada?'],
+      ['Mi recepcionista ya coge el teléfono', 'Y lo hace bien, cuando no está atendiendo a otra persona. El asistente coge lo que ella no puede y le quita lo repetitivo para que atienda a quien tiene delante.'],
+      ['Cambiar de programa nos da pereza', 'No cambiamos su programa: nos conectamos a él. Nadie aprende nada nuevo; simplemente se deja de pasar datos a mano.']],
+    noLleva:'Lleva web, WhatsApp e Instagram coordinados. El agente de voz (teléfono) se presupuesta aparte: añádelo desde «Otros servicios» y confirma el importe con dirección.',
+    subir:'Si lo que más le duele es el teléfono, añade el agente de voz al presupuesto como línea aparte.'}
+};
+var VEN_PREGUNTAS_NIVEL = ['¿Cómo le entran hoy los clientes: por su web, por anuncios o por todos lados a la vez?', '¿Cuánto tarda su equipo en responder un WhatsApp que llega de un anuncio?',
+  '¿Cuántos comerciales van a gestionar esas conversaciones a la vez?', '¿Su programa de gestión habla con su WhatsApp en tiempo real, o pasan los datos a mano?'];
+function venPuedePresupuestar(){
+  var m = MENU.filter(function(x){ return x.id === 'quotes'; })[0]; if(!m) return false;
+  if(Array.isArray(S.modulosVisibles) && S.modulosVisibles.length) return S.modulosVisibles.indexOf('quotes') > -1;
+  return m.roles.indexOf(S.role) > -1;
+}
+function venCuelloChip(c){
+  var cu = VEN_CUELLOS[c.cuello]; if(!cu) return '';
+  return '<span class="ll-sec" style="--sc:'+cu.c+'" title="Cuello de botella · '+esc(cu.pack)+'">'+esc(cu.n)+'</span>';
+}
+function venEurosEnteros(n){ return String(Math.round(Number(n) || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' €'; }
+function venFuga(b){ var p = Number(b && b.perdidas) || 0, t = Number(b && b.ticket) || 0; return p > 0 && t > 0 ? p * t * 12 : 0; }
+/* Briefs de formación: se abren desde el modo llamada (por la etiqueta brief:clave). */
+var VEN_BRIEFS = null;
+function venAbreBrief(clave){
+  var abre = function(){ var r = (VEN_BRIEFS || []).filter(function(x){ return (' ' + String(x.etiquetas || '').replace(/,/g, ' ') + ' ').indexOf(' brief:' + clave + ' ') > -1; })[0];
+    if(r) rvAbre(r); else toast('Ese brief todavía no está en el Centro de Formación.'); };
+  if(VEN_BRIEFS) return abre();
+  sbSelect('recursos', 'tipo=eq.brief&order=orden.asc').then(function(x){ VEN_BRIEFS = x && x.ok ? (x.datos || []) : []; abre(); });
+}
 function venDia(){ var d = new Date(), n = 0; while(n < 2){ d.setDate(d.getDate() + 1); if(d.getDay() !== 0 && d.getDay() !== 6) n++; }
   return ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'][d.getDay()]; }
 function venTexto(t, c){
@@ -8862,7 +9165,8 @@ function llAbre(c, cola, pos){
   if(LL.grabadora && LL.grabadora.state === 'recording') try{ LL.grabadora.stop(); }catch(e){}
   clearInterval(LL.reloj);
   LL.c = c; LL.cola = cola || null; LL.pos = pos || 0; LL.t0 = null; LL.seg = 0; LL.quien = ''; LL.res = ''; LL.bant = {};
-  LL.notas = ''; LL.grab = null; LL.informado = false; LL.sig = {tipo:'', fecha:'', nota:''}; LL.perdido = false; LL.enviando = false;
+  LL.notas = ''; LL.grab = null; LL.informado = false; LL.sig = {tipo:'', fecha:'', nota:''}; LL.perdido = false; LL.enviando = false; LL.trasGuardar = '';
+  if(c.cuello && VEN_CUELLOS[c.cuello]) LL.bant.cuello = c.cuello;
   LL.dec = {decisor_nombre:c.decisor_nombre || '', decisor_cargo:c.decisor_cargo || '', decisor_telefono:c.decisor_telefono || '', decisor_email:c.decisor_email || ''};
   LL.previas = null; LL.obj = -1;
   if(!LL.nodo){ LL.nodo = document.createElement('div'); LL.nodo.className = 'll'; LL.nodo.id = 'll-root'; document.body.appendChild(LL.nodo); }
@@ -8894,13 +9198,14 @@ function llPinta(){
     ['0-5 s', 'Te presentas', c.decisor_nombre ? 'Hola, [Decisor], soy [Tu nombre], de Labs24k. Le llamo muy breve.' : 'Buenos días, ¿hablo con el gerente? Soy [Tu nombre], de Labs24k. Le llamo muy breve.'],
     ['5-25 s', 'El dato de su sector', sc.dato],
     ['25-35 s', 'El puente honesto', 'No sé si es su caso, y por eso quiero verlo con usted.'],
-    ['35-50 s', 'El gancho', 'Estoy por su zona el [día] y le enseño, en diez minutos, ' + sc.gancho + '.'],
+    ['35-50 s', 'El gancho', 'Estoy por su zona el [día] y le enseño, en diez minutos, ' + (VEN_CUELLOS[LL.bant.cuello] ? VEN_CUELLOS[LL.bant.cuello].gancho : sc.gancho) + '.'],
     ['50-60 s', 'Doble opción', '¿Le viene mejor el [día] a las 11:00 o a las 16:00?'],
     ['60-70 s', 'Confirmas', 'Repite día, hora y dirección, y pide su móvil directo para confirmar la víspera.']
   ];
   var bant = [['necesidad', 'Necesidad', sc.nec], ['autoridad', 'Decide', '¿Además de usted, quién más decide en esto?'],
     ['presupuesto', 'Presupuesto', '¿Tienen previsto invertir este año en mejorar la atención o la captación?'], ['plazo', 'Plazo', '¿Para cuándo le gustaría tenerlo resuelto?']];
   var hoy = new Date(), atajos = [['Mañana 10:00', 1, 10], ['Pasado 10:00', 2, 10], ['En 1 semana', 7, 10]];
+  var cu = VEN_CUELLOS[LL.bant.cuello], objs = (cu ? cu.obj : []).concat(VEN_OBJ), fuga = venFuga(LL.bant);
   n.innerHTML =
     '<div class="ll-top">'+
       '<div class="ll-tit"><span class="ll-sec" style="--sc:'+sc.c+'">'+esc(c.sector || sc.n)+'</span>'+
@@ -8930,14 +9235,30 @@ function llPinta(){
       '</section>'+
       /* Columna 2: guion */
       '<section class="ll-col ll-guion">'+
-        '<h4>'+ic('book',15)+' Guion · '+esc(sc.n)+'</h4>'+
+        '<h4>'+ic('book',15)+' Guion · '+esc(sc.n)+(cu ? ' · '+esc(cu.n) : '')+
+          '<button class="btn btn-s btn-xs ll-brief" data-ll-brief="'+(cu ? LL.bant.cuello : 'diagnostico')+'" title="Abrir el brief de formación">'+ic('book',12)+' Brief</button></h4>'+
+        '<div class="ll-diag"><div class="ll-diag-h">'+ic('target',13)+' ¿Por dónde se le escapa el dinero? <span class="tiny muted">(cuello de botella)</span></div>'+
+          '<div class="ll-cus">'+Object.keys(VEN_CUELLOS).map(function(k){ var x = VEN_CUELLOS[k];
+            return '<button class="ll-cu'+(LL.bant.cuello === k ? ' on' : '')+'" data-ll-cu="'+k+'" style="--cc:'+x.c+'">'+ic(x.ic,15)+'<b>'+esc(x.n)+'</b><span>'+esc(x.corto)+'</span></button>'; }).join('')+'</div>'+
+          (cu ? '<div class="ll-senales">'+cu.senales.map(function(t){ return '<span>'+ic('check',11)+' '+esc(t)+'</span>'; }).join('')+'</div>' :
+            '<p class="tiny muted" style="margin:8px 0 0">Si no lo sabes aún, averígualo con las preguntas de nivel (abajo) y elige el que más le duela.</p>')+
+        '</div>'+
         '<div class="ll-regla">'+ic('alert',13)+' La llamada vende la visita, no el sistema. No des precio por teléfono. No cuelgues sin fecha. Sin cifras inventadas.</div>'+
         '<div class="ll-pasos">'+pasos.map(function(p, i){ return '<div class="ll-paso"><span class="ll-paso-n">'+(i + 1)+'</span><div><div class="ll-paso-t">'+p[1]+' <span class="tiny muted">'+p[0]+'</span></div><p>'+esc(venTexto(p[2], c))+'</p></div></div>'; }).join('')+'</div>'+
         '<details class="ll-det"><summary>'+ic('users',13)+' Si te coge recepción</summary><p>'+esc(venTexto('«Soy [Tu nombre], de Labs24k. Trabajamos con ' + sc.pl + ' de la zona sobre las solicitudes que entran fuera de horario y se pierden. Quiero comentarlo dos minutos con el gerente. ¿Está en el despacho o le pillo en el móvil?»', c))+'</p>'+
           '<p class="tiny muted">Si insiste en si es para vender: «Es una propuesta de trabajo, sí, y por eso quiero hablar con quien decide en lugar de hacerle perder el tiempo a usted. ¿Me lo pasa?»</p></details>'+
+        '<h5>'+(cu ? 'Preguntas de diagnóstico · '+esc(cu.n) : 'Las cuatro preguntas que deciden su nivel')+'</h5><ol class="ll-preg">'+(cu ? cu.preguntas : VEN_PREGUNTAS_NIVEL).map(function(t){ return '<li>'+esc(t)+'</li>'; }).join('')+'</ol>'+
+        '<div class="ll-fuga"><div class="ll-diag-h">'+ic('chart',13)+' La cuenta de la fuga <span class="tiny muted">(que la cifra la diga él)</span></div>'+
+          '<div class="ll-fuga-f"><label>Clientes que se le escapan al mes<input class="inp" type="number" min="0" step="1" id="ll-perd" value="'+esc(LL.bant.perdidas || '')+'" placeholder="Ej. 8"></label>'+
+          '<span>×</span><label>Lo que le deja cada cliente (€)<input class="inp" type="number" min="0" step="10" id="ll-ticket" value="'+esc(LL.bant.ticket || '')+'" placeholder="Ej. 900"></label><span>× 12</span></div>'+
+          '<div class="ll-fuga-r" id="ll-fuga-r">'+llFugaTexto()+'</div></div>'+
         '<h5>Cualifica (BANT)</h5><div class="ll-bant">'+bant.map(function(b){ return '<label class="ll-b'+(LL.bant[b[0]] ? ' on' : '')+'"><input type="checkbox" data-ll-bant="'+b[0]+'"'+(LL.bant[b[0]] ? ' checked' : '')+'><span><b>'+b[1]+'</b> '+esc(b[2])+'</span></label>'; }).join('')+'</div>'+
-        '<h5>Objeciones</h5><div class="ll-objs">'+VEN_OBJ.map(function(o, i){ return '<button class="ll-obj'+(LL.obj === i ? ' on' : '')+'" data-ll-obj="'+i+'">'+esc(o[0])+'</button>'; }).join('')+'</div>'+
-        (LL.obj > -1 ? '<div class="ll-resp">'+ic('chat',13)+' '+esc(venTexto(VEN_OBJ[LL.obj][1], c))+'</div>' : '')+
+        '<h5>Objeciones</h5><p class="tiny muted" style="margin:-2px 0 8px">Escucha entera → aísla («¿algo más le frena?») → dale la razón en algo → responde en tres frases → cierra con pregunta.</p>'+
+        '<div class="ll-objs">'+objs.map(function(o, i){ return '<button class="ll-obj'+(LL.obj === i ? ' on' : '')+(cu && i < cu.obj.length ? ' cu' : '')+'" data-ll-obj="'+i+'">'+esc(o[0])+'</button>'; }).join('')+'</div>'+
+        (LL.obj > -1 && objs[LL.obj] ? '<div class="ll-resp">'+ic('chat',13)+' '+esc(venTexto(objs[LL.obj][1], c))+'</div>' : '')+
+        (cu ? '<div class="ll-pack" style="--cc:'+cu.c+'"><div class="row" style="justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap"><b>'+esc(cu.pack)+'</b><span class="ll-pack-p">'+venEurosEnteros(cu.precio)+' + IVA · pago único</span></div>'+
+          '<p>'+esc(cu.noLleva)+'</p><p class="tiny muted">'+esc(cu.subir)+'</p>'+
+          '<div id="ll-pack-c">'+llContraste()+'</div></div>' : '')+
       '</section>'+
       /* Columna 3: registro */
       '<section class="ll-col ll-reg">'+
@@ -8961,6 +9282,7 @@ function llPinta(){
         '<div class="ll-pie">'+
           (LL.error ? '<div class="tiny" style="color:#FCA5A5;margin-bottom:8px">'+esc(LL.error)+'</div>' : '')+
           '<button class="btn btn-p" id="ll-guardar"'+(LL.enviando ? ' disabled' : '')+'>'+ic('save',14)+' '+(LL.enviando ? 'Guardando…' : LL.cola && LL.pos < LL.cola.length - 1 ? 'Guardar y siguiente' : 'Guardar llamada')+'</button>'+
+          (venPuedePresupuestar() ? '<button class="btn btn-s" id="ll-presu"'+(LL.enviando ? ' disabled' : '')+' title="Guarda la llamada y abre el presupuesto con el pack que encaja">'+ic('calc',14)+' Guardar y presupuestar</button>' : '')+
           (LL.cola && LL.pos < LL.cola.length - 1 ? '<button class="btn btn-s" id="ll-saltar">Saltar ›</button>' : '')+
         '</div>'+
       '</section>'+
@@ -8971,6 +9293,12 @@ function llPinta(){
   $('#ll-empezar').onclick = llEmpieza;
   $$('[data-ll-dec]').forEach(function(i){ i.oninput = function(){ LL.dec[i.dataset.llDec] = i.value; }; });
   $$('[data-ll-bant]').forEach(function(i){ i.onchange = function(){ LL.bant[i.dataset.llBant] = i.checked; i.parentNode.classList.toggle('on', i.checked); }; });
+  $$('[data-ll-cu]').forEach(function(b){ b.onclick = function(){ LL.bant.cuello = LL.bant.cuello === b.dataset.llCu ? '' : b.dataset.llCu; LL.obj = -1; llPinta(); }; });
+  $$('[data-ll-brief]').forEach(function(b){ b.onclick = function(){ venAbreBrief(b.dataset.llBrief); }; });
+  ['#ll-perd', '#ll-ticket'].forEach(function(sel){ var i = $(sel); if(i){ i.oninput = function(){
+    var v = Math.max(0, Number(String(i.value).replace(',', '.')) || 0); LL.bant[sel === '#ll-perd' ? 'perdidas' : 'ticket'] = v || undefined;
+    var r = $('#ll-fuga-r'); if(r) r.innerHTML = llFugaTexto(); var k = $('#ll-pack-c'); if(k) k.innerHTML = llContraste(); }; } });
+  if($('#ll-presu')) $('#ll-presu').onclick = function(){ LL.trasGuardar = 'presu'; llGuarda(); };
   $$('[data-ll-obj]').forEach(function(b){ b.onclick = function(){ LL.obj = LL.obj === Number(b.dataset.llObj) ? -1 : Number(b.dataset.llObj); llPinta(); }; });
   $$('[data-ll-quien]').forEach(function(b){ b.onclick = function(){ LL.quien = b.dataset.llQuien; if(LL.quien === 'nadie' && !LL.res) llPonRes('no_contesta'); llPinta(); }; });
   $$('[data-ll-res]').forEach(function(b){ b.onclick = function(){ llPonRes(b.dataset.llRes); llPinta(); }; });
@@ -8992,6 +9320,17 @@ function llPinta(){
   $('#ll-guardar').onclick = function(){ llGuarda(); };
   if($('#ll-saltar')) $('#ll-saltar').onclick = function(){ llSiguiente(); };
   llPintaPrevias();
+}
+function llContraste(){
+  var cu = VEN_CUELLOS[LL.bant.cuello], f = venFuga(LL.bant); if(!cu) return '';
+  return f ? '<p class="ll-pack-c">'+ic('check',12)+' Contraste: se le escapan unos '+venEurosEnteros(f / 12)+' al mes; el sistema completo son '+venEurosEnteros(cu.precio)+' una vez.</p>' :
+    '<p class="ll-pack-c u">'+ic('alert',12)+' Di el precio solo después de que él haya calculado su fuga.</p>';
+}
+function llFugaTexto(){
+  var f = venFuga(LL.bant);
+  if(!f) return '<span class="tiny muted">Pregúntale cuántos clientes calcula que se le escapan y cuánto le deja cada uno. Apunta sus números, no los tuyos.</span>';
+  return '<b>'+venEurosEnteros(f)+' al año</b> <span class="tiny muted">('+venEurosEnteros(f / 12)+' al mes)</span>'+
+    '<div class="tiny">«Entonces, con sus propios números: unos '+esc(String(LL.bant.perdidas))+' al mes, a '+venEurosEnteros(LL.bant.ticket)+' de media… son unos '+venEurosEnteros(f)+' al año. ¿Le cuadra o me quedo corto?»</div>';
 }
 /* Al elegir el resultado se deducen con quién se ha hablado y el siguiente paso típico. */
 function llPonRes(k){
@@ -9051,8 +9390,9 @@ function llGuarda(){
     if(typeof SALA !== 'undefined') SALA.datos = null;
     if(CT.det === c.id) ctCargaDetalle(c.id);
     LL.enviando = false;
+    if(LL.trasGuardar === 'presu'){ var cuello = LL.bant.cuello; LL.cola = null; llCierra(); preDesdeContacto(c, cuello); return; }
     if(LL.cola && LL.pos < LL.cola.length - 1) llSiguiente(); else llCierra();
-  }).catch(function(e){ LL.enviando = false; LL.error = e.message || String(e); llPinta(); });
+  }).catch(function(e){ LL.enviando = false; LL.trasGuardar = ''; LL.error = e.message || String(e); llPinta(); });
 }
 function llSiguiente(){
   if(!LL.cola) return llCierra();
@@ -9063,6 +9403,7 @@ function llSiguiente(){
 /* Escape cierra el panel de venta, la cola y el modo llamada (este, preguntando si hay algo sin guardar). */
 document.addEventListener('keydown', function(e){
   if(e.key !== 'Escape') return;
+  if(typeof RV !== 'undefined' && RV.nodo) return;   // primero se cierra el visor (brief abierto encima)
   if(typeof LLQ !== 'undefined' && LLQ.nodo){ llColaCierra(); return; }
   if(typeof LL !== 'undefined' && LL.nodo){ if((LL.res || LL.notas || LL.grab) && !confirm('¿Cerrar sin guardar esta llamada?')) return; llCierra(); return; }
   if(typeof VP !== 'undefined' && VP.nodo) vpCierra();
@@ -9158,11 +9499,16 @@ function vpPinta(){
     '<div class="vp-prox'+(seg && seg.col === 'red' ? ' u' : '')+'">'+ic('calendar',15)+'<div style="flex:1;min-width:0">'+
       (c.proximo_contacto || c.proximo_paso ? '<b>Próximo paso:</b> '+esc(c.proximo_paso || 'Seguimiento')+(seg ? ' · <span class="chip '+seg.col+'">'+esc(seg.txt)+'</span>' : '') :
         '<span style="color:#FDE68A"><b>Sin próximo paso.</b> Llama y deja la siguiente acción con fecha.</span>')+'</div></div>'+
+    (c.cuello || Number(c.fuga_anual) ? '<div class="vp-diag">'+ic('target',15)+'<div style="flex:1;min-width:0">'+
+      (VEN_CUELLOS[c.cuello] ? '<b>'+esc(VEN_CUELLOS[c.cuello].n)+'</b> → '+esc(VEN_CUELLOS[c.cuello].pack) : '<b>Sin cuello de botella</b>')+
+      (Number(c.fuga_anual) ? '<div class="tiny muted">Fuga que reconoce el cliente: <b style="color:var(--txt)">'+venEurosEnteros(c.fuga_anual)+' al año</b></div>' : '')+'</div></div>' :
+      '<div class="vp-diag u">'+ic('target',15)+'<span class="tiny">Sin diagnóstico: en la próxima llamada averigua por dónde se le escapa el dinero y calcula su fuga.</span></div>')+
     /* Acciones */
     '<div class="vp-acc">'+
       '<button class="btn btn-p" id="vp-llamar">'+ic('phone',14)+' Llamar con guion</button>'+
       '<button class="btn btn-s" id="vp-cita">'+ic('calendar',14)+' Agendar</button>'+
       (sig && c.fase !== 'perdido' ? '<button class="btn btn-s" id="vp-avanza">'+ic('arrowRight',14)+' Pasar a '+esc(sig.n)+'</button>' : '')+
+      (venPuedePresupuestar() ? '<button class="btn btn-s" id="vp-presu">'+ic('calc',14)+' Presupuesto</button>' : '')+
       '<button class="btn btn-s" id="vp-ficha">'+ic('eye',14)+' Ficha completa</button></div>'+
     /* Decisor */
     '<h5>Quien decide</h5><div class="vp-dec">'+(c.decisor_nombre ? '<b>'+esc(c.decisor_nombre)+'</b>'+(c.decisor_cargo ? ' · '+esc(c.decisor_cargo) : '') : '<span class="tiny" style="color:#FDE68A">Sin identificar todavía: pregúntalo en la próxima llamada.</span>')+
@@ -9179,6 +9525,7 @@ function vpPinta(){
   $('#vp-llamar').onclick = function(){ vpCierra(); llAbre(c); };
   $('#vp-cita').onclick = function(){ vpCierra(); agdNuevaCita({contacto_id:c.id}, 'pipeline'); };
   $('#vp-ficha').onclick = function(){ vpCierra(); ngAbreFicha(c.id, 'pipeline'); };
+  if($('#vp-presu')) $('#vp-presu').onclick = function(){ preDesdeContacto(c); };
   if($('#vp-avanza')) $('#vp-avanza').onclick = function(){ vpCierra(); plMueve(c.id, sig.k); };
   venAudioEventos(n);
 }
@@ -10947,7 +11294,9 @@ var SABER = [
   {k:['metatok','webmail','correo','enlace','acceso directo'],
    r:'En «Webmail y MetaTok» tienes los accesos directos a app.metatok.ai y hostalia.webmail.es. Las URLs se cambian en Configuración → Redirecciones.'},
   {k:['guardar','se borra','se pierde','recargar','persistencia'],
-   r:'La configuración (tarifas, URLs, permisos) sí se guarda en tu navegador. Los datos operativos (clientes, presupuestos, candidatos) vuelven al estado inicial al recargar: para que persistan hace falta conectar la base de datos del servidor.'},
+   r:'Los contactos, las llamadas, la agenda, los presupuestos registrados, los contratos y la formación se guardan en el servidor y no se pierden al recargar. Algunos módulos de demostración (Automation Packs, Packs Web 3D) todavía trabajan solo en el navegador.'},
+  {k:['presupuesto','presupuestos','propuesta','pack'],
+   r:'Abre «Presupuestos» desde la ficha del cliente, el panel del embudo o el modo llamada («Guardar y presupuestar»): llega con el cliente y el pack que encaja con su cuello de botella. Al pulsar «Registrar presupuesto» se guarda con su código, el cliente pasa a Propuesta y tienes el seguimiento a las 48 h en la agenda.'},
   {k:['error 500','no carga','blanco','no funciona','falla'],
    r:'Casi siempre es el .htaccess. Renómbralo en el servidor y la aplicación arranca: funciona sin él. Si la página sale en blanco, es que el .htaccess y el index.html no son del mismo paquete.'},
   {k:['rgpd','datos','protección','proteccion','legal'],

@@ -97,6 +97,7 @@ function labs_papelera_contacto($c)
         'llamadas' => labs_tabla_existe('llamadas') ? labs_papelera_filas('SELECT * FROM llamadas WHERE contacto_id = ?', array($id)) : array(),
         'citas' => labs_tabla_existe('citas') ? labs_q('SELECT id FROM citas WHERE contacto_id = ?', array($id))->fetchAll(PDO::FETCH_COLUMN) : array(),
         'contratos' => labs_q('SELECT id FROM contratos WHERE contacto_id = ?', array($id))->fetchAll(PDO::FETCH_COLUMN),
+        'presupuestos' => labs_columna_existe(labs_db(), 'presupuestos', 'contacto_id') ? labs_q('SELECT id FROM presupuestos WHERE contacto_id = ?', array($id))->fetchAll(PDO::FETCH_COLUMN) : array(),
     );
     $rutas = labs_papelera_archivos_de('contactos/' . $id);
     foreach ($datos['documentos'] as $d) {
@@ -183,6 +184,9 @@ function labs_papelera_restaura($p)
         }
         foreach (($d['contratos'] ?? array()) as $kid) {
             labs_q('UPDATE contratos SET contacto_id = ? WHERE id = ? AND contacto_id IS NULL', array($c['id'], (int) $kid));
+        }
+        foreach (($d['presupuestos'] ?? array()) as $pid) {
+            labs_q('UPDATE presupuestos SET contacto_id = ? WHERE id = ? AND contacto_id IS NULL', array($c['id'], (int) $pid));
         }
         labs_q('INSERT INTO contacto_eventos (contacto_id, autor_id, tipo, texto, ts) VALUES (?,?,?,?,?)',
             array($c['id'], labs_uid(), 'evento', 'Contacto restaurado desde la papelera.', labs_ahora()));

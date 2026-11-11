@@ -578,6 +578,9 @@ function labs_tablas()
         'despues_borrar' => function ($v) {
             // Los contratos y citas se conservan (sin contacto); sus archivos se borran del almacén.
             labs_q('UPDATE contratos SET contacto_id = NULL WHERE contacto_id = ?', array($v['id']));
+            if (labs_columna_existe(labs_db(), 'presupuestos', 'contacto_id')) {
+                labs_q('UPDATE presupuestos SET contacto_id = NULL WHERE contacto_id = ?', array($v['id']));
+            }
             labs_almacen_borra_carpeta('contactos/' . (int) $v['id']);
             labs_anota('Contacto eliminado', '«' . $v['nombre'] . '»' . ($v['empresa'] !== '' ? ' (' . $v['empresa'] . ')' : '') . ' · id ' . $v['id']);
         },
