@@ -191,6 +191,48 @@ diagnóstico, las objeciones que salen primero y el pack recomendado:
   «Presupuestos»). Si se borra el cliente, sus presupuestos se conservan; al
   restaurarlo desde la papelera vuelven a ligarse.
 
+### Registro de principio a fin y ficha obligatoria
+
+- **Ficha del cliente en el modo llamada**: tipo de negocio, teléfono, correo y
+  web de la empresa, y quien decide (nombre, cargo, móvil, correo), con un
+  medidor de «ficha completa» que dice qué falta.
+- **Datos obligatorios** (comprobados también en el servidor, no se pueden
+  saltar): para registrar un resultado que avanza la venta (interesado, cita,
+  pide propuesta, cierre verbal) la ficha necesita tipo de negocio, nombre y
+  cargo de quien decide y su móvil o correo. Para presupuestar, quien decide y
+  un correo; si faltan, se pueden completar desde la propia propuesta
+  («A la atención de» y «Correo de contacto») y pasan solos a la ficha.
+  Un «no contesta» o «buzón» se registra siempre.
+- **Lo que dice el cliente**: sus palabras literales, aparte de las notas del
+  comercial; las **objeciones** que se pulsan durante la llamada y las
+  **señales** marcadas (que sugieren el cuello de botella) quedan registradas.
+- **Cambios de datos**: cada cambio de teléfono, correo, web, sector o persona
+  que decide queda en el historial con quién, cuándo, antes y después
+  (filtro «Cambios de datos»).
+- **Expediente de la cuenta** (arriba en la ficha): hitos de principio a fin
+  (alta, primera llamada, habla con quien decide, visita, presupuesto,
+  aceptado, firmado), llamadas, diagnóstico y fuga, presupuestos, próximo paso,
+  lo que ha dicho el cliente y las objeciones y señales acumuladas.
+
+## Centro de Prospección
+
+Menú «Centro de Prospección» (dirección, jefes de equipo y comerciales; cada
+comercial ve solo lo suyo y dirección puede elegir comercial o todo el equipo).
+Periodo: hoy, 7, 30, 90 días o un año.
+
+- Llamadas, contacto con quien decide, interesados, visitas, presupuestado y
+  aceptado.
+- **Embudo de la prospección** con la conversión de cada paso: donde más cae,
+  ahí está el atasco del equipo.
+- Actividad por día, semana o mes; **mejores horas para llamar** (porcentaje de
+  llamadas que llegan a quien decide en cada franja).
+- **Objeciones que más se oyen** (con acceso al brief para rebatirlas),
+  cuellos de botella detectados y resultados por tipo de negocio.
+- Ranking del equipo (dirección).
+- **Calidad de los datos**: porcentaje de fichas completas, lo que más falta y
+  la lista de clientes por completar, con acceso directo a la ficha o a llamar.
+- Lo último que han dicho los clientes, para aprender de cada conversación.
+
 ## Briefs de speech telefónico (Centro de Formación)
 
 Ruta **«Speech telefónico · nivel experto»**, con 7 briefs que se leen en el
@@ -326,5 +368,5 @@ de seguridad cifradas.
 
 ## Pruebas
 
-45 + 25 + 30 + 32 + 32 pruebas del servidor y 34 + 36 + 49 + 36 + 37 comprobaciones en el navegador, incluido el móvil,
+45 + 25 + 30 + 32 + 32 + 31 pruebas del servidor y 34 + 36 + 49 + 36 + 37 + 35 comprobaciones en el navegador, incluido el móvil,
 además de todas las anteriores del CRM.

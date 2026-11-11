@@ -184,6 +184,11 @@ try {
         $r = labs_papelera($metodo, isset($m[1]) ? $m[1] : '');
         $estado = $r[0];
         $resp = $r[1];
+    } elseif (preg_match('#^/ventas(/[a-z]*)?$#', $ruta, $m)) {
+        /* --- Centro de Prospección: cifras del cold calling ---------------- */
+        $r = labs_ventas_panel($metodo, isset($m[1]) ? $m[1] : '', $pares);
+        $estado = $r[0];
+        $resp = $r[1];
     } elseif (preg_match('#^/recursos(/[a-z0-9/_-]*)?$#', $ruta, $m)) {
         /* --- Formación: progreso y resumen -------------------------------- */
         $r = labs_recursos($metodo, isset($m[1]) ? $m[1] : '', $metodo === 'GET' ? array() : labs_cuerpo_json(), $pares);

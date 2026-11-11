@@ -8,7 +8,7 @@
  */
 defined('LABS') || exit;
 
-define('LABS_VERSION_ESQUEMA', 13);
+define('LABS_VERSION_ESQUEMA', 14);
 
 function labs_columna_existe(PDO $db, $tabla, $col)
 {
@@ -174,6 +174,8 @@ function labs_migra(PDO $db)
         array('contactos', 'decisor_telefono', "ALTER TABLE contactos ADD COLUMN decisor_telefono VARCHAR(40) NOT NULL DEFAULT ''"),
         array('contactos', 'decisor_email', "ALTER TABLE contactos ADD COLUMN decisor_email VARCHAR(190) NOT NULL DEFAULT ''"),
         array('contactos', 'proximo_paso', "ALTER TABLE contactos ADD COLUMN proximo_paso VARCHAR(200) NOT NULL DEFAULT ''"),
+        // v14 · Web del contacto (para preparar la llamada).
+        array('contactos', 'web', "ALTER TABLE contactos ADD COLUMN web VARCHAR(200) NOT NULL DEFAULT ''"),
         // v13 · Cuello de botella y fuga estimada del contacto; presupuestos ligados al contacto.
         array('contactos', 'cuello', "ALTER TABLE contactos ADD COLUMN cuello VARCHAR(20) NOT NULL DEFAULT ''"),
         array('contactos', 'fuga_anual', 'ALTER TABLE contactos ADD COLUMN fuga_anual DECIMAL(12,2) NOT NULL DEFAULT 0'),

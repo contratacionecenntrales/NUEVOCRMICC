@@ -74,7 +74,7 @@ function labs_tablas_ventas(&$T, $AHORA)
     }
     $T['contactos']['cols'] += array('sector' => array('t', ''), 'decisor_nombre' => array('t', ''), 'decisor_cargo' => array('t', ''),
         'decisor_telefono' => array('t', ''), 'decisor_email' => array('t', ''), 'proximo_paso' => array('t', ''),
-        'cuello' => array('t', ''), 'fuga_anual' => array('n', 0));
+        'cuello' => array('t', ''), 'fuga_anual' => array('n', 0), 'web' => array('t', ''));
     $vieja = $T['contactos']['valida'];
     $T['contactos']['valida'] = function ($f) use ($vieja) {
         $e = $vieja($f);
@@ -95,7 +95,20 @@ function labs_tablas_ventas(&$T, $AHORA)
         if ((float) ($f['fuga_anual'] ?? 0) < 0 || (float) ($f['fuga_anual'] ?? 0) > 100000000) {
             return 'La fuga estimada no es válida.';
         }
+        $web = (string) ($f['web'] ?? '');
+        if ($web !== '' && (mb_strlen($web) > 200 || !preg_match('#^(https?://)?[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+(:[0-9]{2,5})?(/[^\s<>"]*)?$#i', $web))) {
+            return 'La web no es válida (ejemplo: www.clinica.es).';
+        }
         return null;
+    };
+
+    // Cada cambio en los datos de contacto queda en el historial: quién, cuándo, antes y después.
+    $despues = $T['contactos']['despues_editar'] ?? null;
+    $T['contactos']['despues_editar'] = function ($v, $n) use ($despues) {
+        if ($despues) {
+            $despues($v, $n);
+        }
+        labs_ventas_anota_cambios($v, $n);
     };
 
     $T['llamadas'] = array(
@@ -157,6 +170,27 @@ function labs_tablas_ventas(&$T, $AHORA)
             foreach (array('perdidas', 'ticket') as $k) {
                 if (isset($b[$k]) && (!is_numeric($b[$k]) || $b[$k] < 0 || $b[$k] > 10000000)) {
                     return 'Los números de la fuga no son válidos.';
+                }
+            }
+            if (mb_strlen((string) ($b['literal'] ?? '')) > 3000) {
+                return 'Lo que dice el cliente es demasiado largo (máximo 3.000 caracteres).';
+            }
+            foreach (array('objeciones', 'senales') as $k) {
+                if (isset($b[$k]) && (!is_array($b[$k]) || count($b[$k]) > 25)) {
+                    return 'Lista de ' . $k . ' no válida.';
+                }
+                foreach ((array) ($b[$k] ?? array()) as $x) {
+                    if (!is_string($x) || mb_strlen($x) > 160) {
+                        return 'Lista de ' . $k . ' no válida.';
+                    }
+                }
+            }
+            // Si la llamada avanza la venta, la ficha tiene que estar al día: sin datos no hay seguimiento posible.
+            if (in_array($f['resultado'], labs_ventas_positivos(), true)) {
+                $c = labs_fila('SELECT * FROM contactos WHERE id = ?', array((int) $f['contacto_id']));
+                $faltan = $c ? labs_ventas_faltan($c, 'llamada') : array();
+                if ($faltan) {
+                    return 'Para registrar «' . labs_ventas_resultados()[$f['resultado']][0] . '» actualiza antes la ficha: falta ' . implode(', ', $faltan) . '.';
                 }
             }
             return null;
@@ -225,6 +259,13 @@ function labs_tablas_ventas(&$T, $AHORA)
             foreach (array('atencion' => 200, 'tel' => 40, 'titulo' => 200, 'iban' => 40, 'nota' => 2000) as $k => $max) {
                 if (mb_strlen((string) ($d[$k] ?? '')) > $max) {
                     return 'El campo «' . $k . '» es demasiado largo.';
+                }
+            }
+            if (!empty($f['contacto_id']) && empty($f['id'])) {
+                $c = labs_fila('SELECT * FROM contactos WHERE id = ?', array((int) $f['contacto_id']));
+                $faltan = $c ? labs_ventas_faltan($c, 'presupuesto') : array();
+                if ($faltan) {
+                    return 'Antes de presupuestar, completa la ficha del cliente: falta ' . implode(', ', $faltan) . '.';
                 }
             }
             return null;
@@ -369,6 +410,15 @@ function labs_ventas_tras_llamada($n)
         $txt .= "\nCuello de botella: " . $cuellos[$b['cuello']][0] . ' → ' . $cuellos[$b['cuello']][1];
         $cambios['cuello'] = $b['cuello'];
     }
+    if (trim((string) ($b['literal'] ?? '')) !== '') {
+        $txt .= "\nEl cliente dice: «" . mb_substr(trim($b['literal']), 0, 1500) . '»';
+    }
+    if (!empty($b['objeciones'])) {
+        $txt .= "\nObjeciones: " . implode(' · ', array_slice(array_map('strval', (array) $b['objeciones']), 0, 25));
+    }
+    if (!empty($b['senales'])) {
+        $txt .= "\nSeñales: " . implode(' · ', array_slice(array_map('strval', (array) $b['senales']), 0, 25));
+    }
     if (!empty($b['perdidas']) && !empty($b['ticket'])) {
         $anual = round((float) $b['perdidas'] * (float) $b['ticket'] * 12, 2);
         $txt .= "\nFuga que reconoce el cliente: " . rtrim(rtrim(number_format((float) $b['perdidas'], 1, ',', '.'), '0'), ',') . ' clientes/mes × ' .
@@ -433,4 +483,252 @@ function labs_ventas_sector_de($texto)
         }
     }
     return '';
+}
+
+/** Resultados de llamada que hacen avanzar la venta (exigen la ficha al día). */
+function labs_ventas_positivos()
+{
+    return array('interesado', 'cita', 'propuesta', 'cierre_verbal');
+}
+
+/**
+ * Lo que le falta a la ficha de un contacto.
+ *   'llamada'     · para registrar un resultado positivo: sector, persona que decide, su cargo y cómo localizarla.
+ *   'presupuesto' · para presupuestar: persona que decide y un correo al que mandarlo.
+ *   'completa'    · ficha completa (lo que mide la calidad de datos).
+ */
+function labs_ventas_faltan($c, $para)
+{
+    $v = function ($k) use ($c) { return trim((string) ($c[$k] ?? '')) !== ''; };
+    $f = array();
+    if ($para === 'llamada' || $para === 'completa') {
+        if (!$v('sector')) {
+            $f[] = 'el tipo de negocio';
+        }
+        if (!$v('decisor_nombre')) {
+            $f[] = 'el nombre de quien decide';
+        }
+        if (!$v('decisor_cargo')) {
+            $f[] = 'su cargo';
+        }
+        if (!$v('decisor_telefono') && !$v('decisor_email')) {
+            $f[] = 'su móvil directo o su correo';
+        }
+    }
+    if ($para === 'presupuesto') {
+        if (!$v('decisor_nombre')) {
+            $f[] = 'el nombre de quien decide';
+        }
+        if (!$v('decisor_email') && !$v('email')) {
+            $f[] = 'un correo al que enviarlo';
+        }
+    }
+    if ($para === 'completa') {
+        if (!$v('telefono')) {
+            $f[] = 'el teléfono de la empresa';
+        }
+        if (!$v('email') && !$v('decisor_email')) {
+            $f[] = 'un correo';
+        }
+    }
+    return $f;
+}
+
+/** Anota en el historial qué datos de contacto han cambiado (antes → después). */
+function labs_ventas_anota_cambios($v, $n)
+{
+    $campos = array('nombre' => 'Nombre', 'empresa' => 'Empresa', 'prefijo' => 'Prefijo', 'telefono' => 'Teléfono', 'email' => 'Correo',
+        'web' => 'Web', 'sector' => 'Tipo de negocio', 'decisor_nombre' => 'Quien decide', 'decisor_cargo' => 'Cargo',
+        'decisor_telefono' => 'Móvil de quien decide', 'decisor_email' => 'Correo de quien decide');
+    $l = array();
+    foreach ($campos as $k => $et) {
+        if (!array_key_exists($k, $v) || !array_key_exists($k, $n)) {
+            continue;
+        }
+        $a = trim((string) $v[$k]);
+        $b = trim((string) $n[$k]);
+        if ($a !== $b) {
+            $l[] = $et . ': ' . ($a === '' ? '(vacío)' : mb_substr($a, 0, 120)) . ' → ' . ($b === '' ? '(vacío)' : mb_substr($b, 0, 120));
+        }
+    }
+    if ($l) {
+        labs_q('INSERT INTO contacto_eventos (contacto_id, autor_id, tipo, texto, ts) VALUES (?,?,?,?,?)',
+            array($n['id'], labs_uid(), 'datos', mb_substr('Datos actualizados' . "\n" . implode("\n", $l), 0, 2000), labs_ahora()));
+    }
+}
+
+/* --- Centro de Prospección: cifras reales del cold calling ----------------- */
+function labs_ventas_panel($metodo, $sub, $pares)
+{
+    $u = labs_usuario(true);
+    if ($metodo !== 'GET' || ($sub !== '' && $sub !== '/panel')) {
+        throw new ErrorApi('Ruta no encontrada.', 404, 'PGRST000');
+    }
+    if (!labs_puedo('contactos.ver')) {
+        throw new ErrorApi('No tienes acceso a la prospección.', 403, '42501');
+    }
+    $par = function ($k) use ($pares) {
+        foreach ($pares as $x) {
+            if ($x[0] === $k) {
+                return $x[1];
+            }
+        }
+        return null;
+    };
+    $dias = (int) $par('dias');
+    if (!in_array($dias, array(1, 7, 30, 90, 365), true)) {
+        $dias = 30;
+    }
+    $amplio = in_array(labs_mi_rol(), array('admin', 'manager'), true);
+    $quien = $amplio ? (string) ($par('comercial') ?? '') : $u['id'];
+    if ($quien !== '' && !preg_match('/^[0-9a-f-]{36}$/', $quien)) {
+        $quien = $u['id'];
+    }
+    $tz = new DateTimeZone('Europe/Madrid');
+    $ini = new DateTime('today', $tz);
+    $ini->modify('-' . ($dias - 1) . ' days');
+    $ini->setTimezone(new DateTimeZone('UTC'));
+    $desde = $ini->format('Y-m-d H:i:s');
+    $w = 'l.inicio >= ?' . ($quien !== '' ? ' AND l.autor_id = ?' : '');
+    $arg = $quien !== '' ? array($desde, $quien) : array($desde);
+    $filas = labs_q("SELECT l.id, l.contacto_id, l.autor_id, l.inicio, l.duracion, l.con_quien, l.resultado, l.bant, l.notas,
+                            c.empresa, c.nombre, c.sector
+                     FROM llamadas l LEFT JOIN contactos c ON c.id = l.contacto_id WHERE $w ORDER BY l.inicio DESC LIMIT 20000", $arg)->fetchAll();
+    $pw = 'creado >= ?' . ($quien !== '' ? ' AND autor_id = ?' : '');
+    $pres = labs_q("SELECT id, codigo, cliente, autor_id, base, estado, creado FROM presupuestos WHERE $pw ORDER BY id DESC", $arg)->fetchAll();
+
+    $positivos = labs_ventas_positivos();
+    $t = array('llamadas' => 0, 'con_persona' => 0, 'decisor' => 0, 'interesados' => 0, 'citas' => 0, 'minutos' => 0, 'contactos' => 0,
+        'presupuestos' => count($pres), 'presupuestado' => 0, 'aceptados' => 0, 'aceptado' => 0);
+    $dia = array();
+    for ($i = 0; $i < $dias; $i++) {
+        $d = new DateTime('today', $tz);
+        $d->modify('-' . ($dias - 1 - $i) . ' days');
+        $dia[$d->format('Y-m-d')] = array('llamadas' => 0, 'decisor' => 0, 'citas' => 0);
+    }
+    $hora = array();
+    for ($h = 7; $h <= 22; $h++) {
+        $hora[$h] = array('llamadas' => 0, 'decisor' => 0);
+    }
+    $obj = array();
+    $cue = array();
+    $sec = array();
+    $res = array();
+    $equipo = array();
+    $contactos = array();
+    $recientes = array();
+    foreach ($filas as $f) {
+        $b = json_decode((string) $f['bant'], true);
+        $b = is_array($b) ? $b : array();
+        $t['llamadas']++;
+        $t['minutos'] += (int) $f['duracion'];
+        $contactos[$f['contacto_id']] = true;
+        $persona = $f['con_quien'] !== 'nadie';
+        $dec = $f['con_quien'] === 'decisor';
+        $pos = in_array($f['resultado'], $positivos, true);
+        $cita = in_array($f['resultado'], array('cita', 'propuesta', 'cierre_verbal'), true);
+        $t['con_persona'] += $persona ? 1 : 0;
+        $t['decisor'] += $dec ? 1 : 0;
+        $t['interesados'] += $pos ? 1 : 0;
+        $t['citas'] += $cita ? 1 : 0;
+        $res[$f['resultado']] = ($res[$f['resultado']] ?? 0) + 1;
+        $fl = new DateTime($f['inicio'], new DateTimeZone('UTC'));
+        $fl->setTimezone($tz);
+        $k = $fl->format('Y-m-d');
+        if (isset($dia[$k])) {
+            $dia[$k]['llamadas']++;
+            $dia[$k]['decisor'] += $dec ? 1 : 0;
+            $dia[$k]['citas'] += $cita ? 1 : 0;
+        }
+        $h = (int) $fl->format('G');
+        if (isset($hora[$h])) {
+            $hora[$h]['llamadas']++;
+            $hora[$h]['decisor'] += $dec ? 1 : 0;
+        }
+        foreach ((array) ($b['objeciones'] ?? array()) as $o) {
+            $o = mb_substr((string) $o, 0, 160);
+            $obj[$o] = ($obj[$o] ?? 0) + 1;
+        }
+        if (($b['cuello'] ?? '') !== '') {
+            $cue[$b['cuello']] = ($cue[$b['cuello']] ?? 0) + 1;
+        }
+        $s = $f['sector'] !== null && $f['sector'] !== '' ? $f['sector'] : 'Sin tipo de negocio';
+        if (!isset($sec[$s])) {
+            $sec[$s] = array('llamadas' => 0, 'decisor' => 0, 'interesados' => 0);
+        }
+        $sec[$s]['llamadas']++;
+        $sec[$s]['decisor'] += $dec ? 1 : 0;
+        $sec[$s]['interesados'] += $pos ? 1 : 0;
+        $a = (string) $f['autor_id'];
+        if (!isset($equipo[$a])) {
+            $equipo[$a] = array('llamadas' => 0, 'decisor' => 0, 'interesados' => 0, 'citas' => 0, 'presupuestos' => 0, 'presupuestado' => 0, 'aceptado' => 0);
+        }
+        $equipo[$a]['llamadas']++;
+        $equipo[$a]['decisor'] += $dec ? 1 : 0;
+        $equipo[$a]['interesados'] += $pos ? 1 : 0;
+        $equipo[$a]['citas'] += $cita ? 1 : 0;
+        if (count($recientes) < 12 && ($persona || trim((string) ($b['literal'] ?? '')) !== '')) {
+            $recientes[] = array('id' => (int) $f['id'], 'contacto_id' => (int) $f['contacto_id'], 'cliente' => $f['empresa'] !== null && $f['empresa'] !== '' ? $f['empresa'] : (string) $f['nombre'],
+                'inicio' => $f['inicio'], 'autor_id' => $a, 'resultado' => $f['resultado'], 'con_quien' => $f['con_quien'],
+                'literal' => mb_substr(trim((string) ($b['literal'] ?? '')), 0, 400), 'notas' => mb_substr(trim((string) $f['notas']), 0, 300),
+                'objeciones' => array_slice((array) ($b['objeciones'] ?? array()), 0, 5), 'cuello' => (string) ($b['cuello'] ?? ''));
+        }
+    }
+    $t['contactos'] = count($contactos);
+    $t['minutos'] = (int) round($t['minutos'] / 60);
+    foreach ($pres as $p) {
+        $t['presupuestado'] += (float) $p['base'];
+        $a = (string) $p['autor_id'];
+        if (!isset($equipo[$a])) {
+            $equipo[$a] = array('llamadas' => 0, 'decisor' => 0, 'interesados' => 0, 'citas' => 0, 'presupuestos' => 0, 'presupuestado' => 0, 'aceptado' => 0);
+        }
+        $equipo[$a]['presupuestos']++;
+        $equipo[$a]['presupuestado'] += (float) $p['base'];
+        if ($p['estado'] === 'Aceptado') {
+            $t['aceptados']++;
+            $t['aceptado'] += (float) $p['base'];
+            $equipo[$a]['aceptado'] += (float) $p['base'];
+        }
+    }
+    arsort($obj);
+    $nombres = array();
+    foreach (labs_q('SELECT id, nombre, apellidos FROM perfiles')->fetchAll() as $pf) {
+        $nombres[$pf['id']] = trim($pf['nombre'] . ' ' . $pf['apellidos']);
+    }
+    $eq = array();
+    foreach ($equipo as $id => $e) {
+        $eq[] = array('id' => $id, 'nombre' => $nombres[$id] ?? 'Equipo') + $e;
+    }
+    usort($eq, function ($a, $b) { return ($b['aceptado'] <=> $a['aceptado']) ?: ($b['citas'] <=> $a['citas']) ?: ($b['llamadas'] <=> $a['llamadas']); });
+    uasort($sec, function ($a, $b) { return $b['llamadas'] <=> $a['llamadas']; });
+
+    // Calidad de los datos de la cartera (contactos activos de quien mira, o del comercial elegido).
+    $cw = 'activo = 1' . ($quien !== '' ? ' AND gestor_id = ?' : '') . (!$amplio ? '' : '');
+    $cs = labs_q("SELECT id, nombre, empresa, telefono, email, sector, decisor_nombre, decisor_cargo, decisor_telefono, decisor_email, fase, gestor_id, ultima_actividad
+                  FROM contactos WHERE $cw ORDER BY (fase IN ('lead','cualificacion','demo','propuesta','negociacion')) DESC, ultima_actividad DESC LIMIT 5000",
+        $quien !== '' ? array($quien) : array())->fetchAll();
+    $comp = 0;
+    $pend = array();
+    $faltaCampo = array();
+    foreach ($cs as $c) {
+        $f = labs_ventas_faltan($c, 'completa');
+        if (!$f) {
+            $comp++;
+            continue;
+        }
+        foreach ($f as $x) {
+            $faltaCampo[$x] = ($faltaCampo[$x] ?? 0) + 1;
+        }
+        if (count($pend) < 60) {
+            $pend[] = array('id' => (int) $c['id'], 'cliente' => $c['empresa'] !== '' ? $c['empresa'] : $c['nombre'], 'fase' => $c['fase'], 'faltan' => $f,
+                'gestor_id' => $c['gestor_id']);
+        }
+    }
+    arsort($faltaCampo);
+    return array(200, array(
+        'dias' => $dias, 'comercial' => $quien, 'amplio' => $amplio, 'totales' => $t, 'resultados' => $res,
+        'por_dia' => $dia, 'por_hora' => $hora, 'objeciones' => array_slice($obj, 0, 12, true), 'cuellos' => $cue,
+        'sectores' => array_slice($sec, 0, 10, true), 'equipo' => $amplio ? $eq : array(), 'recientes' => $recientes,
+        'calidad' => array('total' => count($cs), 'completos' => $comp, 'faltan' => $faltaCampo, 'pendientes' => $pend),
+    ));
 }
