@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-kt0aHesOfgAuQDz2hMhLByekApaKcFABFJxc1qU6+8I='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-eiesANZgUVj6FC7xwlteyv8y34kousXPTtpGkai8zdU='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Labs Command Center 360 - Oficina virtual SaaS de la red comercial de Labs24k.">
 <meta name="theme-color" content="#0B0F19">
@@ -1722,6 +1722,102 @@ a.btn.btn-g:hover{color:#fff}
 .pap-vacio{display:flex;flex-direction:column;align-items:center;gap:6px;padding:34px 10px;text-align:center;color:var(--txt-2)}
 .pap-vacio svg{display:block;color:#4ADE80}
 
+/* --- Proceso de venta: modo llamada, cola y panel de venta --- */
+.ll{position:fixed;inset:0;z-index:300;display:flex;flex-direction:column;background:var(--bg);color:var(--txt);animation:rvEntra .2s ease-out}
+.ll svg,.vp svg{display:block}
+.ll-top{display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--card-2)}
+.ll-tit{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
+.ll-tit>div{display:flex;flex-direction:column;min-width:0}
+.ll-tit b{font-size:16px}
+.ll-sec{--sc:#94A3B8;display:inline-block;padding:3px 10px;border-radius:99px;font-size:11.5px;font-weight:700;white-space:nowrap;color:var(--sc);background:color-mix(in srgb,var(--sc) 15%,transparent);border:1px solid color-mix(in srgb,var(--sc) 40%,transparent)}
+.ll-cola{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--txt-2);padding:4px 10px;border-radius:99px;border:1px solid var(--line);white-space:nowrap}
+.ll-reloj{font:700 18px/1 ui-monospace,Menlo,monospace;color:#5EEAD4;padding:6px 10px;border-radius:10px;background:rgba(45,212,196,.10);min-width:64px;text-align:center}
+.ll-body{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.25fr) minmax(0,1fr);gap:0;overflow:hidden}
+.ll-col{overflow-y:auto;padding:16px 18px 28px;border-right:1px solid var(--line)}
+.ll-col:last-child{border-right:0}
+.ll-col h4{display:flex;align-items:center;gap:7px;margin:0 0 12px;font-size:14px;letter-spacing:.01em}
+.ll-col h5,.llq-h{margin:16px 0 7px;font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--txt-3)}
+.ll-dec{padding:12px;border-radius:14px;border:1px solid rgba(251,191,36,.35);background:rgba(251,191,36,.06)}
+.ll-dec-h{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:#FBBF24;margin-bottom:8px}
+.ll-tels{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.ll-tels .btn{justify-content:center}
+.ll-prox{display:flex;gap:7px;align-items:flex-start;margin-top:12px;padding:9px 11px;border-radius:12px;font-size:12.5px;background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.3)}
+.ll-prev{display:flex;gap:8px;padding:8px 0;border-bottom:1px solid var(--line-soft,var(--line));font-size:13px}
+.ll-dot{width:9px;height:9px;border-radius:50%;flex:0 0 auto;margin-top:5px}
+.ll-prev-n{white-space:pre-wrap;margin-top:2px}
+.ll-regla{display:flex;gap:7px;align-items:flex-start;padding:9px 11px;border-radius:12px;font-size:12.5px;color:#FDE68A;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.3)}
+.ll-pasos{display:flex;flex-direction:column;gap:2px;margin-top:12px}
+.ll-paso{display:flex;gap:10px;padding:9px 4px;border-bottom:1px dashed var(--line)}
+.ll-paso-n{width:24px;height:24px;flex:0 0 auto;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:800;color:#0B0F19;background:linear-gradient(135deg,#2DD4BF,#38BDF8)}
+.ll-paso-t{font-weight:700;font-size:13px}
+.ll-paso p{margin:3px 0 0;font-size:14px;line-height:1.45}
+.ll-det{margin-top:12px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--card-2)}
+.ll-det summary{cursor:pointer;font-weight:700;font-size:13px;display:flex;gap:6px;align-items:center}
+.ll-det p{font-size:13.5px;margin:8px 0 0}
+.ll-bant{display:flex;flex-direction:column;gap:6px}
+.ll-b{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;border-radius:12px;border:1px solid var(--line);font-size:13px;cursor:pointer}
+.ll-b input{margin-top:3px}
+.ll-b.on{border-color:rgba(74,222,128,.5);background:rgba(74,222,128,.08)}
+.ll-objs{display:flex;flex-wrap:wrap;gap:6px}
+.ll-obj{padding:6px 10px;border-radius:99px;border:1px solid var(--line);background:transparent;color:var(--txt-2);font-size:12.5px;cursor:pointer}
+.ll-obj.on{border-color:#A78BFA;color:#C4B5FD;background:rgba(167,139,250,.12)}
+.ll-resp{display:flex;gap:7px;align-items:flex-start;margin-top:8px;padding:10px 12px;border-radius:12px;font-size:13.5px;background:rgba(167,139,250,.10);border:1px solid rgba(167,139,250,.35)}
+.ll-chips{display:flex;flex-wrap:wrap;gap:6px}
+.ll-ch{--rc:#2DD4C4;display:inline-flex;align-items:center;gap:5px;padding:7px 11px;border-radius:99px;border:1px solid var(--line);background:transparent;color:var(--txt-2);font-weight:600;font-size:12.5px;cursor:pointer}
+.ll-ch.sm{padding:5px 9px;font-size:12px}
+.ll-ch.on{border-color:var(--rc);color:var(--txt);background:color-mix(in srgb,var(--rc) 18%,transparent)}
+.ll-perd{display:flex;gap:7px;align-items:center;margin-top:8px;font-size:12.5px;color:#FCA5A5}
+.ll-grab{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.ll-rec.on{color:#fff;background:#DC2626;border-color:#DC2626;animation:llLat 1.2s infinite}
+@keyframes llLat{50%{box-shadow:0 0 0 6px rgba(220,38,38,.25)}}
+.ll-grab-f{display:flex;align-items:center;gap:6px;width:100%;padding:7px 10px;border-radius:10px;background:var(--card-2);border:1px solid var(--line);font-size:12.5px;min-width:0}
+.ll-aviso{display:flex;gap:7px;align-items:flex-start;margin-top:9px;font-size:12.5px;flex-wrap:wrap}
+.ll-aviso.u{color:#FCA5A5}
+.ll-sig{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.ll-pie{position:sticky;bottom:-28px;margin:18px -18px -28px;padding:12px 18px 16px;background:var(--card-2);border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.ll-pie>div{width:100%}
+.ll-pie .btn-p{flex:1;justify-content:center}
+.llq-res{margin-top:16px;padding:10px 12px;border-radius:12px;font-size:13px;background:rgba(45,212,196,.08);border:1px solid rgba(45,212,196,.3)}
+.llq-lista{display:flex;flex-direction:column;gap:3px;margin-top:10px}
+@media (max-width:1100px){ .ll-body{grid-template-columns:minmax(0,1fr) minmax(0,1fr);overflow-y:auto;display:grid} .ll-col{overflow:visible} .ll-guion{grid-column:1/-1;grid-row:2;border-top:1px solid var(--line)} }
+@media (max-width:720px){ .ll-body{display:block} .ll-col{border-right:0;border-bottom:1px solid var(--line);padding:14px 16px 20px} .ll-pie{position:static;margin:16px 0 0;padding:12px 0 0;background:transparent}
+  .ll-top{flex-wrap:wrap;padding:10px 12px} .ll-tit{flex-basis:calc(100% - 50px)} .ll-reloj{font-size:15px} }
+
+.vp-ov{position:fixed;inset:0;z-index:240;background:rgba(2,6,15,.55);backdrop-filter:blur(2px);display:flex;justify-content:flex-end}
+.vp{width:min(480px,100%);height:100%;overflow-y:auto;background:var(--panel,var(--card));border-left:1px solid var(--line);padding:18px 18px 28px;box-shadow:-20px 0 50px rgba(0,0,0,.35);animation:vpEntra .2s ease-out}
+@keyframes vpEntra{from{transform:translateX(30px);opacity:0}to{transform:none;opacity:1}}
+.vp-h{display:flex;gap:10px;align-items:flex-start}
+.vp-h h3{margin:8px 0 2px;font-size:19px}
+.vp h5{margin:18px 0 8px;font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--txt-3)}
+.vp-fases{display:flex;gap:3px;margin:16px 0 10px}
+.vp-f{--fc:#38BDF8;flex:1;min-width:0;display:flex;flex-direction:column;gap:5px;font-size:10px;color:var(--txt-3);text-align:center}
+.vp-f i{height:6px;border-radius:99px;background:var(--line)}
+.vp-f span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vp-f.ok i{background:color-mix(in srgb,var(--fc) 55%,transparent)}
+.vp-f.on i{background:var(--fc);box-shadow:0 0 10px color-mix(in srgb,var(--fc) 60%,transparent)}
+.vp-f.on span{color:var(--txt);font-weight:700}
+.vp-box{--bc:#38BDF8;display:flex;gap:9px;align-items:flex-start;padding:11px 13px;border-radius:14px;color:var(--bc);background:color-mix(in srgb,var(--bc) 10%,transparent);border:1px solid color-mix(in srgb,var(--bc) 35%,transparent)}
+.vp-box>div{display:flex;flex-direction:column;gap:3px;color:var(--txt);font-size:13px}
+.vp-box svg{margin-top:2px}
+.vp-prox{display:flex;gap:9px;align-items:center;margin-top:10px;padding:10px 13px;border-radius:14px;border:1px solid var(--line);font-size:13px;background:var(--card-2)}
+.vp-prox.u{border-color:rgba(248,113,113,.55);background:rgba(248,113,113,.08)}
+.vp-acc{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.vp-acc .btn{justify-content:center}
+.vp-acc .btn-p{grid-column:1/-1}
+.vp-dec{padding:11px 13px;border-radius:14px;border:1px solid var(--line);font-size:13.5px}
+.ven-ll{display:flex;gap:9px;padding:9px 0;border-bottom:1px solid var(--line-soft,var(--line))}
+.ven-ll-n{white-space:pre-wrap;margin-top:3px;color:var(--txt-2)}
+.ven-audio{margin-top:6px}
+.ven-audio audio{width:100%;height:36px}
+.vp-e{display:flex;flex-direction:column;gap:1px;padding:6px 0;border-bottom:1px dashed var(--line)}
+.ct-dec-f{margin:6px 0 4px;padding:12px 12px 2px;border-radius:14px;border:1px solid rgba(251,191,36,.35);background:rgba(251,191,36,.05)}
+.ct-llamadas{margin-top:12px;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:var(--card-2)}
+.ng-obj{font-size:11px;color:var(--txt-3);margin-top:3px;line-height:1.3}
+.pl-sec{display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:99px;color:var(--sc);background:color-mix(in srgb,var(--sc) 14%,transparent)}
+.pl-paso{display:flex;gap:5px;align-items:center;font-size:11.5px;color:var(--txt-2);margin-top:5px;min-width:0}
+.pl-paso svg{flex:0 0 auto;display:block}
+.pl-paso.u{color:#FCA5A5}
+
 /* --- Visor --- */
 html.rv-abierto{overflow:hidden}
 .rv{position:fixed;inset:0;z-index:300;display:flex;flex-direction:column;background:#070B14;color:#E2E8F0;animation:rvEntra .22s ease-out}
@@ -2827,6 +2923,9 @@ function renderApp(){
   if(typeof rvReengancha === 'function') rvReengancha();
   if(typeof PAP !== 'undefined' && PAP.nodo && PAP.nodo.parentNode !== document.body) document.body.appendChild(PAP.nodo);
   if(typeof UCL !== 'undefined' && UCL.nodo && UCL.nodo.parentNode !== document.body) document.body.appendChild(UCL.nodo);
+  if(typeof VP !== 'undefined' && VP.nodo && VP.nodo.parentNode !== document.body) document.body.appendChild(VP.nodo);
+  if(typeof LLQ !== 'undefined' && LLQ.nodo && LLQ.nodo.parentNode !== document.body) document.body.appendChild(LLQ.nodo);
+  if(typeof LL !== 'undefined' && LL.nodo && LL.nodo.parentNode !== document.body){ document.body.appendChild(LL.nodo); document.documentElement.classList.add('rv-abierto'); }
 }
 
 /* ==========================================================================
@@ -4944,17 +5043,20 @@ function plSinAccion(c){
 function plTarjeta(c){
   var t = ngTemperatura(c), s = ngSla(c), tel = ctTelCompleto(c);
   return '<div class="ng-card" draggable="true" data-pl-card="'+c.id+'" style="--tc:'+t.c+'" tabindex="0">'+
-    '<div class="ng-card-top"><div style="min-width:0;flex:1"><div class="ng-card-n trunc">'+esc(c.empresa || c.nombre)+'</div>'+
+    '<div class="ng-card-top"><div style="min-width:0;flex:1">'+(c.sector ? '<span class="pl-sec" style="--sc:'+venSector(c).c+'">'+esc(c.sector)+'</span>' : '')+
+      '<div class="ng-card-n trunc">'+esc(c.empresa || c.nombre)+'</div>'+
       (c.empresa ? '<div class="tiny muted trunc">'+esc(c.nombre)+'</div>' : '')+'</div>'+
       '<span class="ng-temp" title="Temperatura del lead">'+ngTermo(t)+' '+esc(t.n)+'</span></div>'+
     '<div class="ng-card-chips">'+(s ? '<span class="chip '+s.col+' ng-chip'+(s.vencido || s.urgente ? ' ng-parp' : '')+'">'+ic('clock',10)+' '+esc(s.txt)+'</span>' : '')+ngChipsSol(c)+'</div>'+
     '<div class="ng-card-pie"><span class="ng-card-v">'+(Number(c.valor) ? ngEuros(c.valor) : '<span class="muted">sin valor</span>')+'</span>'+
       (c.gestor_id ? ngAvatar(ngNombreUsuario(c.gestor_id), 22) : '')+'</div>'+
     (c.fase === 'perdido' && c.motivo_perdida ? '<div class="tiny" style="color:#FCA5A5;margin-top:6px">'+ic('x',10)+' '+esc(c.motivo_perdida)+'</div>' :
+      c.proximo_paso && c.fase !== 'perdido' ? '<div class="pl-paso'+(c.proximo_contacto && new Date(c.proximo_contacto).getTime() < Date.now() ? ' u' : '')+'" title="Próximo paso">'+ic('calendar',11)+'<span class="trunc">'+esc(c.proximo_paso)+'</span></div>' :
       plSinAccion(c) ? '<div class="tiny" style="color:#FBBF24;margin-top:6px">'+ic('alert',10)+' Sin próxima acción</div>' : '')+
     '<div class="ng-card-acc">'+
       (tel ? '<a class="ng-fab" href="tel:'+esc(tel)+'" title="Llamar" data-pl-log="llamada" data-pl-id="'+c.id+'">'+ic('phone',13)+'</a>'+
              '<a class="ng-fab" href="'+esc(ngWhatsApp(tel))+'" target="_blank" rel="noopener" title="WhatsApp" data-pl-log="whatsapp" data-pl-id="'+c.id+'">'+ic('chat',13)+'</a>' : '')+
+      '<button class="ng-fab" data-pl-guion="'+c.id+'" title="Llamar con guion">'+ic('book',13)+'</button>'+
       '<button class="ng-fab" data-pl-cita="'+c.id+'" title="Agendar cita">'+ic('calendar',13)+'</button>'+
       '<button class="ng-fab" data-pl-mover="'+c.id+'" title="Mover de fase">'+ic('arrowRight',13)+'</button>'+
       '<button class="ng-fab ng-fab-p" data-pl-ficha="'+c.id+'" title="Abrir ficha 360">'+ic('eye',13)+'</button>'+
@@ -5027,6 +5129,7 @@ function viewPipeline(v){
       '<div class="ng-col-h"><div class="row" style="gap:7px;align-items:center;min-width:0">'+ic(f.i,14)+'<b class="trunc">'+esc(f.n)+'</b></div>'+
         '<span class="ng-col-n">'+cs.length+'</span></div>'+
       '<div class="ng-col-s">'+ngEuros(suma(cs))+(f.p && f.p < 100 ? ' · '+f.p+'%' : '')+(f.sla ? ' · SLA '+f.sla+' d' : '')+'</div>'+
+      (f.obj ? '<div class="ng-obj" title="Para salir de esta fase: '+esc(f.paso || '')+'">'+ic('check',10)+' '+esc(f.obj)+'</div>' : '')+
       '<div class="ng-col-b">'+(cs.slice(0, 120).map(plTarjeta).join('') || '<div class="ng-vacio">Arrastra aquí</div>')+
         (cs.length > 120 ? '<div class="tiny muted" style="text-align:center;padding:8px">… y '+(cs.length-120)+' más (usa los filtros)</div>' : '')+'</div>'+
     '</div>';
@@ -5056,8 +5159,9 @@ function viewPipeline(v){
     el.addEventListener('dragstart', function(e){ PL.arrastra = Number(el.dataset.plCard); el.classList.add('ng-drag');
       try{ e.dataTransfer.setData('text/plain', el.dataset.plCard); e.dataTransfer.effectAllowed = 'move'; }catch(x){} });
     el.addEventListener('dragend', function(){ el.classList.remove('ng-drag'); qa('.ng-col').forEach(function(c){ c.classList.remove('ng-sobre'); }); });
-    el.addEventListener('dblclick', function(){ ngAbreFicha(Number(el.dataset.plCard), 'pipeline'); });
-    el.addEventListener('keydown', function(e){ if(e.key === 'Enter') ngAbreFicha(Number(el.dataset.plCard), 'pipeline'); });
+    el.addEventListener('click', function(e){ if(e.target.closest('a,button')) return; vpAbre(ctContactoPorId(Number(el.dataset.plCard))); });
+    el.addEventListener('dblclick', function(e){ if(e.target.closest('a,button')) return; vpCierra(); ngAbreFicha(Number(el.dataset.plCard), 'pipeline'); });
+    el.addEventListener('keydown', function(e){ if(e.key === 'Enter') vpAbre(ctContactoPorId(Number(el.dataset.plCard))); });
   });
   qa('[data-pl-col]').forEach(function(col){
     col.addEventListener('dragover', function(e){ e.preventDefault(); col.classList.add('ng-sobre'); });
@@ -5068,6 +5172,7 @@ function viewPipeline(v){
   });
   /* Acciones rápidas */
   qa('[data-pl-ficha]').forEach(function(b){ b.onclick = function(e){ e.stopPropagation(); ngAbreFicha(Number(b.dataset.plFicha), 'pipeline'); }; });
+  qa('[data-pl-guion]').forEach(function(b){ b.onclick = function(e){ e.stopPropagation(); llAbre(ctContactoPorId(Number(b.dataset.plGuion))); }; });
   qa('[data-pl-cita]').forEach(function(b){ b.onclick = function(e){ e.stopPropagation(); agdNuevaCita({contacto_id: Number(b.dataset.plCita)}, 'pipeline'); }; });
   qa('[data-pl-mover]').forEach(function(b){ b.onclick = function(e){ e.stopPropagation(); PL.menu = Number(b.dataset.plMover); renderApp(); }; });
   qa('[data-pl-log]').forEach(function(a){ a.addEventListener('click', function(){
@@ -5537,6 +5642,8 @@ function ct360Resumen(c){
     '</div>'+
     '<div class="ng-prox">'+ic('calendar',15)+'<div style="flex:1;min-width:0">'+(prox ? '<b>Próxima cita:</b> '+esc(new Date(prox.inicio).toLocaleString('es-ES', {weekday:'long', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'}))+' · '+esc(prox.titulo) :
       '<span style="color:#FDE68A">Sin próxima cita.</span> Agenda una para no perder el ritmo.')+'</div><button class="btn btn-p btn-xs" id="ct-agendar">'+ic('plus',12)+' Agendar</button></div>'+
+    '<div class="ct-llamadas"><div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><b class="small">'+ic('phone',14).replace('<svg ', '<svg style="display:inline-block;vertical-align:-2px;margin-right:4px" ')+'Llamadas registradas'+(CT.llamadas && CT.llamadas.length ? ' ('+CT.llamadas.length+')' : '')+'</b>'+
+      '<button class="btn btn-s btn-xs" id="ct-guion2">'+ic('book',12)+' Nueva llamada con guion</button></div>'+venLlamadasHTML(CT.llamadas)+'</div>'+
     '<div class="ct-act-nueva">'+
       '<div class="row" style="gap:6px;flex-wrap:wrap;margin-bottom:8px">'+tipos.map(function(k){
         return '<button class="ct-tipo'+(CT.nuevoTipo===k?' on':'')+'" data-ct-tipo="'+k+'">'+ic(TIPOS_ACT_CT[k][1],13)+' '+TIPOS_ACT_CT[k][0]+'</button>'; }).join('')+'</div>'+
@@ -5604,6 +5711,8 @@ function ngRespuestaBot(W, msg){
 function ct360Eventos(c){
   qa('[data-ct-tl]').forEach(function(b){ b.onclick = function(){ CT.filtroTl = b.dataset.ctTl; renderApp(); }; });
   if(q('#ct-agendar')) q('#ct-agendar').onclick = function(){ agdNuevaCita({contacto_id:c.id}, 'contactos'); };
+  if(q('#ct-guion2')) q('#ct-guion2').onclick = function(){ llAbre(c); };
+  venAudioEventos(q('.ct-llamadas'));
   qa('[data-cf]').forEach(function(el){ el.oninput = function(){ CT.firmaForm[el.dataset.cf] = el.value; }; });
   if(q('#cf-generar')) q('#cf-generar').onclick = function(){
     var F = CT.firmaForm; CT.generando = true; renderApp();
@@ -6235,9 +6344,11 @@ function ctCargaDetalle(id){
   Promise.all([
     sbSelect('contacto_eventos', 'contacto_id=eq.'+id+'&order=ts.desc'),
     sbSelect('contacto_comentarios', 'contacto_id=eq.'+id+'&order=ts.desc'),
-    sbSelect('contacto_documentos', 'contacto_id=eq.'+id+'&order=ts.desc')
+    sbSelect('contacto_documentos', 'contacto_id=eq.'+id+'&order=ts.desc'),
+    sbSelect('llamadas', 'contacto_id=eq.'+id+'&order=inicio.desc&limit=30')
   ]).then(function(rs){
     if(CT.det !== id) return;
+    CT.llamadas = rs[3] && rs[3].ok ? (rs[3].datos || []) : [];
     if(rs[0] && rs[0].ok) CT.eventos = rs[0].datos || [];
     if(rs[1] && rs[1].ok) CT.comentarios = rs[1].datos || [];
     if(rs[2] && rs[2].ok) CT.documentos = rs[2].datos || [];
@@ -6248,7 +6359,7 @@ function ctCargaDetalle(id){
 
 function ctAbre(id){
   var c = ctContactoPorId(id); if(!c) return;
-  CT.det = id; CT.tab = 'hist'; CT.eventos = []; CT.comentarios = []; CT.documentos = [];
+  CT.det = id; CT.tab = 'hist'; CT.eventos = []; CT.comentarios = []; CT.documentos = []; CT.llamadas = null;
   CT.nuevoTexto = ''; CT.nuevoComentario = '';
   /* Ficha 360: citas, contratos, configurador IA (se cargan en ct360Carga). */
   CT.citas = []; CT.contratos = []; CT.firmaEv = []; CT.ia = null; CT.iaTab = 'voz'; CT.chat = []; CT.prueba = null;
@@ -6259,7 +6370,8 @@ function ctAbre(id){
   CT.edit = {nombre:c.nombre||'', empresa:c.empresa||'', email:c.email||'', prefijo:c.prefijo||'+34', telefono:c.telefono||'',
     origen:c.origen||'', tipo:c.tipo||'lead', estado:c.estado||'Nuevo', gestor_id:c.gestor_id||'',
     proximo_contacto:ctLocal(c.proximo_contacto), etiquetas:c.etiquetas||'',
-    fase:c.fase||'lead', valor:c.valor||0, soluciones:c.soluciones||''};
+    fase:c.fase||'lead', valor:c.valor||0, soluciones:c.soluciones||'',
+    sector:c.sector||'', decisor_nombre:c.decisor_nombre||'', decisor_cargo:c.decisor_cargo||'', decisor_telefono:c.decisor_telefono||'', decisor_email:c.decisor_email||''};
   renderApp();
   window.scrollTo(0, 0);
   ctCargaDetalle(id);
@@ -6304,7 +6416,10 @@ function ctGuardaFicha(){
     prefijo:(e.prefijo||'+34').trim(), telefono:e.telefono.replace(/[^\d]/g,''), origen:e.origen.trim(),
     tipo:e.tipo, estado:e.estado, etiquetas:e.etiquetas.split(',').map(function(t){ return t.trim(); }).filter(Boolean).join(', '),
     proximo_contacto:e.proximo_contacto ? new Date(e.proximo_contacto).toISOString() : null,
-    valor: Math.max(0, Number(String(e.valor).replace(',', '.')) || 0), soluciones: e.soluciones || ''};
+    valor: Math.max(0, Number(String(e.valor).replace(',', '.')) || 0), soluciones: e.soluciones || '',
+    sector:String(e.sector || '').trim().slice(0, 60), decisor_nombre:String(e.decisor_nombre || '').trim(), decisor_cargo:String(e.decisor_cargo || '').trim(),
+    decisor_telefono:String(e.decisor_telefono || '').trim(), decisor_email:String(e.decisor_email || '').trim().toLowerCase()};
+  if(cambios.decisor_email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(cambios.decisor_email)){ toast('El correo de quien decide no es válido.'); return; }
   if(e.fase !== c.fase) cambios.fase = e.fase;
   if(ctPuedeGestionar() && e.gestor_id) cambios.gestor_id = e.gestor_id;
   var antes = c.estado;
@@ -6493,11 +6608,15 @@ function ctFichaPagina(){
           '<span class="chip '+(COLOR_EST_CT[c.estado]||'')+'">'+esc(c.estado)+'</span>'+(ctActivo(c) ? '' : '<span class="chip ct-chip-off">Desactivado</span>')+'</div>'+
         '<div class="small muted" style="margin-top:4px">'+esc(c.empresa || 'Sin empresa')+
           (c.gestor_id ? ' · Responsable: '+esc(ctNombreGestor(c.gestor_id) || '—') : '')+'</div>'+
+        '<div class="row" style="gap:8px;flex-wrap:wrap;margin-top:8px;align-items:center">'+(c.sector ? '<span class="ll-sec" style="--sc:'+venSector(c).c+'">'+esc(c.sector)+'</span>' : '<span class="tiny" style="color:#FDE68A">Sin tipo de negocio</span>')+
+          '<span class="tiny muted">'+ic('star',11).replace('<svg ', '<svg style="display:inline-block;vertical-align:-2px" ')+' '+(c.decisor_nombre ? 'Decide: <b style="color:var(--txt)">'+esc(c.decisor_nombre)+'</b>'+(c.decisor_cargo ? ' ('+esc(c.decisor_cargo)+')' : '') : 'Decisor sin identificar')+'</span>'+
+          (c.proximo_paso ? '<span class="tiny muted">· Próximo paso: <b style="color:var(--txt)">'+esc(c.proximo_paso)+'</b></span>' : '')+'</div>'+
         (ctEtiquetas(c).length ? '<div class="row" style="gap:6px;flex-wrap:wrap;margin-top:8px">'+ctEtiquetas(c).map(function(t){
           return '<span class="chip violet">'+esc(t)+'</span>'; }).join('')+'</div>' : '')+
       '</div>'+
       '<div class="ct-acciones">'+
-        (tel ? '<a class="btn btn-p" href="tel:'+esc(tel)+'" data-ct-accion="llamada">'+ic('phone',15)+' Llamar</a>' : '<button class="btn btn-s" disabled>'+ic('phone',15)+' Sin teléfono</button>')+
+        (tel || c.decisor_telefono ? '<button class="btn btn-p" id="ct-guion">'+ic('phone',15)+' Llamar con guion</button>' : '')+
+        (tel ? '<a class="btn btn-s" href="tel:'+esc(tel)+'" data-ct-accion="llamada">'+ic('phone',15)+' Llamar</a>' : '<button class="btn btn-s" disabled>'+ic('phone',15)+' Sin teléfono</button>')+
         (tel ? '<a class="btn btn-s" href="https://wa.me/'+esc(wa)+'" target="_blank" rel="noopener" data-ct-accion="whatsapp">'+ic('chat',15)+' WhatsApp</a>' : '')+
         (c.email ? '<a class="btn btn-s" href="mailto:'+esc(c.email)+'" data-ct-accion="correo">'+ic('mail',15)+' Correo</a>' : '')+
         '<select class="inp" id="ct-est" style="width:auto;min-width:170px">'+
@@ -6519,7 +6638,10 @@ function ctFichaPagina(){
 
     '<div class="ct-cols">'+
       '<div class="card"><div class="card-h"><div><h3>'+ic('user',16)+'Datos del contacto</h3><p>Cambia lo que necesites y guarda.</p></div></div>'+
-        campo('nombre', 'Nombre y apellidos')+campo('empresa', 'Empresa')+campo('email', 'Correo', 'email')+
+        campo('nombre', 'Nombre y apellidos')+campo('empresa', 'Empresa')+
+        '<div class="field"><label class="f">Tipo de negocio</label><input class="inp" data-ct-ed="sector" list="ct-sectores" maxlength="60" value="'+esc(e.sector)+'" placeholder="Elige o escribe: clínica estética, inmobiliaria…">'+
+          '<datalist id="ct-sectores">'+VEN_SECTORES.filter(function(x){ return x.k !== 'otro'; }).map(function(x){ return '<option value="'+esc(x.n)+'">'; }).join('')+'</datalist></div>'+
+        campo('email', 'Correo', 'email')+
         '<div class="row" style="gap:8px"><div style="flex:0 0 90px">'+campo('prefijo', 'Prefijo')+'</div><div style="flex:1">'+campo('telefono', 'Teléfono', 'tel')+'</div></div>'+
         '<div class="grid g-2">'+
           '<div class="field"><label class="f">Tipo</label><select class="inp" data-ct-ed="tipo"><option value="lead"'+(e.tipo==='lead'?' selected':'')+'>Lead</option>'+
@@ -6534,6 +6656,9 @@ function ctFichaPagina(){
           var on = String(e.soluciones).split(',').indexOf(k) > -1;
           return '<button type="button" class="ct-tipo'+(on?' on':'')+'" data-ct-sol="'+k+'">'+ic(SOLUCIONES_NG[k].i,13)+' '+SOLUCIONES_NG[k].n+'</button>'; }).join('')+'</div></div>'+
         campo('proximo_contacto', 'Próximo seguimiento', 'datetime-local')+
+        '<div class="ct-dec-f"><div class="ll-dec-h">'+ic('star',13)+' Quien decide (gerente o responsable)</div>'+
+          '<div class="grid g-2">'+campo('decisor_nombre', 'Nombre')+campo('decisor_cargo', 'Cargo', 'text', 'Gerente, director médico…')+'</div>'+
+          '<div class="grid g-2">'+campo('decisor_telefono', 'Móvil directo', 'tel')+campo('decisor_email', 'Correo', 'email')+'</div></div>'+
         (ctPuedeGestionar() && gestores.length ? '<div class="field"><label class="f">Responsable</label><select class="inp" data-ct-ed="gestor_id">'+
           '<option value="">—</option>'+gestores.map(function(u){ return '<option value="'+esc(u.id)+'"'+(e.gestor_id===u.id?' selected':'')+'>'+esc(u.n || u.mail)+'</option>'; }).join('')+
           '</select></div>' : '')+
@@ -6904,6 +7029,7 @@ function viewContactos(v){
     '<div class="row" style="gap:8px;flex-wrap:wrap;align-self:flex-start">'+
       (papPuede() ? '<button class="btn btn-s" id="ct-papelera">'+ic('refresh',15)+' Papelera</button>' : '')+
       (ctPuedeImportar() ? '<button class="btn btn-s" id="ct-importar">'+ic('upload',15)+' Importar Excel o CSV</button>' : '')+
+      '<button class="btn btn-s" id="ct-llamar">'+ic('phone',15)+' Empezar a llamar</button>'+
       '<button class="btn btn-p" id="ct-nuevo">'+ic('plus',16)+' Nuevo contacto</button></div>'+
   '</div>'+
   '<div class="ctl-kpis">'+kpis.map(function(k){ return '<div class="card kpi ct-kpi'+(k[5]?' ct-kpi-click':'')+(k[5] && CT.segF === 'pend' ? ' on' : '')+'"'+(k[5]?' data-ct-seg="'+k[5]+'"':'')+' style="--kc:'+k[3]+'">'+
@@ -6981,6 +7107,7 @@ function viewContactos(v){
   if(q('#ct-pag-ant')) q('#ct-pag-ant').onclick = function(){ CT.pagina--; renderApp(); };
   if(q('#ct-pag-sig')) q('#ct-pag-sig').onclick = function(){ CT.pagina++; renderApp(); };
   q('#ct-nuevo').onclick = ctNuevo;
+  if(q('#ct-llamar')) q('#ct-llamar').onclick = llColaAbre;
   if(q('#ct-papelera')) q('#ct-papelera').onclick = function(){ papAbre(''); };
   if(q('#ct-importar')) q('#ct-importar').onclick = function(){ CT.importar = {gestor:'', origen:'Importación CSV'}; renderApp(); };
   qa('[data-ct-stop]').forEach(function(a){ a.onclick = function(e){ e.stopPropagation(); }; });
@@ -7008,6 +7135,7 @@ function ctEventosFicha(){
   q('#ct-volver').onclick = ctCierra;
   ct360Eventos(c); ngIntegraEventos();
   if(q('#ct-activo')) q('#ct-activo').onclick = function(){ ctCambiaActivo(c, !ctActivo(c)); };
+  if(q('#ct-guion')) q('#ct-guion').onclick = function(){ llAbre(c); };
   if(q('#ct-eliminar')) q('#ct-eliminar').onclick = function(){ CT.borrar = c.id; renderApp(); var i = q('#ct-del-txt'); if(i) i.focus(); };
   if(q('#ct-del-no')) q('#ct-del-no').onclick = function(){ CT.borrar = null; renderApp(); };
   if(q('#ct-del-desact')) q('#ct-del-desact').onclick = function(){ CT.borrar = null; ctCambiaActivo(c, false); };
@@ -8631,6 +8759,428 @@ function uClavePinta(){
       UCL.estado = 'hecho'; uClavePinta();
     }, function(e){ UCL.estado = ''; UCL.error = (e && e.message) || 'Sin conexión con el servidor.'; uClavePinta(); });
   };
+}
+
+/* ==========================================================================
+   PROCESO DE VENTA · Modo llamada, cola de llamadas y panel de venta
+   Método del Kit de Venta Rápido: la llamada vende la visita, la visita vende
+   el sistema. Cada llamada queda registrada (con quién, resultado, BANT,
+   notas y grabación con aviso) y el siguiente paso va solo a la agenda.
+   ========================================================================== */
+ICON.rec = '<circle cx="12" cy="12" r="7"/>';
+ICON.stop = '<rect x="6" y="6" width="12" height="12" rx="2"/>';
+ICON.mapa = '<path d="M9 18l-6 3V6l6-3 6 3 6-3v15l-6 3-6-3z"/><path d="M9 3v15M15 6v15"/>';
+
+var VEN_SECTORES = [
+  {k:'estetica', n:'Clínica estética', pl:'clínicas estéticas', c:'#F472B6', re:/estetic|belleza|laser|depilac/,
+   dato:'En las clínicas estéticas buena parte de las consultas llegan por WhatsApp e Instagram por la tarde y por la noche, cuando recepción ya no contesta.',
+   nec:'¿Qué pasa hoy con una consulta de precio que entra por Instagram a las diez de la noche?',
+   gancho:'cómo un asistente contesta esas consultas, resuelve dudas de tratamientos y deja la cita reservada, en su propio móvil'},
+  {k:'dental', n:'Clínica dental', pl:'clínicas dentales', c:'#60A5FA', re:/dental|dentist|odontolog|ortodonc/,
+   dato:'En las clínicas dentales se pierden pacientes que escriben o llaman fuera de horario, o cuando recepción está atendiendo a otro paciente.',
+   nec:'¿Cuántas llamadas o mensajes se quedan sin contestar en un día normal mientras recepción atiende en el mostrador?',
+   gancho:'cómo un asistente atiende esas solicitudes de cita a cualquier hora y las deja agendadas en su calendario'},
+  {k:'medico', n:'Centro médico', pl:'centros médicos', c:'#34D399', re:/clinica|medic|salud|fisio|consulta|doctor|podolog|psicolog|nutricion|veterinar/,
+   dato:'En los centros médicos el teléfono se satura a primera hora y muchos pacientes acaban llamando a otro centro.',
+   nec:'¿Qué pasa con el paciente que llama a las 9:00 y comunica, o escribe un sábado?',
+   gancho:'cómo un asistente coge esas llamadas y mensajes, da cita y recuerda la visita, sin cambiar su forma de trabajar'},
+  {k:'legal', n:'Despacho legal / asesoría', pl:'despachos y asesorías', c:'#A78BFA', re:/abogad|juridic|legal|despacho|bufete|asesor|gestoria|notari/,
+   dato:'En los despachos, la primera consulta suele llegar por web o teléfono y se la queda quien responde antes.',
+   nec:'¿Cuánto tarda hoy el despacho en contestar a alguien que escribe desde la web pidiendo una primera consulta?',
+   gancho:'cómo un asistente filtra esas consultas, recoge el caso y le deja la primera cita agendada'},
+  {k:'inmobiliaria', n:'Inmobiliaria', pl:'inmobiliarias', c:'#FBBF24', re:/inmobiliar|inmo\b|real estate|fincas|propiedades|vivienda/,
+   dato:'El mismo contacto de un portal le llega a varias agencias a la vez, y se queda la operación quien responde en segundos, no en horas.',
+   nec:'¿Cuánto tardan hoy en responder a un contacto que llega de Idealista o Fotocasa un domingo?',
+   gancho:'cómo un asistente responde a esos contactos al momento, cualifica al comprador y le agenda la visita al piso'},
+  {k:'hotel', n:'Hotel / alojamiento', pl:'hoteles y alojamientos', c:'#2DD4BF', re:/hotel|hostal|apartament|alojamiento|albergue|casa rural/,
+   dato:'En los alojamientos muchas reservas directas se pierden por preguntas sin contestar de noche, y acaban yendo a Booking con su comisión.',
+   nec:'¿Quién contesta hoy a quien pregunta por disponibilidad a medianoche?',
+   gancho:'cómo un asistente contesta en varios idiomas y empuja la reserva directa, sin comisión'},
+  {k:'restauracion', n:'Restauración', pl:'restaurantes', c:'#FB923C', re:/restaurante|sidreria|cafeter|\bbar\b|gastro|pizzer|catering/,
+   dato:'En los restaurantes el teléfono suena en pleno servicio y las reservas se pierden porque nadie puede cogerlo.',
+   nec:'¿Qué pasa con las llamadas de reserva que entran en mitad del servicio?',
+   gancho:'cómo un asistente coge esas reservas por teléfono y WhatsApp mientras ustedes atienden la sala'},
+  {k:'gimnasio', n:'Gimnasio / deporte', pl:'gimnasios', c:'#F87171', re:/gimnas|fitness|crossfit|pilates|yoga|deporte/,
+   dato:'En los gimnasios las consultas de precios y clases de prueba llegan por redes y muchas no se contestan a tiempo.',
+   nec:'¿Cuántos de los que preguntan por una clase de prueba acaban viniendo?',
+   gancho:'cómo un asistente contesta, agenda la clase de prueba y le hace el seguimiento'},
+  {k:'otro', n:'Otro negocio', pl:'negocios', c:'#94A3B8', re:null,
+   dato:'En negocios como el suyo es habitual que los mensajes y llamadas que llegan fuera de horario se queden sin contestar.',
+   nec:'¿Qué pasa hoy con un cliente que escribe o llama cuando están cerrados?',
+   gancho:'cómo un asistente atiende esas solicitudes y se las deja preparadas para el día siguiente'}
+];
+function venSector(c){
+  var s = String((c && c.sector) || ''), t = s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  for(var i = 0; i < VEN_SECTORES.length; i++){ var x = VEN_SECTORES[i]; if(x.n === s || (x.re && x.re.test(t))) return x; }
+  return VEN_SECTORES[VEN_SECTORES.length - 1];
+}
+var VEN_RES = {
+  no_contesta:{n:'No contesta', c:'#94A3B8'}, buzon:{n:'Buzón de voz', c:'#94A3B8'}, datos_erroneos:{n:'Número equivocado', c:'#94A3B8'},
+  filtro:{n:'No me pasan con quien decide', c:'#FBBF24'}, llamar_luego:{n:'Volver a llamar', c:'#FBBF24'},
+  interesado:{n:'Interesado', c:'#38BDF8'}, cita:{n:'Cita o visita agendada', c:'#4ADE80'}, propuesta:{n:'Pide propuesta', c:'#4ADE80'},
+  cierre_verbal:{n:'Cierre verbal', c:'#2DD4BF'}, no_interesado:{n:'No interesado', c:'#F87171'}
+};
+var VEN_QUIEN = [['decisor','Con quien decide'],['recepcion','Recepción / empleado'],['otro','Otra persona'],['nadie','No lo coge nadie']];
+var VEN_PASOS = {llamada:['Llamada','phone'], visita:['Visita','mapa'], demo:['Demo de IA','spark'], propuesta:['Propuesta','file'], firma:['Firma','check'], seguimiento:['Seguimiento','calendar']};
+/* Qué hay que conseguir en cada fase y cuál es el paso típico para salir de ella. */
+var VEN_FASE_INFO = {
+  lead:{obj:'Hablar con quien decide', paso:'Llamar al decisor y conseguir la visita'},
+  cualificacion:{obj:'Confirmar necesidad, presupuesto y plazo (BANT)', paso:'Agendar la visita o la demo'},
+  demo:{obj:'Hacer la visita o la demo en su móvil', paso:'Enviar la propuesta del pack que encaja'},
+  propuesta:{obj:'Propuesta enviada y repasada con él', paso:'Seguimiento a las 48 horas'},
+  negociacion:{obj:'Resolver objeciones y fijar la fecha de firma', paso:'Enviar el contrato a firma'},
+  firmado:{obj:'Contrato firmado', paso:'Kick-off y toma de datos'},
+  despliegue:{obj:'Sistema configurado y probado', paso:'Validar con el cliente y lanzar'},
+  produccion:{obj:'Cliente funcionando y contento', paso:'Pedir reseña o un referido'},
+  perdido:{obj:'Motivo de pérdida anotado', paso:'Volver a intentarlo en 3 meses'}
+};
+FASES_NG.forEach(function(f){ var x = VEN_FASE_INFO[f.k]; if(x){ f.obj = x.obj; f.paso = x.paso; } });
+var VEN_OBJ = [
+  ['No tengo tiempo', 'Por eso le pido solo diez minutos y voy yo. ¿Le viene mejor el [día] a las 11:00 o a las 16:00?'],
+  ['Mándame la información por correo', 'Se la llevo y se la explico en diez minutos con sus números; por correo se queda en la bandeja. ¿Mañana o el [día]?'],
+  ['Ya tenemos a alguien / ya tenemos web', 'Perfecto, no vengo a cambiarlo. Vengo a enseñarle qué pasa con lo que entra fuera de horario; si ya lo tiene cubierto, se lo digo en diez minutos.'],
+  ['¿Cuánto cuesta?', 'Depende de por dónde le entran los clientes: tenemos tres niveles, con pago único. En la visita le digo cuál le encaja, sin compromiso.'],
+  ['No me interesa la inteligencia artificial', 'Lo entiendo. No le vendo IA: le enseño cuántos clientes se le escapan. La herramienta es lo de menos.'],
+  ['Ahora no es buen momento', 'Sin problema. ¿Le llamo el [día] a primera hora o prefiere por la tarde? Lo dejo apuntado.']
+];
+function venDia(){ var d = new Date(), n = 0; while(n < 2){ d.setDate(d.getDate() + 1); if(d.getDay() !== 0 && d.getDay() !== 6) n++; }
+  return ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'][d.getDay()]; }
+function venTexto(t, c){
+  return String(t).replace(/\[Decisor\]/g, (c.decisor_nombre || '').split(' ')[0] || 'el gerente')
+    .replace(/\[Tu nombre\]/g, String(S.name || '').split(' ')[0] || 'tu nombre').replace(/\[Empresa\]/g, c.empresa || c.nombre)
+    .replace(/\[día\]/g, venDia());
+}
+function venTelDecisor(c){ var t = String(c.decisor_telefono || '').replace(/[^\d+]/g, ''); return t ? (t.charAt(0) === '+' ? t : '+34' + t) : ''; }
+function venDur(s){ s = Math.max(0, Math.round(s || 0)); return Math.floor(s / 60) + ':' + ('0' + s % 60).slice(-2); }
+
+/* --------------------------------------------------------------------------
+   MODO LLAMADA
+   -------------------------------------------------------------------------- */
+var LL = {nodo:null};
+function llAbre(c, cola, pos){
+  if(!c) return;
+  if(LL.grabadora && LL.grabadora.state === 'recording') try{ LL.grabadora.stop(); }catch(e){}
+  clearInterval(LL.reloj);
+  LL.c = c; LL.cola = cola || null; LL.pos = pos || 0; LL.t0 = null; LL.seg = 0; LL.quien = ''; LL.res = ''; LL.bant = {};
+  LL.notas = ''; LL.grab = null; LL.informado = false; LL.sig = {tipo:'', fecha:'', nota:''}; LL.perdido = false; LL.enviando = false;
+  LL.dec = {decisor_nombre:c.decisor_nombre || '', decisor_cargo:c.decisor_cargo || '', decisor_telefono:c.decisor_telefono || '', decisor_email:c.decisor_email || ''};
+  LL.previas = null; LL.obj = -1;
+  if(!LL.nodo){ LL.nodo = document.createElement('div'); LL.nodo.className = 'll'; LL.nodo.id = 'll-root'; document.body.appendChild(LL.nodo); }
+  document.documentElement.classList.add('rv-abierto');
+  llPinta();
+  sbSelect('llamadas', 'contacto_id=eq.' + c.id + '&order=inicio.desc&limit=5').then(function(r){ if(LL.c === c){ LL.previas = (r && r.ok) ? r.datos : []; llPintaPrevias(); } });
+}
+function llCierra(){
+  if(LL.grabadora && LL.grabadora.state === 'recording') try{ LL.grabadora.stop(); }catch(e){}
+  if(LL.stream) LL.stream.getTracks().forEach(function(t){ t.stop(); });
+  clearInterval(LL.reloj);
+  if(LL.nodo && LL.nodo.parentNode) LL.nodo.parentNode.removeChild(LL.nodo);
+  LL.nodo = null; LL.c = null; document.documentElement.classList.remove('rv-abierto');
+  renderApp();
+}
+function llEmpieza(){ if(LL.t0) return; LL.t0 = Date.now(); clearInterval(LL.reloj);
+  LL.reloj = setInterval(function(){ LL.seg = Math.round((Date.now() - LL.t0) / 1000); var e = LL.nodo && LL.nodo.querySelector('#ll-reloj'); if(e) e.textContent = venDur(LL.seg); }, 1000); }
+function llPintaPrevias(){
+  var e = LL.nodo && LL.nodo.querySelector('#ll-previas'); if(!e) return;
+  var l = LL.previas || [];
+  e.innerHTML = !l.length ? '<p class="tiny muted">Es la primera llamada a este contacto.</p>' : l.map(function(x){ var R = VEN_RES[x.resultado] || {n:x.resultado, c:'#94A3B8'};
+    return '<div class="ll-prev"><span class="ll-dot" style="background:'+R.c+'"></span><div style="min-width:0"><b>'+esc(R.n)+'</b> <span class="tiny muted">· '+esc(haceRel(new Date(x.inicio).getTime()))+(x.duracion ? ' · '+venDur(x.duracion) : '')+'</span>'+
+      (x.notas ? '<div class="tiny muted ll-prev-n">'+esc(x.notas)+'</div>' : '')+'</div></div>'; }).join('');
+}
+function llPinta(){
+  var n = LL.nodo, c = LL.c; if(!n || !c) return;
+  var sc = venSector(c), f = ngFase(c.fase), tel = ctTelCompleto(c), td = venTelDecisor(LL.dec.decisor_telefono ? LL.dec : c);
+  var pasos = [
+    ['0-5 s', 'Te presentas', c.decisor_nombre ? 'Hola, [Decisor], soy [Tu nombre], de Labs24k. Le llamo muy breve.' : 'Buenos días, ¿hablo con el gerente? Soy [Tu nombre], de Labs24k. Le llamo muy breve.'],
+    ['5-25 s', 'El dato de su sector', sc.dato],
+    ['25-35 s', 'El puente honesto', 'No sé si es su caso, y por eso quiero verlo con usted.'],
+    ['35-50 s', 'El gancho', 'Estoy por su zona el [día] y le enseño, en diez minutos, ' + sc.gancho + '.'],
+    ['50-60 s', 'Doble opción', '¿Le viene mejor el [día] a las 11:00 o a las 16:00?'],
+    ['60-70 s', 'Confirmas', 'Repite día, hora y dirección, y pide su móvil directo para confirmar la víspera.']
+  ];
+  var bant = [['necesidad', 'Necesidad', sc.nec], ['autoridad', 'Decide', '¿Además de usted, quién más decide en esto?'],
+    ['presupuesto', 'Presupuesto', '¿Tienen previsto invertir este año en mejorar la atención o la captación?'], ['plazo', 'Plazo', '¿Para cuándo le gustaría tenerlo resuelto?']];
+  var hoy = new Date(), atajos = [['Mañana 10:00', 1, 10], ['Pasado 10:00', 2, 10], ['En 1 semana', 7, 10]];
+  n.innerHTML =
+    '<div class="ll-top">'+
+      '<div class="ll-tit"><span class="ll-sec" style="--sc:'+sc.c+'">'+esc(c.sector || sc.n)+'</span>'+
+        '<div style="min-width:0"><b class="trunc">'+esc(c.empresa || c.nombre)+'</b><span class="tiny muted trunc">'+(c.empresa ? esc(c.nombre)+' · ' : '')+'<span style="color:'+f.c+'">'+esc(f.n)+'</span>'+
+        (f.obj ? ' · objetivo: '+esc(f.obj) : '')+'</span></div></div>'+
+      (LL.cola ? '<span class="ll-cola">'+ic('users',13)+' '+(LL.pos + 1)+' de '+LL.cola.length+'</span>' : '')+
+      '<span class="ll-reloj" id="ll-reloj" title="Duración de la llamada">'+venDur(LL.seg)+'</span>'+
+      '<button class="icon-btn" id="ll-x" title="Cerrar">'+ic('x',18)+'</button>'+
+    '</div>'+
+    '<div class="ll-body">'+
+      /* Columna 1: con quién hablar */
+      '<section class="ll-col">'+
+        '<h4>'+ic('user',15)+' Con quién hablar</h4>'+
+        '<div class="ll-dec">'+
+          '<div class="ll-dec-h">'+ic('star',13)+' Quien decide</div>'+
+          '<div class="grid g-2"><input class="inp" data-ll-dec="decisor_nombre" placeholder="Nombre" value="'+esc(LL.dec.decisor_nombre)+'">'+
+            '<input class="inp" data-ll-dec="decisor_cargo" placeholder="Cargo (gerente…)" value="'+esc(LL.dec.decisor_cargo)+'"></div>'+
+          '<div class="grid g-2" style="margin-top:6px"><input class="inp" data-ll-dec="decisor_telefono" placeholder="Móvil directo" value="'+esc(LL.dec.decisor_telefono)+'" inputmode="tel">'+
+            '<input class="inp" data-ll-dec="decisor_email" placeholder="Correo" value="'+esc(LL.dec.decisor_email)+'" inputmode="email"></div>'+
+        '</div>'+
+        '<div class="ll-tels">'+
+          (td ? '<a class="btn btn-p" href="tel:'+esc(td)+'" data-ll-llamar>'+ic('phone',15)+' Llamar al decisor</a>' : '')+
+          (tel ? '<a class="btn '+(td ? 'btn-s' : 'btn-p')+'" href="tel:'+esc(tel)+'" data-ll-llamar>'+ic('phone',15)+' Llamar a la empresa <span class="tiny">'+esc((c.prefijo||'')+' '+c.telefono)+'</span></a>' : '<p class="tiny" style="color:#FCA5A5">Sin teléfono de la empresa.</p>')+
+          '<button class="btn btn-s btn-xs" id="ll-empezar">'+ic('clock',13)+' Empezar a contar</button></div>'+
+        (c.proximo_paso || c.proximo_contacto ? '<div class="ll-prox">'+ic('calendar',13)+' <span>Paso previsto: <b>'+esc(c.proximo_paso || 'seguimiento')+'</b>'+(c.proximo_contacto ? ' · '+esc(ctFechaCorta(c.proximo_contacto, true)) : '')+'</span></div>' : '')+
+        '<h5>Llamadas anteriores</h5><div id="ll-previas"><p class="tiny muted">Cargando…</p></div>'+
+      '</section>'+
+      /* Columna 2: guion */
+      '<section class="ll-col ll-guion">'+
+        '<h4>'+ic('book',15)+' Guion · '+esc(sc.n)+'</h4>'+
+        '<div class="ll-regla">'+ic('alert',13)+' La llamada vende la visita, no el sistema. No des precio por teléfono. No cuelgues sin fecha. Sin cifras inventadas.</div>'+
+        '<div class="ll-pasos">'+pasos.map(function(p, i){ return '<div class="ll-paso"><span class="ll-paso-n">'+(i + 1)+'</span><div><div class="ll-paso-t">'+p[1]+' <span class="tiny muted">'+p[0]+'</span></div><p>'+esc(venTexto(p[2], c))+'</p></div></div>'; }).join('')+'</div>'+
+        '<details class="ll-det"><summary>'+ic('users',13)+' Si te coge recepción</summary><p>'+esc(venTexto('«Soy [Tu nombre], de Labs24k. Trabajamos con ' + sc.pl + ' de la zona sobre las solicitudes que entran fuera de horario y se pierden. Quiero comentarlo dos minutos con el gerente. ¿Está en el despacho o le pillo en el móvil?»', c))+'</p>'+
+          '<p class="tiny muted">Si insiste en si es para vender: «Es una propuesta de trabajo, sí, y por eso quiero hablar con quien decide en lugar de hacerle perder el tiempo a usted. ¿Me lo pasa?»</p></details>'+
+        '<h5>Cualifica (BANT)</h5><div class="ll-bant">'+bant.map(function(b){ return '<label class="ll-b'+(LL.bant[b[0]] ? ' on' : '')+'"><input type="checkbox" data-ll-bant="'+b[0]+'"'+(LL.bant[b[0]] ? ' checked' : '')+'><span><b>'+b[1]+'</b> '+esc(b[2])+'</span></label>'; }).join('')+'</div>'+
+        '<h5>Objeciones</h5><div class="ll-objs">'+VEN_OBJ.map(function(o, i){ return '<button class="ll-obj'+(LL.obj === i ? ' on' : '')+'" data-ll-obj="'+i+'">'+esc(o[0])+'</button>'; }).join('')+'</div>'+
+        (LL.obj > -1 ? '<div class="ll-resp">'+ic('chat',13)+' '+esc(venTexto(VEN_OBJ[LL.obj][1], c))+'</div>' : '')+
+      '</section>'+
+      /* Columna 3: registro */
+      '<section class="ll-col ll-reg">'+
+        '<h4>'+ic('save',15)+' Registro de la llamada</h4>'+
+        '<h5>¿Con quién has hablado?</h5><div class="ll-chips">'+VEN_QUIEN.map(function(q){ return '<button class="ll-ch'+(LL.quien === q[0] ? ' on' : '')+'" data-ll-quien="'+q[0]+'">'+q[1]+'</button>'; }).join('')+'</div>'+
+        '<h5>Resultado</h5><div class="ll-chips">'+Object.keys(VEN_RES).map(function(k){ return '<button class="ll-ch'+(LL.res === k ? ' on' : '')+'" data-ll-res="'+k+'" style="--rc:'+VEN_RES[k].c+'">'+VEN_RES[k].n+'</button>'; }).join('')+'</div>'+
+        (LL.res === 'no_interesado' ? '<label class="ll-perd"><input type="checkbox" id="ll-perdido"'+(LL.perdido ? ' checked' : '')+'> Marcar como perdido (el motivo son las notas)</label>' : '')+
+        '<h5>Notas de la conversación</h5><textarea class="inp" id="ll-notas" rows="4" placeholder="Qué le duele, cómo trabaja hoy, objeciones, con quién más hay que hablar…">'+esc(LL.notas)+'</textarea>'+
+        '<h5>Grabación</h5>'+
+        '<div class="ll-grab">'+
+          (LL.grabando ? '<button class="btn ll-rec on" id="ll-rec">'+ic('stop',14)+' Parar grabación</button>' :
+            '<button class="btn btn-s ll-rec" id="ll-rec">'+ic('rec',14)+' Grabar (micrófono)</button>')+
+          '<label class="btn btn-s" style="cursor:pointer">'+ic('upload',14)+' Adjuntar audio<input type="file" id="ll-audio" accept="audio/*,.mp3,.m4a,.wav,.ogg,.webm" hidden></label>'+
+          (LL.grab ? '<div class="ll-grab-f">'+ic('play',13)+' <span class="trunc">'+esc(LL.grab.nombre)+'</span> <span class="tiny muted">'+rcTam(LL.grab.blob.size)+'</span><button class="icon-btn sm" id="ll-grab-x" title="Quitar">'+ic('x',13)+'</button></div>' : '')+
+        '</div>'+
+        '<label class="ll-aviso'+(LL.grab && !LL.informado ? ' u' : '')+'"><input type="checkbox" id="ll-informado"'+(LL.informado ? ' checked' : '')+'> He avisado de que la llamada se graba <span class="tiny muted">(obligatorio para guardar la grabación)</span></label>'+
+        '<h5>Siguiente paso</h5><div class="ll-chips">'+Object.keys(VEN_PASOS).map(function(k){ return '<button class="ll-ch'+(LL.sig.tipo === k ? ' on' : '')+'" data-ll-sig="'+k+'">'+ic(VEN_PASOS[k][1],12)+' '+VEN_PASOS[k][0]+'</button>'; }).join('')+'</div>'+
+        (LL.sig.tipo ? '<div class="ll-sig"><input class="inp" type="datetime-local" id="ll-sig-f" value="'+esc(LL.sig.fecha)+'">'+
+          '<div class="ll-chips">'+atajos.map(function(a){ return '<button class="ll-ch sm" data-ll-at="'+a[1]+'" data-ll-h="'+a[2]+'">'+a[0]+'</button>'; }).join('')+'</div>'+
+          '<input class="inp" id="ll-sig-n" placeholder="Qué hay que llevar o preparar (opcional)" value="'+esc(LL.sig.nota)+'"></div>' : '')+
+        '<div class="ll-pie">'+
+          (LL.error ? '<div class="tiny" style="color:#FCA5A5;margin-bottom:8px">'+esc(LL.error)+'</div>' : '')+
+          '<button class="btn btn-p" id="ll-guardar"'+(LL.enviando ? ' disabled' : '')+'>'+ic('save',14)+' '+(LL.enviando ? 'Guardando…' : LL.cola && LL.pos < LL.cola.length - 1 ? 'Guardar y siguiente' : 'Guardar llamada')+'</button>'+
+          (LL.cola && LL.pos < LL.cola.length - 1 ? '<button class="btn btn-s" id="ll-saltar">Saltar ›</button>' : '')+
+        '</div>'+
+      '</section>'+
+    '</div>';
+  var $ = function(x){ return n.querySelector(x); }, $$ = function(x){ return n.querySelectorAll(x); };
+  $('#ll-x').onclick = function(){ if((LL.res || LL.notas) && !confirm('¿Cerrar sin guardar esta llamada?')) return; llCierra(); };
+  $$('[data-ll-llamar]').forEach(function(a){ a.addEventListener('click', llEmpieza); });
+  $('#ll-empezar').onclick = llEmpieza;
+  $$('[data-ll-dec]').forEach(function(i){ i.oninput = function(){ LL.dec[i.dataset.llDec] = i.value; }; });
+  $$('[data-ll-bant]').forEach(function(i){ i.onchange = function(){ LL.bant[i.dataset.llBant] = i.checked; i.parentNode.classList.toggle('on', i.checked); }; });
+  $$('[data-ll-obj]').forEach(function(b){ b.onclick = function(){ LL.obj = LL.obj === Number(b.dataset.llObj) ? -1 : Number(b.dataset.llObj); llPinta(); }; });
+  $$('[data-ll-quien]').forEach(function(b){ b.onclick = function(){ LL.quien = b.dataset.llQuien; if(LL.quien === 'nadie' && !LL.res) llPonRes('no_contesta'); llPinta(); }; });
+  $$('[data-ll-res]').forEach(function(b){ b.onclick = function(){ llPonRes(b.dataset.llRes); llPinta(); }; });
+  if($('#ll-perdido')) $('#ll-perdido').onchange = function(){ LL.perdido = this.checked; };
+  $('#ll-notas').oninput = function(){ LL.notas = this.value; };
+  $('#ll-informado').onchange = function(){ LL.informado = this.checked; this.parentNode.classList.remove('u'); if(LL.error && this.checked){ LL.error = ''; llPinta(); } };
+  $$('[data-ll-sig]').forEach(function(b){ b.onclick = function(){ var k = b.dataset.llSig;
+    if(LL.sig.tipo === k){ LL.sig = {tipo:'', fecha:'', nota:''}; } else { LL.sig.tipo = k; if(!LL.sig.fecha){ var d = new Date(); d.setDate(d.getDate() + 1); d.setHours(10, 0, 0, 0); LL.sig.fecha = ctLocal(d.toISOString()); } }
+    llPinta(); }; });
+  if($('#ll-sig-f')) $('#ll-sig-f').onchange = function(){ LL.sig.fecha = this.value; };
+  if($('#ll-sig-n')) $('#ll-sig-n').oninput = function(){ LL.sig.nota = this.value; };
+  $$('[data-ll-at]').forEach(function(b){ b.onclick = function(){ var d = new Date(); d.setDate(d.getDate() + Number(b.dataset.llAt));
+    while(d.getDay() === 0 || d.getDay() === 6) d.setDate(d.getDate() + 1); d.setHours(Number(b.dataset.llH), 0, 0, 0); LL.sig.fecha = ctLocal(d.toISOString()); llPinta(); }; });
+  $('#ll-audio').onchange = function(){ var f = this.files[0]; if(!f) return;
+    var ext = (f.name.split('.').pop() || '').toLowerCase(); if(['mp3','m4a','wav','ogg','webm'].indexOf(ext) < 0){ toast('Formato de audio no admitido: usa MP3, M4A, WAV, OGG o WEBM.'); return; }
+    LL.grab = {blob:f, nombre:f.name, ext:ext}; llPinta(); };
+  if($('#ll-grab-x')) $('#ll-grab-x').onclick = function(){ LL.grab = null; llPinta(); };
+  $('#ll-rec').onclick = llGraba;
+  $('#ll-guardar').onclick = function(){ llGuarda(); };
+  if($('#ll-saltar')) $('#ll-saltar').onclick = function(){ llSiguiente(); };
+  llPintaPrevias();
+}
+/* Al elegir el resultado se deducen con quién se ha hablado y el siguiente paso típico. */
+function llPonRes(k){
+  LL.res = k;
+  if(!LL.quien) LL.quien = ['no_contesta','buzon','datos_erroneos'].indexOf(k) > -1 ? 'nadie' : k === 'filtro' ? 'recepcion' : 'decisor';
+  if(!LL.sig.tipo){ var auto = {cita:'visita', propuesta:'propuesta', cierre_verbal:'firma', interesado:'llamada', llamar_luego:'llamada', filtro:'llamada', no_contesta:'llamada', buzon:'llamada'}[k];
+    if(auto){ LL.sig.tipo = auto; var d = new Date(); d.setDate(d.getDate() + (auto === 'llamada' ? 1 : 2)); while(d.getDay() === 0 || d.getDay() === 6) d.setDate(d.getDate() + 1);
+      d.setHours(10, 0, 0, 0); LL.sig.fecha = ctLocal(d.toISOString()); } }
+  if(k === 'no_interesado' || k === 'datos_erroneos') LL.sig = {tipo:'', fecha:'', nota:''};
+}
+/* Grabación con el micrófono del ordenador o del móvil (llamada en altavoz o nota de voz). */
+function llGraba(){
+  if(LL.grabando && LL.grabadora){ LL.grabadora.stop(); return; }
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || typeof MediaRecorder === 'undefined'){
+    toast('Este navegador no permite grabar. Graba la llamada con el móvil y adjunta el audio.'); return; }
+  navigator.mediaDevices.getUserMedia({audio:true}).then(function(st){
+    LL.stream = st; var trozos = [], tipo = MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : '';
+    var g = new MediaRecorder(st, tipo ? {mimeType:tipo} : undefined); LL.grabadora = g;
+    g.ondataavailable = function(e){ if(e.data && e.data.size) trozos.push(e.data); };
+    g.onstop = function(){ st.getTracks().forEach(function(t){ t.stop(); }); LL.grabando = false;
+      var tp = g.mimeType || 'audio/webm', ext = /ogg/.test(tp) ? 'ogg' : /mp4/.test(tp) ? 'm4a' : 'webm';
+      if(trozos.length){ var bl = new Blob(trozos, {type:tp}); LL.grab = {blob:bl, nombre:'grabacion-' + new Date().toISOString().slice(0, 16).replace('T', '-').replace(':', '') + '.' + ext, ext:ext}; }
+      if(LL.nodo) llPinta(); };
+    g.start(1000); LL.grabando = true; llEmpieza(); llPinta();
+    if(!LL.informado) toast('Recuerda avisar: «Le informo de que esta llamada se graba para la calidad del servicio».');
+  }, function(){ toast('No hay permiso para usar el micrófono. Actívalo en el navegador o adjunta el audio.'); });
+}
+function llGuarda(){
+  var c = LL.c; LL.error = '';
+  if(!LL.res){ LL.error = 'Elige el resultado de la llamada.'; llPinta(); return; }
+  if(LL.grabando){ LL.error = 'Para la grabación antes de guardar.'; llPinta(); return; }
+  if(LL.grab && !LL.informado){ LL.error = 'Marca que has avisado de la grabación, o quita el audio.'; llPinta(); return; }
+  if(LL.sig.tipo && !LL.sig.fecha){ LL.error = 'Pon la fecha del siguiente paso.'; llPinta(); return; }
+  LL.enviando = true; llPinta();
+  var uid = (SB.sesion && SB.sesion.uid) || null;
+  var rutaGrab = LL.grab ? 'contactos/' + c.id + '/llamadas/' + Date.now() + '.' + LL.grab.ext : '';
+  var subida = LL.grab ? subeArchivo(rutaGrab, LL.grab.blob, LL.grab.blob.type || 'audio/' + LL.grab.ext)
+    .then(function(r){ if(!r.ok) throw new Error('No se ha podido subir la grabación: ' + (r.mensaje || r.estado)); return r; }) : Promise.resolve(null);
+  subida.then(function(){
+    /* Datos de quien decide, si han cambiado. */
+    var dc = {}, cambia = false;
+    Object.keys(LL.dec).forEach(function(k){ var v = String(LL.dec[k] || '').trim(); if(v !== String(c[k] || '')){ dc[k] = v; cambia = true; } });
+    if(dc.decisor_email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(dc.decisor_email)) throw new Error('El correo de quien decide no es válido.');
+    return (cambia ? sbUpdate('contactos', 'id=eq.' + c.id, dc).then(function(x){ if(!(x && x.ok)) throw new Error(sbMensaje(x)); Object.assign(c, dc); }) : Promise.resolve()).then(function(){
+      var fila = {contacto_id:c.id, autor_id:uid, inicio:new Date(LL.t0 || Date.now()).toISOString(), duracion:LL.seg || 0, con_quien:LL.quien || 'nadie',
+        resultado:LL.res, bant:LL.bant, notas:LL.notas.trim(), grabacion:rutaGrab || '', informado:LL.informado ? 1 : 0,
+        siguiente_tipo:LL.sig.tipo || '', siguiente_fecha:LL.sig.tipo && LL.sig.fecha ? new Date(LL.sig.fecha).toISOString() : null,
+        siguiente_nota:(LL.sig.nota || '').trim(), perdido:LL.perdido ? 1 : 0};
+      return sbInsert('llamadas', fila).then(function(x){ if(!(x && x.ok)) throw new Error(sbMensaje(x)); });
+    });
+  }).then(function(){
+    /* El servidor ha movido la fase y el próximo paso: se recarga el contacto. */
+    return sbSelect('contactos', 'id=eq.' + c.id + '&select=*').then(function(x){ if(x && x.ok && x.datos && x.datos[0]) Object.assign(c, x.datos[0]); });
+  }).then(function(){
+    toast('Llamada registrada' + (LL.sig.tipo ? ' y siguiente paso en la agenda.' : '.'));
+    if(typeof AGD !== 'undefined') AGD.cargado = false;
+    if(typeof SALA !== 'undefined') SALA.datos = null;
+    if(CT.det === c.id) ctCargaDetalle(c.id);
+    LL.enviando = false;
+    if(LL.cola && LL.pos < LL.cola.length - 1) llSiguiente(); else llCierra();
+  }).catch(function(e){ LL.enviando = false; LL.error = e.message || String(e); llPinta(); });
+}
+function llSiguiente(){
+  if(!LL.cola) return llCierra();
+  for(var i = LL.pos + 1; i < LL.cola.length; i++){ var c = ctContactoPorId(LL.cola[i]); if(c){ llAbre(c, LL.cola, i); return; } }
+  llCierra();
+}
+
+/* Escape cierra el panel de venta, la cola y el modo llamada (este, preguntando si hay algo sin guardar). */
+document.addEventListener('keydown', function(e){
+  if(e.key !== 'Escape') return;
+  if(typeof LLQ !== 'undefined' && LLQ.nodo){ llColaCierra(); return; }
+  if(typeof LL !== 'undefined' && LL.nodo){ if((LL.res || LL.notas || LL.grab) && !confirm('¿Cerrar sin guardar esta llamada?')) return; llCierra(); return; }
+  if(typeof VP !== 'undefined' && VP.nodo) vpCierra();
+});
+
+/* --- Cola de llamadas: elige sector y fase, y ve uno tras otro -------------- */
+var LLQ = {nodo:null, sector:'', fase:'abiertas'};
+function llColaLista(){
+  var abiertas = ['lead', 'cualificacion', 'demo', 'propuesta', 'negociacion'];
+  return CT.lista.filter(function(c){
+    if(Number(c.activo) === 0) return false;
+    if(!c.telefono && !c.decisor_telefono) return false;
+    var f = c.fase || 'lead';
+    if(LLQ.fase === 'abiertas' ? abiertas.indexOf(f) < 0 : f !== LLQ.fase) return false;
+    if(LLQ.sector && venSector(c).k !== LLQ.sector) return false;
+    return true;
+  }).sort(function(a, b){
+    var sa = ctSeguimiento(a), sb = ctSeguimiento(b), pa = sa && (sa.col === 'red' || sa.col === 'amber') ? 1 : 0, pb = sb && (sb.col === 'red' || sb.col === 'amber') ? 1 : 0;
+    return pb - pa || ctIa(b).s - ctIa(a).s;
+  });
+}
+function llColaAbre(){
+  if(!LLQ.nodo){ LLQ.nodo = document.createElement('div'); LLQ.nodo.className = 'ov ucl-ov'; LLQ.nodo.id = 'llq-root'; document.body.appendChild(LLQ.nodo); }
+  llColaPinta();
+}
+function llColaCierra(){ if(LLQ.nodo && LLQ.nodo.parentNode) LLQ.nodo.parentNode.removeChild(LLQ.nodo); LLQ.nodo = null; }
+function llColaPinta(){
+  var cuenta = {}, base = CT.lista.filter(function(c){ return Number(c.activo) !== 0 && (c.telefono || c.decisor_telefono); });
+  base.forEach(function(c){ var k = venSector(c).k; cuenta[k] = (cuenta[k] || 0) + 1; });
+  var l = llColaLista(), venc = l.filter(function(c){ var s = ctSeguimiento(c); return s && (s.col === 'red' || s.col === 'amber'); }).length;
+  LLQ.nodo.innerHTML = '<div class="modal" style="max-width:640px;width:100%">'+
+    '<div class="row" style="justify-content:space-between;align-items:flex-start"><div><h3 style="margin:0 0 4px">'+ic('phone',18)+' Sesión de llamadas</h3>'+
+      '<p class="tiny muted" style="margin:0">Elige a quién llamar. Irás cliente por cliente con su guion; al guardar cada llamada pasa al siguiente.</p></div><button class="icon-btn" id="llq-x">'+ic('x',16)+'</button></div>'+
+    '<h5 class="llq-h">Sector</h5><div class="ll-chips"><button class="ll-ch'+(!LLQ.sector ? ' on' : '')+'" data-llq-s="">Todos <span class="tiny">'+base.length+'</span></button>'+
+      VEN_SECTORES.filter(function(s){ return cuenta[s.k]; }).map(function(s){ return '<button class="ll-ch'+(LLQ.sector === s.k ? ' on' : '')+'" data-llq-s="'+s.k+'" style="--rc:'+s.c+'">'+esc(s.n)+' <span class="tiny">'+cuenta[s.k]+'</span></button>'; }).join('')+'</div>'+
+    '<h5 class="llq-h">Fase</h5><div class="ll-chips"><button class="ll-ch'+(LLQ.fase === 'abiertas' ? ' on' : '')+'" data-llq-f="abiertas">Todas las abiertas</button>'+
+      FASES_NG.filter(function(f){ return ['lead','cualificacion','demo','propuesta','negociacion'].indexOf(f.k) > -1; }).map(function(f){
+        return '<button class="ll-ch'+(LLQ.fase === f.k ? ' on' : '')+'" data-llq-f="'+f.k+'" style="--rc:'+f.c+'">'+esc(f.n)+'</button>'; }).join('')+'</div>'+
+    '<div class="llq-res"><b>'+l.length+'</b> contacto'+(l.length === 1 ? '' : 's')+' para llamar'+(venc ? ' · primero los <b>'+venc+'</b> con seguimiento para hoy o vencido' : '')+', después por puntuación IA.</div>'+
+    '<div class="llq-lista">'+l.slice(0, 6).map(function(c, i){ return '<div class="tiny"><span class="muted">'+(i + 1)+'.</span> '+esc(c.empresa || c.nombre)+' <span class="muted">· '+esc(venSector(c).n)+' · '+esc(ngFase(c.fase).n)+'</span></div>'; }).join('')+(l.length > 6 ? '<div class="tiny muted">… y '+(l.length - 6)+' más</div>' : '')+'</div>'+
+    '<div class="row" style="justify-content:flex-end;gap:8px;margin-top:14px"><button class="btn btn-s" id="llq-no">Cancelar</button>'+
+      '<button class="btn btn-p" id="llq-si"'+(l.length ? '' : ' disabled')+'>'+ic('phone',14)+' Empezar a llamar</button></div></div>';
+  var $ = function(x){ return LLQ.nodo.querySelector(x); };
+  $('#llq-x').onclick = $('#llq-no').onclick = llColaCierra;
+  LLQ.nodo.querySelectorAll('[data-llq-s]').forEach(function(b){ b.onclick = function(){ LLQ.sector = b.dataset.llqS; llColaPinta(); }; });
+  LLQ.nodo.querySelectorAll('[data-llq-f]').forEach(function(b){ b.onclick = function(){ LLQ.fase = b.dataset.llqF; llColaPinta(); }; });
+  $('#llq-si').onclick = function(){ var ids = llColaLista().map(function(c){ return c.id; }); llColaCierra(); if(ids.length) llAbre(ctContactoPorId(ids[0]), ids, 0); };
+}
+
+/* --------------------------------------------------------------------------
+   PANEL DE VENTA (al pulsar un cliente en el embudo)
+   -------------------------------------------------------------------------- */
+var VP = {nodo:null, c:null, llamadas:null, eventos:null};
+function vpAbre(c){
+  if(!c) return;
+  VP.c = c; VP.llamadas = null; VP.eventos = null;
+  if(!VP.nodo){ VP.nodo = document.createElement('div'); VP.nodo.className = 'vp-ov'; VP.nodo.id = 'vp-root'; document.body.appendChild(VP.nodo); }
+  vpPinta();
+  Promise.all([sbSelect('llamadas', 'contacto_id=eq.' + c.id + '&order=inicio.desc&limit=8'), sbSelect('contacto_eventos', 'contacto_id=eq.' + c.id + '&order=ts.desc&limit=6')]).then(function(rs){
+    if(VP.c !== c) return; VP.llamadas = rs[0] && rs[0].ok ? rs[0].datos : []; VP.eventos = rs[1] && rs[1].ok ? rs[1].datos : []; vpPinta(); });
+}
+function vpCierra(){ if(VP.nodo && VP.nodo.parentNode) VP.nodo.parentNode.removeChild(VP.nodo); VP.nodo = null; VP.c = null; }
+function venLlamadasHTML(l){
+  if(l === null) return '<p class="tiny muted">Cargando…</p>';
+  if(!l.length) return '<p class="tiny muted">Todavía no hay llamadas registradas.</p>';
+  return l.map(function(x){ var R = VEN_RES[x.resultado] || {n:x.resultado, c:'#94A3B8'}, q = (VEN_QUIEN.filter(function(y){ return y[0] === x.con_quien; })[0] || ['', ''])[1];
+    return '<div class="ven-ll"><span class="ll-dot" style="background:'+R.c+'"></span><div style="flex:1;min-width:0">'+
+      '<div class="row" style="gap:6px;flex-wrap:wrap;align-items:center"><b style="color:'+R.c+'">'+esc(R.n)+'</b><span class="tiny muted">'+esc(q)+(x.duracion ? ' · '+venDur(x.duracion) : '')+' · '+esc(ctFechaCorta(x.inicio, true))+' · '+esc(ctNombreGestor(x.autor_id) || 'equipo')+'</span></div>'+
+      (x.notas ? '<div class="tiny ven-ll-n">'+esc(x.notas)+'</div>' : '')+
+      (x.grabacion ? '<div class="ven-audio" data-ven-audio="'+esc(x.grabacion)+'"><button class="btn btn-s btn-xs">'+ic('play',12)+' Escuchar grabación</button></div>' : '')+
+    '</div></div>'; }).join('');
+}
+function venAudioEventos(raiz){
+  (raiz || document).querySelectorAll('[data-ven-audio]').forEach(function(d){ var b = d.querySelector('button'); if(!b) return;
+    b.onclick = function(){ b.disabled = true; b.textContent = 'Cargando…';
+      rvFirma(d.dataset.venAudio).then(function(u){ d.innerHTML = '<audio controls autoplay preload="auto" src="'+esc(u)+'"></audio>'; }, function(e){ b.disabled = false; b.textContent = 'No se ha podido abrir'; toast(e.message); }); }; });
+}
+function vpPinta(){
+  var n = VP.nodo, c = VP.c; if(!n || !c) return;
+  var f = ngFase(c.fase), sc = venSector(c), t = ngTemperatura(c), seg = ctSeguimiento(c), orden = FASES_NG.filter(function(x){ return x.k !== 'perdido'; });
+  var idx = orden.map(function(x){ return x.k; }).indexOf(c.fase || 'lead'), sig = idx > -1 && idx < orden.length - 1 ? orden[idx + 1] : null;
+  var tel = ctTelCompleto(c), td = venTelDecisor(c);
+  n.innerHTML = '<aside class="vp" role="dialog" aria-label="Panel de venta">'+
+    '<div class="vp-h"><div style="min-width:0;flex:1"><span class="ll-sec" style="--sc:'+sc.c+'">'+esc(c.sector || sc.n)+'</span>'+
+      '<h3 class="trunc">'+esc(c.empresa || c.nombre)+'</h3><div class="tiny muted">'+(c.empresa ? esc(c.nombre)+' · ' : '')+ngTermo(t)+' '+esc(t.n)+' · '+(Number(c.valor) ? ngEuros(c.valor) : 'sin valor')+'</div></div>'+
+      '<button class="icon-btn" id="vp-x">'+ic('x',16)+'</button></div>'+
+    /* Fases */
+    '<div class="vp-fases">'+orden.map(function(x, i){ var est = c.fase === 'perdido' ? '' : i < idx ? 'ok' : i === idx ? 'on' : '';
+      return '<div class="vp-f '+est+'" style="--fc:'+x.c+'" title="'+esc(x.n)+(x.obj ? ': '+x.obj : '')+'"><i></i><span>'+esc(x.n)+'</span></div>'; }).join('')+'</div>'+
+    (c.fase === 'perdido' ? '<div class="vp-box" style="--bc:#F87171">'+ic('x',14)+'<div><b>Perdido</b><span>'+esc(c.motivo_perdida || 'Sin motivo anotado')+'</span></div></div>' :
+      '<div class="vp-box" style="--bc:'+f.c+'">'+ic(f.i,14)+'<div><b>Fase actual: '+esc(f.n)+'</b><span>Objetivo: '+esc(f.obj || '—')+'</span>'+(sig ? '<span class="tiny">Para pasar a <b>'+esc(sig.n)+'</b>: '+esc(f.paso || '')+'</span>' : '')+'</div></div>')+
+    /* Próximo paso */
+    '<div class="vp-prox'+(seg && seg.col === 'red' ? ' u' : '')+'">'+ic('calendar',15)+'<div style="flex:1;min-width:0">'+
+      (c.proximo_contacto || c.proximo_paso ? '<b>Próximo paso:</b> '+esc(c.proximo_paso || 'Seguimiento')+(seg ? ' · <span class="chip '+seg.col+'">'+esc(seg.txt)+'</span>' : '') :
+        '<span style="color:#FDE68A"><b>Sin próximo paso.</b> Llama y deja la siguiente acción con fecha.</span>')+'</div></div>'+
+    /* Acciones */
+    '<div class="vp-acc">'+
+      '<button class="btn btn-p" id="vp-llamar">'+ic('phone',14)+' Llamar con guion</button>'+
+      '<button class="btn btn-s" id="vp-cita">'+ic('calendar',14)+' Agendar</button>'+
+      (sig && c.fase !== 'perdido' ? '<button class="btn btn-s" id="vp-avanza">'+ic('arrowRight',14)+' Pasar a '+esc(sig.n)+'</button>' : '')+
+      '<button class="btn btn-s" id="vp-ficha">'+ic('eye',14)+' Ficha completa</button></div>'+
+    /* Decisor */
+    '<h5>Quien decide</h5><div class="vp-dec">'+(c.decisor_nombre ? '<b>'+esc(c.decisor_nombre)+'</b>'+(c.decisor_cargo ? ' · '+esc(c.decisor_cargo) : '') : '<span class="tiny" style="color:#FDE68A">Sin identificar todavía: pregúntalo en la próxima llamada.</span>')+
+      '<div class="row" style="gap:6px;flex-wrap:wrap;margin-top:6px">'+(td ? '<a class="btn btn-s btn-xs" href="tel:'+esc(td)+'">'+ic('phone',12)+' '+esc(c.decisor_telefono)+'</a>' : '')+
+      (tel ? '<a class="btn btn-s btn-xs" href="tel:'+esc(tel)+'">'+ic('building',12)+' Empresa '+esc((c.prefijo||'')+' '+c.telefono)+'</a>' : '')+
+      (c.decisor_email || c.email ? '<a class="btn btn-s btn-xs" href="mailto:'+esc(c.decisor_email || c.email)+'">'+ic('mail',12)+' Correo</a>' : '')+'</div></div>'+
+    '<h5>Llamadas</h5><div class="vp-ll">'+venLlamadasHTML(VP.llamadas)+'</div>'+
+    '<h5>Últimos movimientos</h5><div class="vp-ev">'+(VP.eventos === null ? '<p class="tiny muted">Cargando…</p>' : !VP.eventos.length ? '<p class="tiny muted">Sin movimientos.</p>' :
+      VP.eventos.map(function(e){ return '<div class="vp-e"><span class="tiny muted">'+esc(ctFechaCorta(e.ts, true))+'</span><span class="tiny">'+esc(String(e.texto || '').split('\n')[0])+'</span></div>'; }).join(''))+'</div>'+
+  '</aside>';
+  var $ = function(x){ return n.querySelector(x); };
+  n.onclick = function(e){ if(e.target === n) vpCierra(); };
+  $('#vp-x').onclick = vpCierra;
+  $('#vp-llamar').onclick = function(){ vpCierra(); llAbre(c); };
+  $('#vp-cita').onclick = function(){ vpCierra(); agdNuevaCita({contacto_id:c.id}, 'pipeline'); };
+  $('#vp-ficha').onclick = function(){ vpCierra(); ngAbreFicha(c.id, 'pipeline'); };
+  if($('#vp-avanza')) $('#vp-avanza').onclick = function(){ vpCierra(); plMueve(c.id, sig.k); };
+  venAudioEventos(n);
 }
 
 /* ==========================================================================

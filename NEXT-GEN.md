@@ -106,6 +106,52 @@ Formaciones y dosieres que **se ven dentro del CRM** y se descargan:
   documentos (también del almacén) y la configuración de IA; las citas y los
   contratos se conservan sin contacto. Queda en el registro de auditoría.
 
+## Proceso de venta: llamadas, embudo y agenda
+
+Método del Kit de Venta Rápido: **la llamada vende la visita, la visita vende
+el sistema**. Todo queda registrado en el CRM.
+
+- **Tipo de negocio** en cada contacto (Clínica estética, Clínica dental,
+  Centro médico, Despacho legal / asesoría, Inmobiliaria, Hotel, Restauración,
+  Gimnasio… o el texto que se escriba). Al importar o actualizar, el CRM lo
+  deduce del nombre y las etiquetas si falta.
+- **Quien decide**: nombre, cargo, móvil directo y correo del gerente o
+  responsable, en la ficha y en el modo llamada.
+- **Empezar a llamar** (Contactos): elige sector y fase y el CRM prepara la
+  cola: primero los seguimientos de hoy o vencidos, después por puntuación IA.
+  Al guardar cada llamada pasa al siguiente.
+- **Modo llamada** (desde la cola, la ficha, la tarjeta del embudo o el panel
+  de venta), en tres columnas:
+  1. con quién hablar (decisor, botones de llamada, llamadas anteriores);
+  2. guion de su sector en 6 pasos (presentación, dato del sector, puente
+     honesto, gancho, doble opción, confirmar), qué decir si coge recepción,
+     preguntas BANT y respuestas a las 6 objeciones típicas;
+  3. registro: con quién has hablado, resultado, notas, grabación y siguiente
+     paso con fecha.
+- **Grabación**: con el micrófono del ordenador o del móvil (llamada en
+  altavoz) o adjuntando el audio de la grabadora del móvil (MP3, M4A, WAV,
+  OGG, WEBM). Solo se guarda si se marca «He avisado de que la llamada se
+  graba». Se escucha desde la ficha y el panel de venta con un enlace firmado.
+- **Al guardar**, el servidor anota la llamada en el historial, pone el
+  próximo paso, crea la cita en la agenda y avanza la fase si toca (nunca la
+  hace retroceder): cita → Demo, pide propuesta → Propuesta, cierre verbal →
+  Negociación; «No interesado» puede marcarlo como perdido.
+- **Embudo**: cada fase muestra su objetivo; cada tarjeta, el tipo de negocio
+  y el próximo paso (en rojo si está vencido). **Pulsar un cliente** abre el
+  panel de venta: barra de fases, objetivo de la fase actual y qué hay que
+  hacer para pasar a la siguiente, próximo paso, quien decide, llamadas con
+  sus grabaciones, últimos movimientos y botones Llamar con guion, Agendar,
+  Pasar a la siguiente fase y Ficha completa.
+
+| Fase | Objetivo | Paso para salir de ella |
+|---|---|---|
+| Lead entrante | Hablar con quien decide | Llamar al decisor y conseguir la visita |
+| Cualificación | Necesidad, presupuesto y plazo (BANT) | Agendar la visita o la demo |
+| Demo IA | Visita o demo en su móvil | Enviar la propuesta del pack que encaja |
+| Propuesta | Propuesta enviada y repasada | Seguimiento a las 48 horas |
+| Negociación | Resolver objeciones y fijar la firma | Enviar el contrato a firma |
+| Firmado / Despliegue / Producción | Kick-off, lanzamiento, cliente contento | Pedir reseña o referido |
+
 ## Real o simulación
 
 Sin integraciones configuradas, el CRM funciona entero en **modo simulación**
@@ -223,5 +269,5 @@ de seguridad cifradas.
 
 ## Pruebas
 
-45 + 25 + 30 pruebas del servidor y 34 + 36 + 49 comprobaciones en el navegador, incluido el móvil,
+45 + 25 + 30 + 32 pruebas del servidor y 34 + 36 + 49 + 36 comprobaciones en el navegador, incluido el móvil,
 además de todas las anteriores del CRM.
