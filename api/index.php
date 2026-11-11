@@ -35,6 +35,7 @@ require __DIR__ . '/nextgen.php';
 require __DIR__ . '/configurador.php';
 require __DIR__ . '/recursos.php';
 require __DIR__ . '/papelera.php';
+require __DIR__ . '/ventas.php';
 
 ini_set('display_errors', '0');
 

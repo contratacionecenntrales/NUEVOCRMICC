@@ -155,12 +155,12 @@ function labs_importa_contactos($filas, $gestor_id, $origen = 'Importación CSV'
         // Listas de empresas (p. ej. de Google Places): dirección y localidad.
         $direccion = labs_col($f, array('dirección', 'direccion', 'address', 'domicilio'));
         $localidad = labs_col($f, array('localidad', 'ciudad', 'municipio', 'city', 'población', 'poblacion'));
-        $sector = labs_col($f, array('sector', 'categoría', 'categoria', 'actividad'));
+        $sector = labs_col($f, array('sector', 'categoría', 'categoria', 'actividad', 'tipo de negocio'));
         if ($localidad !== '') {
             $tags_raw = trim($tags_raw . ', ' . $localidad, ', ');
         }
-        if ($sector !== '') {
-            $tags_raw = trim($tags_raw . ', ' . $sector, ', ');
+        if ($sector === '' && function_exists('labs_ventas_sector_de')) {
+            $sector = labs_ventas_sector_de($nom . ' ' . $ape . ' ' . labs_col($f, array('business name', 'company name', 'empresa', 'company')) . ' ' . $tags_raw);
         }
         if ($empresa === '' && $direccion !== '' && $ape === '') {
             // Lista de negocios (nombre + dirección): el nombre es también la empresa.
@@ -222,17 +222,20 @@ function labs_importa_contactos($filas, $gestor_id, $origen = 'Importación CSV'
                 'prefijo' => $ya['telefono'] !== '' ? $ya['prefijo'] : $prefijo,
                 'etiquetas' => mb_substr(implode(', ', $todas), 0, 500),
                 'especificaciones' => trim((string) $ya['especificaciones']) !== '' ? $ya['especificaciones'] : $espec,
+                'sector' => (string) ($ya['sector'] ?? '') !== '' ? $ya['sector'] : mb_substr($sector, 0, 60),
                 'ref_externa' => $ya['ref_externa'] ?: ($ref !== '' ? $ref : null),
                 'ultima_actividad' => ($actividad && (!$ya['ultima_actividad'] || $actividad > $ya['ultima_actividad'])) ? $actividad : $ya['ultima_actividad']);
             $cambia = false;
             foreach ($set as $k => $v) {
-                if ((string) $v !== (string) $ya[$k]) {
+                if ((string) $v !== (string) ($ya[$k] ?? (string) $v)) {
                     $cambia = true;
                 }
             }
             if ($cambia) {
-                labs_q('UPDATE contactos SET empresa = ?, email = ?, telefono = ?, prefijo = ?, etiquetas = ?, especificaciones = ?, ref_externa = ?, ultima_actividad = ?, actualizado = ? WHERE id = ?',
-                    array($set['empresa'], $set['email'], $set['telefono'], $set['prefijo'], $set['etiquetas'], $set['especificaciones'], $set['ref_externa'], $set['ultima_actividad'], $ahora, $ya['id']));
+                labs_q('UPDATE contactos SET empresa = ?, email = ?, telefono = ?, prefijo = ?, etiquetas = ?, especificaciones = ?, ref_externa = ?, ultima_actividad = ?, actualizado = ?' .
+                    (array_key_exists('sector', $ya) ? ', sector = ?' : '') . ' WHERE id = ?',
+                    array_merge(array($set['empresa'], $set['email'], $set['telefono'], $set['prefijo'], $set['etiquetas'], $set['especificaciones'], $set['ref_externa'], $set['ultima_actividad'], $ahora),
+                        array_key_exists('sector', $ya) ? array($set['sector']) : array(), array($ya['id'])));
                 labs_q('INSERT INTO contacto_eventos (contacto_id, autor_id, tipo, texto, ts) VALUES (?,?,?,?,?)', array(
                     $ya['id'], $autor, 'evento', 'Ficha completada con ' . $origen . ($espec !== '' ? ' · ' . $espec : '') . '.', $ahora));
                 $res['actualizados']++;
@@ -244,13 +247,15 @@ function labs_importa_contactos($filas, $gestor_id, $origen = 'Importación CSV'
 
         $est = labs_estado_por_etiquetas($etq);
         $tiene_fase = labs_columna_existe(labs_db(), 'contactos', 'fase');
+        $tiene_sector = labs_columna_existe(labs_db(), 'contactos', 'sector');
         labs_q('INSERT INTO contactos (tipo, nombre, empresa, email, prefijo, telefono, origen, estado, especificaciones, gestor_id,
-                  etiquetas, ref_externa, ultima_actividad, creado, actualizado' . ($tiene_fase ? ', fase, fase_desde' : '') . ')
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?' . ($tiene_fase ? ',?,?' : '') . ')', array_merge(array(
+                  etiquetas, ref_externa, ultima_actividad, creado, actualizado' . ($tiene_fase ? ', fase, fase_desde' : '') . ($tiene_sector ? ', sector' : '') . ')
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?' . ($tiene_fase ? ',?,?' : '') . ($tiene_sector ? ',?' : '') . ')', array_merge(array(
             'lead', $nombre, mb_substr($empresa, 0, 200), $email, $prefijo, mb_substr($tel, 0, 40), mb_substr($origen, 0, 120),
             $est, mb_substr($espec, 0, 2000), $gestor_id, mb_substr(implode(', ', $etq), 0, 500), $ref !== '' ? $ref : null,
             $actividad, $creado ?: $ahora, $actividad ?: ($creado ?: $ahora)),
-            $tiene_fase ? array(function_exists('labs_fase_de_estado') ? labs_fase_de_estado($est) : 'lead', $ahora) : array()));
+            $tiene_fase ? array(function_exists('labs_fase_de_estado') ? labs_fase_de_estado($est) : 'lead', $ahora) : array(),
+            $tiene_sector ? array(mb_substr($sector, 0, 60)) : array()));
         $id = (int) labs_db()->lastInsertId();
         $nuevos[] = $id;
         labs_q('INSERT INTO contacto_eventos (contacto_id, autor_id, tipo, texto, ts) VALUES (?,?,?,?,?)', array(

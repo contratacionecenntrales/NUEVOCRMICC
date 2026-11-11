@@ -16,6 +16,7 @@ function labs_almacen_tipos()
         'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
         'mp4' => 'video/mp4', 'webm' => 'video/webm',
+        'mp3' => 'audio/mpeg', 'm4a' => 'audio/mp4', 'wav' => 'audio/wav', 'ogg' => 'audio/ogg',
     );
 }
 
@@ -79,6 +80,14 @@ function labs_almacen_contenido_ok($ext, $datos)
             return substr($datos, 4, 4) === 'ftyp';
         case 'webm':
             return strpos($ini, "\x1A\x45\xDF\xA3") === 0;
+        case 'mp3':
+            return strpos($ini, 'ID3') === 0 || (ord($ini[0]) === 0xFF && (ord($ini[1]) & 0xE0) === 0xE0);
+        case 'm4a':
+            return substr($datos, 4, 4) === 'ftyp';
+        case 'wav':
+            return strpos($ini, 'RIFF') === 0 && substr($ini, 8, 4) === 'WAVE';
+        case 'ogg':
+            return strpos($ini, 'OggS') === 0;
         case 'csv':
         case 'txt':
             // Texto: nada de código que un navegador pudiera ejecutar.

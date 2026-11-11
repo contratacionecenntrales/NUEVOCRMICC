@@ -8,7 +8,7 @@
  */
 defined('LABS') || exit;
 
-define('LABS_VERSION_ESQUEMA', 11);
+define('LABS_VERSION_ESQUEMA', 12);
 
 function labs_columna_existe(PDO $db, $tabla, $col)
 {
@@ -106,6 +106,15 @@ function labs_migra(PDO $db)
            valor DECIMAL(12,2) NOT NULL DEFAULT 0, autor_id CHAR(36) NULL, ts DATETIME(6) NOT NULL,
            PRIMARY KEY (id), KEY pipeline_mov_ts_idx (ts, a), KEY pipeline_mov_contacto_idx (contacto_id),
            CONSTRAINT pipeline_mov_contacto_fk FOREIGN KEY (contacto_id) REFERENCES contactos(id) ON DELETE CASCADE) $opc",
+        // v12 · Proceso de venta: cada llamada con su resultado, notas y grabación.
+        "CREATE TABLE IF NOT EXISTS llamadas (
+           id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, contacto_id BIGINT UNSIGNED NOT NULL, autor_id CHAR(36) NULL,
+           inicio DATETIME(6) NOT NULL, duracion INT NOT NULL DEFAULT 0, con_quien VARCHAR(20) NOT NULL DEFAULT 'nadie',
+           resultado VARCHAR(30) NOT NULL DEFAULT 'no_contesta', bant TEXT NULL, notas TEXT NOT NULL, grabacion VARCHAR(500) NOT NULL DEFAULT '',
+           informado TINYINT(1) NOT NULL DEFAULT 0, siguiente_tipo VARCHAR(20) NOT NULL DEFAULT '', siguiente_fecha DATETIME(6) NULL,
+           siguiente_nota VARCHAR(500) NOT NULL DEFAULT '', perdido TINYINT(1) NOT NULL DEFAULT 0, creado DATETIME(6) NOT NULL,
+           PRIMARY KEY (id), KEY llamadas_contacto_idx (contacto_id, inicio), KEY llamadas_autor_idx (autor_id, inicio),
+           CONSTRAINT llamadas_contacto_fk FOREIGN KEY (contacto_id) REFERENCES contactos(id) ON DELETE CASCADE) $opc",
         // v11 · Papelera: lo borrado se puede recuperar durante 30 días.
         "CREATE TABLE IF NOT EXISTS papelera (
            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, tipo VARCHAR(20) NOT NULL, ref_id BIGINT NOT NULL, titulo VARCHAR(200) NOT NULL,
@@ -158,6 +167,13 @@ function labs_migra(PDO $db)
         array('recursos', 'ruta_formacion', "ALTER TABLE recursos ADD COLUMN ruta_formacion VARCHAR(60) NOT NULL DEFAULT ''"),
         array('recursos', 'orden', 'ALTER TABLE recursos ADD COLUMN orden INT NOT NULL DEFAULT 0'),
         array('recursos', 'texto', 'ALTER TABLE recursos ADD COLUMN texto MEDIUMTEXT NULL'),
+        // v12 · Sector y persona que decide en cada contacto, y el siguiente paso.
+        array('contactos', 'sector', "ALTER TABLE contactos ADD COLUMN sector VARCHAR(60) NOT NULL DEFAULT '', ADD KEY contactos_sector_idx (sector)"),
+        array('contactos', 'decisor_nombre', "ALTER TABLE contactos ADD COLUMN decisor_nombre VARCHAR(120) NOT NULL DEFAULT ''"),
+        array('contactos', 'decisor_cargo', "ALTER TABLE contactos ADD COLUMN decisor_cargo VARCHAR(80) NOT NULL DEFAULT ''"),
+        array('contactos', 'decisor_telefono', "ALTER TABLE contactos ADD COLUMN decisor_telefono VARCHAR(40) NOT NULL DEFAULT ''"),
+        array('contactos', 'decisor_email', "ALTER TABLE contactos ADD COLUMN decisor_email VARCHAR(190) NOT NULL DEFAULT ''"),
+        array('contactos', 'proximo_paso', "ALTER TABLE contactos ADD COLUMN proximo_paso VARCHAR(200) NOT NULL DEFAULT ''"),
         // v9 · Contactos activos / desactivados.
         array('contactos', 'activo', 'ALTER TABLE contactos ADD COLUMN activo TINYINT(1) NOT NULL DEFAULT 1, ADD KEY contactos_activo_idx (activo)'),
         array('recursos_descargas', 'accion', "ALTER TABLE recursos_descargas ADD COLUMN accion VARCHAR(12) NOT NULL DEFAULT 'descarga'"),
@@ -177,6 +193,15 @@ function labs_migra(PDO $db)
     }
     if ($v < 5) {
         labs_migra_traspasa_raiz($db);
+    }
+    if ($v < 12 && function_exists('labs_ventas_sector_de')) {
+        // Sector de los contactos que ya había, deducido de la empresa, el nombre y las etiquetas.
+        foreach ($db->query("SELECT id, nombre, empresa, etiquetas FROM contactos WHERE sector = ''")->fetchAll(PDO::FETCH_ASSOC) as $c) {
+            $s = labs_ventas_sector_de($c['empresa'] . ' ' . $c['nombre'] . ' ' . $c['etiquetas']);
+            if ($s !== '') {
+                $db->prepare('UPDATE contactos SET sector = ? WHERE id = ?')->execute(array($s, $c['id']));
+            }
+        }
     }
     if ($v < 6) {
         // Cada contacto entra en el pipeline en la fase que corresponde a su estado.

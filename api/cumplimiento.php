@@ -313,7 +313,7 @@ function labs_tablas_copia()
         'contratos', 'firma_eventos', 'contactos', 'contacto_eventos', 'contacto_comentarios', 'contacto_documentos', 'recursos',
         'recursos_descargas', 'tickets', 'ticket_eventos', 'agente_fichas', 'agente_seguimiento', 'ajustes', 'registro_accesos',
         'bloqueos', 'incidentes', 'alertas', 'solicitudes_rgpd',
-        'citas', 'ia_config', 'pipeline_movimientos', 'recursos_progreso', 'papelera');
+        'citas', 'ia_config', 'pipeline_movimientos', 'recursos_progreso', 'papelera', 'llamadas');
     $hay = labs_q('SELECT table_name FROM information_schema.tables WHERE table_schema = DATABASE()')->fetchAll(PDO::FETCH_COLUMN);
     return array_values(array_intersect($todas, $hay));
 }
@@ -683,6 +683,10 @@ function labs_rgpd_suprime($tipo, $id)
         }
         foreach (labs_q('SELECT ruta FROM contacto_documentos WHERE contacto_id = ?', array($c['id']))->fetchAll(PDO::FETCH_COLUMN) as $r) {
             labs_almacen_borra_archivo($r);
+        }
+        // También las grabaciones de llamadas y cualquier otro archivo de su carpeta.
+        if (function_exists('labs_almacen_borra_carpeta')) {
+            labs_almacen_borra_carpeta('contactos/' . (int) $c['id']);
         }
         labs_q('DELETE FROM contactos WHERE id = ?', array($c['id']));
         labs_anota('Datos suprimidos (RGPD)', 'Contacto #' . $c['id'] . ' eliminado con su historial, comentarios y documentos.');

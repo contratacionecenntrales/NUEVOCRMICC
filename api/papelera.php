@@ -94,6 +94,7 @@ function labs_papelera_contacto($c)
         'documentos' => labs_papelera_filas('SELECT * FROM contacto_documentos WHERE contacto_id = ?', array($id)),
         'ia_config' => labs_tabla_existe('ia_config') ? labs_papelera_filas('SELECT * FROM ia_config WHERE contacto_id = ?', array($id)) : array(),
         'pipeline' => labs_tabla_existe('pipeline_movimientos') ? labs_papelera_filas('SELECT * FROM pipeline_movimientos WHERE contacto_id = ?', array($id)) : array(),
+        'llamadas' => labs_tabla_existe('llamadas') ? labs_papelera_filas('SELECT * FROM llamadas WHERE contacto_id = ?', array($id)) : array(),
         'citas' => labs_tabla_existe('citas') ? labs_q('SELECT id FROM citas WHERE contacto_id = ?', array($id))->fetchAll(PDO::FETCH_COLUMN) : array(),
         'contratos' => labs_q('SELECT id FROM contratos WHERE contacto_id = ?', array($id))->fetchAll(PDO::FETCH_COLUMN),
     );
@@ -170,7 +171,7 @@ function labs_papelera_restaura($p)
         }
         labs_papelera_inserta('contactos', $c);
         foreach (array('eventos' => 'contacto_eventos', 'comentarios' => 'contacto_comentarios', 'documentos' => 'contacto_documentos',
-                     'ia_config' => 'ia_config', 'pipeline' => 'pipeline_movimientos') as $k => $t) {
+                     'ia_config' => 'ia_config', 'pipeline' => 'pipeline_movimientos', 'llamadas' => 'llamadas') as $k => $t) {
             foreach (($d[$k] ?? array()) as $f) {
                 if (labs_tabla_existe($t)) {
                     labs_papelera_inserta($t, $f);
