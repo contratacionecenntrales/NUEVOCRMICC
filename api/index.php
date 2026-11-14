@@ -38,6 +38,7 @@ require __DIR__ . '/papelera.php';
 require __DIR__ . '/ventas.php';
 require __DIR__ . '/motor.php';
 require __DIR__ . '/equipo.php';
+require __DIR__ . '/equipo_lab.php';
 
 ini_set('display_errors', '0');
 

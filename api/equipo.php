@@ -19,20 +19,71 @@ defined('LABS') || exit;
 /* --- Roles ------------------------------------------------------------------------------------ */
 function labs_equipo_roles()
 {
-    return array(
-        'ceo' => array('nombre' => 'Dirección General', 'alias' => 'CEO', 'cada' => 240,
-            'mision' => 'Diriges la agencia. Miras el embudo completo (empresas detectadas → contactadas → interesadas → demo → propuesta → firmadas → cobradas), detectas dónde se atasca y repartes el trabajo entre tu equipo de agentes con tareas concretas. Escribes el parte para la dirección humana.'),
-        'marketing' => array('nombre' => 'Dirección de Marketing', 'alias' => 'CMO', 'cada' => 180,
-            'mision' => 'Llenas el embudo. Usas el Motor de Scraping IA para encontrar empresas de los sectores y zonas objetivo, montas campañas de correo con las empresas verificadas y vigilas sus resultados (respuestas, reuniones, bajas).'),
-        'sdr' => array('nombre' => 'Desarrollo de Negocio', 'alias' => 'SDR', 'cada' => 60,
-            'mision' => 'Ningún interesado se queda sin respuesta. Revisas los contactos nuevos y en cualificación, programas las llamadas en la agenda de los gestores humanos y dejas anotado en la ficha qué hay que conseguir en cada llamada.'),
-        'comercial' => array('nombre' => 'Dirección Comercial', 'alias' => 'CSO', 'cada' => 120,
-            'mision' => 'Conviertes interesados en clientes. Preparas el presupuesto con el pack oficial que corresponde al cuello de botella del cliente y mandas a un gestor humano a su oficina para la demo, con el presupuesto y un briefing. Persigues las propuestas que se enfrían.'),
-        'finanzas' => array('nombre' => 'Administración y Cobros', 'alias' => 'CFO', 'cada' => 240,
-            'mision' => 'Que lo firmado se cobre. Cuando un presupuesto se acepta, preparas el cobro del primer hito; vigilas los vencimientos y preparas los recordatorios de pago.'),
-        'cto' => array('nombre' => 'Dirección de Tecnología', 'alias' => 'CTO', 'cada' => 360,
-            'mision' => 'Que la máquina funcione. Vigilas el Motor (claves, correo, errores, rebotes), la calidad de los datos del CRM y la agenda sin cerrar. Si algo va mal, frenas los envíos y avisas a la dirección.'),
+    // clave => nombre, siglas, departamento, jefe, minutos entre turnos, misión y «cerebro» (cómo piensa un experto de primer nivel en ese puesto).
+    $r = array(
+        'ceo' => array('Dirección General', 'CEO', 'direccion', null, 240,
+            'Diriges la agencia hacia el objetivo de facturación. Miras el embudo completo y el ritmo hacia el objetivo, detectas el paso más estrecho y repartes el trabajo entre los jefes con metas concretas para la semana.',
+            'Piensas como un CEO que ha escalado una empresa de servicios B2B: gestión por objetivos semanales; embudo inverso (de la facturación objetivo a la actividad que hace falta); teoría de restricciones (solo mejora el sistema quien ataca el paso más estrecho); los recursos van a lo que demuestran los datos; cada jefe responde de una métrica.'),
+        'coo' => array('Operaciones y Procesos', 'COO', 'operaciones', 'ceo', 120,
+            'Que ninguna empresa se quede sin siguiente paso. Llevas el embudo multicanal: si no responde a los correos, pasa a teléfono; si por teléfono no se la localiza, a visita presencial. Vigilas los SLA de cada fase.',
+            'Experto en Revenue Operations: cada oportunidad tiene dueño, fecha y próximo paso; SLA por fase; cadencias multicanal (correo → teléfono → visita); enrutamiento por zona y por carga de cada gestor; si un paso no aporta, se quita.'),
+        'qa' => array('Calidad y Auditoría', 'QA', 'operaciones', 'ceo', 180,
+            'Eres el jefe que busca errores. Auditas a todos los agentes y procesos con listas de comprobación, abres hallazgos con evidencia y responsable, y compruebas que se corrigen.',
+            'Auditor jefe: nada se da por bueno sin evidencia. Revisas acciones fallidas, propuestas rechazadas, campañas que dañan la reputación del dominio (bajas, rebotes), oportunidades sin seguimiento, cobros vencidos y procesos atascados. Cada hallazgo con gravedad, dato que lo prueba y quién debe arreglarlo. Si algo pone en riesgo a la empresa, propones frenarlo.'),
+        'marketing' => array('Dirección de Marketing', 'CMO', 'marketing', 'ceo', 240,
+            'Diriges Marketing y Crecimiento (Prospección, Copy y Análisis). Decides a qué segmentos se escribe, montas y activas las campañas y repartes los envíos hacia lo que convierte.',
+            'Director de marketing B2B outbound: perfil de cliente ideal (sector, zona, madurez digital); un mensaje por segmento; el volumen va a los segmentos con mejor tasa de respuesta positiva; la reputación del dominio de envío es sagrada (bajas y rebotes bajo mínimos); nada se escala sin un test que lo respalde.'),
+        'prospeccion' => array('Prospección e Inteligencia de Mercado', 'RES', 'marketing', 'marketing', 180,
+            'Llenas el embudo de empresas del perfil ideal con el Motor de Scraping IA, abres zonas nuevas cuando una se agota y priorizas los sectores que mejor convierten.',
+            'Especialista en research B2B: buscas primero en los sectores y zonas que mejor convierten según el cerebro de la empresa; cuando una zona se agota, abres la siguiente; priorizas empresas con carencias digitales claras; cuidas la calidad del dato (correo genérico verificado, web y teléfono).'),
+        'copy' => array('Copywriting y Mensajes', 'COPY', 'marketing', 'marketing', 240,
+            'Diseñas los mensajes: propones variantes A/B de ángulo para cada segmento y, cuando un experimento tiene ganador, lo conviertes en el estándar del sector.',
+            'Copywriter de cold email de primer nivel: personalización real en la primera línea; una sola idea por correo; asunto corto y natural; llamada a la acción de bajo compromiso; marcos PAS (problema, agitación, solución) y pregunta directa; nada de promesas ni cifras inventadas; en cada test, una sola diferencia entre variantes.'),
+        'analista' => array('Análisis y Growth', 'DATA', 'marketing', 'marketing', 180,
+            'Mides todo: tasas por sector, zona, ángulo, campaña y canal. Evalúas los experimentos con estadística y conviertes cada resultado en un aprendizaje del cerebro de la empresa.',
+            'Analista de growth con rigor estadístico: comparas proporciones con prueba de dos proporciones; no concluyes sin la muestra mínima; distingues señal de ruido; cada conclusión lleva sus números (n, tasas, p-valor) y queda escrita como aprendizaje para todo el equipo.'),
+        'innovacion' => array('Innovación y Laboratorio', 'LAB', 'innovacion', 'ceo', 360,
+            'Experimentas sin parar para traer más leads en automático: ángulos nuevos, nichos nuevos, zonas nuevas. Pequeño, barato y medible. Si un canal no da, propones otra rama del embudo.',
+            'Responsable de experimentación continua: siempre hay al menos un experimento en marcha; cada experimento tiene hipótesis, métrica, muestra mínima y criterio de éxito; matas rápido lo que no funciona y escalas lo que sí; cuando el correo se agota en un segmento, pruebas otra rama (teléfono o visita presencial) en vez de insistir.'),
+        'comercial' => array('Dirección Comercial', 'CSO', 'ventas', 'ceo', 120,
+            'Diriges Ventas (SDR y Ventas de campo). Conviertes interesados en clientes: presupuesto con el pack que corresponde al cuello de botella y demo con el caso real del cliente. Persigues las propuestas que se enfrían.',
+            'Director comercial de servicios de IA: cualificación con BANT; el cuello de botella del cliente decide el pack; ninguna oportunidad sin fecha; el presupuesto sale en 24 horas; la demo se hace con el caso real del cliente; una propuesta sin respuesta en 7 días se llama.'),
+        'sdr' => array('Desarrollo de Negocio', 'SDR', 'ventas', 'comercial', 60,
+            'Ningún interesado se queda sin respuesta. Pones las llamadas en la agenda de los gestores (los interesados, en menos de 24 h) y dejas anotado qué hay que conseguir.',
+            'SDR de alto rendimiento: rapidez ante todo (a quien muestra interés se le llama en menos de 24 h); cadencia de hasta 6 intentos en 2 semanas combinando llamada y correo; objetivo de cada llamada: localizar a quien decide y cerrar la cita.'),
+        'campo' => array('Ventas de Campo (presencial)', 'FIELD', 'ventas', 'comercial', 180,
+            'Cuando el correo y el teléfono no llegan, la visita sí. Planificas rutas de visitas por localidad para los gestores y llevas las demos presenciales con el presupuesto y un briefing.',
+            'Jefe de ventas de campo: agrupas visitas por localidad para que un gestor haga varias el mismo día; cada visita lleva un briefing (carencias detectadas, intentos previos, objetivo); en las demos, el gestor va con el presupuesto impreso y sale con fecha.'),
+        'finanzas' => array('Administración y Cobros', 'CFO', 'finanzas', 'ceo', 240,
+            'Que lo firmado se cobre. Con el presupuesto aceptado preparas el cobro del primer hito y el contrato; vigilas los vencimientos y preparas los recordatorios.',
+            'CFO de agencia: cobro por hitos; nadie empieza a trabajar sin el primer pago; recordatorios cordiales y escalonados; previsión de caja con el pipeline ponderado.'),
+        'cto' => array('Dirección de Tecnología', 'CTO', 'tecnologia', 'ceo', 360,
+            'Que la máquina funcione: claves, correo de salida, errores del Motor, rebotes y calidad de los datos. Si algo va mal, frenas los envíos y avisas.',
+            'CTO pragmático: monitorización antes que confianza; la reputación del dominio de envío se protege con límites y pausas; un fallo repetido se corrige en la causa, no en el síntoma; los datos sucios se limpian en origen.'),
     );
+    $out = array();
+    foreach ($r as $k => $x) {
+        $out[$k] = array('nombre' => $x[0], 'alias' => $x[1], 'dep' => $x[2], 'jefe' => $x[3], 'cada' => $x[4], 'mision' => $x[5], 'experto' => $x[6]);
+    }
+    return $out;
+}
+
+function labs_equipo_departamentos()
+{
+    return array('direccion' => 'Dirección', 'operaciones' => 'Operaciones y Calidad', 'marketing' => 'Marketing y Crecimiento', 'innovacion' => 'Innovación',
+        'ventas' => 'Ventas', 'finanzas' => 'Finanzas', 'tecnologia' => 'Tecnología');
+}
+
+/** Los agentes que dependen de un jefe. */
+function labs_equipo_subordinados($rol)
+{
+    $r = array();
+    foreach (labs_equipo_roles() as $k => $x) {
+        if ($x['jefe'] === $rol) {
+            $r[] = $k;
+        }
+    }
+    return $r;
 }
 
 function labs_equipo_config_def()
@@ -43,7 +94,7 @@ function labs_equipo_config_def()
     }
     return array(
         'general' => array('encendido' => false, 'modelo' => 'claude-opus-5-5', 'esfuerzo' => 'medium', 'pasos' => 8,
-            'turnos_dia' => 60, 'acciones_dia' => 40, 'hora_inicio' => 8, 'hora_fin' => 20, 'solo_laborables' => true,
+            'turnos_dia' => 120, 'acciones_dia' => 40, 'hora_inicio' => 8, 'hora_fin' => 20, 'solo_laborables' => true,
             'objetivo_clientes' => 4, 'objetivo_facturacion' => 12000, 'sectores' => 'inmobiliaria, clínica dental, clínica estética',
             'zonas' => 'Gijón, Oviedo, Avilés', 'ccaa' => 'Asturias', 'dias_cobro' => 15, 'hito' => 50),
         'agentes' => $ag,
@@ -222,26 +273,26 @@ function labs_equipo_herramientas()
     $roles_tarea = array_merge($todos, array('direccion'));
     return array(
         'ver_embudo' => array($todos, 'lectura', 'Cifras del embudo completo y del mes: empresas detectadas, contactadas, interesadas, contactos por fase, citas, propuestas, aceptadas, cobrado y objetivo.', array(), array()),
-        'buscar_contactos' => array(array('ceo', 'sdr', 'comercial', 'finanzas', 'cto'), 'lectura', 'Lista contactos del CRM por fase y otros filtros (máximo 25).',
+        'buscar_contactos' => array(array('ceo', 'sdr', 'comercial', 'finanzas', 'cto', 'coo', 'campo', 'qa'), 'lectura', 'Lista contactos del CRM por fase y otros filtros (máximo 25).',
             array('fase' => array('type' => 'string', 'enum' => array_keys(labs_fases())), 'sin_proximo_paso' => array('type' => 'boolean', 'description' => 'Solo los que no tienen próximo paso o lo tienen vencido'),
                 'sector' => $txt('Texto del sector', 60), 'limite' => array('type' => 'integer', 'minimum' => 1, 'maximum' => 25)), array()),
-        'ver_contacto' => array(array('ceo', 'sdr', 'comercial', 'finanzas'), 'lectura', 'Ficha completa de un contacto: datos, cuello de botella, fuga, últimas anotaciones, llamadas, citas, presupuestos y datos que faltan.',
+        'ver_contacto' => array(array('ceo', 'sdr', 'comercial', 'finanzas', 'coo', 'campo', 'qa'), 'lectura', 'Ficha completa de un contacto: datos, cuello de botella, fuga, últimas anotaciones, llamadas, citas, presupuestos y datos que faltan.',
             array('contacto_id' => $id), array('contacto_id')),
-        'ver_motor' => array(array('ceo', 'marketing', 'cto'), 'lectura', 'Estado del Motor de Scraping IA: empresas por estado, extracciones en curso, campañas con sus métricas, correos esperando aprobación y configuración pendiente.', array(), array()),
-        'ver_cobros' => array(array('ceo', 'finanzas'), 'lectura', 'Presupuestos aceptados sin cobro y cobros pendientes, vencidos y pagados.', array(), array()),
-        'ver_equipo_humano' => array(array('ceo', 'comercial', 'sdr'), 'lectura', 'Gestores humanos activos con su carga de agenda en los próximos 7 días.', array(), array()),
-        'ver_salud' => array(array('cto', 'ceo'), 'lectura', 'Salud del sistema: errores recientes del Motor, configuración que falta, contactos con datos incompletos y citas pasadas sin cerrar.', array(), array()),
-        'asignar_tarea' => array(array('ceo', 'marketing', 'comercial', 'cto', 'sdr', 'finanzas'), 'bajo', 'Encarga una tarea a otro agente del equipo o a la dirección humana («direccion»).',
+        'ver_motor' => array(array('ceo', 'marketing', 'cto', 'prospeccion', 'copy', 'analista', 'innovacion', 'qa', 'coo'), 'lectura', 'Estado del Motor de Scraping IA: empresas por estado, extracciones en curso, campañas con sus métricas, correos esperando aprobación y configuración pendiente.', array(), array()),
+        'ver_cobros' => array(array('ceo', 'finanzas', 'qa'), 'lectura', 'Presupuestos aceptados sin cobro y cobros pendientes, vencidos y pagados.', array(), array()),
+        'ver_equipo_humano' => array(array('ceo', 'comercial', 'sdr', 'campo', 'coo'), 'lectura', 'Gestores humanos activos con su carga de agenda en los próximos 7 días.', array(), array()),
+        'ver_salud' => array(array('cto', 'ceo', 'qa'), 'lectura', 'Salud del sistema: errores recientes del Motor, configuración que falta, contactos con datos incompletos y citas pasadas sin cerrar.', array(), array()),
+        'asignar_tarea' => array($todos, 'bajo', 'Encarga una tarea a otro agente del equipo o a la dirección humana («direccion»).',
             array('para' => array('type' => 'string', 'enum' => $roles_tarea), 'titulo' => $txt('Qué hay que hacer, en una frase', 200), 'detalle' => $txt('Contexto y criterio de éxito', 1500),
                 'prioridad' => array('type' => 'string', 'enum' => array('alta', 'media', 'baja')), 'contacto_id' => $id), array('para', 'titulo')),
         'completar_tarea' => array($todos, 'bajo', 'Cierra una tarea tuya con el resultado.', array('tarea_id' => array('type' => 'integer'), 'resultado' => $txt('Qué se ha hecho', 1000)), array('tarea_id', 'resultado')),
-        'anotar_contacto' => array(array('sdr', 'comercial', 'finanzas', 'ceo'), 'bajo', 'Deja una nota en el historial de un contacto (lo verán los gestores).', array('contacto_id' => $id, 'texto' => $txt('La nota', 1500)), array('contacto_id', 'texto')),
-        'programar_llamada' => array(array('sdr', 'comercial'), 'medio', 'Pone una llamada en la agenda de un gestor humano y la marca como próximo paso del contacto.',
+        'anotar_contacto' => array(array('sdr', 'comercial', 'finanzas', 'ceo', 'campo', 'coo'), 'bajo', 'Deja una nota en el historial de un contacto (lo verán los gestores).', array('contacto_id' => $id, 'texto' => $txt('La nota', 1500)), array('contacto_id', 'texto')),
+        'programar_llamada' => array(array('sdr', 'comercial', 'coo'), 'medio', 'Pone una llamada en la agenda de un gestor humano y la marca como próximo paso del contacto.',
             array('contacto_id' => $id, 'motivo' => $txt('Objetivo de la llamada', 300), 'dias' => array('type' => 'integer', 'minimum' => 0, 'maximum' => 20, 'description' => 'Días laborables desde hoy (por defecto 1)'),
                 'gestor_id' => array('type' => 'string', 'description' => 'Id del gestor; si no se indica, el del contacto o el menos cargado')), array('contacto_id', 'motivo')),
-        'mover_fase' => array(array('sdr', 'comercial'), 'medio', 'Cambia la fase del contacto en el pipeline (no puede marcar firmado ni producción; «perdido» necesita aprobación).',
+        'mover_fase' => array(array('sdr', 'comercial', 'campo'), 'medio', 'Cambia la fase del contacto en el pipeline (no puede marcar firmado ni producción; «perdido» necesita aprobación).',
             array('contacto_id' => $id, 'fase' => array('type' => 'string', 'enum' => array('lead', 'cualificacion', 'demo', 'propuesta', 'negociacion', 'perdido')), 'motivo' => $txt('Por qué', 300)), array('contacto_id', 'fase', 'motivo')),
-        'motor_buscar_empresas' => array(array('marketing'), 'medio', 'Lanza una extracción en el Motor de Scraping IA (Google Places + web corporativa) por sectores y localidades.',
+        'motor_buscar_empresas' => array(array('marketing', 'prospeccion'), 'medio', 'Lanza una extracción en el Motor de Scraping IA (Google Places + web corporativa) por sectores y localidades.',
             array('sectores' => array('type' => 'array', 'items' => array('type' => 'string', 'maxLength' => 60), 'minItems' => 1, 'maxItems' => 6),
                 'localidades' => array('type' => 'array', 'items' => array('type' => 'string', 'maxLength' => 80), 'minItems' => 1, 'maxItems' => 20),
                 'max' => array('type' => 'integer', 'minimum' => 5, 'maximum' => 200)), array('sectores', 'localidades')),
@@ -251,7 +302,7 @@ function labs_equipo_herramientas()
             array('campana_id' => array('type' => 'integer')), array('campana_id')),
         'preparar_presupuesto' => array(array('comercial'), 'alto', 'Prepara el presupuesto con el pack oficial (pk1 Captación 1.700 €, pk2 Embudo 2.800 €, pk3 Atención 3.900 €; pago único, sin IVA). El contacto pasa a Propuesta.',
             array('contacto_id' => $id, 'pack' => array('type' => 'string', 'enum' => array('pk1', 'pk2', 'pk3')), 'nota' => $txt('Nota para el cliente (opcional)', 800)), array('contacto_id', 'pack')),
-        'enviar_gestor_demo' => array(array('comercial'), 'medio', 'Manda a un gestor humano a la oficina del cliente para la demo presencial, con el presupuesto y un briefing. Busca el primer hueco libre de su agenda.',
+        'enviar_gestor_demo' => array(array('comercial', 'campo'), 'medio', 'Manda a un gestor humano a la oficina del cliente para la demo presencial, con el presupuesto y un briefing. Busca el primer hueco libre de su agenda.',
             array('contacto_id' => $id, 'briefing' => $txt('Qué debe saber el gestor: dolor, cuello de botella, objeciones y objetivo de la visita', 1500),
                 'presupuesto_id' => array('type' => 'integer'), 'gestor_id' => array('type' => 'string'), 'dias' => array('type' => 'integer', 'minimum' => 1, 'maximum' => 20)), array('contacto_id', 'briefing')),
         'preparar_contrato' => array(array('comercial', 'finanzas'), 'alto', 'Prepara el contrato en borrador a partir de un presupuesto aceptado. El enlace de firma lo envía una persona desde la ficha.',
@@ -260,14 +311,14 @@ function labs_equipo_herramientas()
             array('presupuesto_id' => array('type' => 'integer'), 'porcentaje' => array('type' => 'integer', 'minimum' => 1, 'maximum' => 100), 'dias' => array('type' => 'integer', 'minimum' => 1, 'maximum' => 90)), array('presupuesto_id')),
         'recordar_cobro' => array(array('finanzas'), 'alto', 'Envía al cliente un recordatorio de pago por correo (cordial, con importe, concepto y vencimiento).',
             array('cobro_id' => array('type' => 'integer'), 'mensaje' => $txt('Texto del correo, sin firma', 1500)), array('cobro_id', 'mensaje')),
-        'pausar_envios' => array(array('cto', 'ceo'), 'bajo', 'Freno de emergencia: pausa todos los envíos del Motor.', array('motivo' => $txt('Por qué', 300)), array('motivo')),
+        'pausar_envios' => array(array('cto', 'ceo', 'qa'), 'bajo', 'Freno de emergencia: pausa todos los envíos del Motor.', array('motivo' => $txt('Por qué', 300)), array('motivo')),
     );
 }
 
 function labs_equipo_tools_para($rol)
 {
     $r = array();
-    foreach (labs_equipo_herramientas() as $n => $h) {
+    foreach (labs_equipo_todas() as $n => $h) {
         if (!in_array($rol, $h[0], true)) {
             continue;
         }
@@ -286,7 +337,7 @@ function labs_equipo_tools_para($rol)
  */
 function labs_equipo_ejecuta($rol, $turno, $nombre, $e, $accion_id = null)
 {
-    $hs = labs_equipo_herramientas();
+    $hs = labs_equipo_todas();
     if (!isset($hs[$nombre]) || !in_array($rol, $hs[$nombre][0], true)) {
         return array('ok' => false, 'error' => 'Herramienta no disponible para tu puesto.');
     }
@@ -381,7 +432,7 @@ function labs_equipo_valida_previa($nombre, $e)
             return 'Ese cobro no está pendiente.';
         }
     }
-    return null;
+    return labs_equipo_valida_previa_lab($nombre, $e);
 }
 
 /** Frase legible de lo que hace una acción (para la bandeja de aprobación y el registro). */
@@ -422,7 +473,7 @@ function labs_equipo_describe($n, $e)
         case 'pausar_envios':
             return 'Pausar los envíos del Motor: ' . ($e['motivo'] ?? '');
     }
-    return 'Consulta: ' . $n;
+    return labs_equipo_describe_lab($n, $e);
 }
 
 /* --- Herramientas de lectura ----------------------------------------------------------------- */
@@ -920,15 +971,26 @@ function labs_equipo_system($rol, $cfg)
     $ag = $cfg['agentes'][$rol];
     $g = $cfg['general'];
     $equipo = array();
-    foreach (labs_equipo_roles() as $k => $x) {
-        $equipo[] = '- ' . $k . ': ' . $x['nombre'] . ' (' . $x['alias'] . ')';
+    foreach (labs_equipo_departamentos() as $d => $dn) {
+        $miembros = array();
+        foreach (labs_equipo_roles() as $k => $x) {
+            if ($x['dep'] === $d) {
+                $miembros[] = $k . ' = ' . $x['nombre'] . ' (' . $x['alias'] . ($x['jefe'] && labs_equipo_roles()[$x['jefe']]['dep'] === $d ? ', reporta a ' . $x['jefe'] : '') . ')';
+            }
+        }
+        $equipo[] = '- ' . $dn . ': ' . implode('; ', $miembros);
     }
+    $subs = labs_equipo_subordinados($rol);
     $aut = array('observa' => 'Solo observas: no puedes cambiar nada. Analiza y recomienda en tu informe.',
         'propone' => 'Lo interno (tareas para el equipo, notas en las fichas) lo haces tú. Lo que toque la agenda de una persona, el pipeline, la prospección, el dinero o a un cliente queda como propuesta para que una persona de dirección la apruebe. Propón con criterio: pocas propuestas y buenas.',
         'actua' => 'Puedes actuar en lo interno (tareas, notas, agenda, pipeline, prospección). Lo que tenga dinero, compromisos o hable con un cliente queda siempre para aprobación humana.')[$ag['autonomia']];
     return "Eres el agente de " . $r['nombre'] . " (" . $r['alias'] . ") de Labs24k, agencia de inteligencia artificial para pymes (Gijón y Madrid). " .
         "Formas parte de un equipo de agentes que trabaja de forma autónoma sobre el CRM de la agencia, junto a gestores comerciales humanos que hacen las llamadas y las visitas.\n\n" .
         "TU MISIÓN\n" . $r['mision'] . "\n\n" .
+        "CÓMO PIENSAS (eres un experto de primer nivel en tu puesto)\n" . $r['experto'] . "\n\n" .
+        "TU POSICIÓN\n" . ($r['jefe'] ? 'Reportas a ' . labs_equipo_roles()[$r['jefe']]['nombre'] . ' (' . $r['jefe'] . ').' : 'Reportas a la dirección humana.') .
+        ($subs ? ' Diriges a: ' . implode(', ', array_map(function ($k) { return labs_equipo_roles()[$k]['nombre'] . ' (' . $k . ')'; }, $subs)) .
+            '. Como jefe, revisas su trabajo (revisar_mi_equipo), les encargas tareas concretas y, si alguno trabaja mal, propones corregir sus instrucciones.' : '') . "\n\n" .
         "EL OBJETIVO DE LA AGENCIA\nAtraer empresas en automático, contactarlas, llevarlas a una demo (por teléfono o con un gestor en persona), presupuestar, firmar y cobrar. " .
         "Objetivo del mes: " . (int) $g['objetivo_clientes'] . ' clientes nuevos y ' . number_format((float) $g['objetivo_facturacion'], 0, ',', '.') . " € facturados. " .
         "Sectores objetivo: " . $g['sectores'] . '. Zonas: ' . $g['zonas'] . ' (' . $g['ccaa'] . ").\n" .
@@ -943,6 +1005,8 @@ function labs_equipo_system($rol, $cfg)
         "4. Cierra las tareas que te encargan cuando las hagas. Si algo no depende de ti, encárgaselo a quien corresponda con una tarea concreta.\n" .
         "5. No repitas propuestas que ya esperan aprobación ni insistas en las rechazadas sin un dato nuevo.\n" .
         "6. Sé eficiente: como mucho " . (int) $g['pasos'] . " rondas de herramientas por turno.\n" .
+        "8. La empresa aprende: apóyate en el cerebro de la empresa (aprendizajes y reglas de la situación) y, si descubres algo con datos, guárdalo con guardar_aprendizaje. Nunca guardes opiniones sin evidencia.\n" .
+        "9. Si un canal no funciona para un segmento, no insistas: propón otra rama (teléfono, visita presencial, otro ángulo u otro nicho).\n" .
         "7. Termina SIEMPRE con un informe breve en español (máximo 120 palabras) para la dirección: qué has hecho, qué has propuesto y qué necesitas de ellos." .
         (trim($ag['instrucciones']) !== '' ? "\n\nINSTRUCCIONES DE LA DIRECCIÓN PARA TU PUESTO\n" . trim($ag['instrucciones']) : '');
 }
@@ -956,7 +1020,7 @@ function labs_equipo_situacion($rol)
     $pend = labs_q("SELECT id, herramienta, resumen, ts FROM equipo_acciones WHERE agente = ? AND estado = 'pendiente' ORDER BY id DESC LIMIT 10", array($rol))->fetchAll();
     $ult = labs_fila("SELECT resumen, fin FROM equipo_turnos WHERE agente = ? AND estado = 'hecho' ORDER BY id DESC LIMIT 1", array($rol));
     return array('ahora_madrid' => labs_equipo_madrid()->format('l d/m/Y H:i'), 'tus_tareas_pendientes' => $tareas, 'decisiones_de_direccion_recientes' => $decis,
-        'tus_propuestas_esperando_aprobacion' => $pend, 'tu_ultimo_informe' => $ult, 'embudo' => labs_equipo_embudo());
+        'tus_propuestas_esperando_aprobacion' => $pend, 'tu_ultimo_informe' => $ult, 'embudo' => labs_equipo_embudo()) + labs_equipo_situacion_lab($rol);
 }
 
 function labs_equipo_puede_trabajar(&$motivo, $manual = false)
@@ -1166,8 +1230,9 @@ function labs_equipo_turno_reglas($rol, $tid, $cfg)
         $listos = (int) labs_q("SELECT COUNT(*) FROM motor_leads WHERE estado = 'listo' AND campana_id IS NULL")->fetchColumn();
         $reciente = labs_fila('SELECT 1 FROM motor_tareas WHERE creado >= ?', array(gmdate('Y-m-d H:i:s', time() - 20 * 3600)));
         if (!$en_curso && !$reciente && $listos < 15) {
-            $r = $usa('motor_buscar_empresas', array('sectores' => array_slice($lista($g['sectores']), 0, 3), 'localidades' => array_slice($lista($g['zonas']), 0, 10), 'max' => 60));
-            $hecho_algo = !empty($r['ok']);
+            $usa('asignar_tarea', array('para' => 'prospeccion', 'titulo' => 'Traer empresas nuevas del perfil ideal (quedan ' . $listos . ' verificadas sin campaña)', 'prioridad' => 'alta',
+                'detalle' => 'Prioriza los sectores con mejor tasa de respuesta positiva y las zonas menos trabajadas.'));
+            $hecho_algo = true;
         }
         foreach (labs_q("SELECT sector, COUNT(*) n FROM motor_leads WHERE estado = 'listo' AND campana_id IS NULL AND sector <> '' GROUP BY sector HAVING n >= 3 ORDER BY n DESC LIMIT 2")->fetchAll() as $s) {
             $usa('motor_crear_campana', array('nombre' => 'Campaña ' . ucfirst($s['sector']) . ' ' . labs_equipo_madrid()->format('m/Y'), 'sector' => $s['sector']));
@@ -1249,6 +1314,22 @@ function labs_equipo_turno_reglas($rol, $tid, $cfg)
             $s['citas_pasadas_sin_cerrar'] . ' citas pasadas sin cerrar.';
     }
 
+    if (labs_equipo_reglas_lab($rol, $usa, $g)) {
+        $hecho_algo = true;
+    }
+    if ($rol === 'ceo') {
+        $rt = labs_equipo_ritmo();
+        $hechos[] = 'Ritmo: faltan ' . labs_ventas_euros($rt['falta']) . ' → ' . $rt['necesario']['clientes'] . ' clientes, ' . $rt['necesario']['propuestas'] . ' propuestas, ' .
+            $rt['necesario']['demos'] . ' demos y ' . number_format($rt['necesario']['empresas_a_contactar'], 0, ',', '.') . ' empresas contactadas (' . $rt['por_semana'] . ' por semana). ' . $rt['diagnostico'];
+        foreach (array_keys(labs_equipo_roles()) as $r) {
+            $p = labs_equipo_puntuacion($r);
+            $jefe = labs_equipo_roles()[$r]['jefe'];
+            if ($p['puntuacion'] !== null && $p['puntuacion'] < 60 && $jefe && $jefe !== 'ceo') {
+                $usa('asignar_tarea', array('para' => $jefe, 'titulo' => 'Revisar cómo trabaja ' . labs_equipo_roles()[$r]['nombre'] . ' (puntuación ' . $p['puntuacion'] . ')', 'prioridad' => 'media',
+                    'detalle' => $p['errores'] . ' errores, ' . $p['rechazadas'] . ' propuestas rechazadas y ' . $p['hallazgos_abiertos'] . ' hallazgos abiertos en 7 días.'));
+            }
+        }
+    }
     // Las tareas recibidas se dan por atendidas tras el turno de reglas.
     foreach ($tareas as $t) {
         $usa('completar_tarea', array('tarea_id' => (int) $t['id'], 'resultado' => 'Atendida en el turno del ' . labs_equipo_madrid()->format('d/m H:i') . ' (manual de reglas).'));
@@ -1325,7 +1406,8 @@ function labs_equipo($metodo, $sub, $b, $pares)
         $ag = array();
         foreach (labs_equipo_roles() as $k => $r) {
             $ult = labs_fila('SELECT id, modo, estado, resumen, error, inicio, fin, iteraciones FROM equipo_turnos WHERE agente = ? ORDER BY id DESC LIMIT 1', array($k));
-            $ag[] = array('rol' => $k, 'nombre' => $r['nombre'], 'alias' => $r['alias'], 'mision' => $r['mision'], 'config' => $cfg['agentes'][$k], 'ultimo' => $ult,
+            $ag[] = array('rol' => $k, 'nombre' => $r['nombre'], 'alias' => $r['alias'], 'mision' => $r['mision'], 'experto' => $r['experto'], 'dep' => $r['dep'], 'jefe' => $r['jefe'],
+                'puntuacion' => labs_equipo_puntuacion($k)['puntuacion'], 'config' => $cfg['agentes'][$k], 'ultimo' => $ult,
                 'herramientas' => array_values(array_map(function ($t) { return $t['name']; }, labs_equipo_tools_para($k))),
                 'hoy' => array('turnos' => (int) labs_q('SELECT COUNT(*) FROM equipo_turnos WHERE agente = ? AND inicio >= ?', array($k, $hoy))->fetchColumn(),
                     'acciones' => (int) labs_q("SELECT COUNT(*) FROM equipo_acciones WHERE agente = ? AND riesgo <> 'lectura' AND ts >= ?", array($k, $hoy))->fetchColumn()),
@@ -1340,7 +1422,10 @@ function labs_equipo($metodo, $sub, $b, $pares)
             labs_pon_ajuste('motor.cron_token', $tok);
         }
         $ia = labs_tabla_existe('motor_leads') && labs_motor_secreto('anthropic_key') !== null && is_file(__DIR__ . '/lib/vendor/autoload.php');
-        return array(200, array('config' => $cfg['general'], 'agentes' => $ag, 'autonomias' => labs_equipo_autonomias(), 'ia' => $ia, 'trabaja' => $puede, 'motivo' => $motivo,
+        return array(200, array('config' => $cfg['general'], 'agentes' => $ag, 'departamentos' => labs_equipo_departamentos(),
+            'ritmo' => labs_equipo_ritmo(), 'laboratorio' => array('en_curso' => (int) labs_q("SELECT COUNT(*) FROM equipo_experimentos WHERE estado = 'en_curso'")->fetchColumn(),
+                'aprendizajes' => (int) labs_q('SELECT COUNT(*) FROM equipo_memoria WHERE activo = 1')->fetchColumn(),
+                'hallazgos' => (int) labs_q("SELECT COUNT(*) FROM equipo_hallazgos WHERE estado = 'abierto'")->fetchColumn()), 'autonomias' => labs_equipo_autonomias(), 'ia' => $ia, 'trabaja' => $puede, 'motivo' => $motivo,
             'embudo' => labs_equipo_embudo(),
             'aprobaciones' => labs_q("SELECT id, agente, herramienta, resumen, riesgo, contacto_id, entrada, ts FROM equipo_acciones WHERE estado = 'pendiente' ORDER BY id DESC LIMIT 60")->fetchAll(),
             'feed' => labs_q("SELECT id, agente, herramienta, resumen, riesgo, estado, contacto_id, ts FROM equipo_acciones WHERE riesgo <> 'lectura' OR estado = 'error' ORDER BY id DESC LIMIT 40")->fetchAll(),
@@ -1504,5 +1589,9 @@ function labs_equipo($metodo, $sub, $b, $pares)
         return array(200, array('ok' => true));
     }
 
+    $r = labs_equipo_ruta_lab($metodo, $sub, $b, $u);
+    if ($r !== null) {
+        return array(200, $r);
+    }
     throw new ErrorApi('Ruta no encontrada.', 404, 'PGRST000');
 }

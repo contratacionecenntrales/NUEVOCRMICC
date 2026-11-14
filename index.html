@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-mzCCcpYwx/muzGQ2KZS6Opl6UACH+XqZOnkFLgdGVTM='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-a++tqAcy2f2BKCW8HZUMOR5IEKu/neHRM2gUtTmDCpI='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Labs Command Center 360 - Oficina virtual SaaS de la red comercial de Labs24k.">
 <meta name="theme-color" content="#0B0F19">
@@ -1862,6 +1862,66 @@ a.btn.btn-g:hover{color:#fff}
 .eq-puestos{display:flex;flex-direction:column;gap:10px}
 .eq-puesto{display:flex;gap:10px;align-items:flex-start;padding:10px;border-radius:14px;border:1px solid var(--line)}
 .eq-legal ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px;color:var(--txt-2)}
+.eq-h3{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin:0 0 10px;font-size:15px}
+.eq-h3 svg{display:block;color:#FBBF24}
+.eq-ritmo{margin-bottom:14px;border-color:rgba(251,191,36,.35)}
+.eq-ritmo h3{display:flex;gap:7px;align-items:center;margin:0 0 4px;font-size:15px}
+.eq-ritmo h3 svg{display:block;color:#FBBF24}
+.eq-ritmo-h{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start}
+.eq-ritmo-obj{display:flex;flex-direction:column;align-items:flex-end}
+.eq-ritmo-obj b{font-size:22px;color:#FBBF24}
+.eq-ritmo-obj span{font-size:11px;color:var(--txt-3)}
+.eq-ritmo-cad{display:flex;gap:6px;align-items:stretch;overflow-x:auto;margin-top:12px;padding-bottom:2px}
+.eq-rp{display:flex;flex-direction:column;gap:2px;min-width:132px;flex:1;padding:10px 12px;border-radius:14px;background:var(--card-2);border:1px solid var(--line)}
+.eq-rp span{font-size:11px;color:var(--txt-3);text-transform:uppercase;letter-spacing:.04em}
+.eq-rp b{font-size:22px}
+.eq-rp em{font-style:normal;font-size:11px;color:#38BDF8}
+.eq-rp small{font-size:10.5px;color:var(--txt-3)}
+.eq-ritmo-d{display:flex;gap:8px;align-items:flex-start;margin-top:10px;padding:10px 12px;border-radius:12px;font-size:12.5px;background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.3)}
+.eq-ritmo-d.mal{background:rgba(248,113,113,.08);border-color:rgba(248,113,113,.35)}
+.eq-ritmo-d.ok{background:rgba(74,222,128,.08);border-color:rgba(74,222,128,.35)}
+.eq-ritmo-d svg{display:block;flex:0 0 auto;margin-top:2px}
+.eq-deps{width:100%;display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;padding-top:12px;border-top:2px solid var(--line)}
+.eq-dep{display:flex;flex-direction:column;gap:6px;padding:10px;border-radius:16px;background:var(--card);border:1px solid var(--line)}
+.eq-dep h4{margin:0 0 2px;font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--txt-3)}
+.eq-org-top .eq-mini{max-width:380px;margin:0 auto}
+.eq-mini{display:flex;gap:9px;align-items:center;width:100%;padding:8px 10px;border-radius:12px;border:1px solid var(--line);border-left:3px solid var(--c);background:var(--card-2);color:var(--txt);text-align:left;cursor:pointer;font:inherit}
+.eq-mini:hover{border-color:var(--c)}
+.eq-mini.sel{box-shadow:0 0 0 2px var(--c) inset}
+.eq-mini.off{opacity:.55}
+.eq-mini.trab{box-shadow:0 0 18px color-mix(in srgb,var(--c) 35%,transparent)}
+.eq-mini-t{display:flex;flex-direction:column;min-width:0;flex:1}
+.eq-mini-t b{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.eq-nota{flex:0 0 auto;display:grid;place-items:center;width:30px;height:30px;border-radius:50%;font-size:11.5px;font-weight:800;color:var(--n);border:2px solid var(--n)}
+.eq-det{margin:0 0 14px;border-top:3px solid var(--c)}
+.eq-det-g{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:16px;margin-top:6px}
+.eq-txt{font-size:13px;color:var(--txt-2);margin:0;white-space:pre-wrap}
+.eq-cer{padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--c) 8%,transparent);border:1px solid color-mix(in srgb,var(--c) 30%,transparent);color:var(--txt)}
+.eq-cer svg{display:inline-block;vertical-align:-2px;color:var(--c)}
+.eq-herr{display:flex;flex-wrap:wrap;gap:4px}
+.eq-herr span{font-size:11px;padding:2px 8px;border-radius:99px;border:1px solid var(--line);color:var(--txt-2)}
+.eq-lab,.eq-cerebro,.eq-cal{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:14px;align-items:start}
+.eq-exp{padding:12px;border-radius:14px;border:1px solid var(--line);background:var(--card-2);margin-bottom:10px}
+.eq-exp.gana{border-color:rgba(74,222,128,.45)}
+.eq-exp-h{display:flex;gap:8px;align-items:flex-start}
+.eq-vars{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.eq-var{display:flex;gap:10px;align-items:center;padding:8px;border-radius:10px;border:1px solid var(--line)}
+.eq-var.g{border-color:rgba(74,222,128,.5);background:rgba(74,222,128,.06)}
+.eq-var-k{display:grid;place-items:center;flex:0 0 auto;width:30px;height:30px;border-radius:9px;background:var(--card);border:1px solid var(--line);font-weight:800;font-size:12px}
+.eq-var-b{height:6px;border-radius:99px;background:var(--line);overflow:hidden;margin:4px 0}
+.eq-var-b i{display:block;height:100%;background:linear-gradient(90deg,#38BDF8,#4ADE80)}
+.eq-exp-v{margin-top:8px;color:var(--txt-2)}
+.eq-exp .tiny svg{display:inline-block;vertical-align:-2px}
+.eq-ramas{display:flex;gap:6px;align-items:stretch;flex-wrap:wrap}
+.eq-rama{flex:1;min-width:140px;display:flex;flex-direction:column;gap:2px;padding:12px;border-radius:14px;background:var(--card-2);border:1px solid var(--line)}
+.eq-rama span svg{display:block;color:#FBBF24}
+.eq-rama em{font-style:normal;font-size:12px;color:#86EFAC}
+.eq-rama small{font-size:11px;color:var(--txt-3)}
+.eq-mem{padding:10px 12px;border-radius:12px;border:1px solid var(--line);border-left:3px solid var(--c);background:var(--card-2);margin-bottom:8px}
+.eq-conf{height:4px;border-radius:99px;background:var(--line);overflow:hidden;margin:6px 0 4px}
+.eq-conf i{display:block;height:100%;background:var(--c)}
+.eq-hal{display:flex;gap:9px;align-items:flex-start;padding:10px;border-radius:12px;border:1px solid var(--line);border-left:3px solid var(--c);background:var(--card-2);margin-bottom:8px}
+@media (max-width:900px){.eq-lab,.eq-cerebro,.eq-cal,.eq-det-g{grid-template-columns:1fr}.eq-ritmo-obj{align-items:flex-start}}
 @media (max-width:900px){.eq-tareas{grid-template-columns:1fr}.eq-aprob{grid-template-columns:1fr}.eq-cob-res{grid-template-columns:repeat(2,minmax(0,1fr))}.eq-cobro{margin-left:0}}
 @media (max-width:560px){.eq-num{grid-template-columns:repeat(2,minmax(0,1fr))}.eq-org-grid{grid-template-columns:1fr}.eq-hero-b{flex-direction:row;flex-wrap:wrap}}
 .mt-fab .card{margin:0}
@@ -2835,7 +2895,9 @@ var ICON = {
   arrowRight:'<path d="M5 12h14M12 5l7 7-7 7"/>',
   help:'<circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 2.5-3 4"/><path d="M12 17h.01"/>',
   shield:'<path d="M12 2l8 4v6c0 5-3.4 8.7-8 10-4.6-1.3-8-5-8-10V6z"/>',
-  link:'<path d="M15 3h6v6"/><path d="M10 14L21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>'
+  link:'<path d="M15 3h6v6"/><path d="M10 14L21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
+  chart:'<path d="M3 3v18h18"/><path d="M7 15v3"/><path d="M12 10v8"/><path d="M17 6v12"/>',
+  edit:'<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>'
 };
 function ic(n, s){ s = s || 18;
   return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">'+(ICON[n]||'')+'</svg>'; }
@@ -10105,13 +10167,14 @@ var MOT_MODOS = {aprobacion:['Con aprobación','La IA redacta y tú apruebas cad
 /* ==========================================================================
    ZONA DE AGENTES · equipo directivo de IA que trabaja solo sobre el CRM
    ========================================================================== */
-var EQ_ROL = {ceo:{ic:'trend', c:'#FBBF24'}, marketing:{ic:'globe', c:'#A78BFA'}, sdr:{ic:'phone', c:'#38BDF8'}, comercial:{ic:'case', c:'#4ADE80'},
+var EQ_ROL = {ceo:{ic:'trend', c:'#FBBF24'}, coo:{ic:'refresh', c:'#FB923C'}, qa:{ic:'shield', c:'#F87171'}, prospeccion:{ic:'search', c:'#818CF8'}, copy:{ic:'file', c:'#C084FC'},
+  analista:{ic:'chart', c:'#22D3EE'}, innovacion:{ic:'spark', c:'#FACC15'}, campo:{ic:'building', c:'#34D399'}, marketing:{ic:'globe', c:'#A78BFA'}, sdr:{ic:'phone', c:'#38BDF8'}, comercial:{ic:'case', c:'#4ADE80'},
   finanzas:{ic:'euro', c:'#F472B6'}, cto:{ic:'cog', c:'#2DD4BF'}, direccion:{ic:'users', c:'#E2E8F0'}};
 var EQ_RIESGO = {lectura:['Consulta','#94A3B8'], bajo:['Interno','#38BDF8'], medio:['Agenda y pipeline','#FBBF24'], alto:['Dinero o cliente','#F87171']};
 var EQ_EST = {hecha:['Hecho','#4ADE80'], pendiente:['Espera aprobación','#FBBF24'], aprobada:['Aprobado','#4ADE80'], rechazada:['Rechazado','#94A3B8'], error:['No se pudo','#F87171']};
 var EQ_AUT = {observa:['Solo observa','#94A3B8','Lee y te informa. No cambia nada.'], propone:['Propone','#FBBF24','Lo interno lo hace solo; agenda, pipeline, prospección, dinero y clientes esperan tu aprobación.'],
   actua:['Actúa','#4ADE80','Hace lo interno, la agenda, el pipeline y la prospección. El dinero y lo que habla con un cliente siempre espera tu aprobación.']};
-var EQ = {tab:'equipo', d:null, reloj:null, cuenta:0, enCurso:false, cfg:null, ocupado:{}, orden:{para:'ceo', titulo:'', detalle:'', prioridad:'alta'}, ed:{}};
+var EQ = {tab:'equipo', d:null, reloj:null, cuenta:0, enCurso:false, cfg:null, ocupado:{}, orden:{para:'ceo', titulo:'', detalle:'', prioridad:'alta'}, ed:{}, lab:null, cer:null, cal:null, sel:null};
 
 function eqNombre(rol){ if(rol === 'direccion') return 'Dirección (personas)'; var a = EQ.d && EQ.d.agentes.filter(function(x){ return x.rol === rol; })[0]; return a ? a.nombre : rol; }
 function eqAlias(rol){ var a = EQ.d && EQ.d.agentes.filter(function(x){ return x.rol === rol; })[0]; return a ? a.alias : 'DIR'; }
@@ -10138,7 +10201,7 @@ function eqPintaVivo(){
   q('#eq-hero-st').innerHTML = eqHeroStats();
   if(q('#eq-embudo')) q('#eq-embudo').innerHTML = eqEmbudo();
   var foco = document.activeElement, enCampo = foco && /INPUT|TEXTAREA|SELECT/.test(foco.tagName) && q('#eq-cuerpo') && q('#eq-cuerpo').contains(foco);
-  if(!enCampo && (EQ.tab === 'equipo' || EQ.tab === 'cobros')){ q('#eq-cuerpo').innerHTML = eqCuerpo(); eqEventos(); }
+  if(!enCampo && (EQ.tab === 'equipo' || EQ.tab === 'cobros') && !(document.activeElement && document.activeElement.tagName === 'DETAILS')){ q('#eq-cuerpo').innerHTML = eqCuerpo(); eqEventos(); }
   qa('[data-eq-badge]').forEach(function(b){ var n = EQ.d.aprobaciones.length; b.textContent = n; b.style.display = n ? '' : 'none'; });
 }
 
@@ -10147,25 +10210,39 @@ function viewAgentesIA(v){
     eqCarga().then(function(){ if(S.view === 'agentesia') renderApp(); }, function(e){ v.innerHTML = '<div class="card"><p>'+esc(e.message)+'</p></div>'; }); return; }
   if(!EQ.reloj) eqLatido();
   var D = EQ.d, avisos = [], pd = D.tareas.filter(function(t){ return t.para === 'direccion' && t.estado === 'pendiente'; }).length;
-  if(!D.config.encendido) avisos.push('El equipo está apagado: nadie trabaja hasta que la administración lo encienda en Ajustes.');
+  if(!D.config.encendido) avisos.push('El equipo está apagado: nadie trabaja hasta que la administración lo encienda.');
   if(!D.ia) avisos.push('Sin clave de Claude los agentes trabajan con su manual de reglas. La clave se pone en el Motor de Scraping IA → Fábrica de agentes.');
-  var tabs = [['equipo','users','El equipo'],['aprobaciones','check','Para aprobar'],['tareas','file','Tareas y órdenes'],['cobros','euro','Cobros'],['ajustes','cog','Ajustes']];
+  var tabs = [['equipo','users','La empresa'],['aprobaciones','check','Para aprobar'],['laboratorio','spark','Laboratorio'],['cerebro','book','Cerebro'],['calidad','shield','Calidad'],
+    ['tareas','file','Tareas y órdenes'],['cobros','euro','Cobros'],['ajustes','cog','Ajustes']];
   v.innerHTML =
-    '<div class="mt-hero eq-hero"><div><span class="rc-kick">'+ic('bolt',13)+' EQUIPO DIRECTIVO IA · TRABAJA SOLO</span><h2>Zona de agentes</h2>'+
-      '<p>Seis agentes con su puesto (CEO, Marketing, Desarrollo de Negocio, Comercial, Cobros y Tecnología) que buscan empresas, las contactan, mandan a un gestor a la demo con el presupuesto y persiguen el cobro. Tú apruebas lo importante.</p></div>'+
+    '<div class="mt-hero eq-hero"><div><span class="rc-kick">'+ic('bolt',13)+' EMPRESA AUTÓNOMA QUE APRENDE</span><h2>Zona de agentes</h2>'+
+      '<p>Trece agentes expertos en siete departamentos, con jefes que revisan y corrigen. Buscan empresas, prueban mensajes, aprenden de los resultados, cambian de canal (correo, teléfono, visita) cuando uno no funciona y persiguen el cobro. Tú apruebas lo importante.</p></div>'+
       '<div class="mt-hero-st" id="eq-hero-st">'+eqHeroStats()+'</div></div>'+
     (avisos.length ? '<div class="mt-avisos">'+avisos.map(function(a){ return '<span>'+ic('alert',13)+' '+esc(a)+'</span>'; }).join('')+'</div>' : '')+
     '<div class="eq-embudo" id="eq-embudo">'+eqEmbudo()+'</div>'+
     '<nav class="mt-tabs">'+tabs.map(function(t){ return '<button class="'+(EQ.tab === t[0] ? 'on' : '')+'" data-eq-tab="'+t[0]+'">'+ic(t[1],15)+' '+t[2]+
       (t[0] === 'aprobaciones' ? ' <b class="mt-badge" data-eq-badge style="'+(D.aprobaciones.length ? '' : 'display:none')+'">'+D.aprobaciones.length+'</b>' : '')+
+      (t[0] === 'calidad' && D.laboratorio.hallazgos ? ' <b class="mt-badge" style="background:#FB923C">'+D.laboratorio.hallazgos+'</b>' : '')+
       (t[0] === 'tareas' && pd ? ' <b class="mt-badge" style="background:#FBBF24;color:#0B0F19">'+pd+'</b>' : '')+'</button>'; }).join('')+'</nav>'+
     '<div id="eq-cuerpo">'+eqCuerpo()+'</div>';
   eqEventos();
 }
-function eqCuerpo(){ return EQ.tab === 'aprobaciones' ? eqAprob() : EQ.tab === 'tareas' ? eqTareas() : EQ.tab === 'cobros' ? eqCobros() : EQ.tab === 'ajustes' ? eqAjustes() : eqEquipo(); }
+function eqCuerpo(){
+  var t = EQ.tab;
+  if(t === 'laboratorio' || t === 'cerebro' || t === 'calidad'){
+    var k = {laboratorio:'lab', cerebro:'cer', calidad:'cal'}[t];
+    if(!EQ[k]){ eqCargaTab(t); return '<div class="card"><p class="muted">Cargando…</p></div>'; }
+    return t === 'laboratorio' ? eqLab() : t === 'cerebro' ? eqCerebro() : eqCalidad();
+  }
+  return t === 'aprobaciones' ? eqAprob() : t === 'tareas' ? eqTareas() : t === 'cobros' ? eqCobros() : t === 'ajustes' ? eqAjustes() : eqEquipo();
+}
+function eqCargaTab(t){
+  var r = {laboratorio:['/equipo/lab','lab'], cerebro:['/equipo/cerebro','cer'], calidad:['/equipo/calidad','cal']}[t];
+  return ngApi(r[0]).then(function(d){ EQ[r[1]] = d; if(S.view === 'agentesia' && EQ.tab === t){ q('#eq-cuerpo').innerHTML = eqCuerpo(); eqEventos(); } }, function(e){ toast(e.message); });
+}
 function eqHeroStats(){
   var D = EQ.d, hoy = D.agentes.reduce(function(a, x){ return a + x.hoy.acciones; }, 0), ia = D.ia ? 'Claude' : 'Manual de reglas';
-  return [['Turnos hoy', D.tokens_hoy.turnos], ['Acciones hoy', hoy], ['Para aprobar', D.aprobaciones.length], ['Cobrado este mes', eur(D.embudo.cobrado_mes)]].map(function(x){
+  return [['Turnos hoy', D.tokens_hoy.turnos], ['Acciones hoy', hoy], ['Para aprobar', D.aprobaciones.length], ['Experimentos', D.laboratorio.en_curso], ['Aprendizajes', D.laboratorio.aprendizajes]].map(function(x){
       return '<div><b>'+x[1]+'</b><span>'+x[0]+'</span></div>'; }).join('')+
     '<div class="mt-pulso'+(D.trabaja ? ' on' : '')+'" title="'+esc(D.motivo || '')+'"><i></i>'+(D.trabaja ? 'Trabajando · ' + ia : esc(D.motivo || 'En pausa'))+'</div>'+
     '<div class="eq-hero-b">'+(S.role === 'admin' ? '<button class="btn '+(D.config.encendido ? 'btn-s' : 'btn-p')+' btn-xs" id="eq-on">'+ic(D.config.encendido ? 'stop' : 'play',13)+' '+(D.config.encendido ? 'Apagar el equipo' : 'Encender el equipo')+'</button>' : '')+
@@ -10179,28 +10256,54 @@ function eqEmbudo(){
   return pasos.map(function(p, i){ return '<div class="eq-paso"><span>'+ic(p[2],13)+' '+p[0]+'</span><b>'+p[1]+'</b></div>'+(i < pasos.length - 1 ? '<i class="eq-flecha">'+ic('arrowRight',12)+'</i>' : ''); }).join('')+
     '<div class="eq-paso eq-cobro"><span>'+ic('euro',13)+' Cobrado / objetivo</span><b>'+eur(E.cobrado_mes)+' <em>/ '+eur(obj)+'</em></b><div class="eq-barra"><i style="width:'+pct+'%"></i></div></div>';
 }
+function eqNum(n){ return Number(n || 0).toLocaleString('es-ES').replace(/^(\d)(\d{3})$/, '$1.$2'); }
 
-/* --- El equipo: organigrama, actividad e informes --------------------------------- */
-function eqTarjeta(a){
-  var r = EQ_ROL[a.rol], u = a.ultimo, aut = EQ_AUT[a.config.autonomia] || EQ_AUT.propone, trab = EQ.ocupado[a.rol];
-  return '<div class="card eq-ag'+(a.config.activo ? '' : ' off')+(trab ? ' trab' : '')+'" style="--c:'+r.c+'">'+
-    '<div class="eq-ag-h">'+eqBola(a.rol, 40)+'<div style="min-width:0"><span class="eq-alias">'+esc(a.alias)+'</span><b>'+esc(a.nombre)+'</b></div>'+
-      '<span class="eq-luz'+(trab ? ' on' : '')+'" title="'+(trab ? 'Trabajando' : a.config.activo ? 'Disponible' : 'En pausa')+'"></span></div>'+
-    '<p class="eq-mision">'+esc(a.mision)+'</p>'+
-    '<div class="eq-chips">'+motChip(aut[0], aut[1])+motChip('Cada ' + (a.config.cada >= 60 ? (a.config.cada / 60).toFixed(a.config.cada % 60 ? 1 : 0).replace('.', ',') + ' h' : a.config.cada + ' min'), '#94A3B8')+
-      (a.config.activo ? '' : motChip('En pausa', '#F87171'))+'</div>'+
-    '<div class="eq-ult">'+(trab ? '<span class="eq-pensando">'+ic('spark',12)+' Trabajando en su turno…</span>' : u ?
-      '<div class="tiny muted">Último turno '+ngRel(u.inicio)+' · '+(u.modo === 'claude' ? 'con Claude' : 'manual de reglas')+(u.estado === 'error' ? ' · <span style="color:#FCA5A5">error</span>' : '')+'</div>'+
-      '<div class="eq-inf">'+esc(u.estado === 'error' ? u.error : (u.resumen || ''))+'</div>' : '<div class="tiny muted">Todavía no ha trabajado.</div>')+'</div>'+
-    '<div class="eq-num"><div><b>'+a.hoy.turnos+'</b><span>Turnos hoy</span></div><div><b>'+a.hoy.acciones+'</b><span>Acciones</span></div>'+
-      '<div'+(a.pendientes ? ' class="am"' : '')+'><b>'+a.pendientes+'</b><span>Para aprobar</span></div><div><b>'+a.tareas+'</b><span>Tareas</span></div></div>'+
-    '<div class="row" style="gap:6px;margin-top:10px;flex-wrap:wrap"><button class="btn btn-p btn-xs" data-eq-turno="'+a.rol+'"'+(trab || !EQ.d.config.encendido ? ' disabled' : '')+'>'+ic('play',12)+' Trabajar ahora</button>'+
-      '<button class="btn btn-s btn-xs" data-eq-orden="'+a.rol+'">'+ic('send',12)+' Darle una orden</button></div></div>';
+/* --- Ritmo hacia el objetivo (embudo inverso) ---------------------------------------- */
+function eqRitmo(){
+  var R = EQ.d.ritmo, N = R.necesario, P = R.en_pipeline, T = R.tasas, ok = R.falta <= 0;
+  var pasos = [['Empresas a contactar', N.empresas_a_contactar, null, T.contacto_a_interes + ' % muestran interés'], ['Interesados', N.interesados, null, T.interes_a_demo + ' % llegan a demo'],
+    ['Demos', N.demos, P.demos, T.demo_a_propuesta + ' % piden propuesta'], ['Propuestas', N.propuestas, P.propuestas, T.propuesta_a_cliente + ' % firman'], ['Clientes', N.clientes, null, 'ticket medio ' + eur(R.ticket_medio)]];
+  return '<section class="card eq-ritmo"><div class="eq-ritmo-h"><div><h3>'+ic('target',15)+' Ritmo hacia el objetivo</h3>'+
+      '<span class="tiny muted">Embudo inverso: de la facturación que falta a la actividad necesaria, con las tasas reales de los últimos 90 días (o de referencia mientras no hay datos).</span></div>'+
+      '<div class="eq-ritmo-obj"><b>'+eur(R.falta)+'</b><span>faltan para '+eur(R.objetivo)+'</span></div></div>'+
+    '<div class="eq-ritmo-cad">'+pasos.map(function(p, i){ return '<div class="eq-rp"><span>'+p[0]+'</span><b>'+eqNum(p[1])+'</b>'+(p[2] !== null ? '<em>en el pipeline: '+p[2]+'</em>' : '')+
+      '<small>'+esc(p[3])+'</small></div>'+(i < pasos.length - 1 ? '<i class="eq-flecha">'+ic('arrowRight',12)+'</i>' : ''); }).join('')+'</div>'+
+    '<div class="eq-ritmo-d'+(ok ? ' ok' : R.capacidad_envio_mes < N.empresas_a_contactar ? ' mal' : '')+'">'+ic(ok ? 'check' : 'alert',14)+' <span><b>'+eqNum(R.por_semana)+' empresas contactadas por semana</b> · capacidad de envío del mes: '+eqNum(R.capacidad_envio_mes)+'. '+esc(R.diagnostico)+'</span></div></section>';
+}
+
+/* --- La empresa: organigrama por departamentos ---------------------------------------- */
+function eqMini(a){
+  var r = EQ_ROL[a.rol] || EQ_ROL.direccion, aut = EQ_AUT[a.config.autonomia] || EQ_AUT.propone, trab = EQ.ocupado[a.rol], u = a.ultimo, p = a.puntuacion;
+  return '<button class="eq-mini'+(EQ.sel === a.rol ? ' sel' : '')+(a.config.activo ? '' : ' off')+(trab ? ' trab' : '')+'" data-eq-sel="'+a.rol+'" style="--c:'+r.c+'">'+eqBola(a.rol, 32)+
+    '<span class="eq-mini-t"><span class="eq-alias">'+esc(a.alias)+(a.jefe && EQ.d.agentes.some(function(x){ return x.jefe === a.rol; }) ? ' · JEFE' : '')+'</span><b>'+esc(a.nombre)+'</b>'+
+      '<span class="tiny muted">'+(trab ? 'Trabajando…' : u ? 'Turno '+ngRel(u.inicio) : 'Sin turnos')+' · <span style="color:'+aut[1]+'">'+aut[0]+'</span>'+(a.pendientes ? ' · <b style="color:#FBBF24">'+a.pendientes+' por aprobar</b>' : '')+'</span></span>'+
+    (p !== null && p !== undefined ? '<span class="eq-nota" style="--n:'+(p >= 80 ? '#4ADE80' : p >= 60 ? '#FBBF24' : '#F87171')+'">'+p+'</span>' : '<span class="eq-luz'+(trab ? ' on' : '')+'"></span>')+'</button>';
+}
+function eqFichaAgente(a){
+  var r = EQ_ROL[a.rol], u = a.ultimo, trab = EQ.ocupado[a.rol], subs = EQ.d.agentes.filter(function(x){ return x.jefe === a.rol; });
+  return '<section class="card eq-det" style="--c:'+r.c+'"><div class="eq-ag-h">'+eqBola(a.rol, 44)+'<div style="min-width:0;flex:1"><span class="eq-alias">'+esc(a.alias)+' · '+esc(EQ.d.departamentos[a.dep] || '')+'</span><b style="font-size:17px">'+esc(a.nombre)+'</b>'+
+      '<div class="tiny muted">'+(a.jefe ? 'Reporta a '+esc(eqNombre(a.jefe)) : 'Reporta a la dirección')+(subs.length ? ' · Dirige a '+subs.map(function(x){ return esc(x.nombre); }).join(', ') : '')+'</div></div>'+
+      '<button class="icon-btn sm" data-eq-sel="'+a.rol+'" title="Cerrar">'+ic('x',14)+'</button></div>'+
+    '<div class="eq-det-g"><div><h5 class="eq-h5">Misión</h5><p class="eq-txt">'+esc(a.mision)+'</p><h5 class="eq-h5">Cómo piensa</h5><p class="eq-txt eq-cer">'+ic('spark',13)+' '+esc(a.experto)+'</p>'+
+        (a.config.instrucciones ? '<h5 class="eq-h5">Instrucciones de la dirección</h5><p class="eq-txt">'+esc(a.config.instrucciones)+'</p>' : '')+
+        '<h5 class="eq-h5">Herramientas</h5><div class="eq-herr">'+a.herramientas.map(function(h){ return '<span>'+esc(h.replace(/_/g, ' '))+'</span>'; }).join('')+'</div></div>'+
+      '<div><h5 class="eq-h5">Último informe</h5><div class="eq-ult">'+(trab ? '<span class="eq-pensando">'+ic('spark',12)+' Trabajando en su turno…</span>' : u ?
+          '<div class="tiny muted">'+ngRel(u.inicio)+' · '+(u.modo === 'claude' ? 'con Claude · ' + u.iteraciones + ' rondas' : 'manual de reglas')+'</div><div class="eq-inf full">'+esc(u.estado === 'error' ? u.error : (u.resumen || ''))+'</div>' : '<div class="tiny muted">Todavía no ha trabajado.</div>')+'</div>'+
+        '<div class="eq-num"><div><b>'+(a.puntuacion === null || a.puntuacion === undefined ? '—' : a.puntuacion)+'</b><span>Puntuación</span></div><div><b>'+a.hoy.turnos+'</b><span>Turnos hoy</span></div>'+
+          '<div'+(a.pendientes ? ' class="am"' : '')+'><b>'+a.pendientes+'</b><span>Para aprobar</span></div><div><b>'+a.tareas+'</b><span>Tareas</span></div></div>'+
+        '<div class="row" style="gap:6px;margin-top:10px;flex-wrap:wrap"><button class="btn btn-p btn-xs" data-eq-turno="'+a.rol+'"'+(trab || !EQ.d.config.encendido ? ' disabled' : '')+'>'+ic('play',12)+' Trabajar ahora</button>'+
+          '<button class="btn btn-s btn-xs" data-eq-orden="'+a.rol+'">'+ic('send',12)+' Darle una orden</button></div></div></div></section>';
 }
 function eqEquipo(){
-  var D = EQ.d, ceo = D.agentes.filter(function(a){ return a.rol === 'ceo'; })[0], resto = D.agentes.filter(function(a){ return a.rol !== 'ceo'; });
-  return '<div class="eq-org"><div class="eq-org-top">'+eqTarjeta(ceo)+'</div><div class="eq-org-linea"></div>'+
-    '<div class="eq-org-grid">'+resto.map(eqTarjeta).join('')+'</div></div>'+
+  var D = EQ.d, ag = {}, sel = null;
+  D.agentes.forEach(function(a){ ag[a.rol] = a; if(EQ.sel === a.rol) sel = a; });
+  var deps = Object.keys(D.departamentos).filter(function(d){ return d !== 'direccion'; });
+  return eqRitmo()+
+    '<div class="eq-org"><div class="eq-org-top">'+eqMini(ag.ceo)+'</div><div class="eq-org-linea"></div>'+
+    '<div class="eq-deps">'+deps.map(function(d){ var m = D.agentes.filter(function(a){ return a.dep === d; });
+      m.sort(function(x, y){ return (x.jefe === 'ceo' ? 0 : 1) - (y.jefe === 'ceo' ? 0 : 1); });
+      return '<div class="eq-dep"><h4>'+esc(D.departamentos[d])+'</h4>'+m.map(eqMini).join('')+'</div>'; }).join('')+'</div></div>'+
+    (sel ? eqFichaAgente(sel) : '<p class="tiny muted" style="text-align:center;margin:-4px 0 12px">Pulsa un agente para ver cómo piensa, su último informe y su puntuación.</p>')+
     '<div class="mt-vivo eq-vivo"><section class="card"><h3>'+ic('chart',15)+' Actividad del equipo</h3><div class="eq-feed">'+(D.feed.length ? D.feed.map(function(f){
         var e = EQ_EST[f.estado] || [f.estado, '#94A3B8'];
         return '<div class="eq-fl">'+eqBola(f.agente, 26)+'<div style="min-width:0;flex:1"><div class="eq-fl-t">'+esc(f.resumen)+'</div>'+
@@ -10210,6 +10313,79 @@ function eqEquipo(){
         return '<div class="eq-turno">'+eqBola(t.agente, 26)+'<div style="min-width:0;flex:1"><div class="tiny muted"><b style="color:var(--txt)">'+esc(eqNombre(t.agente))+'</b> · '+ngRel(t.inicio)+' · '+
           (t.modo === 'claude' ? 'Claude · ' + t.iteraciones + ' rondas' : 'manual de reglas')+'</div><div class="eq-inf full">'+esc(t.estado === 'error' ? 'Error: ' + t.error : t.resumen || '')+'</div></div></div>'; }).join('') :
         '<div class="tiny muted">Aquí aparece lo que cada agente cuenta al terminar su turno.</div>')+'</div></section></div>';
+}
+
+/* --- Laboratorio --------------------------------------------------------------------------- */
+var EQ_EXP_EST = {propuesto:['Propuesto','#94A3B8'], en_curso:['En curso','#38BDF8'], concluido:['Concluido','#4ADE80'], detenido:['Detenido','#F87171']};
+function eqLab(){
+  var L = EQ.lab, R = L.ramas, res = R.resultados, locs = Object.keys(R.candidatos_a_visita_por_localidad || {});
+  return '<div class="eq-lab"><section class="card"><h3 class="eq-h3">'+ic('spark',15)+' Experimentos <span class="tiny muted">· Innovación propone, Copy diseña, Análisis decide con estadística</span></h3>'+
+    (L.experimentos.length ? L.experimentos.map(function(x){ var e = EQ_EXP_EST[x.estado] || [x.estado, '#94A3B8'], max = 1, pr = x.prueba || {};
+      x.vivo.forEach(function(v){ max = Math.max(max, v.stats.tasa); });
+      var falta = x.vivo.filter(function(v){ return v.clave !== 'REF'; }).map(function(v){ return v.stats.n; }), min = Number(x.min_muestra);
+      var ver = x.estado === 'concluido' || x.estado === 'detenido' ? (x.resultado && x.resultado.conclusion) || '' :
+        x.estado === 'en_curso' ? (falta.some(function(n){ return n < min; }) ? 'Recogiendo muestra: ' + falta.join(' / ') + ' de ' + min + ' empresas por variante.' :
+          pr.p < 0.1 ? 'Diferencia significativa (p = ' + pr.p + '): Análisis lo cerrará en su próximo turno.' : 'Sin diferencia significativa todavía (p = ' + pr.p + ').') : 'Esperando aprobación para lanzarse.';
+      return '<div class="eq-exp'+(x.ganador ? ' gana' : '')+'"><div class="eq-exp-h"><div style="min-width:0;flex:1"><b>#'+x.id+' · '+esc(x.titulo)+'</b><div class="tiny muted">'+(x.palanca === 'angulo' ? 'Test A/B de ángulo' : 'Nicho nuevo')+' · '+esc(x.sector)+' · propone '+esc(eqAlias(x.creado_por))+'</div></div>'+motChip(e[0], e[1])+'</div>'+
+        (x.hipotesis ? '<div class="tiny" style="margin:6px 0;color:var(--txt-2)">'+ic('target',11)+' '+esc(x.hipotesis)+'</div>' : '')+
+        '<div class="eq-vars">'+x.vivo.map(function(v){ var g = x.ganador === v.clave;
+          return '<div class="eq-var'+(g ? ' g' : '')+'"><span class="eq-var-k">'+esc(v.clave)+'</span><div style="min-width:0;flex:1"><div class="tiny"><b>'+esc(v.descripcion || '')+'</b>'+(g ? ' · <span style="color:#4ADE80">GANADORA</span>' : '')+'</div>'+
+            '<div class="eq-var-b"><i style="width:'+Math.round(v.stats.tasa / max * 100)+'%"></i></div><div class="tiny muted">'+v.stats.k+' positivas de '+v.stats.n+' contactadas · <b style="color:var(--txt)">'+String(v.stats.tasa).replace('.', ',')+' %</b>'+
+            (v.stats.bajas ? ' · '+v.stats.bajas+' bajas' : '')+'</div></div></div>'; }).join('')+'</div>'+
+        '<div class="tiny eq-exp-v">'+esc(ver)+'</div>'+
+        (x.estado === 'propuesto' || x.estado === 'en_curso' ? '<div class="row" style="gap:6px;margin-top:8px">'+(x.estado === 'propuesto' ? '<button class="btn btn-p btn-xs" data-eq-exp="'+x.id+'" data-a="lanzar">'+ic('play',12)+' Lanzar</button>' :
+          '<button class="btn btn-s btn-xs" data-eq-exp="'+x.id+'" data-a="evaluar">'+ic('check',12)+' Evaluar ahora</button>')+'<button class="btn btn-s btn-xs" data-eq-exp="'+x.id+'" data-a="detener">'+ic('stop',12)+' Detener</button></div>' : '')+'</div>'; }).join('') :
+      '<div class="mt-vacio">'+ic('spark',22)+'<b>Todavía no hay experimentos.</b><span>El agente de Innovación propone uno en cuanto hay volumen: un test A/B de ángulo cuando hay 10 empresas verificadas de un sector, o un nicho nuevo si no las hay.</span></div>')+'</section>'+
+    '<section class="card"><h3 class="eq-h3">'+ic('refresh',15)+' Embudo multicanal <span class="tiny muted">· si un canal no llega, otro</span></h3>'+
+      '<div class="eq-ramas"><div class="eq-rama"><span>'+ic('mail',16)+'</span><b>Correo</b><em>'+res.rama_correo_interesados+' interesados</em><small>Secuencia de 3 correos con el ángulo del sector</small></div><i class="eq-flecha">'+ic('arrowRight',14)+'</i>'+
+        '<div class="eq-rama"><span>'+ic('phone',16)+'</span><b>Teléfono</b><em>'+res.rama_telefono_escalados+' escalados · '+res.rama_telefono_avanzan+' avanzan</em><small>'+R.candidatas_a_telefono+' empresas sin respuesta, esperando a pasar a teléfono</small></div><i class="eq-flecha">'+ic('arrowRight',14)+'</i>'+
+        '<div class="eq-rama"><span>'+ic('building',16)+'</span><b>Visita presencial</b><em>'+res.rama_visita_programadas+' programadas · '+res.rama_visita_realizadas+' hechas</em><small>'+(locs.length ? 'Candidatas: '+locs.map(function(l){ return esc(l)+' ('+R.candidatos_a_visita_por_localidad[l]+')'; }).join(', ') : 'Sin candidatas a visita ahora mismo')+'</small></div></div>'+
+      '<p class="tiny muted" style="margin:10px 0 0">Operaciones pasa a teléfono a quien no respondió a los 3 correos (4 días después del último); si por teléfono no se localiza a quien decide (2 intentos), Ventas de campo agrupa las visitas por localidad en una ruta para un gestor. Nadie que haya pedido la baja vuelve a ser contactado.</p></section></div>';
+}
+
+/* --- Cerebro de la empresa --------------------------------------------------------------------- */
+var EQ_MEM = {regla:['Regla aplicada','#4ADE80'], aprendizaje:['Aprendizaje','#38BDF8'], aviso:['Aviso','#F87171'], casa:['Regla de la casa','#FBBF24']};
+function eqCerebro(){
+  var C = EQ.cer, M = C.memoria, act = M.filter(function(m){ return m.activo == 1; }), arch = M.filter(function(m){ return m.activo != 1; }), G = C.segmentos, A = C.angulos || {};
+  var tabla = function(t, filas, k){ if(!filas.length) return ''; var max = Math.max.apply(null, filas.map(function(f){ return f.tasa_positiva; }).concat([1]));
+    return '<h5 class="eq-h5">'+t+'</h5><div class="mt-tabla"><table><thead><tr><th>'+(k === 'angulo' ? 'Ángulo' : k === 'sector' ? 'Sector' : 'Localidad')+'</th><th>Empresas</th><th>Contactadas</th><th>Positivas</th><th style="min-width:120px">Tasa</th><th>Bajas</th><th>Clientes</th></tr></thead><tbody>'+
+      filas.map(function(f){ return '<tr><td><b>'+esc(k === 'angulo' && A[f.angulo] ? A[f.angulo][0] : f[k])+'</b></td><td>'+f.empresas+'</td><td>'+f.contactadas+'</td><td>'+f.positivas+'</td>'+
+        '<td><div class="eq-var-b"><i style="width:'+Math.round(f.tasa_positiva / max * 100)+'%"></i></div><span class="tiny">'+String(f.tasa_positiva).replace('.', ',')+' %</span></td><td'+(f.tasa_bajas >= 5 ? ' style="color:#FCA5A5"' : '')+'>'+f.bajas+'</td><td>'+f.clientes+'</td></tr>'; }).join('')+'</tbody></table></div>'; };
+  return '<div class="eq-cerebro"><section class="card"><h3 class="eq-h3">'+ic('book',15)+' Lo que la empresa ha aprendido <span class="tiny muted">· los agentes lo leen al empezar cada turno</span></h3>'+
+      (act.length ? act.map(function(m){ var t = EQ_MEM[m.tipo] || [m.tipo, '#94A3B8'];
+        return '<div class="eq-mem" style="--c:'+t[1]+'"><div class="row" style="gap:8px;align-items:flex-start;justify-content:space-between"><div style="min-width:0"><b>'+esc(m.titulo)+'</b>'+
+          (m.texto && m.tipo !== 'regla' ? '<div class="tiny" style="white-space:pre-wrap;color:var(--txt-2);margin-top:3px">'+esc(m.texto)+'</div>' : '')+'</div>'+motChip(t[0], t[1])+'</div>'+
+          '<div class="eq-conf"><i style="width:'+m.confianza+'%"></i></div><div class="tiny muted">Confianza '+m.confianza+' % · '+esc(String(m.origen).replace(/^experimento:/, 'experimento #').replace(/^agente:/, 'agente ').replace(/^direccion:.*/, 'dirección'))+' · '+ngRel(m.creado)+
+          (m.evidencia ? ' · <details style="display:inline"><summary style="display:inline;cursor:pointer">evidencia</summary><span class="mono" style="word-break:break-all">'+esc(m.evidencia)+'</span></details>' : '')+
+          ' · <button class="ng-link" data-eq-arch="'+m.id+'">archivar</button></div></div>'; }).join('') :
+        '<div class="mt-vacio">'+ic('book',22)+'<b>El cerebro está vacío.</b><span>Cada experimento concluido, cada regla fijada y lo que los agentes descubran con datos quedará aquí.</span></div>')+
+      (arch.length ? '<div class="tiny muted" style="margin-top:8px">'+arch.length+' archivados</div>' : '')+
+      '<h5 class="eq-h5">Añadir una regla de la casa</h5><input class="inp" id="eq-m-tit" placeholder="Ej.: No escribir a clínicas en agosto, están cerradas">'+
+      '<div class="row" style="gap:6px;margin-top:6px;flex-wrap:wrap"><select class="inp" id="eq-m-area" style="width:auto">'+Object.keys(EQ.d.departamentos).map(function(k){ return '<option value="'+k+'">'+esc(EQ.d.departamentos[k])+'</option>'; }).join('')+'</select>'+
+        '<button class="btn btn-p btn-xs" id="eq-m-add">'+ic('plus',12)+' Añadir</button></div></section>'+
+    '<section class="card"><h3 class="eq-h3">'+ic('chart',15)+' Qué funciona</h3>'+(tabla('Por ángulo de mensaje', G.por_angulo, 'angulo') + tabla('Por sector', G.por_sector, 'sector') + tabla('Por localidad', G.por_localidad, 'localidad') ||
+      '<div class="tiny muted">Aún no hay envíos para medir.</div>')+'</section></div>';
+}
+
+/* --- Calidad --------------------------------------------------------------------------------------- */
+var EQ_GRAV = {alta:['Alta','#F87171'], media:['Media','#FBBF24'], baja:['Baja','#94A3B8']};
+function eqCalidad(){
+  var C = EQ.cal, ab = C.hallazgos.filter(function(h){ return h.estado === 'abierto'; }), cer = C.hallazgos.filter(function(h){ return h.estado !== 'abierto'; }).slice(0, 10);
+  return '<div class="eq-cal"><section class="card"><div class="row" style="justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center"><h3 class="eq-h3" style="margin:0">'+ic('shield',15)+' Hallazgos abiertos ('+ab.length+')</h3>'+
+      '<button class="btn btn-s btn-xs" id="eq-auditar">'+ic('search',12)+' Auditar ahora</button></div>'+
+      '<p class="tiny muted" style="margin:6px 0 10px">El agente de Calidad revisa a todos los agentes y procesos. Cada hallazgo va como tarea a su responsable y se cierra solo cuando deja de darse.</p>'+
+      (ab.length ? ab.map(function(h){ var g = EQ_GRAV[h.gravedad] || EQ_GRAV.media;
+        return '<div class="eq-hal" style="--c:'+g[1]+'">'+eqBola(h.responsable, 30)+'<div style="min-width:0;flex:1"><b>'+esc(h.titulo)+'</b><div class="tiny" style="color:var(--txt-2)">'+esc(h.detalle || '')+'</div>'+
+          '<div class="tiny muted">'+ic('eye',11)+' '+esc(h.evidencia || '')+' · responsable: '+esc(eqNombre(h.responsable))+' · '+ngRel(h.creado)+'</div></div>'+motChip(g[0], g[1])+
+          '<div class="row" style="gap:4px"><button class="btn btn-p btn-xs" data-eq-hal="'+h.id+'" data-a="resolver">'+ic('check',12)+'</button><button class="icon-btn sm" data-eq-hal="'+h.id+'" data-a="descartar" title="Descartar">'+ic('x',13)+'</button></div></div>'; }).join('') :
+        '<div class="mt-vacio">'+ic('shield',22)+'<b>Sin hallazgos abiertos.</b><span>Pulsa «Auditar ahora» o espera al turno del agente de Calidad.</span></div>')+
+      (cer.length ? '<h5 class="eq-h5">Cerrados recientemente</h5>'+cer.map(function(h){ return '<div class="tiny muted">'+ic(h.estado === 'resuelto' ? 'check' : 'x',11)+' '+esc(h.titulo)+' · '+esc(h.estado)+'</div>'; }).join('') : '')+'</section>'+
+    '<section class="card"><h3 class="eq-h3">'+ic('chart',15)+' Puntuación de los agentes <span class="tiny muted">· 7 días</span></h3><div class="mt-tabla"><table><thead><tr><th>Agente</th><th style="min-width:110px">Puntuación</th><th>Turnos</th><th>Acciones</th><th>Errores</th><th>Aprobadas</th><th>Rechazadas</th><th>Tareas</th><th>Hallazgos</th></tr></thead><tbody>'+
+      C.puntuaciones.map(function(p){ var n = p.puntuacion, col = n === null ? '#64748B' : n >= 80 ? '#4ADE80' : n >= 60 ? '#FBBF24' : '#F87171';
+        return '<tr><td><div class="row" style="gap:8px;align-items:center">'+eqBola(p.rol, 26)+'<div><b>'+esc(p.alias)+'</b> <span class="tiny muted">'+esc(p.nombre)+'</span></div></div></td>'+
+          '<td>'+(n === null ? '<span class="tiny muted">sin actividad</span>' : '<div class="eq-var-b" style="--b:'+col+'"><i style="width:'+n+'%;background:'+col+'"></i></div><b style="color:'+col+'">'+n+'</b>')+'</td>'+
+          '<td>'+p.turnos+'</td><td>'+p.acciones+'</td><td'+(p.errores ? ' style="color:#FCA5A5"' : '')+'>'+p.errores+'</td><td>'+p.aprobadas+'</td><td>'+p.rechazadas+'</td><td>'+p.tareas_hechas+' / '+(p.tareas_hechas + p.tareas_pendientes)+'</td><td>'+p.hallazgos_abiertos+'</td></tr>'; }).join('')+
+    '</tbody></table></div><p class="tiny muted" style="margin:8px 0 0">La puntuación baja con los errores, las propuestas rechazadas, los hallazgos abiertos y las tareas acumuladas. Si un agente baja de 60, el CEO encarga a su jefe que lo revise y el jefe puede proponer nuevas instrucciones (las apruebas tú).</p></section></div>';
 }
 
 /* --- Para aprobar ------------------------------------------------------------------------ */
@@ -10311,7 +10487,21 @@ function eqAjustes(){
 /* --- Eventos ------------------------------------------------------------------------------------- */
 function eqRefresca(){ return eqCarga().then(function(){ if(S.view === 'agentesia') renderApp(); }); }
 function eqEventos(){
-  qa('[data-eq-tab]').forEach(function(b){ b.onclick = function(){ EQ.tab = b.dataset.eqTab; if(EQ.tab === 'ajustes') EQ.cfg = null, eqCarga().then(renderApp); else renderApp(); }; });
+  qa('[data-eq-tab]').forEach(function(b){ b.onclick = function(){ EQ.tab = b.dataset.eqTab;
+    if(EQ.tab === 'laboratorio') EQ.lab = null; if(EQ.tab === 'cerebro') EQ.cer = null; if(EQ.tab === 'calidad') EQ.cal = null;
+    if(EQ.tab === 'ajustes') EQ.cfg = null, eqCarga().then(renderApp); else renderApp(); }; });
+  qa('[data-eq-sel]').forEach(function(b){ b.onclick = function(){ EQ.sel = EQ.sel === b.dataset.eqSel ? null : b.dataset.eqSel; q('#eq-cuerpo').innerHTML = eqCuerpo(); eqEventos();
+    if(EQ.sel && q('.eq-det')) q('.eq-det').scrollIntoView({block:'nearest', behavior:'smooth'}); }; });
+  qa('[data-eq-exp]').forEach(function(b){ b.onclick = function(){ var a = b.dataset.a;
+    if(a === 'detener' && !confirm('¿Detener este experimento? Sus campañas quedan en pausa.')) return; b.disabled = true;
+    ngApi('/equipo/experimentos/' + b.dataset.eqExp + '/' + a, 'POST', {}).then(function(d){ toast(d.resumen || 'Hecho.'); EQ.lab = null; return eqRefresca(); }, function(e){ toast(e.message); b.disabled = false; }); }; });
+  qa('[data-eq-arch]').forEach(function(b){ b.onclick = function(){ ngApi('/equipo/memoria/' + b.dataset.eqArch + '/archivar', 'POST', {}).then(function(){ EQ.cer = null; return eqRefresca(); }, function(e){ toast(e.message); }); }; });
+  if(q('#eq-m-add')) q('#eq-m-add').onclick = function(){ var t = q('#eq-m-tit').value.trim(); if(t.length < 6){ toast('Escribe la regla.'); return; }
+    ngApi('/equipo/memoria', 'POST', {titulo:t, area:q('#eq-m-area').value}).then(function(){ toast('Regla añadida al cerebro: los agentes la tendrán en cuenta.'); EQ.cer = null; return eqRefresca(); }, function(e){ toast(e.message); }); };
+  if(q('#eq-auditar')) q('#eq-auditar').onclick = function(){ var b = this; b.disabled = true;
+    ngApi('/equipo/auditar', 'POST', {}).then(function(d){ toast(d.resumen); EQ.cal = null; return eqRefresca(); }, function(e){ toast(e.message); b.disabled = false; }); };
+  qa('[data-eq-hal]').forEach(function(b){ b.onclick = function(){
+    ngApi('/equipo/hallazgos/' + b.dataset.eqHal + '/' + b.dataset.a, 'POST', {}).then(function(){ EQ.cal = null; return eqRefresca(); }, function(e){ toast(e.message); }); }; });
   qa('[data-eq-ficha]').forEach(function(b){ b.onclick = function(){ ngAbreFicha(Number(b.dataset.eqFicha), 'agentesia'); }; });
   if(q('#eq-on')) q('#eq-on').onclick = function(){ var on = !EQ.d.config.encendido;
     if(on && !confirm('¿Encender el equipo de agentes? Empezarán a trabajar en su horario. Lo importante seguirá esperando vuestra aprobación.')) return;

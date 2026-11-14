@@ -315,7 +315,8 @@ function labs_tablas_copia()
         'bloqueos', 'incidentes', 'alertas', 'solicitudes_rgpd',
         'citas', 'ia_config', 'pipeline_movimientos', 'recursos_progreso', 'papelera', 'llamadas',
         'motor_campanas', 'motor_leads', 'motor_mensajes', 'motor_bajas',
-        'equipo_turnos', 'equipo_acciones', 'equipo_tareas', 'equipo_cobros');
+        'equipo_turnos', 'equipo_acciones', 'equipo_tareas', 'equipo_cobros',
+        'equipo_experimentos', 'equipo_memoria', 'equipo_hallazgos');
     $hay = labs_q('SELECT table_name FROM information_schema.tables WHERE table_schema = DATABASE()')->fetchAll(PDO::FETCH_COLUMN);
     return array_values(array_intersect($todas, $hay));
 }

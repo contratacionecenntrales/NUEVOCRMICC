@@ -8,7 +8,7 @@
  */
 defined('LABS') || exit;
 
-define('LABS_VERSION_ESQUEMA', 16);
+define('LABS_VERSION_ESQUEMA', 17);
 
 function labs_columna_existe(PDO $db, $tabla, $col)
 {
@@ -164,6 +164,21 @@ function labs_migra(PDO $db)
            pagado_el DATE NULL, metodo VARCHAR(40) NOT NULL DEFAULT '', recordatorios INT NOT NULL DEFAULT 0, ultimo_recordatorio DATETIME(6) NULL,
            creado_por VARCHAR(40) NOT NULL DEFAULT '', creado DATETIME(6) NOT NULL,
            PRIMARY KEY (id), KEY equipo_cobros_estado_idx (estado, vence), KEY equipo_cobros_presu_idx (presupuesto_id)) $opc",
+        // v17 · Empresa que aprende: experimentos A/B, cerebro (aprendizajes) y hallazgos de calidad.
+        "CREATE TABLE IF NOT EXISTS equipo_experimentos (
+           id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, titulo VARCHAR(200) NOT NULL, hipotesis TEXT NULL, palanca VARCHAR(20) NOT NULL DEFAULT 'angulo',
+           sector VARCHAR(60) NOT NULL DEFAULT '', variantes TEXT NULL, metrica VARCHAR(30) NOT NULL DEFAULT 'positivas', min_muestra INT NOT NULL DEFAULT 30,
+           estado VARCHAR(12) NOT NULL DEFAULT 'propuesto', resultado TEXT NULL, ganador VARCHAR(4) NOT NULL DEFAULT '', creado_por VARCHAR(20) NOT NULL DEFAULT '',
+           creado DATETIME(6) NOT NULL, lanzado DATETIME(6) NULL, concluido DATETIME(6) NULL, PRIMARY KEY (id), KEY equipo_exp_estado_idx (estado)) $opc",
+        "CREATE TABLE IF NOT EXISTS equipo_memoria (
+           id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, area VARCHAR(20) NOT NULL DEFAULT 'general', tipo VARCHAR(12) NOT NULL DEFAULT 'aprendizaje',
+           clave VARCHAR(120) NOT NULL DEFAULT '', titulo VARCHAR(200) NOT NULL, texto TEXT NULL, evidencia TEXT NULL, confianza INT NOT NULL DEFAULT 50,
+           origen VARCHAR(40) NOT NULL DEFAULT '', activo TINYINT(1) NOT NULL DEFAULT 1, creado DATETIME(6) NOT NULL,
+           PRIMARY KEY (id), KEY equipo_mem_area_idx (area, activo), KEY equipo_mem_clave_idx (clave)) $opc",
+        "CREATE TABLE IF NOT EXISTS equipo_hallazgos (
+           id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, clave VARCHAR(120) NOT NULL, gravedad VARCHAR(10) NOT NULL DEFAULT 'media', responsable VARCHAR(20) NOT NULL,
+           titulo VARCHAR(250) NOT NULL, detalle TEXT NULL, evidencia TEXT NULL, estado VARCHAR(12) NOT NULL DEFAULT 'abierto', detectado_por VARCHAR(20) NOT NULL DEFAULT 'qa',
+           tarea_id BIGINT UNSIGNED NULL, creado DATETIME(6) NOT NULL, cerrado DATETIME(6) NULL, PRIMARY KEY (id), KEY equipo_hall_estado_idx (estado, clave)) $opc",
         "CREATE TABLE IF NOT EXISTS llamadas (
            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, contacto_id BIGINT UNSIGNED NOT NULL, autor_id CHAR(36) NULL,
            inicio DATETIME(6) NOT NULL, duracion INT NOT NULL DEFAULT 0, con_quien VARCHAR(20) NOT NULL DEFAULT 'nadie',
@@ -198,6 +213,7 @@ function labs_migra(PDO $db)
         // Bloqueo de datos (art. 32 LOPDGDD): el contrato se conserva por obligación legal pero queda apartado.
         array('contratos', 'bloqueado', 'ALTER TABLE contratos ADD COLUMN bloqueado TINYINT(1) NOT NULL DEFAULT 0'),
         // --- Fichas de contacto (versión 4) ---------------------------------
+        array('motor_campanas', 'angulo', "ALTER TABLE motor_campanas ADD COLUMN angulo VARCHAR(30) NOT NULL DEFAULT '', ADD COLUMN angulo_texto TEXT NULL, ADD COLUMN experimento_id BIGINT UNSIGNED NULL, ADD COLUMN variante VARCHAR(4) NOT NULL DEFAULT ''"),
         array('contactos', 'etiquetas', "ALTER TABLE contactos ADD COLUMN etiquetas VARCHAR(500) NOT NULL DEFAULT ''"),
         array('contactos', 'ref_externa', 'ALTER TABLE contactos ADD COLUMN ref_externa VARCHAR(64) NULL, ADD UNIQUE KEY contactos_ref_uq (ref_externa)'),
         array('contactos', 'ultima_actividad', 'ALTER TABLE contactos ADD COLUMN ultima_actividad DATETIME(6) NULL'),

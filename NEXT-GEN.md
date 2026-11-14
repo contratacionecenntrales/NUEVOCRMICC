@@ -315,47 +315,82 @@ Para que trabaje también sin nadie conectado, programad en Hostalia una tarea
 cada 5 minutos que abra la dirección que aparece en la Fábrica de agentes
 (lleva un token secreto).
 
-## Zona de agentes (equipo directivo de IA)
+## Zona de agentes: una empresa autónoma que aprende
 
-Menú «Zona de agentes», debajo del Motor (dirección y jefes de equipo). Seis
-agentes con su puesto que trabajan solos sobre el CRM, del primer contacto al
-cobro:
+Menú «Zona de agentes», debajo del Motor (dirección y jefes de equipo). Trece
+agentes en siete departamentos. Cada uno tiene su misión y un **cerebro de
+experto** (los métodos con los que trabaja un profesional de primer nivel en
+ese puesto), y los jefes revisan y corrigen a su equipo.
 
-| Agente | Qué hace |
+| Departamento | Agentes |
 |---|---|
-| **CEO** · Dirección General | Mira el embudo completo, detecta dónde se atasca y reparte tareas al resto. Escribe el parte para la dirección. |
-| **CMO** · Marketing | Lanza extracciones en el Motor de Scraping IA con los sectores y zonas objetivo, monta campañas con las empresas verificadas y las activa. |
-| **SDR** · Desarrollo de Negocio | Pone en la agenda de los gestores las llamadas a los contactos nuevos y en cualificación. |
-| **CSO** · Dirección Comercial | Prepara el presupuesto con el pack oficial de su cuello de botella y **manda a un gestor humano a la oficina del cliente** para la demo, con el presupuesto y un briefing (decisor, dolor, fuga, último contacto). |
-| **CFO** · Administración y Cobros | Con el presupuesto aceptado prepara el cobro del primer hito y el contrato en borrador; si vence, prepara el recordatorio de pago. |
-| **CTO** · Tecnología | Vigila el Motor (claves, correo, errores), la calidad de los datos y la agenda sin cerrar. Si algo va mal, frena los envíos. |
+| Dirección | **CEO**: embudo inverso, foco en el paso más estrecho y metas semanales por jefe |
+| Operaciones y Calidad | **COO** (embudo multicanal y SLA) · **QA** (auditor jefe: busca errores en todo) |
+| Marketing y Crecimiento | **CMO** (jefe) · Prospección e inteligencia de mercado · Copywriting · Análisis y growth |
+| Innovación | **Laboratorio**: siempre hay un experimento en marcha |
+| Ventas | **CSO** (jefe) · SDR · Ventas de campo (visitas presenciales y demos) |
+| Finanzas | **CFO**: cobro por hitos, contrato y recordatorios |
+| Tecnología | **CTO**: Motor, correo, errores y datos |
 
-**Cómo trabajan.** Cada agente hace turnos (cada X minutos, en horario). Con
-la clave de Claude (la misma del Motor) razona con la API usando
-herramientas del CRM: consulta, decide, actúa y termina con un informe. Sin
-clave, sigue un **manual de reglas** con las mismas herramientas, así el CRM
-trabaja igual. Los turnos los lanza el propio panel mientras está abierto y
-el cron del hosting del Motor (un agente por llamada).
+**Ritmo hacia el objetivo.** Calcula al revés, desde la facturación que falta
+hasta los clientes, propuestas, demos, interesados y empresas a contactar por
+semana. Usa las tasas reales de los últimos 90 días, suavizadas con valores de
+referencia mientras haya pocos datos. Avisa si la capacidad de envío no llega.
 
-**Autonomía por puesto.**
+**Laboratorio (experimentos de verdad).**
 
-- *Solo observa*: lee e informa.
-- *Propone* (por defecto): lo interno (tareas entre agentes, notas) lo hace
-  solo; agenda, pipeline y prospección esperan aprobación.
-- *Actúa*: hace también agenda, pipeline y prospección. Solo la
-  administración puede darla.
+- Innovación propone tests A/B de **ángulo** del mensaje (normativa IA,
+  clientes que se escapan, caso del sector, pregunta corta o diagnóstico
+  gratuito) o un **nicho nuevo** (sector o zona sin explorar).
+- Las empresas se reparten **al azar** entre dos campañas del Motor, una por
+  variante.
+- Análisis decide con una **prueba de dos proporciones**: muestra mínima,
+  p < 0,10 y freno si una variante supera el 5 % de bajas.
+- El ganador pasa al **cerebro**, y Copy lo convierte en el estándar del
+  sector: el Motor lo aplica en adelante, también sin Claude (plantillas por
+  ángulo).
 
-**Lo que nunca hace solo**: presupuestos, contratos, cobros y recordatorios de
-pago siempre esperan a una persona («Para aprobar»), que puede corregir la
-propuesta antes de aprobarla (por ejemplo, el pack o el texto del correo).
-Marcar un cobro como pagado o un cliente como firmado lo hacen las personas.
+**Cerebro de la empresa.** Reglas aplicadas, aprendizajes con su evidencia y
+su confianza, avisos y **reglas de la casa** que añade la dirección. Cada
+agente lo lee al empezar su turno, y la tabla «Qué funciona» muestra la tasa
+por ángulo, sector y localidad.
 
-**Más**: interruptor general (solo administración), límites de turnos al día
-y de acciones por agente, órdenes de la dirección a cualquier agente,
-instrucciones permanentes por puesto, la bandeja «El equipo os pide», el
-registro de cada acción (agente, hora y quién la aprobó) y la tabla de
-cobros. Los textos del CRM (webs, respuestas de clientes) se pasan al agente
-como datos, nunca como instrucciones.
+**Embudo multicanal.**
+
+1. Si una empresa no responde a los 3 correos, Operaciones la pasa a
+   **teléfono** 4 días después (contacto nuevo con la llamada en la agenda de
+   un gestor) o a **visita** si no tiene teléfono.
+2. Si por teléfono no se localiza a quien decide (2 intentos), Ventas de
+   campo arma una **ruta de visitas** por localidad: hasta 6 empresas el
+   mismo día, en huecos libres del gestor, con un briefing de cada una.
+3. Quien pidió la baja no vuelve a ser contactado por ningún canal.
+
+**Calidad.** El auditor revisa errores de agentes, rechazos, campañas con
+bajas, oportunidades sin seguimiento, presupuestos fríos, cobros vencidos,
+experimentos eternos, tareas atascadas y citas sin cerrar.
+
+- Cada **hallazgo** va con evidencia, gravedad y responsable, y se encarga
+  como tarea.
+- Se cierra solo cuando deja de darse.
+- Cada agente tiene una **puntuación** semanal. Si baja de 60, el CEO encarga
+  a su jefe que lo revise, y el jefe puede proponer nuevas instrucciones (las
+  aprueba la dirección).
+
+**Cómo trabajan.** Con la clave de Claude (la misma del Motor) razonan con
+herramientas del CRM. Sin clave siguen un manual de reglas por puesto con las
+mismas herramientas. Los turnos los mueven el panel abierto y el cron del
+Motor.
+
+**Autonomía.**
+
+- Por puesto: *solo observa*, *propone* (por defecto) o *actúa* (solo la
+  administración puede darla).
+- Siempre esperan a una persona, sea cual sea la autonomía: presupuestos,
+  contratos, cobros, recordatorios de pago y cambios en las instrucciones de
+  un agente.
+- Marcar un cobro como pagado o un cliente como firmado lo hacen las
+  personas.
+- Hay interruptor general, límites diarios y registro de cada acción.
 
 ## Briefs de speech telefónico (Centro de Formación)
 
@@ -495,5 +530,5 @@ de seguridad cifradas.
 
 ## Pruebas
 
-45 + 25 + 30 + 32 + 32 + 31 + 62 + 59 pruebas del servidor y 34 + 36 + 49 + 36 + 37 + 35 + 26 + 23 comprobaciones en el navegador, incluido el móvil,
+45 + 25 + 30 + 32 + 32 + 31 + 62 + 60 + 44 pruebas del servidor y 34 + 36 + 49 + 36 + 37 + 35 + 26 + 25 + 19 comprobaciones en el navegador, incluido el móvil,
 además de todas las anteriores del CRM.
