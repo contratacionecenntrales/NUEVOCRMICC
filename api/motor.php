@@ -283,6 +283,48 @@ function labs_motor_tarea_crea($b, $uid)
     return $id;
 }
 
+/** Dominio sin tildes ni eñes: su forma estándar (punycode), que es la misma dirección real. */
+function labs_motor_host_ascii($h)
+{
+    $h = strtolower(trim((string) $h));
+    if ($h === '' || preg_match('/^[a-z0-9.-]+$/', $h)) {
+        return $h;
+    }
+    if (!function_exists('idn_to_ascii')) {
+        return '';   // sin la extensión intl no se adivina: quitar la tilde llevaría a otro dominio
+    }
+    $a = idn_to_ascii($h, IDNA_DEFAULT, INTL_IDNA_VARIANT_UTS46);
+    return $a && preg_match('/^[a-z0-9.-]+$/', $a) ? $a : '';
+}
+
+/** Correo listo para enviar: sin tildes en el dominio y válido; si no se puede, vacío. */
+function labs_motor_email_ascii($e)
+{
+    $e = strtolower(trim((string) $e));
+    $p = strrpos($e, '@');
+    if ($e === '' || $p === false) {
+        return '';
+    }
+    $local = substr($e, 0, $p);
+    $dom = labs_motor_host_ascii(substr($e, $p + 1));
+    if ($dom === '' || !preg_match('/^[a-z0-9._%+-]+$/', $local)) {
+        return '';
+    }
+    $e = $local . '@' . $dom;
+    return filter_var($e, FILTER_VALIDATE_EMAIL) ? $e : '';
+}
+
+/** Web sin tildes en el dominio (punycode); si no se puede, vacía. */
+function labs_motor_web_ascii($w)
+{
+    $w = trim((string) $w);
+    if ($w === '' || !preg_match('#^(https?://)?([^/:?\#\s]+)(.*)$#iu', $w, $m)) {
+        return '';
+    }
+    $h = labs_motor_host_ascii($m[2]);
+    return $h === '' || strpos($h, '.') === false ? '' : $m[1] . $h . $m[3];
+}
+
 function labs_motor_dominio($web)
 {
     $h = parse_url((preg_match('#^https?://#i', $web) ? '' : 'https://') . $web, PHP_URL_HOST);
@@ -292,6 +334,8 @@ function labs_motor_dominio($web)
 /** Inserta un lead si no existe ya (por place_id, dominio o teléfono). Devuelve su id o null. */
 function labs_motor_lead_nuevo($d)
 {
+    $d['web'] = labs_motor_web_ascii($d['web'] ?? '');
+    $d['email'] = labs_motor_email_ascii($d['email'] ?? '');
     $dom = !empty($d['web']) ? labs_motor_dominio($d['web']) : '';
     $tel = preg_replace('/[^\d]/', '', (string) ($d['telefono'] ?? ''));
     if (!empty($d['place_id']) && labs_fila('SELECT id FROM motor_leads WHERE place_id = ?', array($d['place_id']))) {
@@ -562,6 +606,7 @@ function labs_motor_enriquece($lead)
         $elegido = $lead['email'];
         $cambios['email_tipo'] = labs_motor_es_generico($elegido, $cfg) ? 'generico' : 'otro';
     }
+    $elegido = labs_motor_email_ascii($elegido);
     if ($elegido !== '') {
         $cambios['email'] = $elegido;
         $ok = !$cfg['scraper']['verificar_mx'] || labs_motor_mx_ok($elegido);
@@ -1075,9 +1120,9 @@ function labs_motor_deriva($lead, $int, $asunto, $texto, $resumen, $autor = null
             ($lead['comarca'] ? 'Comarca: ' . $lead['comarca'] . "\n" : '') . 'Captado por el Motor de Scraping IA.');
         $def = labs_tabla('contactos');
         $fila = labs_inserta_fila('contactos', $def, array('nombre' => mb_substr($lead['empresa'], 0, 120), 'empresa' => mb_substr($lead['empresa'], 0, 200),
-            'email' => $lead['email'], 'telefono' => $lead['telefono'], 'origen' => mb_substr('Motor de Scraping IA' . ($camp ? ' · ' . $camp['nombre'] : ''), 0, 120),
+            'email' => labs_motor_email_ascii($lead['email']), 'telefono' => $lead['telefono'], 'origen' => mb_substr('Motor de Scraping IA' . ($camp ? ' · ' . $camp['nombre'] : ''), 0, 120),
             'estado' => 'Contactado', 'especificaciones' => $esp, 'gestor_id' => $gestor, 'sector' => mb_substr(labs_ventas_sector_de($lead['sector'] . ' ' . $lead['empresa']) ?: $lead['sector'], 0, 60),
-            'web' => mb_substr($lead['web'], 0, 200), 'etiquetas' => 'Motor IA, ' . labs_motor_intenciones()[$int], 'fase' => 'cualificacion'), true);
+            'web' => mb_substr(labs_motor_web_ascii($lead['web']), 0, 200), 'etiquetas' => 'Motor IA, ' . labs_motor_intenciones()[$int], 'fase' => 'cualificacion'), true);
         $c = labs_fila('SELECT * FROM contactos WHERE id = ?', array($fila['id']));
     }
     $txt = 'Respuesta por correo (' . labs_motor_intenciones()[$int] . ")\nAsunto: " . $asunto . "\n" . mb_substr(trim($texto), 0, 1500);
@@ -1392,11 +1437,8 @@ function labs_motor($metodo, $sub, $b, $pares)
             if (!is_array($f) || trim((string) ($f['empresa'] ?? '')) === '') {
                 continue;
             }
-            $email = strtolower(trim((string) ($f['email'] ?? '')));
-            if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                $email = '';
-            }
-            $web = trim((string) ($f['web'] ?? ''));
+            $email = labs_motor_email_ascii($f['email'] ?? '');
+            $web = labs_motor_web_ascii($f['web'] ?? '');
             if ($web !== '' && !preg_match('#^(https?://)?[a-z0-9-]+(\.[a-z0-9-]+)+(:\d{2,5})?(/\S*)?$#i', $web)) {
                 $web = '';
             }

@@ -697,9 +697,9 @@ function labs_equipo_h_escalar_lead($e, $rol)
     $esp = trim(($l['direccion'] ? 'Dirección: ' . $l['direccion'] . "\n" : '') . ($l['cif'] ? 'CIF: ' . $l['cif'] . "\n" : '') . 'Captado por el Motor de Scraping IA; no respondió a los correos.');
     $s = json_decode((string) $l['senales'], true) ?: array();
     $fila = labs_inserta_fila('contactos', labs_tabla('contactos'), array('nombre' => mb_substr($l['empresa'], 0, 120), 'empresa' => mb_substr($l['empresa'], 0, 200),
-        'email' => filter_var($l['email'], FILTER_VALIDATE_EMAIL) ? $l['email'] : '',
+        'email' => labs_motor_email_ascii($l['email']),
         'telefono' => $l['telefono'], 'origen' => mb_substr('Motor · ' . mb_strtolower($et), 0, 120), 'estado' => 'Nuevo', 'especificaciones' => $esp, 'gestor_id' => $g['id'],
-        'sector' => mb_substr(labs_ventas_sector_de($l['sector'] . ' ' . $l['empresa']) ?: $l['sector'], 0, 60), 'web' => preg_match('#^(https?://)?[a-z0-9.-]+\.[a-z]{2,}(:\d+)?(/\S*)?$#i', $l['web']) ? mb_substr($l['web'], 0, 200) : '',
+        'sector' => mb_substr(labs_ventas_sector_de($l['sector'] . ' ' . $l['empresa']) ?: $l['sector'], 0, 60), 'web' => mb_substr(labs_motor_web_ascii($l['web']), 0, 200),
         'etiquetas' => 'Motor IA, ' . $et, 'fase' => 'lead'), true);
     labs_q('UPDATE motor_leads SET contacto_id = ? WHERE id = ?', array($fila['id'], $l['id']));
     $c = labs_equipo_contacto($fila['id']);
