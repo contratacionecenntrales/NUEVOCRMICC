@@ -180,6 +180,12 @@ function labs_migra(PDO $db)
            titulo VARCHAR(250) NOT NULL, detalle TEXT NULL, evidencia TEXT NULL, estado VARCHAR(12) NOT NULL DEFAULT 'abierto', detectado_por VARCHAR(20) NOT NULL DEFAULT 'qa',
            tarea_id BIGINT UNSIGNED NULL, creado DATETIME(6) NOT NULL, cerrado DATETIME(6) NULL, PRIMARY KEY (id), KEY equipo_hall_estado_idx (estado, clave)) $opc",
         // v18 · Cadencia de cierre: en qué paso va cada presupuesto abierto.
+        // v18 · Barrido de Asturias: cada casilla sector × concejo con su estado.
+        "CREATE TABLE IF NOT EXISTS motor_cobertura (
+           id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, sector VARCHAR(60) NOT NULL, concejo VARCHAR(80) NOT NULL, comarca VARCHAR(80) NOT NULL DEFAULT '',
+           tier TINYINT NOT NULL DEFAULT 3, estado VARCHAR(12) NOT NULL DEFAULT 'pendiente', empresas INT NOT NULL DEFAULT 0, tarea_id BIGINT UNSIGNED NULL,
+           lanzada DATETIME(6) NULL, ultima DATETIME(6) NULL, actualizado DATETIME(6) NOT NULL,
+           PRIMARY KEY (id), UNIQUE KEY motor_cob_uq (sector, concejo), KEY motor_cob_estado_idx (estado, tier)) $opc",
         "CREATE TABLE IF NOT EXISTS equipo_cierre (
            presupuesto_id BIGINT UNSIGNED NOT NULL, paso INT NOT NULL DEFAULT 0, ultimo_toque DATETIME(6) NULL, actualizado DATETIME(6) NOT NULL,
            PRIMARY KEY (presupuesto_id)) $opc",

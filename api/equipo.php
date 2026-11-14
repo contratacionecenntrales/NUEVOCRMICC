@@ -102,7 +102,8 @@ function labs_equipo_config_def()
         'general' => array('encendido' => false, 'modelo' => 'claude-opus-5-5', 'esfuerzo' => 'medium', 'pasos' => 8,
             'turnos_dia' => 120, 'acciones_dia' => 40, 'hora_inicio' => 8, 'hora_fin' => 20, 'solo_laborables' => true,
             'objetivo_clientes' => 4, 'objetivo_facturacion' => 12000, 'sectores' => 'inmobiliaria, clínica dental, clínica estética',
-            'zonas' => 'Gijón, Oviedo, Avilés', 'ccaa' => 'Asturias', 'dias_cobro' => 15, 'hito' => 50),
+            'zonas' => 'Gijón, Oviedo, Avilés', 'ccaa' => 'Asturias', 'dias_cobro' => 15, 'hito' => 50,
+            'barrido' => true, 'barrido_sectores' => '', 'places_consultas_dia' => 150, 'modo_campanas' => 'aprobacion'),
         'agentes' => $ag,
     );
 }
@@ -424,7 +425,7 @@ function labs_equipo_valida_previa($nombre, $e)
             }
         }
     }
-    if ($nombre === 'motor_buscar_empresas' && labs_tabla_existe('motor_leads') && labs_motor_secreto('places_key') === null) {
+    if (($nombre === 'motor_buscar_empresas' || $nombre === 'barrer_asturias') && labs_tabla_existe('motor_leads') && labs_motor_secreto('places_key') === null) {
         return 'Falta la clave de Google Places en la Fábrica de agentes del Motor. Pídesela a la dirección.';
     }
     if ($nombre === 'crear_cobro' || $nombre === 'preparar_contrato') {
@@ -1241,7 +1242,7 @@ function labs_equipo_turno_reglas($rol, $tid, $cfg)
                 'detalle' => 'Prioriza los sectores con mejor tasa de respuesta positiva y las zonas menos trabajadas.'));
             $hecho_algo = true;
         }
-        foreach (labs_q("SELECT sector, COUNT(*) n FROM motor_leads WHERE estado = 'listo' AND campana_id IS NULL AND sector <> '' GROUP BY sector HAVING n >= 3 ORDER BY n DESC LIMIT 2")->fetchAll() as $s) {
+        foreach ($g['barrido'] ? array() : labs_q("SELECT sector, COUNT(*) n FROM motor_leads WHERE estado = 'listo' AND campana_id IS NULL AND sector <> '' GROUP BY sector HAVING n >= 3 ORDER BY n DESC LIMIT 2")->fetchAll() as $s) {
             $usa('motor_crear_campana', array('nombre' => 'Campaña ' . ucfirst($s['sector']) . ' ' . labs_equipo_madrid()->format('m/Y'), 'sector' => $s['sector']));
             $hecho_algo = true;
         }
@@ -1465,12 +1466,23 @@ function labs_equipo($metodo, $sub, $b, $pares)
             throw new ErrorApi('Solo la administración puede encender el equipo de agentes.', 403, '42501');
         }
         $lim = array('pasos' => array(2, 12), 'turnos_dia' => array(1, 500), 'acciones_dia' => array(1, 500), 'hora_inicio' => array(0, 23), 'hora_fin' => array(1, 24),
-            'objetivo_clientes' => array(0, 1000), 'objetivo_facturacion' => array(0, 10000000), 'dias_cobro' => array(1, 90), 'hito' => array(1, 100));
+            'objetivo_clientes' => array(0, 1000), 'objetivo_facturacion' => array(0, 10000000), 'dias_cobro' => array(1, 90), 'hito' => array(1, 100), 'places_consultas_dia' => array(0, 5000));
         foreach ($lim as $k => $mm) {
             $act['general'][$k] = max($mm[0], min($mm[1], (int) $act['general'][$k]));
         }
         if (!in_array($act['general']['esfuerzo'], array('low', 'medium', 'high'), true)) {
             $act['general']['esfuerzo'] = 'medium';
+        }
+        if (!in_array($act['general']['modo_campanas'], array('aprobacion', 'autonomo'), true)) {
+            $act['general']['modo_campanas'] = 'aprobacion';
+        }
+        if ($act['general']['modo_campanas'] === 'autonomo' && labs_equipo_cfg()['general']['modo_campanas'] !== 'autonomo') {
+            if (!$admin) {
+                throw new ErrorApi('Solo la administración puede activar el envío autónomo.', 403, '42501');
+            }
+            if (!labs_tabla_existe('motor_leads') || !labs_motor_cfg()['envio']['aviso_legal_aceptado']) {
+                throw new ErrorApi('El envío autónomo exige aceptar antes el aviso legal (LSSI) en el Motor → Fábrica de agentes.', 400, 'EQUIPO');
+            }
         }
         if (!preg_match('/^claude-[a-z0-9.-]{3,60}$/', $act['general']['modelo'])) {
             throw new ErrorApi('Modelo de Claude no válido.', 400, 'EQUIPO');

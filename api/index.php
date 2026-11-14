@@ -40,6 +40,7 @@ require __DIR__ . '/motor.php';
 require __DIR__ . '/equipo.php';
 require __DIR__ . '/equipo_lab.php';
 require __DIR__ . '/equipo_cierre.php';
+require __DIR__ . '/equipo_barrido.php';
 
 ini_set('display_errors', '0');
 

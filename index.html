@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-GeA1vtaWBihkUf53bUF6dp6bbppZMBb44K1q55xRK9s='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-KziRxRVzA9CV3f5kwmrm5ACPIFjUej86rHp+j1dtryM='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Labs Command Center 360 - Oficina virtual SaaS de la red comercial de Labs24k.">
 <meta name="theme-color" content="#0B0F19">
@@ -1920,6 +1920,15 @@ a.btn.btn-g:hover{color:#fff}
 .eq-mem{padding:10px 12px;border-radius:12px;border:1px solid var(--line);border-left:3px solid var(--c);background:var(--card-2);margin-bottom:8px}
 .eq-conf{height:4px;border-radius:99px;background:var(--line);overflow:hidden;margin:6px 0 4px}
 .eq-conf i{display:block;height:100%;background:var(--c)}
+.eq-barr{margin-bottom:14px;border-color:rgba(74,222,128,.35)}
+.eq-barr-n{display:flex;flex-direction:column;align-items:flex-end}
+.eq-barr-n b{font-size:24px;color:#4ADE80}
+.eq-barr-n span{font-size:12px}
+.eq-barr-n em{font-style:normal;font-size:11px;color:var(--txt-3)}
+.eq-mapa td,.eq-mapa th{text-align:center;padding:6px 6px;font-size:11.5px}
+.eq-mapa td:first-child,.eq-mapa th:first-child{text-align:left;white-space:nowrap}
+.eq-mapa td svg{display:inline-block;vertical-align:-2px;color:#38BDF8}
+.eq-barr-c{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
 .eq-cad{margin-bottom:14px;border-color:rgba(244,63,94,.35)}
 .eq-cad-p{display:flex;gap:6px;align-items:stretch;overflow-x:auto;padding-bottom:2px}
 .eq-cad-s{flex:1;min-width:120px;display:flex;flex-direction:column;gap:2px;padding:10px;border-radius:12px;background:var(--card-2);border:1px solid var(--line)}
@@ -10329,9 +10338,24 @@ function eqEquipo(){
 
 /* --- Laboratorio --------------------------------------------------------------------------- */
 var EQ_EXP_EST = {propuesto:['Propuesto','#94A3B8'], en_curso:['En curso','#38BDF8'], concluido:['Concluido','#4ADE80'], detenido:['Detenido','#F87171']};
+function eqBarrido(){
+  var B = EQ.lab.barrido; if(!B) return '';
+  var coms = Object.keys(B.por_comarca), corto = function(c){ return c.replace(/^Comarca (de |del )?/, ''); };
+  var color = function(x){ if(!x) return 'transparent'; var p = x.pct / 100; return x.cola ? 'rgba(56,189,248,.35)' : 'rgba(74,222,128,' + (0.08 + p * 0.62).toFixed(2) + ')'; };
+  return '<section class="card eq-barr"><div class="row" style="justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start"><div><h3 class="eq-h3" style="margin:0">'+ic('globe',15)+' Barrido de Asturias <span class="tiny muted">· el primer paso del embudo, en automático</span></h3>'+
+      '<p class="tiny muted" style="margin:4px 0 0">'+B.sectores.length+' sectores × 78 concejos. Prospección recorre las casillas por prioridad (grandes núcleos primero, sectores que mejor convierten) y lo que encuentra entra solo en la campaña siempre activa de su sector.</p></div>'+
+      '<div class="eq-barr-n"><b>'+B.pct+' %</b><span>barrido · '+eqNum(B.empresas)+' empresas</span><em>'+B.consultas_hoy+' / '+B.consultas_dia+' consultas hoy'+(B.activo ? '' : ' · <b style="color:#FCA5A5">en pausa</b>')+'</em></div></div>'+
+    '<div class="mt-tabla"><table class="eq-mapa"><thead><tr><th>Sector</th>'+coms.map(function(c){ return '<th title="'+esc(c)+'">'+esc(corto(c))+'</th>'; }).join('')+'</tr></thead><tbody>'+
+      B.sectores.map(function(s){ var f = B.matriz[s.q] || {};
+        return '<tr><td><b>'+esc(s.n)+'</b> <span class="tiny muted">CNAE '+esc(s.cnae)+'</span></td>'+coms.map(function(c){ var x = f[c];
+          return '<td style="background:'+color(x)+'" title="'+esc(s.n+' · '+c+': '+(x ? x.pct+' % barrido, '+x.empresas+' empresas'+(x.cola ? ', '+x.cola+' en cola' : '') : 'pendiente'))+'">'+(x && (x.pct || x.cola) ? (x.cola ? ic('refresh',11) : x.empresas) : '<span class="muted">·</span>')+'</td>'; }).join('')+'</tr>'; }).join('')+
+    '</tbody></table></div>'+
+    '<div class="eq-barr-c">'+(B.campanas_siempre.length ? B.campanas_siempre.map(function(k){ return motChip(k.nombre.replace('Siempre activa · ', '') + (k.modo === 'autonomo' ? ' · autónoma' : ''), k.estado === 'activa' ? '#4ADE80' : '#94A3B8'); }).join('') :
+      '<span class="tiny muted">Aún no hay campañas siempre activas: Marketing abre una por sector en cuanto hay empresas verificadas.</span>')+'</div></section>';
+}
 function eqLab(){
   var L = EQ.lab, R = L.ramas, res = R.resultados, locs = Object.keys(R.candidatos_a_visita_por_localidad || {});
-  return '<div class="eq-lab"><section class="card"><h3 class="eq-h3">'+ic('spark',15)+' Experimentos <span class="tiny muted">· Innovación propone, Copy diseña, Análisis decide con estadística</span></h3>'+
+  return eqBarrido()+'<div class="eq-lab"><section class="card"><h3 class="eq-h3">'+ic('spark',15)+' Experimentos <span class="tiny muted">· Innovación propone, Copy diseña, Análisis decide con estadística</span></h3>'+
     (L.experimentos.length ? L.experimentos.map(function(x){ var e = EQ_EXP_EST[x.estado] || [x.estado, '#94A3B8'], max = 1, pr = x.prueba || {};
       x.vivo.forEach(function(v){ max = Math.max(max, v.stats.tasa); });
       var falta = x.vivo.filter(function(v){ return v.clave !== 'REF'; }).map(function(v){ return v.stats.n; }), min = Number(x.min_muestra);
@@ -10505,7 +10529,13 @@ function eqAjustes(){
         '<div><label class="f">Horario (hora de Madrid)</label><div class="row" style="gap:6px"><input class="inp" type="number" min="0" max="23" data-eq-g="hora_inicio" value="'+G.hora_inicio+'"><input class="inp" type="number" min="1" max="24" data-eq-g="hora_fin" value="'+G.hora_fin+'"></div></div></div>'+
       '<label class="tiny" style="display:flex;gap:6px;margin-top:8px"><input type="checkbox" data-eq-g="solo_laborables"'+(G.solo_laborables ? ' checked' : '')+'> Solo días laborables</label>'+
       '<h5 class="eq-h5">Objetivo y mercado</h5><div class="grid g-3">'+num('objetivo_clientes', 'Clientes nuevos al mes', 0, 1000)+num('objetivo_facturacion', 'Facturación del mes (€)', 0, 10000000)+txt('ccaa', 'Comunidad')+
-        txt('sectores', 'Sectores objetivo (separados por comas)')+txt('zonas', 'Localidades objetivo')+num('dias_cobro', 'Días para pagar', 1, 90)+num('hito', 'Primer hito de cobro (%)', 1, 100)+'</div></section>'+
+        txt('sectores', 'Sectores objetivo (separados por comas)')+txt('zonas', 'Localidades objetivo')+num('dias_cobro', 'Días para pagar', 1, 90)+num('hito', 'Primer hito de cobro (%)', 1, 100)+'</div>'+
+      '<h5 class="eq-h5">Barrido de Asturias y campañas</h5>'+
+      '<label class="tiny" style="display:flex;gap:6px"><input type="checkbox" data-eq-g="barrido"'+(G.barrido ? ' checked' : '')+'> Barrido automático de los 78 concejos por sectores</label>'+
+      '<div class="grid g-3" style="margin-top:6px">'+txt('barrido_sectores', 'Sectores del barrido (vacío = los 20 del catálogo)')+num('places_consultas_dia', 'Consultas a Google Places al día', 0, 5000)+
+        '<div><label class="f">Envío de las campañas siempre activas</label><select class="inp" data-eq-g="modo_campanas"><option value="aprobacion"'+(G.modo_campanas !== 'autonomo' ? ' selected' : '')+'>Cada correo con aprobación</option>'+
+          '<option value="autonomo"'+(G.modo_campanas === 'autonomo' ? ' selected' : '')+(admin ? '' : ' disabled')+'>Autónomo (exige el aviso legal del Motor)</option></select></div></div>'+
+      '<p class="tiny muted" style="margin:6px 0 0">Cada consulta a Google Places tiene coste: el presupuesto diario lo limita. El envío autónomo solo se activa si la administración aceptó el aviso legal (LSSI) en la Fábrica de agentes del Motor.</p></section>'+
     '<section class="card"><h3 style="display:flex;gap:7px;align-items:center;margin:0 0 10px;font-size:15px">'+ic('users',15)+' Puestos</h3><div class="eq-puestos">'+EQ.d.agentes.map(function(a){ var c = EQ.cfg.agentes[a.rol];
       return '<div class="eq-puesto">'+eqBola(a.rol, 34)+'<div style="flex:1;min-width:0"><div class="row" style="gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between"><b>'+esc(a.alias)+' · '+esc(a.nombre)+'</b>'+
           '<label class="tiny" style="display:flex;gap:5px"><input type="checkbox" data-eq-a="'+a.rol+'" data-k="activo"'+(c.activo ? ' checked' : '')+'> Activo</label></div>'+
@@ -10770,6 +10800,9 @@ function motFabrica(){
       '<div class="grid g-3"><div><label class="f">Esfuerzo de la IA</label><select class="inp" data-mt-cfg="outreach.esfuerzo">'+[['low','Bajo (rápido, recomendado)'],['medium','Medio'],['high','Alto']].map(function(x){ return '<option value="'+x[0]+'"'+(o.esfuerzo === x[0] ? ' selected' : '')+'>'+x[1]+'</option>'; }).join('')+'</select></div>'+
         '<div><label class="f">Cadencia (días)</label><div class="row" style="gap:6px"><input class="inp" type="number" data-mt-cad="0" value="'+o.cadencia[0]+'"><input class="inp" type="number" data-mt-cad="1" value="'+o.cadencia[1]+'"><input class="inp" type="number" data-mt-cad="2" value="'+o.cadencia[2]+'"></div><p class="tiny muted" style="margin:4px 0 0">Día '+o.cadencia[0]+' inicial · día '+o.cadencia[1]+' caso del sector · día '+o.cadencia[2]+' último toque</p></div>'+
         sec('anthropic_key','Clave de la API de Claude')+'</div>'+
+      '<div class="grid g-3"><div><label class="f">Proveedor para redactar y clasificar</label><select class="inp" data-mt-cfg="outreach.proveedor">'+[['claude','Claude (recomendado)'],['openai','OpenAI']].map(function(x){ return '<option value="'+x[0]+'"'+((o.proveedor || 'claude') === x[0] ? ' selected' : '')+'>'+x[1]+'</option>'; }).join('')+'</select></div>'+
+        t('outreach','modelo_openai','Modelo de OpenAI','', 'gpt-4o-mini')+sec('openai_key','Clave de la API de OpenAI')+'</div>'+
+      '<p class="tiny muted">Si el proveedor elegido falla o se queda sin saldo, se usa el otro automáticamente; si no hay ninguno, plantillas. Los agentes de la Zona de agentes razonan con Claude.</p>'+
       '<label class="f" style="margin-top:8px;display:flex;justify-content:space-between">Prompt maestro <button class="ng-link" id="mt-prompt-rest">Restaurar el original</button></label>'+
       '<textarea class="inp mono" rows="14" data-mt-cfg="outreach.prompt" style="font-size:12px">'+esc(o.prompt)+'</textarea>'+
       '<p class="tiny muted">El sistema añade siempre la firma, el motivo del contacto y el enlace de baja (LSSI). El texto de la web del cliente se pasa a la IA como datos, nunca como instrucciones.</p></section>'+

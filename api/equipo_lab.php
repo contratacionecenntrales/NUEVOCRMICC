@@ -22,7 +22,7 @@ function labs_equipo_todas()
     $txt = function ($d, $max = 600) { return array('type' => 'string', 'description' => $d, 'maxLength' => $max); };
     $todos = array_keys(labs_equipo_roles());
     $angs = array_keys(labs_motor_angulos());
-    $t = labs_equipo_herramientas() + labs_cierre_herramientas() + array(
+    $t = labs_equipo_herramientas() + labs_cierre_herramientas() + labs_barrido_herramientas() + array(
         'ver_ritmo' => array(array('ceo', 'marketing', 'comercial', 'analista', 'coo'), 'lectura', 'Embudo inverso: cuántos clientes, propuestas, demos, interesados y empresas contactadas hacen falta para el objetivo del mes, con las tasas reales, y si la capacidad actual llega.', array(), array()),
         'ver_segmentos' => array(array('ceo', 'marketing', 'prospeccion', 'copy', 'analista', 'innovacion', 'qa'), 'lectura', 'Qué funciona: empresas, contactadas, respuestas positivas, bajas y clientes por sector, por localidad y por ángulo de mensaje.', array(), array()),
         'ver_experimentos' => array(array('ceo', 'marketing', 'copy', 'analista', 'innovacion', 'qa'), 'lectura', 'Experimentos del Laboratorio con sus variantes, muestras, tasas y p-valor.', array(), array()),
@@ -847,7 +847,7 @@ function labs_equipo_describe_lab($n, $e)
             }
             return 'Ruta de visitas presenciales: ' . implode(', ', $ns);
     }
-    return labs_cierre_describe($n, $e) ?: 'Consulta: ' . $n;
+    return labs_cierre_describe($n, $e) ?: (labs_barrido_describe($n, $e) ?: 'Consulta: ' . $n);
 }
 
 /** Contexto extra para el turno, según el puesto. */
@@ -864,6 +864,11 @@ function labs_equipo_situacion_lab($rol)
         $s['laboratorio'] = labs_equipo_h_ver_experimentos(array(), $rol)['experimentos'];
     }
     $s += labs_cierre_situacion($rol);
+    if (in_array($rol, array('prospeccion', 'marketing', 'ceo', 'innovacion'), true) && labs_tabla_existe('motor_cobertura')) {
+        $b = labs_barrido_resumen();
+        unset($b['matriz']);
+        $s['barrido_de_asturias'] = $b;
+    }
     if ($rol === 'qa') {
         $s['hallazgos_abiertos'] = labs_q("SELECT id, gravedad, responsable, titulo, evidencia, creado FROM equipo_hallazgos WHERE estado = 'abierto' ORDER BY id DESC LIMIT 15")->fetchAll();
     }
@@ -876,6 +881,8 @@ function labs_equipo_reglas_lab($rol, $usa, $g)
     $motor = labs_tabla_existe('motor_leads');
     $lista = function ($s) { return array_values(array_filter(array_map('trim', explode(',', (string) $s)))); };
     $hecho = labs_cierre_reglas($rol, $usa);
+    $barre = labs_barrido_reglas($rol, $usa);
+    $hecho = $hecho || $barre;
     if ($rol === 'coo' && $motor) {
         $usa('ver_ramas', array());
         foreach (labs_equipo_candidatos_telefono(8) as $l) {
@@ -973,7 +980,7 @@ function labs_equipo_reglas_lab($rol, $usa, $g)
             }
         }
     }
-    if ($rol === 'prospeccion' && $motor) {
+    if ($rol === 'prospeccion' && $motor && !$barre) {
         $usa('ver_motor', array());
         $en_curso = (int) labs_q("SELECT COUNT(*) FROM motor_tareas WHERE estado IN ('cola', 'en_curso')")->fetchColumn();
         $listos = (int) labs_q("SELECT COUNT(*) FROM motor_leads WHERE estado = 'listo' AND campana_id IS NULL")->fetchColumn();
@@ -1013,7 +1020,8 @@ function labs_equipo_ruta_lab($metodo, $sub, $b, $u)
         $r = labs_equipo_h_ver_ramas(array(), 'coo');
         $r['candidatos_a_visita_por_localidad'] = array_map(function ($l) { return count($l); }, $r['candidatos_a_visita_por_localidad']);
         $r['candidatas_a_telefono'] = count($r['candidatas_a_telefono']);
-        return array('experimentos' => $ex, 'ramas' => $r, 'angulos' => labs_tabla_existe('motor_leads') ? labs_motor_angulos() : array(), 'ritmo' => labs_equipo_ritmo());
+        return array('experimentos' => $ex, 'ramas' => $r, 'angulos' => labs_tabla_existe('motor_leads') ? labs_motor_angulos() : array(), 'ritmo' => labs_equipo_ritmo(),
+            'barrido' => labs_tabla_existe('motor_cobertura') ? labs_barrido_resumen() : null);
     }
     if ($sub === '/cerebro' && $metodo === 'GET') {
         return array('memoria' => labs_q('SELECT * FROM equipo_memoria ORDER BY activo DESC, tipo = \'regla\' DESC, id DESC LIMIT 120')->fetchAll(), 'segmentos' => labs_equipo_segmentos(),
