@@ -423,10 +423,22 @@ ese puesto), y los jefes revisan y corrigen a su equipo.
   legal (LSSI) en el Motor.
 - El mapa de cobertura (sector × comarca) está en el Laboratorio.
 
-**OpenAI como proveedor.** En la Fábrica de agentes del Motor se elige quién
-redacta los correos y clasifica las respuestas: Claude u OpenAI (con su clave
-y su modelo). Si el elegido falla o se queda sin saldo, se usa el otro, y si
-no hay ninguno, plantillas. El razonamiento de los agentes sigue con Claude.
+**Proveedor de IA: Claude, OpenAI o «Solo OpenAI».** En la Fábrica de agentes
+del Motor se elige quién redacta los correos, clasifica las respuestas y hace
+razonar a los 15 agentes:
+
+- **Claude, con OpenAI de respaldo** u **OpenAI, con Claude de respaldo**: si el
+  elegido falla o se queda sin saldo, se usa el otro.
+- **Solo OpenAI**: nunca se llama a Claude, aunque haya una clave guardada. Los
+  agentes usan las mismas herramientas y aprobaciones con el «function calling»
+  de OpenAI y su propio modelo (Zona de agentes → Ajustes, por defecto
+  `gpt-5-mini`). Si OpenAI falla, los correos salen de plantilla y los agentes
+  trabajan con su manual de reglas.
+
+La instalación puede fijarlo en `api/config.local.php` con
+`define('LABS_IA_PROVEEDOR', 'solo_openai');` (y la clave con
+`define('LABS_OPENAI_KEY', '...');`); entonces el panel no lo cambia. Una clave
+guardada en el panel manda sobre la del archivo.
 
 **Ritmo hacia el objetivo.** Calcula al revés, desde la facturación que falta
 hasta los clientes, propuestas, demos, interesados y empresas a contactar por

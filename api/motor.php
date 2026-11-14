@@ -805,7 +805,8 @@ function labs_motor_plantilla($lead, $paso)
  */
 function labs_motor_ia($system, $usuario, $schema, $max = 3000)
 {
-    $orden = labs_motor_cfg()['outreach']['proveedor'] === 'openai' ? array('openai', 'claude') : array('claude', 'openai');
+    $p = labs_ia_proveedor();
+    $orden = $p === 'solo_openai' ? array('openai') : ($p === 'openai' ? array('openai', 'claude') : array('claude', 'openai'));
     foreach ($orden as $p) {
         $d = $p === 'openai' ? labs_motor_openai($system, $usuario, $schema, $max) : labs_motor_claude($system, $usuario, $schema, $max);
         if ($d !== null) {
@@ -815,21 +816,79 @@ function labs_motor_ia($system, $usuario, $schema, $max = 3000)
     return null;
 }
 
-/** OpenAI (Chat Completions con salida JSON según esquema), sin librerías: una petición HTTPS. */
-function labs_motor_openai($system, $usuario, $schema, $max = 3000)
+/**
+ * Proveedor de IA de la instalación: 'claude' (Claude y, si falla, OpenAI), 'openai' (OpenAI y, si falla, Claude)
+ * o 'solo_openai' (nunca se llama a Claude). LABS_IA_PROVEEDOR en config.local.php lo fija y el panel no lo cambia.
+ */
+function labs_ia_proveedor()
+{
+    if (labs_ia_proveedor_fijo()) {
+        return LABS_IA_PROVEEDOR;
+    }
+    $p = labs_tabla_existe('motor_leads') ? (string) labs_motor_cfg()['outreach']['proveedor'] : 'claude';
+    return in_array($p, array('claude', 'openai', 'solo_openai'), true) ? $p : 'claude';
+}
+
+function labs_ia_proveedor_fijo()
+{
+    return defined('LABS_IA_PROVEEDOR') && in_array(LABS_IA_PROVEEDOR, array('claude', 'openai', 'solo_openai'), true);
+}
+
+/** Con qué IA razonan ahora los agentes: 'openai', 'claude' o null (manual de reglas). */
+function labs_ia_para_agentes()
+{
+    if (!labs_tabla_existe('motor_leads')) {
+        return null;
+    }
+    $p = labs_ia_proveedor();
+    $oa = labs_motor_secreto('openai_key') !== null;
+    $cl = $p !== 'solo_openai' && labs_motor_secreto('anthropic_key') !== null && is_file(__DIR__ . '/lib/vendor/autoload.php');
+    if ($p === 'claude') {
+        return $cl ? 'claude' : ($oa ? 'openai' : null);
+    }
+    return $oa ? 'openai' : ($cl ? 'claude' : null);
+}
+
+/** Nombre del modelo de OpenAI: los de razonamiento (gpt-5, o1, o3...) admiten «reasoning_effort». */
+function labs_openai_razona($modelo)
+{
+    return (bool) preg_match('/^(gpt-5|o\d)/i', (string) $modelo);
+}
+
+/** Una petición a Chat Completions de OpenAI. Devuelve array(código HTTP, respuesta decodificada o null). */
+function labs_openai_peticion($cuerpo, $timeout = 60)
 {
     $clave = labs_motor_secreto('openai_key');
     if (!$clave) {
-        return null;
+        return array(0, null);
     }
     $base = defined('LABS_MOTOR_OPENAI_URL') ? LABS_MOTOR_OPENAI_URL : 'https://api.openai.com';
-    $cuerpo = json_encode(array('model' => (string) labs_motor_cfg()['outreach']['modelo_openai'], 'max_completion_tokens' => (int) $max,
-        'messages' => array(array('role' => 'system', 'content' => $system), array('role' => 'user', 'content' => $usuario)),
-        'response_format' => array('type' => 'json_schema', 'json_schema' => array('name' => 'salida', 'schema' => $schema, 'strict' => false))), JSON_UNESCAPED_UNICODE);
-    $ctx = stream_context_create(array('http' => array('method' => 'POST', 'timeout' => 60, 'ignore_errors' => true,
-        'header' => "Content-Type: application/json\r\nAuthorization: Bearer " . $clave . "\r\n", 'content' => $cuerpo)));
+    $ctx = stream_context_create(array('http' => array('method' => 'POST', 'timeout' => $timeout, 'ignore_errors' => true,
+        'header' => "Content-Type: application/json\r\nAuthorization: Bearer " . $clave . "\r\n", 'content' => json_encode($cuerpo, JSON_UNESCAPED_UNICODE))));
     $r = @file_get_contents(rtrim($base, '/') . '/v1/chat/completions', false, $ctx);
-    $j = $r ? json_decode($r, true) : null;
+    $cod = 0;
+    foreach ((array) ($http_response_header ?? array()) as $h) {
+        if (preg_match('#^HTTP/\S+\s+(\d{3})#', $h, $m)) {
+            $cod = (int) $m[1];
+        }
+    }
+    return array($cod, $r ? json_decode($r, true) : null);
+}
+
+/** OpenAI (Chat Completions con salida JSON según esquema), sin librerías: una petición HTTPS. */
+function labs_motor_openai($system, $usuario, $schema, $max = 3000)
+{
+    if (labs_motor_secreto('openai_key') === null) {
+        return null;
+    }
+    $mod = (string) labs_motor_cfg()['outreach']['modelo_openai'];
+    $cuerpo = array('model' => $mod, 'max_completion_tokens' => (int) $max,
+        'messages' => array(array('role' => 'system', 'content' => $system), array('role' => 'user', 'content' => $usuario)),
+        'response_format' => array('type' => 'json_schema', 'json_schema' => array('name' => 'salida', 'schema' => $schema, 'strict' => false)));
+    if (labs_openai_razona($mod)) {
+        $cuerpo['reasoning_effort'] = 'low';
+    }
+    list(, $j) = labs_openai_peticion($cuerpo);
     $txt = $j['choices'][0]['message']['content'] ?? null;
     if (!is_string($txt)) {
         labs_motor_log('error', 'OpenAI no disponible: ' . mb_substr((string) ($j['error']['message'] ?? 'sin respuesta'), 0, 200));
@@ -1374,7 +1433,7 @@ function labs_motor($metodo, $sub, $b, $pares)
         $motivo = '';
         return array(200, array('config' => $cfg, 'secretos' => array_values(array_unique(array_merge(array_keys(labs_motor_secretos()), labs_motor_secreto('openai_key') !== null ? array('openai_key') : array()))), 'leads' => $cnt,
             'campanas' => labs_motor_metricas(), 'tareas' => labs_q("SELECT id, estado, total, hechos, parametros, creado FROM motor_tareas ORDER BY id DESC LIMIT 5")->fetchAll(),
-            'ia' => (labs_motor_secreto('anthropic_key') !== null && is_file(__DIR__ . '/lib/vendor/autoload.php')) || labs_motor_secreto('openai_key') !== null, 'sdk' => is_file(__DIR__ . '/lib/vendor/autoload.php'), 'angulos' => labs_motor_angulos(),
+            'ia' => labs_ia_para_agentes() !== null, 'proveedor' => labs_ia_proveedor(), 'proveedor_fijo' => labs_ia_proveedor_fijo(), 'sdk' => is_file(__DIR__ . '/lib/vendor/autoload.php'), 'angulos' => labs_motor_angulos(),
             'imap' => function_exists('imap_open'), 'puede_enviar' => labs_motor_puede_enviar($motivo), 'motivo' => $motivo,
             'enviados_hoy' => (int) labs_q("SELECT COUNT(*) FROM motor_mensajes WHERE estado = 'enviado' AND enviado >= ?", array(labs_motor_ahora_madrid()->setTime(0, 0)->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s')))->fetchColumn(),
             'cron' => '/api/index.php?ruta=' . rawurlencode('/motor/cron?token=' . $tok), 'bajas' => (int) labs_q('SELECT COUNT(*) FROM motor_bajas')->fetchColumn(),
@@ -1428,7 +1487,7 @@ function labs_motor($metodo, $sub, $b, $pares)
         if (!in_array($act['outreach']['esfuerzo'], array('low', 'medium', 'high'), true)) {
             $act['outreach']['esfuerzo'] = 'low';
         }
-        if (!in_array($act['outreach']['proveedor'], array('claude', 'openai'), true)) {
+        if (!in_array($act['outreach']['proveedor'], array('claude', 'openai', 'solo_openai'), true)) {
             $act['outreach']['proveedor'] = 'claude';
         }
         if (!preg_match('/^[a-z0-9][a-z0-9.:-]{1,60}$/i', $act['outreach']['modelo_openai'])) {

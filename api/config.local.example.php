@@ -16,3 +16,7 @@ define('LABS_DB_PASS', 'contraseña_de_tu_base');
 // Inventa una clave larga (por ejemplo 30 letras y números al azar). Te la
 // pedirá api/instalar.php para poner la contraseña de la cuenta raíz.
 define('LABS_CLAVE_INSTALACION', 'cambia-esto-por-una-clave-larga-y-tuya');
+
+// Opcional: usar solo OpenAI en todo el CRM (correos, respuestas y agentes) y su clave.
+// define('LABS_IA_PROVEEDOR', 'solo_openai');
+// define('LABS_OPENAI_KEY', 'sk-...');

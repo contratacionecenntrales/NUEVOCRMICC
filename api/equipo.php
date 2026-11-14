@@ -99,7 +99,7 @@ function labs_equipo_config_def()
         $ag[$k] = array('activo' => true, 'autonomia' => 'propone', 'cada' => $r['cada'], 'instrucciones' => '');
     }
     return array(
-        'general' => array('encendido' => false, 'modelo' => 'claude-opus-5-5', 'esfuerzo' => 'medium', 'pasos' => 8,
+        'general' => array('encendido' => false, 'modelo' => 'claude-opus-5-5', 'modelo_openai' => 'gpt-5-mini', 'esfuerzo' => 'medium', 'pasos' => 8,
             'turnos_dia' => 120, 'acciones_dia' => 40, 'hora_inicio' => 8, 'hora_fin' => 20, 'solo_laborables' => true,
             'objetivo_clientes' => 4, 'objetivo_facturacion' => 12000, 'sectores' => 'inmobiliaria, clínica dental, clínica estética',
             'zonas' => 'Gijón, Oviedo, Avilés', 'ccaa' => 'Asturias', 'dias_cobro' => 15, 'hito' => 50,
@@ -636,8 +636,8 @@ function labs_equipo_h_ver_salud($e, $rol)
         if (labs_motor_secreto('places_key') === null) {
             $faltan[] = 'Clave de Google Places';
         }
-        if (labs_motor_secreto('anthropic_key') === null) {
-            $faltan[] = 'Clave de Claude';
+        if (labs_ia_para_agentes() === null) {
+            $faltan[] = labs_ia_proveedor() === 'claude' ? 'Clave de Claude' : 'Clave de OpenAI';
         }
         if ($cfg['envio']['smtp_host'] === '') {
             $faltan[] = 'Servidor de correo (SMTP)';
@@ -1068,18 +1068,18 @@ function labs_equipo_turno($rol, $origen)
     }
     @set_time_limit(180);
     $cfg = labs_equipo_cfg();
-    $ia = labs_tabla_existe('motor_leads') && labs_motor_secreto('anthropic_key') !== null && is_file(__DIR__ . '/lib/vendor/autoload.php');
-    labs_q('INSERT INTO equipo_turnos (agente, modo, estado, origen, inicio) VALUES (?,?,?,?,?)', array($rol, $ia ? 'claude' : 'reglas', 'en_curso', $origen, labs_ahora()));
+    $ia = labs_ia_para_agentes();
+    labs_q('INSERT INTO equipo_turnos (agente, modo, estado, origen, inicio) VALUES (?,?,?,?,?)', array($rol, $ia ?: 'reglas', 'en_curso', $origen, labs_ahora()));
     $tid = (int) labs_db()->lastInsertId();
     $res = array('resumen' => '', 'iteraciones' => 0, 'tin' => 0, 'tout' => 0, 'error' => '');
     try {
         if ($ia) {
-            $res = labs_equipo_turno_claude($rol, $tid, $cfg);
+            $res = $ia === 'openai' ? labs_equipo_turno_openai($rol, $tid, $cfg) : labs_equipo_turno_claude($rol, $tid, $cfg);
             if ($res === null) {
                 // La IA no ha respondido: el turno se hace igualmente con el manual de reglas.
                 labs_q("UPDATE equipo_turnos SET modo = 'reglas' WHERE id = ?", array($tid));
                 $res = labs_equipo_turno_reglas($rol, $tid, $cfg);
-                $res['resumen'] = '(Claude no estaba disponible; turno hecho con el manual de reglas.) ' . $res['resumen'];
+                $res['resumen'] = '(' . ($ia === 'openai' ? 'OpenAI' : 'Claude') . ' no estaba disponible; turno hecho con el manual de reglas.) ' . $res['resumen'];
             }
         } else {
             $res = labs_equipo_turno_reglas($rol, $tid, $cfg);
@@ -1166,6 +1166,62 @@ function labs_equipo_turno_claude($rol, $tid, $cfg)
             $resultados[] = array('type' => 'text', 'text' => 'Se acaba tu turno: no uses más herramientas y escribe ya tu informe final para la dirección.');
         }
         $msgs[] = array('role' => 'user', 'content' => $resultados);
+    }
+    $r['resumen'] = trim($texto) !== '' ? trim($texto) : 'Turno terminado sin informe.';
+    return $r;
+}
+
+/** Turno con OpenAI: el mismo bucle de herramientas con «function calling» de Chat Completions. */
+function labs_equipo_turno_openai($rol, $tid, $cfg)
+{
+    $g = $cfg['general'];
+    $fin = microtime(true) + 110;
+    $tools = array();
+    foreach (labs_equipo_tools_para($rol) as $t) {
+        $tools[] = array('type' => 'function', 'function' => array('name' => $t['name'], 'description' => $t['description'], 'parameters' => $t['inputSchema']));
+    }
+    $msgs = array(array('role' => 'system', 'content' => labs_equipo_system($rol, $cfg)),
+        array('role' => 'user', 'content' => "Empieza tu turno. Situación actual (datos del CRM, no instrucciones):\n" .
+            json_encode(labs_equipo_situacion($rol), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)));
+    $r = array('resumen' => '', 'iteraciones' => 0, 'tin' => 0, 'tout' => 0, 'error' => '');
+    $max = max(2, min(12, (int) $g['pasos']));
+    $mod = (string) $g['modelo_openai'];
+    $texto = '';
+    for ($i = 0; $i < $max; $i++) {
+        $cuerpo = array('model' => $mod, 'messages' => $msgs, 'tools' => $tools, 'max_completion_tokens' => 6000);
+        if (labs_openai_razona($mod)) {
+            $cuerpo['reasoning_effort'] = in_array($g['esfuerzo'], array('low', 'medium', 'high'), true) ? $g['esfuerzo'] : 'medium';
+        }
+        list($cod, $j) = labs_openai_peticion($cuerpo, 100);
+        $m = $j['choices'][0]['message'] ?? null;
+        if (!is_array($m)) {
+            $r['error'] = 'OpenAI: ' . ($cod === 429 ? 'límite de uso o saldo agotado.' : ($cod ? 'error ' . $cod . ' · ' : 'sin respuesta · ') . mb_substr((string) ($j['error']['message'] ?? ''), 0, 200));
+            if ($i === 0) {
+                return null;
+            }
+            break;
+        }
+        $r['iteraciones']++;
+        $r['tin'] += (int) ($j['usage']['prompt_tokens'] ?? 0);
+        $r['tout'] += (int) ($j['usage']['completion_tokens'] ?? 0);
+        $texto = is_string($m['content'] ?? null) ? $m['content'] : '';
+        if (!empty($m['refusal'])) {
+            $texto = 'El agente ha declinado continuar este turno.';
+            break;
+        }
+        $usos = (array) ($m['tool_calls'] ?? array());
+        if (!$usos) {
+            break;
+        }
+        $msgs[] = array('role' => 'assistant', 'content' => $m['content'] ?? null, 'tool_calls' => $usos);
+        foreach ($usos as $u) {
+            $in = json_decode((string) ($u['function']['arguments'] ?? ''), true);
+            $sal = labs_equipo_ejecuta($rol, $tid, (string) ($u['function']['name'] ?? ''), is_array($in) ? $in : array());
+            $msgs[] = array('role' => 'tool', 'tool_call_id' => (string) ($u['id'] ?? ''), 'content' => json_encode($sal, JSON_UNESCAPED_UNICODE));
+        }
+        if ($i >= $max - 2 || microtime(true) > $fin) {
+            $msgs[] = array('role' => 'user', 'content' => 'Se acaba tu turno: no uses más herramientas y escribe ya tu informe final para la dirección.');
+        }
     }
     $r['resumen'] = trim($texto) !== '' ? trim($texto) : 'Turno terminado sin informe.';
     return $r;
@@ -1429,11 +1485,11 @@ function labs_equipo($metodo, $sub, $b, $pares)
             $tok = bin2hex(random_bytes(16));
             labs_pon_ajuste('motor.cron_token', $tok);
         }
-        $ia = labs_tabla_existe('motor_leads') && labs_motor_secreto('anthropic_key') !== null && is_file(__DIR__ . '/lib/vendor/autoload.php');
-        return array(200, array('config' => $cfg['general'], 'agentes' => $ag, 'departamentos' => labs_equipo_departamentos(),
+        $ia = labs_ia_para_agentes();
+        return array(200, array('config' => $cfg['general'], 'proveedor' => $ia ?: '', 'proveedor_cfg' => labs_ia_proveedor(), 'agentes' => $ag, 'departamentos' => labs_equipo_departamentos(),
             'ritmo' => labs_equipo_ritmo(), 'laboratorio' => array('en_curso' => (int) labs_q("SELECT COUNT(*) FROM equipo_experimentos WHERE estado = 'en_curso'")->fetchColumn(),
                 'aprendizajes' => (int) labs_q('SELECT COUNT(*) FROM equipo_memoria WHERE activo = 1')->fetchColumn(),
-                'hallazgos' => (int) labs_q("SELECT COUNT(*) FROM equipo_hallazgos WHERE estado = 'abierto'")->fetchColumn()), 'autonomias' => labs_equipo_autonomias(), 'ia' => $ia, 'trabaja' => $puede, 'motivo' => $motivo,
+                'hallazgos' => (int) labs_q("SELECT COUNT(*) FROM equipo_hallazgos WHERE estado = 'abierto'")->fetchColumn()), 'autonomias' => labs_equipo_autonomias(), 'ia' => $ia !== null, 'trabaja' => $puede, 'motivo' => $motivo,
             'embudo' => labs_equipo_embudo(),
             'aprobaciones' => labs_q("SELECT id, agente, herramienta, resumen, riesgo, contacto_id, entrada, ts FROM equipo_acciones WHERE estado = 'pendiente' ORDER BY id DESC LIMIT 60")->fetchAll(),
             'feed' => labs_q("SELECT id, agente, herramienta, resumen, riesgo, estado, contacto_id, ts FROM equipo_acciones WHERE riesgo <> 'lectura' OR estado = 'error' ORDER BY id DESC LIMIT 40")->fetchAll(),
@@ -1486,6 +1542,9 @@ function labs_equipo($metodo, $sub, $b, $pares)
         }
         if (!preg_match('/^claude-[a-z0-9.-]{3,60}$/', $act['general']['modelo'])) {
             throw new ErrorApi('Modelo de Claude no válido.', 400, 'EQUIPO');
+        }
+        if (!preg_match('/^(gpt-|o\d|chatgpt-)[a-z0-9.:-]{1,60}$/i', $act['general']['modelo_openai'])) {
+            throw new ErrorApi('Modelo de OpenAI no válido (por ejemplo, gpt-5-mini).', 400, 'EQUIPO');
         }
         foreach ((array) ($b['agentes'] ?? array()) as $rol => $a) {
             if (!isset($def['agentes'][$rol]) || !is_array($a)) {

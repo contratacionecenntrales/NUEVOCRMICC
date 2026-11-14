@@ -238,13 +238,14 @@ enchufes, y el panel lo dice claramente:
 
 **Barrido de Asturias.** Va activo, con 150 consultas a Google Places al día:
 ajusta ese número a tu presupuesto en Zona de agentes → Ajustes. Para usar el
-saldo de OpenAI, elige «OpenAI» como proveedor en el Motor → Fábrica de
-agentes y pega su clave (se guarda cifrada).
+saldo de OpenAI, elige «Solo OpenAI» como proveedor en el Motor → Fábrica de
+agentes y pega su clave (se guarda cifrada): correos, respuestas y los 15
+agentes usarán solo OpenAI.
 
-Usa la misma clave de Claude y el mismo cron que el Motor: no hay que
-configurar nada más. Viene **apagada**: la administración la enciende desde
-el propio panel cuando quiera. Sin clave de Claude, los agentes trabajan con
-su manual de reglas.
+Usa la misma clave de IA (Claude u OpenAI) y el mismo cron que el Motor: no hay
+que configurar nada más. Viene **apagada**: la administración la enciende desde
+el propio panel cuando quiera. Sin clave de IA, los agentes trabajan con su
+manual de reglas.
 
 ## Importar contactos
 

@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-6pHT0GhG25v7ysgQGHCqy0/iox8j6Psj6ioKa2SJbj8='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-t4iLdwJu039hmd5v1+rr64OjdkI3GM8uxygQ8IKVSdw='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Labs Command Center 360 - Oficina virtual SaaS de la red comercial de Labs24k.">
 <meta name="theme-color" content="#0B0F19">
@@ -10278,7 +10278,7 @@ function viewAgentesIA(v){
   if(!EQ.reloj) eqLatido();
   var D = EQ.d, avisos = [], pd = D.tareas.filter(function(t){ return t.para === 'direccion' && t.estado === 'pendiente'; }).length;
   if(!D.config.encendido) avisos.push('El equipo está apagado: nadie trabaja hasta que la administración lo encienda.');
-  if(!D.ia) avisos.push('Sin clave de Claude los agentes trabajan con su manual de reglas. La clave se pone en el Motor de Scraping IA → Fábrica de agentes.');
+  if(!D.ia) avisos.push('Sin clave de IA ('+(/openai/.test(D.proveedor_cfg || '') ? 'OpenAI' : 'Claude u OpenAI')+') los agentes trabajan con su manual de reglas. La clave se pone en el Motor de Scraping IA → Fábrica de agentes.');
   var tabs = [['equipo','users','La empresa'],['aprobaciones','check','Para aprobar'],['cierre','target','Cierre'],['laboratorio','spark','Laboratorio'],['cerebro','book','Cerebro'],['calidad','shield','Calidad'],
     ['tareas','file','Tareas y órdenes'],['cobros','euro','Cobros'],['ajustes','cog','Ajustes']];
   v.innerHTML =
@@ -10308,7 +10308,7 @@ function eqCargaTab(t){
   return ngApi(r[0]).then(function(d){ EQ[r[1]] = d; if(S.view === 'agentesia' && EQ.tab === t){ q('#eq-cuerpo').innerHTML = eqCuerpo(); eqEventos(); } }, function(e){ toast(e.message); });
 }
 function eqHeroStats(){
-  var D = EQ.d, hoy = D.agentes.reduce(function(a, x){ return a + x.hoy.acciones; }, 0), ia = D.ia ? 'Claude' : 'Manual de reglas';
+  var D = EQ.d, hoy = D.agentes.reduce(function(a, x){ return a + x.hoy.acciones; }, 0), ia = D.proveedor === 'openai' ? 'OpenAI' : D.ia ? 'Claude' : 'Manual de reglas';
   return [['Turnos hoy', D.tokens_hoy.turnos], ['Acciones hoy', hoy], ['Para aprobar', D.aprobaciones.length], ['Experimentos', D.laboratorio.en_curso], ['Aprendizajes', D.laboratorio.aprendizajes]].map(function(x){
       return '<div><b>'+x[1]+'</b><span>'+x[0]+'</span></div>'; }).join('')+
     '<div class="mt-pulso'+(D.trabaja ? ' on' : '')+'" title="'+esc(D.motivo || '')+'"><i></i>'+(D.trabaja ? 'Trabajando · ' + ia : esc(D.motivo || 'En pausa'))+'</div>'+
@@ -10355,7 +10355,7 @@ function eqFichaAgente(a){
         (a.config.instrucciones ? '<h5 class="eq-h5">Instrucciones de la dirección</h5><p class="eq-txt">'+esc(a.config.instrucciones)+'</p>' : '')+
         '<h5 class="eq-h5">Herramientas</h5><div class="eq-herr">'+a.herramientas.map(function(h){ return '<span>'+esc(h.replace(/_/g, ' '))+'</span>'; }).join('')+'</div></div>'+
       '<div><h5 class="eq-h5">Último informe</h5><div class="eq-ult">'+(trab ? '<span class="eq-pensando">'+ic('spark',12)+' Trabajando en su turno…</span>' : u ?
-          '<div class="tiny muted">'+ngRel(u.inicio)+' · '+(u.modo === 'claude' ? 'con Claude · ' + u.iteraciones + ' rondas' : 'manual de reglas')+'</div><div class="eq-inf full">'+esc(u.estado === 'error' ? u.error : (u.resumen || ''))+'</div>' : '<div class="tiny muted">Todavía no ha trabajado.</div>')+'</div>'+
+          '<div class="tiny muted">'+ngRel(u.inicio)+' · '+(u.modo === 'claude' || u.modo === 'openai' ? 'con ' + (u.modo === 'openai' ? 'OpenAI' : 'Claude') + ' · ' + u.iteraciones + ' rondas' : 'manual de reglas')+'</div><div class="eq-inf full">'+esc(u.estado === 'error' ? u.error : (u.resumen || ''))+'</div>' : '<div class="tiny muted">Todavía no ha trabajado.</div>')+'</div>'+
         '<div class="eq-num"><div><b>'+(a.puntuacion === null || a.puntuacion === undefined ? '—' : a.puntuacion)+'</b><span>Puntuación</span></div><div><b>'+a.hoy.turnos+'</b><span>Turnos hoy</span></div>'+
           '<div'+(a.pendientes ? ' class="am"' : '')+'><b>'+a.pendientes+'</b><span>Para aprobar</span></div><div><b>'+a.tareas+'</b><span>Tareas</span></div></div>'+
         '<div class="row" style="gap:6px;margin-top:10px;flex-wrap:wrap"><button class="btn btn-p btn-xs" data-eq-turno="'+a.rol+'"'+(trab || !EQ.d.config.encendido ? ' disabled' : '')+'>'+ic('play',12)+' Trabajar ahora</button>'+
@@ -10378,7 +10378,7 @@ function eqEquipo(){
         '<div class="mt-vacio">'+ic('bolt',22)+'<b>Sin actividad todavía.</b><span>Enciende el equipo o pulsa «Trabajar ahora» en un agente.</span></div>')+'</div></section>'+
       '<section class="card"><h3>'+ic('file',15)+' Informes de los turnos</h3><div class="eq-feed">'+(D.turnos.length ? D.turnos.map(function(t){
         return '<div class="eq-turno">'+eqBola(t.agente, 26)+'<div style="min-width:0;flex:1"><div class="tiny muted"><b style="color:var(--txt)">'+esc(eqNombre(t.agente))+'</b> · '+ngRel(t.inicio)+' · '+
-          (t.modo === 'claude' ? 'Claude · ' + t.iteraciones + ' rondas' : 'manual de reglas')+'</div><div class="eq-inf full">'+esc(t.estado === 'error' ? 'Error: ' + t.error : t.resumen || '')+'</div></div></div>'; }).join('') :
+          (t.modo === 'claude' || t.modo === 'openai' ? (t.modo === 'openai' ? 'OpenAI' : 'Claude') + ' · ' + t.iteraciones + ' rondas' : 'manual de reglas')+'</div><div class="eq-inf full">'+esc(t.estado === 'error' ? 'Error: ' + t.error : t.resumen || '')+'</div></div></div>'; }).join('') :
         '<div class="tiny muted">Aquí aparece lo que cada agente cuenta al terminar su turno.</div>')+'</div></section></div>';
 }
 
@@ -10569,7 +10569,7 @@ function eqAjustes(){
   return '<div class="mt-fab">'+
     '<section class="card"><h3 style="display:flex;gap:7px;align-items:center;margin:0 0 10px;font-size:15px">'+ic('cog',15)+' Cómo trabaja el equipo</h3>'+
       '<label class="eq-on"><input type="checkbox" data-eq-g="encendido"'+(G.encendido ? ' checked' : '')+(admin ? '' : ' disabled')+'> <b>Equipo encendido</b> <span class="tiny muted">'+(admin ? 'Interruptor general: apagado, ningún agente trabaja.' : 'Solo la administración lo enciende o lo apaga.')+'</span></label>'+
-      '<div class="grid g-3" style="margin-top:10px">'+txt('modelo', 'Modelo de Claude')+
+      '<div class="grid g-3" style="margin-top:10px">'+(/openai/.test((EQ.d && EQ.d.proveedor_cfg) || '') ? txt('modelo_openai', 'Modelo de OpenAI (p. ej. gpt-5-mini)') : txt('modelo', 'Modelo de Claude'))+
         '<div><label class="f">Esfuerzo de razonamiento</label><select class="inp" data-eq-g="esfuerzo">'+[['low','Bajo (más rápido y barato)'],['medium','Medio (recomendado)'],['high','Alto']].map(function(x){ return '<option value="'+x[0]+'"'+(G.esfuerzo === x[0] ? ' selected' : '')+'>'+x[1]+'</option>'; }).join('')+'</select></div>'+
         num('pasos', 'Rondas de herramientas por turno', 2, 12)+num('turnos_dia', 'Turnos al día (todo el equipo)', 1, 500)+num('acciones_dia', 'Acciones al día por agente', 1, 500)+
         '<div><label class="f">Horario (hora de Madrid)</label><div class="row" style="gap:6px"><input class="inp" type="number" min="0" max="23" data-eq-g="hora_inicio" value="'+G.hora_inicio+'"><input class="inp" type="number" min="1" max="24" data-eq-g="hora_fin" value="'+G.hora_fin+'"></div></div></div>'+
@@ -10931,7 +10931,7 @@ function viewMotor(v){
   var avisos = [];
   if(!E.secretos.includes('places_key')) avisos.push('Falta la clave de Google Places para buscar empresas.');
   if(!E.config.envio.smtp_host || !E.config.envio.remitente_email) avisos.push('Falta el servidor de correo (SMTP) para enviar.');
-  if(!E.ia) avisos.push(E.sdk ? 'Sin clave de Claude: los correos se redactan con plantillas.' : 'La librería de Claude no está instalada: se usan plantillas.');
+  if(!E.ia) avisos.push(E.proveedor === 'solo_openai' ? 'Sin clave de OpenAI: los correos se redactan con plantillas.' : E.sdk ? 'Sin clave de IA (Claude u OpenAI): los correos se redactan con plantillas.' : 'Sin clave de OpenAI y sin la librería de Claude: se usan plantillas.');
   v.innerHTML =
     '<div class="mt-hero"><div><span class="rc-kick">'+ic('spark',13)+' PROSPECCIÓN AUTÓNOMA · B2B</span><h2>Motor de Scraping IA</h2>'+
       '<p>Encuentra empresas por sector y comarca, analiza su web, redacta correos personalizados con IA y pasa al Pipeline a quien responde con interés.</p></div>'+
@@ -11060,6 +11060,7 @@ function motConsola(){
 /* --- C. Fábrica de agentes ------------------------------------------------------------- */
 function motFabrica(){
   var C = MOT.cfg, E = MOT.estado, sc = C.scraper, o = C.outreach, e = C.envio, bz = C.buzon;
+  var prov = E.proveedor_fijo ? E.proveedor : (o.proveedor || 'claude'), soloOA = prov === 'solo_openai';
   var sec = function(k, et){ var g = E.secretos.indexOf(k) > -1; return '<div><label class="f">'+et+(g ? ' <span class="mt-ok">'+ic('check',10)+' guardada</span>' : '')+'</label><input class="inp" type="password" autocomplete="new-password" data-mt-secreto="'+k+'" placeholder="'+(g ? '•••••••• (déjalo vacío para no cambiarla)' : 'Pégala aquí')+'"></div>'; };
   var t = function(s, k, et, tipo, ph){ return '<div><label class="f">'+et+'</label><input class="inp" '+(tipo === 'number' ? 'type="number"' : '')+' data-mt-cfg="'+s+'.'+k+'" value="'+esc(C[s][k])+'"'+(ph ? ' placeholder="'+esc(ph)+'"' : '')+'></div>'; };
   var b = function(s, k, et, ayuda){ return '<label class="mt-sw"><input type="checkbox" data-mt-cfg="'+s+'.'+k+'"'+(C[s][k] ? ' checked' : '')+'><span><b>'+et+'</b>'+(ayuda ? '<em>'+esc(ayuda)+'</em>' : '')+'</span></label>'; };
@@ -11076,13 +11077,15 @@ function motFabrica(){
       '<div class="grid g-3">'+t('outreach','remitente_nombre','Firma: nombre')+t('outreach','remitente_cargo','Cargo')+t('outreach','telefono','Teléfono')+'</div>'+
       '<div class="grid g-3">'+t('outreach','empresa','Empresa')+t('outreach','web','Web')+t('outreach','direccion','Dirección (pie legal)')+'</div>'+
       '<div class="grid g-3">'+t('outreach','tono','Tono')+t('outreach','palabras_max','Palabras máximas','number')+
-        '<div><label class="f">Modelo</label><select class="inp" data-mt-cfg="outreach.modelo">'+['claude-opus-5-5','claude-sonnet-5-5','claude-haiku-5-5'].map(function(m){ return '<option'+(o.modelo === m ? ' selected' : '')+'>'+m+'</option>'; }).join('')+'</select></div></div>'+
+        '<div'+(soloOA ? ' hidden' : '')+'><label class="f">Modelo de Claude</label><select class="inp" data-mt-cfg="outreach.modelo">'+['claude-opus-5-5','claude-sonnet-5-5','claude-haiku-5-5'].map(function(m){ return '<option'+(o.modelo === m ? ' selected' : '')+'>'+m+'</option>'; }).join('')+'</select></div></div>'+
       '<div class="grid g-3"><div><label class="f">Esfuerzo de la IA</label><select class="inp" data-mt-cfg="outreach.esfuerzo">'+[['low','Bajo (rápido, recomendado)'],['medium','Medio'],['high','Alto']].map(function(x){ return '<option value="'+x[0]+'"'+(o.esfuerzo === x[0] ? ' selected' : '')+'>'+x[1]+'</option>'; }).join('')+'</select></div>'+
         '<div><label class="f">Cadencia (días)</label><div class="row" style="gap:6px"><input class="inp" type="number" data-mt-cad="0" value="'+o.cadencia[0]+'"><input class="inp" type="number" data-mt-cad="1" value="'+o.cadencia[1]+'"><input class="inp" type="number" data-mt-cad="2" value="'+o.cadencia[2]+'"></div><p class="tiny muted" style="margin:4px 0 0">Día '+o.cadencia[0]+' inicial · día '+o.cadencia[1]+' caso del sector · día '+o.cadencia[2]+' último toque</p></div>'+
-        sec('anthropic_key','Clave de la API de Claude')+'</div>'+
-      '<div class="grid g-3"><div><label class="f">Proveedor para redactar y clasificar</label><select class="inp" data-mt-cfg="outreach.proveedor">'+[['claude','Claude (recomendado)'],['openai','OpenAI']].map(function(x){ return '<option value="'+x[0]+'"'+((o.proveedor || 'claude') === x[0] ? ' selected' : '')+'>'+x[1]+'</option>'; }).join('')+'</select></div>'+
+        (soloOA ? '' : sec('anthropic_key','Clave de la API de Claude'))+'</div>'+
+      '<div class="grid g-3"><div><label class="f">Proveedor de IA (redactar, clasificar y agentes)</label><select class="inp" data-mt-cfg="outreach.proveedor"'+(MOT.estado.proveedor_fijo ? ' disabled' : '')+'>'+[['solo_openai','Solo OpenAI (nunca Claude)'],['openai','OpenAI, con Claude de respaldo'],['claude','Claude, con OpenAI de respaldo']].map(function(x){ return '<option value="'+x[0]+'"'+(prov === x[0] ? ' selected' : '')+'>'+x[1]+'</option>'; }).join('')+'</select>'+
+          (MOT.estado.proveedor_fijo ? '<p class="tiny muted" style="margin:4px 0 0">Fijado en la instalación (config.local.php).</p>' : '')+'</div>'+
         t('outreach','modelo_openai','Modelo de OpenAI','', 'gpt-4o-mini')+sec('openai_key','Clave de la API de OpenAI')+'</div>'+
-      '<p class="tiny muted">Si el proveedor elegido falla o se queda sin saldo, se usa el otro automáticamente; si no hay ninguno, plantillas. Los agentes de la Zona de agentes razonan con Claude.</p>'+
+      '<p class="tiny muted">'+(soloOA ? 'Todo el CRM usa solo OpenAI: los correos, la clasificación de respuestas y los 15 agentes. Si OpenAI falla, los correos salen de plantilla y los agentes trabajan con su manual de reglas.' :
+        'Si el proveedor elegido falla o se queda sin saldo, se usa el otro automáticamente; si no hay ninguno, plantillas. Los agentes de la Zona de agentes usan el mismo proveedor.')+'</p>'+
       '<label class="f" style="margin-top:8px;display:flex;justify-content:space-between">Prompt maestro <button class="ng-link" id="mt-prompt-rest">Restaurar el original</button></label>'+
       '<textarea class="inp mono" rows="14" data-mt-cfg="outreach.prompt" style="font-size:12px">'+esc(o.prompt)+'</textarea>'+
       '<p class="tiny muted">El sistema añade siempre la firma, el motivo del contacto y el enlace de baja (LSSI). El texto de la web del cliente se pasa a la IA como datos, nunca como instrucciones.</p></section>'+
@@ -11229,7 +11232,7 @@ function motEventos(){
   var con = q('#mt-consola'); if(con) con.scrollTop = con.scrollHeight;
   /* Fábrica */
   qa('[data-mt-cfg]').forEach(function(el){ var p = el.dataset.mtCfg.split('.');
-    el[el.type === 'checkbox' || el.tagName === 'SELECT' ? 'onchange' : 'oninput'] = function(){ MOT.cfg[p[0]][p[1]] = el.type === 'checkbox' ? el.checked : el.type === 'number' ? Number(el.value) : el.value; }; });
+    el[el.type === 'checkbox' || el.tagName === 'SELECT' ? 'onchange' : 'oninput'] = function(){ MOT.cfg[p[0]][p[1]] = el.type === 'checkbox' ? el.checked : el.type === 'number' ? Number(el.value) : el.value; if(p[1] === 'proveedor') renderApp(); }; });
   qa('[data-mt-cad]').forEach(function(el){ el.oninput = function(){ MOT.cfg.outreach.cadencia[Number(el.dataset.mtCad)] = Number(el.value); }; });
   qa('[data-mt-secreto]').forEach(function(el){ el.oninput = function(){ MOT.sec[el.dataset.mtSecreto] = el.value; }; });
   if(q('#mt-prompt-rest')) q('#mt-prompt-rest').onclick = function(){ MOT.cfg.outreach.prompt = ''; renderApp(); toast('Pulsa «Guardar la configuración» y se recupera el prompt maestro original.'); };
