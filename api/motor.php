@@ -109,7 +109,14 @@ function labs_motor_secretos()
 function labs_motor_secreto($k)
 {
     $s = labs_motor_secretos();
-    return isset($s[$k]) ? labs_ia_descifra($s[$k]) : null;
+    if (isset($s[$k])) {
+        return labs_ia_descifra($s[$k]);
+    }
+    // Respaldo: la clave de OpenAI puede venir en config.local.php (solo en el paquete privado, nunca en el repositorio).
+    if ($k === 'openai_key' && defined('LABS_OPENAI_KEY') && LABS_OPENAI_KEY !== '') {
+        return LABS_OPENAI_KEY;
+    }
+    return null;
 }
 
 function labs_motor_permitido()
@@ -1365,7 +1372,7 @@ function labs_motor($metodo, $sub, $b, $pares)
             $cnt[$f['estado']] = (int) $f['n'];
         }
         $motivo = '';
-        return array(200, array('config' => $cfg, 'secretos' => array_keys(labs_motor_secretos()), 'leads' => $cnt,
+        return array(200, array('config' => $cfg, 'secretos' => array_values(array_unique(array_merge(array_keys(labs_motor_secretos()), labs_motor_secreto('openai_key') !== null ? array('openai_key') : array()))), 'leads' => $cnt,
             'campanas' => labs_motor_metricas(), 'tareas' => labs_q("SELECT id, estado, total, hechos, parametros, creado FROM motor_tareas ORDER BY id DESC LIMIT 5")->fetchAll(),
             'ia' => (labs_motor_secreto('anthropic_key') !== null && is_file(__DIR__ . '/lib/vendor/autoload.php')) || labs_motor_secreto('openai_key') !== null, 'sdk' => is_file(__DIR__ . '/lib/vendor/autoload.php'), 'angulos' => labs_motor_angulos(),
             'imap' => function_exists('imap_open'), 'puede_enviar' => labs_motor_puede_enviar($motivo), 'motivo' => $motivo,
