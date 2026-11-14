@@ -8,7 +8,7 @@
  */
 defined('LABS') || exit;
 
-define('LABS_VERSION_ESQUEMA', 19);
+define('LABS_VERSION_ESQUEMA', 20);
 
 function labs_columna_existe(PDO $db, $tabla, $col)
 {
@@ -198,6 +198,11 @@ function labs_migra(PDO $db)
            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, flujo_id BIGINT UNSIGNED NOT NULL, inscripcion_id BIGINT UNSIGNED NULL, contacto_id BIGINT UNSIGNED NULL,
            paso VARCHAR(20) NOT NULL DEFAULT '', accion VARCHAR(30) NOT NULL, resultado VARCHAR(500) NOT NULL DEFAULT '', ok TINYINT(1) NOT NULL DEFAULT 1, ts DATETIME(6) NOT NULL,
            PRIMARY KEY (id), KEY flujo_reg_flujo_idx (flujo_id, id), KEY flujo_reg_ts_idx (ts)) $opc",
+        // v20 · Jarvis: registro de uso (auditoría, límite diario y acciones ya confirmadas).
+        "CREATE TABLE IF NOT EXISTS jarvis_registro (
+           id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, usuario_id CHAR(36) NULL, tipo VARCHAR(12) NOT NULL, texto VARCHAR(300) NOT NULL DEFAULT '',
+           tokens_in INT NOT NULL DEFAULT 0, tokens_out INT NOT NULL DEFAULT 0, ts DATETIME(6) NOT NULL,
+           PRIMARY KEY (id), KEY jarvis_reg_us_idx (usuario_id, tipo, ts), KEY jarvis_reg_tx_idx (tipo, texto(64))) $opc",
         // v18 · Barrido de Asturias: cada casilla sector × concejo con su estado.
         "CREATE TABLE IF NOT EXISTS motor_cobertura (
            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, sector VARCHAR(60) NOT NULL, concejo VARCHAR(80) NOT NULL, comarca VARCHAR(80) NOT NULL DEFAULT '',

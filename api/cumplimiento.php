@@ -317,7 +317,7 @@ function labs_tablas_copia()
         'motor_campanas', 'motor_leads', 'motor_mensajes', 'motor_bajas',
         'equipo_turnos', 'equipo_acciones', 'equipo_tareas', 'equipo_cobros',
         'equipo_experimentos', 'equipo_memoria', 'equipo_hallazgos', 'equipo_cierre', 'motor_cobertura',
-        'flujos', 'flujo_inscripciones', 'flujo_registro');
+        'flujos', 'flujo_inscripciones', 'flujo_registro', 'jarvis_registro');
     $hay = labs_q('SELECT table_name FROM information_schema.tables WHERE table_schema = DATABASE()')->fetchAll(PDO::FETCH_COLUMN);
     return array_values(array_intersect($todas, $hay));
 }
@@ -858,6 +858,7 @@ function labs_mantenimiento($forzar = false)
         labs_q('DELETE FROM equipo_turnos WHERE inicio < ?', array(labs_hace(180 * 86400)));
         labs_q('DELETE FROM flujo_eventos WHERE procesado = 1 AND ts < ?', array(labs_hace(30 * 86400)));
         labs_q('DELETE FROM flujo_registro WHERE ts < ?', array(labs_hace(180 * 86400)));
+        labs_q('DELETE FROM jarvis_registro WHERE ts < ?', array(labs_hace(90 * 86400)));
     } catch (Exception $e) {
     }
     $b = labs_verifica_bitacora();

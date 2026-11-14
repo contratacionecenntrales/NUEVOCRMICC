@@ -672,3 +672,30 @@ de seguridad cifradas.
 
 45 + 25 + 30 + 32 + 32 + 31 + 62 + 60 + 44 pruebas del servidor y 34 + 36 + 49 + 36 + 37 + 35 + 26 + 25 + 19 comprobaciones en el navegador, incluido el móvil,
 además de todas las anteriores del CRM.
+
+## Jarvis · asistente de voz y texto
+
+Un asistente de IA (OpenAI) que está en todas las pantallas: el núcleo flotante
+de abajo a la derecha, el botón «Jarvis» de la cabecera o **Alt+J**.
+
+- **Pregunta y te contesta con datos reales del CRM**: agenda, clientes, fichas,
+  presupuestos, cómo van las ventas, qué contactos no tienen próximo paso y,
+  para dirección, qué esperan aprobar los agentes. Solo ve lo que ve la persona
+  que le habla (las mismas reglas que el panel).
+- **Te lleva** a cualquier pantalla de tu menú o a la ficha 360 de un contacto.
+- **Prepara cambios** (cita, nota, próximo paso, fase del embudo, contacto nuevo)
+  y los muestra para confirmar con un botón o diciendo «sí». La propuesta va
+  firmada: no se puede alterar ni confirmar dos veces, ni la confirma otra
+  persona, y al aplicarla rigen las reglas y validaciones del panel. A «perdido»
+  solo con motivo. No envía correos ni WhatsApp.
+- **Voz**: pulsa el micro, habla y, cuando te callas, lo transcribe (OpenAI
+  `gpt-4o-mini-transcribe`) y responde también en voz alta (`gpt-4o-mini-tts`;
+  si falla, la voz del navegador). El botón del altavoz lo deja solo en texto.
+  **El micrófono exige HTTPS** (el candado): activa el certificado SSL gratuito
+  de Hostalia y sube el `.htaccess` con SSL.
+- **Ajustes** (solo administración, en la rueda del propio Jarvis): nombre,
+  modelo de OpenAI (por defecto `gpt-5-mini`), voz (onyx, nova, coral…), límite
+  de consultas al día por persona (300) y encendido.
+- Usa la misma clave de OpenAI que el Motor. Cada consulta queda registrada
+  (persona, tipo, tokens) 90 días para auditoría y control de gasto.
+

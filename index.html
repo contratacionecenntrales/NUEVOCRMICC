@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-t4iLdwJu039hmd5v1+rr64OjdkI3GM8uxygQ8IKVSdw='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-hB7mM4QxnMTdNiAyJFXL5BmxJPD12Hr8vusOXj4Q9AQ='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Labs Command Center 360 - Oficina virtual SaaS de la red comercial de Labs24k.">
 <meta name="theme-color" content="#0B0F19">
@@ -1986,6 +1986,55 @@ a.btn.btn-g:hover{color:#fff}
 .fl-hr{border:0;border-top:1px solid var(--line);margin:12px 0}
 @media (max-width:1100px){.fl-ed{grid-template-columns:1fr}.fl-ed-c,.fl-insp{position:static}}
 @media (max-width:560px){.fl-met{grid-template-columns:repeat(3,minmax(0,1fr))}.fl-nodo{width:220px}.fl-rama{min-width:220px}}
+#jv{position:fixed;right:22px;bottom:22px;z-index:80;display:flex;flex-direction:column;align-items:flex-end;gap:12px;pointer-events:none}
+#jv>*{pointer-events:auto}
+.jv-orb{position:relative;width:62px;height:62px;border-radius:50%;border:0;padding:0;cursor:pointer;background:radial-gradient(circle at 50% 45%,#0B1424 0 52%,#06101C 53%);box-shadow:0 0 0 1px rgba(56,189,248,.45),0 10px 30px rgba(8,145,178,.45),0 0 26px rgba(56,189,248,.35);display:grid;place-items:center}
+.jv-orb:focus-visible{outline:2px solid #7DD3FC;outline-offset:3px}
+.jv-core{width:22px;height:22px;border-radius:50%;background:radial-gradient(circle,#E0F7FF 0 18%,#67E8F9 40%,#0EA5E9 70%,transparent 72%);box-shadow:0 0 14px #22D3EE,0 0 30px rgba(34,211,238,.6);transition:transform .25s}
+.jv-orb i{position:absolute;inset:6px;border-radius:50%;border:2px solid transparent;border-top-color:rgba(103,232,249,.85);border-right-color:rgba(103,232,249,.25);animation:jv-giro 3.2s linear infinite}
+.jv-orb i+i{inset:12px;border-top-color:transparent;border-bottom-color:rgba(165,243,252,.7);border-left-color:rgba(165,243,252,.2);animation-duration:2.2s;animation-direction:reverse}
+.jv-orb.escuchando .jv-core{transform:scale(1.25);background:radial-gradient(circle,#FFF 0 18%,#FCA5A5 40%,#F43F5E 70%,transparent 72%);box-shadow:0 0 16px #FB7185,0 0 34px rgba(244,63,94,.6)}
+.jv-orb.escuchando{box-shadow:0 0 0 1px rgba(251,113,133,.6),0 10px 30px rgba(244,63,94,.45),0 0 30px rgba(251,113,133,.45)}
+.jv-orb.pensando i,.jv-orb.transcribiendo i{animation-duration:.9s}
+.jv-orb.hablando .jv-core{animation:jv-late .55s ease-in-out infinite alternate}
+@keyframes jv-giro{to{transform:rotate(360deg)}}
+@keyframes jv-late{from{transform:scale(.9)}to{transform:scale(1.3)}}
+.jv-panel{width:400px;max-width:calc(100vw - 32px);height:min(620px,calc(100vh - 120px));display:flex;flex-direction:column;border-radius:20px;border:1px solid rgba(56,189,248,.35);background:radial-gradient(420px 220px at 100% 0%,rgba(56,189,248,.14),transparent 70%),var(--card);box-shadow:0 24px 60px rgba(0,0,0,.45);overflow:hidden}
+.jv-h{display:flex;align-items:center;gap:10px;padding:12px 12px 12px 14px;border-bottom:1px solid var(--line)}
+.jv-h .jv-orb{width:38px;height:38px;flex:0 0 38px;box-shadow:0 0 0 1px rgba(56,189,248,.45),0 0 14px rgba(56,189,248,.35)}
+.jv-h .jv-orb i{inset:4px}.jv-h .jv-orb i+i{inset:8px}.jv-h .jv-core{width:13px;height:13px}
+.jv-tt{flex:1;min-width:0;display:flex;flex-direction:column}
+.jv-tt b{font-size:15px;letter-spacing:.02em}
+.jv-tt span{font-size:12px;color:var(--txt-3)}
+.jv-hb{display:flex;gap:4px}
+.jv-hb button{width:32px;height:32px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--txt-2);display:grid;place-items:center;cursor:pointer}
+.jv-hb button.on{color:#67E8F9;border-color:rgba(103,232,249,.5)}
+.jv-hb svg{display:block}
+.jv-msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
+.jv-m{max-width:88%;padding:9px 12px;border-radius:14px;font-size:13.5px;line-height:1.45;white-space:pre-wrap;word-break:break-word}
+.jv-m.user{align-self:flex-end;background:rgba(56,189,248,.16);border:1px solid rgba(56,189,248,.3);border-bottom-right-radius:4px}
+.jv-m.assistant{align-self:flex-start;background:var(--card-2);border:1px solid var(--line);border-bottom-left-radius:4px}
+.jv-m.sistema{align-self:center;font-size:12px;color:var(--txt-3);background:transparent;padding:2px 8px;text-align:center}
+.jv-m.error{align-self:center;font-size:12.5px;color:#FCA5A5;border:1px solid rgba(248,113,113,.35);background:rgba(248,113,113,.08)}
+.jv-hola{margin:auto 0;text-align:center;color:var(--txt-2);font-size:13.5px}
+.jv-hola h4{margin:0 0 4px;font-size:17px;color:var(--txt)}
+.jv-sug{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:12px}
+.jv-sug button{font:inherit;font-size:12.5px;padding:6px 10px;border-radius:99px;border:1px solid var(--line);background:var(--card-2);color:var(--txt);cursor:pointer}
+.jv-sug button:hover{border-color:rgba(56,189,248,.6)}
+.jv-prop{border:1px solid rgba(251,191,36,.45);background:rgba(251,191,36,.08);border-radius:14px;padding:10px 12px;font-size:13px;display:flex;flex-direction:column;gap:8px}
+.jv-prop b{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#FDE68A}
+.jv-prop .row{gap:6px}
+.jv-f{display:flex;gap:8px;align-items:center;padding:10px;border-top:1px solid var(--line)}
+.jv-f input{flex:1;min-width:0}
+.jv-mic,.jv-send{width:42px;height:42px;flex:0 0 42px;border-radius:12px;border:1px solid var(--line);background:var(--card-2);color:var(--txt);display:grid;place-items:center;cursor:pointer}
+.jv-mic.on{background:#F43F5E;border-color:#F43F5E;color:#fff;animation:jv-late .7s ease-in-out infinite alternate}
+.jv-send{background:#0EA5E9;border-color:#0EA5E9;color:#fff}
+.jv-mic svg,.jv-send svg{display:block}
+.jv-cfg{padding:12px 14px;border-bottom:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.jv-cfg .full{grid-column:1/-1}
+.jv-cfg label.f{margin:0 0 3px}
+@media (max-width:560px){#jv{right:12px;bottom:12px;left:12px;align-items:flex-end}.jv-panel{width:100%;max-width:100%;height:calc(100vh - 100px)}.jv-orb{width:54px;height:54px}}
+@media (prefers-reduced-motion:reduce){.jv-orb i,.jv-orb.hablando .jv-core,.jv-mic.on{animation:none}}
 .eq-hal{display:flex;gap:9px;align-items:flex-start;padding:10px;border-radius:12px;border:1px solid var(--line);border-left:3px solid var(--c);background:var(--card-2);margin-bottom:8px}
 @media (max-width:900px){.eq-lab,.eq-cerebro,.eq-cal,.eq-det-g{grid-template-columns:1fr}.eq-ritmo-obj{align-items:flex-start}}
 @media (max-width:900px){.eq-tareas{grid-template-columns:1fr}.eq-aprob{grid-template-columns:1fr}.eq-cob-res{grid-template-columns:repeat(2,minmax(0,1fr))}.eq-cobro{margin-left:0}}
@@ -2939,6 +2988,8 @@ var ICON = {
   mail:'<rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 6 10-6"/>',
   globe:'<circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20z"/>',
   mic:'<rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4M8 22h8"/>',
+  vol:'<path d="M11 5L6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/>',
+  volx:'<path d="M11 5L6 9H2v6h4l5 4z"/><path d="M22 9l-6 6M16 9l6 6"/>',
   phone:'<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.2a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/>',
   upload:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 9l5-5 5 5M12 4v12"/>',
   download:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/>',
@@ -10895,6 +10946,209 @@ function flEventos(){
   if(q('#fl-activar')) q('#fl-activar').onclick = function(){ flGuardar(true); };
 }
 
+/* ==========================================================================
+   JARVIS · asistente de voz y texto (OpenAI) que vive encima de todo el panel
+   ========================================================================== */
+var JV = {el:null, abierto:false, est:null, cfgAbierta:false, msgs:[], hist:[], prop:[], estado:'', voz:true, rec:null, audio:null, borrador:''};
+try { JV.voz = localStorage.getItem('jv.voz') !== '0'; } catch(e){}
+function jvApi(ruta, metodo, cuerpo, ms){
+  return sbConSesion(function(){ return sbFetch(ruta, {method: metodo || 'GET', body: cuerpo, timeout: ms || 90000}); }).then(function(r){
+    if(!r.ok) throw new Error(sbMensaje(r));
+    return r.datos;
+  });
+}
+function jvNombre(){ return (JV.est && JV.est.config && JV.est.config.nombre) || 'Jarvis'; }
+function jvMonta(){
+  if(!document.querySelector('.app')) return;
+  if(!JV.el){ JV.el = document.createElement('div'); JV.el.id = 'jv'; jvPinta(); }
+  if(!JV.el.isConnected) document.body.appendChild(JV.el);
+}
+function jvTextoEstado(){
+  return {escuchando:'Te escucho… (pulsa el micro para terminar)', transcribiendo:'Entendiendo lo que has dicho…', pensando:'Pensando…', hablando:'Hablando… (pulsa el núcleo para callarme)'}[JV.estado] ||
+    (JV.est && !JV.est.ia ? 'Falta la clave de OpenAI' : 'Listo · Alt+J para abrir y cerrar');
+}
+function jvPinta(){
+  if(!JV.el) return;
+  var foco = document.activeElement && document.activeElement.id === 'jv-in';
+  var orb = function(id){ return '<button class="jv-orb '+JV.estado+'" id="'+id+'" title="'+esc(jvNombre())+' (Alt+J)" aria-label="'+esc(jvNombre())+'"><span class="jv-core"></span><i></i><i></i></button>'; };
+  var h = '';
+  if(JV.abierto){
+    var E = JV.est, C = E && E.config, admin = E && E.admin;
+    var msgs = JV.msgs.length ? JV.msgs.map(function(m){ return '<div class="jv-m '+m.rol+'">'+esc(m.texto)+'</div>'; }).join('') :
+      '<div class="jv-hola"><h4>Hola, '+esc((S.name || '').split(' ')[0])+'. Soy '+esc(jvNombre())+'.</h4>Pregúntame por tus clientes, tu agenda o tus ventas, o pídeme que te apunte algo. Puedes hablarme con el micro.'+
+        '<div class="jv-sug">'+['¿Qué tengo hoy en la agenda?','¿Cómo van las ventas este mes?','¿Qué clientes no tienen próximo paso?','Apúntame una llamada mañana a las 10'].map(function(s){ return '<button data-jv-sug="'+esc(s)+'">'+esc(s)+'</button>'; }).join('')+'</div></div>';
+    var props = JV.prop.map(function(p, i){ return '<div class="jv-prop"><b>'+ic('check',12)+' Para confirmar</b><span>'+esc(p.resumen)+'</span><div class="row"><button class="btn btn-p btn-xs" data-jv-ok="'+i+'">'+ic('check',13)+' Confirmar</button><button class="btn btn-xs" data-jv-no="'+i+'">Descartar</button></div></div>'; }).join('');
+    var cfg = JV.cfgAbierta && admin ? '<div class="jv-cfg">'+
+        '<div><label class="f">Nombre</label><input class="inp" data-jv-c="nombre" value="'+esc(C.nombre)+'"></div>'+
+        '<div><label class="f">Modelo de OpenAI</label><input class="inp" data-jv-c="modelo" value="'+esc(C.modelo)+'"></div>'+
+        '<div><label class="f">Voz</label><select class="inp" data-jv-c="voz">'+E.voces.map(function(v){ return '<option'+(v === C.voz ? ' selected' : '')+'>'+v+'</option>'; }).join('')+'</select></div>'+
+        '<div><label class="f">Consultas al día por persona</label><input class="inp" type="number" min="10" max="5000" data-jv-c="consultas_dia" value="'+esc(C.consultas_dia)+'"></div>'+
+        '<label class="tiny full" style="display:flex;gap:6px;align-items:center"><input type="checkbox" data-jv-c="encendido"'+(C.encendido ? ' checked' : '')+'> Encendido para todo el equipo</label>'+
+        '<div class="full row" style="gap:6px"><button class="btn btn-p btn-xs" id="jv-cfg-ok">'+ic('save',13)+' Guardar</button><button class="btn btn-xs" id="jv-voz-prueba">'+ic('play',13)+' Probar la voz</button>'+
+        '<span class="tiny muted">Últimas 24 h: '+E.uso_24h.consultas+' consultas</span></div></div>' : '';
+    h += '<section class="jv-panel" role="dialog" aria-label="'+esc(jvNombre())+'">'+
+      '<header class="jv-h">'+orb('jv-orb-p')+'<div class="jv-tt"><b>'+esc(jvNombre())+'</b><span id="jv-st">'+esc(jvTextoEstado())+'</span></div>'+
+        '<div class="jv-hb"><button id="jv-voz" class="'+(JV.voz ? 'on' : '')+'" title="'+(JV.voz ? 'Respondo en voz alta (pulsa para silenciar)' : 'Solo texto (pulsa para que hable)')+'" aria-label="Voz">'+ic(JV.voz ? 'vol' : 'volx',15)+'</button>'+
+        (admin ? '<button id="jv-cfg" class="'+(JV.cfgAbierta ? 'on' : '')+'" title="Ajustes de '+esc(jvNombre())+'" aria-label="Ajustes">'+ic('cog',15)+'</button>' : '')+
+        (JV.msgs.length ? '<button id="jv-limpia" title="Nueva conversación" aria-label="Nueva conversación">'+ic('refresh',15)+'</button>' : '')+
+        '<button id="jv-x" title="Cerrar" aria-label="Cerrar">'+ic('x',15)+'</button></div></header>'+cfg+
+      '<div class="jv-msgs" id="jv-msgs">'+msgs+props+'</div>'+
+      '<footer class="jv-f"><button class="jv-mic'+(JV.estado === 'escuchando' ? ' on' : '')+'" id="jv-mic" title="Hablar" aria-label="Hablar">'+ic('mic',18)+'</button>'+
+        '<input class="inp" id="jv-in" placeholder="Escribe o pulsa el micro…" value="'+esc(JV.borrador)+'" autocomplete="off">'+
+        '<button class="jv-send" id="jv-send" title="Enviar" aria-label="Enviar">'+ic('send',17)+'</button></footer></section>';
+  }
+  h += JV.abierto ? '' : orb('jv-orb');
+  JV.el.innerHTML = h;
+  jvEventos();
+  var m = JV.el.querySelector('#jv-msgs'); if(m) m.scrollTop = m.scrollHeight;
+  if(foco && JV.el.querySelector('#jv-in')) JV.el.querySelector('#jv-in').focus();
+}
+function jvPon(estado){ JV.estado = estado; if(!JV.el) return;
+  JV.el.querySelectorAll('.jv-orb').forEach(function(o){ o.className = 'jv-orb ' + estado; });
+  var s = JV.el.querySelector('#jv-st'); if(s) s.textContent = jvTextoEstado();
+  var mic = JV.el.querySelector('#jv-mic'); if(mic) mic.classList.toggle('on', estado === 'escuchando');
+}
+function jvAbre(){
+  JV.abierto = true; jvMonta(); jvPinta();
+  if(!JV.est) jvApi('/jarvis/estado', 'GET', null, 15000).then(function(d){ JV.est = d; jvPinta(); }, function(e){ JV.msgs.push({rol:'error', texto:e.message}); jvPinta(); });
+  setTimeout(function(){ var i = JV.el && JV.el.querySelector('#jv-in'); if(i) i.focus(); }, 50);
+}
+function jvCierra(){ JV.abierto = false; jvCalla(); if(JV.rec) jvParaGrabar(true); jvPinta(); }
+function jvEventos(){
+  var E = JV.el, $ = function(s){ return E.querySelector(s); };
+  if($('#jv-orb')) $('#jv-orb').onclick = jvAbre;
+  if($('#jv-orb-p')) $('#jv-orb-p').onclick = function(){ if(JV.estado === 'hablando') jvCalla(); else if(JV.estado === '') jvMicro(); };
+  if($('#jv-x')) $('#jv-x').onclick = jvCierra;
+  if($('#jv-voz')) $('#jv-voz').onclick = function(){ JV.voz = !JV.voz; try { localStorage.setItem('jv.voz', JV.voz ? '1' : '0'); } catch(e){} if(!JV.voz) jvCalla(); jvPinta(); };
+  if($('#jv-cfg')) $('#jv-cfg').onclick = function(){ JV.cfgAbierta = !JV.cfgAbierta; jvPinta(); };
+  if($('#jv-limpia')) $('#jv-limpia').onclick = function(){ JV.msgs = []; JV.hist = []; JV.prop = []; jvCalla(); jvPinta(); };
+  if($('#jv-in')){ $('#jv-in').oninput = function(){ JV.borrador = this.value; };
+    $('#jv-in').onkeydown = function(e){ if(e.key === 'Enter' && this.value.trim()){ var t = this.value; JV.borrador = ''; this.value = ''; jvEnvia(t, false); } }; }
+  if($('#jv-send')) $('#jv-send').onclick = function(){ var i = $('#jv-in'); if(i && i.value.trim()){ var t = i.value; JV.borrador = ''; i.value = ''; jvEnvia(t, false); } };
+  if($('#jv-mic')) $('#jv-mic').onclick = jvMicro;
+  E.querySelectorAll('[data-jv-sug]').forEach(function(b){ b.onclick = function(){ jvEnvia(b.dataset.jvSug, false); }; });
+  E.querySelectorAll('[data-jv-ok]').forEach(function(b){ b.onclick = function(){ jvConfirma(Number(b.dataset.jvOk)); }; });
+  E.querySelectorAll('[data-jv-no]').forEach(function(b){ b.onclick = function(){ var p = JV.prop.splice(Number(b.dataset.jvNo), 1)[0]; if(p) JV.msgs.push({rol:'sistema', texto:'Descartado: ' + p.resumen}); jvPinta(); }; });
+  E.querySelectorAll('[data-jv-c]').forEach(function(el){ var k = el.dataset.jvC;
+    el[el.type === 'checkbox' || el.tagName === 'SELECT' ? 'onchange' : 'oninput'] = function(){ JV.est.config[k] = el.type === 'checkbox' ? el.checked : el.type === 'number' ? Number(el.value) : el.value; }; });
+  if($('#jv-cfg-ok')) $('#jv-cfg-ok').onclick = function(){ jvApi('/jarvis/config', 'POST', {config:JV.est.config}, 15000).then(function(d){ JV.est.config = d.config; JV.cfgAbierta = false; toast('Ajustes de ' + jvNombre() + ' guardados.'); jvPinta(); }, function(e){ toast(e.message); }); };
+  if($('#jv-voz-prueba')) $('#jv-voz-prueba').onclick = function(){ jvHabla('Hola, soy ' + jvNombre() + '. Así sueno con la voz ' + JV.est.config.voz + '.', JV.est.config.voz, true); };
+}
+function jvSi(t){ return /^\s*(s[ií]|vale|confirma(do|r)?|adelante|hazlo|ok|okay|de acuerdo|perfecto|claro)(?=$|[\s,.;:!¡?¿])/i.test(t); }
+function jvNo(t){ return /^\s*(no|cancela(r)?|descarta(r)?|d[eé]jalo|olv[ií]dalo)(?=$|[\s,.;:!¡?¿])/i.test(t); }
+function jvEnvia(texto, porVoz){
+  texto = String(texto || '').trim(); if(!texto || JV.estado === 'pensando') return;
+  jvCalla();
+  JV.msgs.push({rol:'user', texto:texto});
+  if(JV.prop.length && jvSi(texto) && texto.length < 40){ jvPinta(); return jvConfirmaTodo(porVoz); }
+  if(JV.prop.length && jvNo(texto) && texto.length < 40){ JV.prop = []; JV.msgs.push({rol:'assistant', texto:'De acuerdo, no hago nada.'}); jvPinta(); if(porVoz || JV.voz) jvHabla('De acuerdo, no hago nada.'); return; }
+  jvPon('pensando'); jvPinta();
+  jvApi('/jarvis/chat', 'POST', {texto:texto, historial:JV.hist.slice(-12), pantalla:S.view}).then(function(d){
+    JV.hist.push({rol:'user', texto:texto}, {rol:'assistant', texto:d.texto});
+    JV.msgs.push({rol:'assistant', texto:d.texto});
+    JV.prop = JV.prop.concat(d.propuestas || []);
+    jvPon(''); jvPinta();
+    (d.acciones || []).forEach(jvAccion);
+    if(JV.voz) jvHabla(d.texto + ((d.propuestas || []).length ? ' ¿Lo confirmo?' : ''));
+  }, function(e){ jvPon(''); JV.msgs.push({rol:'error', texto:e.message}); jvPinta(); });
+}
+function jvPuedeVer(v){
+  if(Array.isArray(S.modulosVisibles) && S.modulosVisibles.length) return S.modulosVisibles.indexOf(v) > -1;
+  return MENU.some(function(m){ return m.id === v && m.roles.indexOf(S.role) > -1; });
+}
+function jvAccion(a){
+  if(a.tipo === 'navegar'){ if(jvPuedeVer(a.vista)){ S.view = a.vista; renderApp(); } else JV.msgs.push({rol:'sistema', texto:'Esa pantalla no está en tu menú.'}); }
+  else if(a.tipo === 'ficha' && typeof ngAbreFicha === 'function') ngAbreFicha(a.contacto_id);
+}
+function jvConfirma(i, porVoz){
+  var p = JV.prop[i]; if(!p) return Promise.resolve();
+  return jvApi('/jarvis/confirmar', 'POST', {herramienta:p.herramienta, datos:p.datos, exp:p.exp, firma:p.firma}, 20000).then(function(d){
+    JV.prop.splice(JV.prop.indexOf(p), 1);
+    JV.msgs.push({rol:'sistema', texto:'Hecho: ' + d.resumen}); jvPinta(); toast('Hecho: ' + d.resumen);
+    if(d.resultado && d.resultado.contacto_id && S.view === 'contactos' && typeof CT !== 'undefined' && typeof ctCarga === 'function') ctCarga();
+  }, function(e){ JV.msgs.push({rol:'error', texto:e.message}); jvPinta(); });
+}
+function jvConfirmaTodo(porVoz){
+  var n = JV.prop.length, cadena = Promise.resolve();
+  JV.prop.slice().forEach(function(p){ cadena = cadena.then(function(){ return jvConfirma(JV.prop.indexOf(p)); }); });
+  return cadena.then(function(){ if(porVoz || JV.voz) jvHabla(n > 1 ? 'Hecho, las ' + n + ' cosas.' : 'Hecho.'); });
+}
+/* --- Voz: respuesta hablada ---------------------------------------------------------------- */
+function jvCalla(){
+  if(JV.audio){ try { JV.audio.pause(); } catch(e){} JV.audio = null; }
+  if(window.speechSynthesis) try { speechSynthesis.cancel(); } catch(e){}
+  if(JV.estado === 'hablando') jvPon('');
+}
+function jvHabla(texto, voz, prueba){
+  jvCalla(); jvPon('hablando');
+  var navegador = function(){
+    if(!window.speechSynthesis || typeof SpeechSynthesisUtterance === 'undefined'){ jvPon(''); return; }
+    var u = new SpeechSynthesisUtterance(texto); u.lang = 'es-ES'; u.rate = 1.05;
+    u.onend = u.onerror = function(){ if(JV.estado === 'hablando') jvPon(''); };
+    speechSynthesis.speak(u);
+  };
+  jvApi('/jarvis/hablar', 'POST', {texto:texto}, 30000).then(function(d){
+    if(JV.estado !== 'hablando') return;
+    if(!d.audio) return navegador();
+    var a = new Audio('data:audio/mpeg;base64,' + d.audio); JV.audio = a;
+    a.onended = function(){ if(JV.audio === a){ JV.audio = null; jvPon(''); } };
+    a.play().catch(function(){ JV.audio = null; navegador(); });
+  }, function(){ if(JV.estado === 'hablando') navegador(); });
+}
+/* --- Voz: micrófono, con fin automático al quedarte en silencio ------------------------------ */
+function jvMicro(){
+  if(JV.estado === 'escuchando') return jvParaGrabar(false);
+  if(JV.estado === 'pensando' || JV.estado === 'transcribiendo') return;
+  jvCalla();
+  if(!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || typeof MediaRecorder === 'undefined'){
+    JV.msgs.push({rol:'error', texto:'El micrófono solo funciona con la web en HTTPS (candado). Activa el certificado SSL gratuito en Hostalia y podrás hablarme; mientras, escríbeme.'}); return jvPinta();
+  }
+  navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true, noiseSuppression:true}}).then(function(st){
+    var tipo = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg'].filter(function(t){ return MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t); })[0] || '';
+    var rec = new MediaRecorder(st, tipo ? {mimeType:tipo} : undefined), trozos = [];
+    JV.rec = {rec:rec, st:st, cancelado:false};
+    rec.ondataavailable = function(e){ if(e.data && e.data.size) trozos.push(e.data); };
+    rec.onstop = function(){
+      st.getTracks().forEach(function(t){ t.stop(); });
+      var r = JV.rec; JV.rec = null; if(r && r.ctx) try { r.ctx.close(); } catch(e){}
+      if(r && r.cancelado){ jvPon(''); return; }
+      var blob = new Blob(trozos, {type: rec.mimeType || tipo || 'audio/webm'});
+      if(blob.size < 1500){ jvPon(''); JV.msgs.push({rol:'sistema', texto:'No te he oído. Pulsa el micro y habla.'}); return jvPinta(); }
+      jvPon('transcribiendo');
+      var fr = new FileReader();
+      fr.onload = function(){
+        jvApi('/jarvis/transcribir', 'POST', {audio:String(fr.result).split(',')[1], tipo:blob.type}, 45000).then(function(d){
+          jvPon(''); if(d.texto) jvEnvia(d.texto, true); else { JV.msgs.push({rol:'sistema', texto:'No te he entendido.'}); jvPinta(); }
+        }, function(e){ jvPon(''); JV.msgs.push({rol:'error', texto:e.message}); jvPinta(); });
+      };
+      fr.readAsDataURL(blob);
+    };
+    rec.start(250); jvPon('escuchando');
+    // Silencio: si has hablado y callas 1,4 s, termina solo. Máximo 30 s.
+    try {
+      var Ctx = window.AudioContext || window.webkitAudioContext, ctx = new Ctx(), an = ctx.createAnalyser(), buf = new Uint8Array(1024), hablo = false, calla = 0, ini = Date.now();
+      ctx.createMediaStreamSource(st).connect(an); an.fftSize = 1024; JV.rec.ctx = ctx;
+      var mira = function(){
+        if(!JV.rec || JV.rec.rec !== rec) return;
+        an.getByteTimeDomainData(buf); var s = 0; for(var i = 0; i < buf.length; i++){ var v = (buf[i] - 128) / 128; s += v * v; }
+        var rms = Math.sqrt(s / buf.length);
+        if(rms > 0.035){ hablo = true; calla = Date.now(); }
+        if((hablo && Date.now() - calla > 1400) || Date.now() - ini > 30000) return jvParaGrabar(false);
+        setTimeout(mira, 100);
+      };
+      calla = Date.now(); setTimeout(mira, 300);
+    } catch(e){ setTimeout(function(){ if(JV.rec && JV.rec.rec === rec) jvParaGrabar(false); }, 15000); }
+  }, function(){ JV.msgs.push({rol:'error', texto:'No tengo permiso para usar el micrófono. Revísalo en el candado de la barra de direcciones.'}); jvPinta(); });
+}
+function jvParaGrabar(cancelar){ var r = JV.rec; if(!r) return; r.cancelado = !!cancelar; try { if(r.rec.state !== 'inactive') r.rec.stop(); } catch(e){} }
+document.addEventListener('keydown', function(e){
+  if(e.altKey && !e.ctrlKey && !e.metaKey && (e.key === 'j' || e.key === 'J' || e.code === 'KeyJ') && document.querySelector('.app')){ e.preventDefault(); if(JV.abierto) jvCierra(); else jvAbre(); }
+  else if(e.key === 'Escape' && JV.abierto && JV.el && JV.el.contains(document.activeElement)) jvCierra();
+});
+
+var jvRenderOriginal = renderApp;
+renderApp = function(){ jvRenderOriginal.apply(this, arguments); jvMonta(); };
+
 var MOT = {tab:'radar', estado:null, leads:null, feed:{log:[], pendientes:[]}, ultimo:0, resp:null, sel:{}, f:{estado:'', q:''},
   r:{sectores:['inmobiliaria'], clave:'', ccaa:'Asturias', comarca:'Comarca de Gijón', locs:['Gijón'], extra:'', places:true, web:true, max:100, campana:''},
   reloj:null, cuenta:0, enCurso:false, camp:{nombre:'', sector:'', modo:'aprobacion', incluir:true}, cfg:null, sec:{}, editando:null};
@@ -13045,7 +13299,7 @@ function barraAcciones(){
   return '<div class="hub">'+
     '<button class="hb violeta" id="hb-idioma" title="Idioma">'+ic('globe',16)+'</button>'+
     '<button class="hb verde" id="hb-voz" title="Llamada rápida con voz IA">'+ic('phone',16)+'</button>'+
-    '<button class="hb ia" id="hb-ia">'+ic('spark',14)+'<span>Asistente IA</span></button>'+
+    '<button class="hb ia" id="hb-ia" title="Jarvis (Alt+J)">'+ic('spark',14)+'<span>Jarvis</span></button>'+
     '<button class="hb cuenta" id="hb-cuenta" title="Cuentas asociadas">'+
       '<span class="ava">'+esc(c.n.charAt(0))+'</span></button>'+
     '<button class="hb" id="bell" title="Avisos">'+ic('bell',16)+'<span class="n">4</span></button>'+
@@ -13259,7 +13513,7 @@ function hubEventos(){
   if(q('#hb-voz')) q('#hb-voz').onclick=function(){
     toast('Marcando con el agente de voz IA. La llamada saldrá desde el número corporativo.'); };
   if(q('#hb-ia')) q('#hb-ia').onclick=function(){
-    cierraPops(); SOPORTE.abierto=true; SOPORTE.vista='chat'; renderApp(); };
+    cierraPops(); jvAbre(); };
   if(q('#hb-ayuda')) q('#hb-ayuda').onclick=function(){
     cierraPops(); SOPORTE.abierto=true; SOPORTE.vista='inicio'; renderApp(); };
   if(q('#bell')) q('#bell').onclick=function(){
@@ -15555,7 +15809,7 @@ function sbUrl(ruta){
 function sbFetch(ruta, opciones){
   opciones = opciones || {};
   var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
-  var corte = ctrl ? setTimeout(function(){ ctrl.abort(); }, 15000) : null;
+  var corte = ctrl ? setTimeout(function(){ ctrl.abort(); }, opciones.timeout || 15000) : null;
   var metodo = opciones.method || 'GET';
   var cab = Object.assign(sbCabeceras(opciones.conSesion), opciones.headers || {});
   if(metodo === 'PATCH' || metodo === 'DELETE' || metodo === 'PUT'){

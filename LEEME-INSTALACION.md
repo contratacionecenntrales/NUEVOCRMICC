@@ -270,3 +270,11 @@ En una instalación que ya existía con Juan como raíz, el cambio se hace solo 
 primera vez que alguien entra tras actualizar (versión 5 de la base de datos):
 las contraseñas no se tocan. El «cargo» de cada usuario (cómo aparece su rol) se
 cambia en su ficha y solo lo puede poner administración.
+
+## Jarvis (asistente de voz)
+
+Funciona nada más subir el paquete, con la clave de OpenAI del Motor. Para
+hablarle con el micrófono la web tiene que ir con **HTTPS**: activa el
+certificado SSL gratuito en el panel de Hostalia y usa el `.htaccess` con SSL.
+Sin HTTPS se le puede escribir y contesta igualmente en voz alta.
+
