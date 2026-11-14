@@ -8,7 +8,7 @@
  */
 defined('LABS') || exit;
 
-define('LABS_VERSION_ESQUEMA', 17);
+define('LABS_VERSION_ESQUEMA', 18);
 
 function labs_columna_existe(PDO $db, $tabla, $col)
 {
@@ -179,6 +179,10 @@ function labs_migra(PDO $db)
            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, clave VARCHAR(120) NOT NULL, gravedad VARCHAR(10) NOT NULL DEFAULT 'media', responsable VARCHAR(20) NOT NULL,
            titulo VARCHAR(250) NOT NULL, detalle TEXT NULL, evidencia TEXT NULL, estado VARCHAR(12) NOT NULL DEFAULT 'abierto', detectado_por VARCHAR(20) NOT NULL DEFAULT 'qa',
            tarea_id BIGINT UNSIGNED NULL, creado DATETIME(6) NOT NULL, cerrado DATETIME(6) NULL, PRIMARY KEY (id), KEY equipo_hall_estado_idx (estado, clave)) $opc",
+        // v18 · Cadencia de cierre: en qué paso va cada presupuesto abierto.
+        "CREATE TABLE IF NOT EXISTS equipo_cierre (
+           presupuesto_id BIGINT UNSIGNED NOT NULL, paso INT NOT NULL DEFAULT 0, ultimo_toque DATETIME(6) NULL, actualizado DATETIME(6) NOT NULL,
+           PRIMARY KEY (presupuesto_id)) $opc",
         "CREATE TABLE IF NOT EXISTS llamadas (
            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, contacto_id BIGINT UNSIGNED NOT NULL, autor_id CHAR(36) NULL,
            inicio DATETIME(6) NOT NULL, duracion INT NOT NULL DEFAULT 0, con_quien VARCHAR(20) NOT NULL DEFAULT 'nadie',

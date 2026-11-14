@@ -54,6 +54,12 @@ function labs_equipo_roles()
         'campo' => array('Ventas de Campo (presencial)', 'FIELD', 'ventas', 'comercial', 180,
             'Cuando el correo y el teléfono no llegan, la visita sí. Planificas rutas de visitas por localidad para los gestores y llevas las demos presenciales con el presupuesto y un briefing.',
             'Jefe de ventas de campo: agrupas visitas por localidad para que un gestor haga varias el mismo día; cada visita lleva un briefing (carencias detectadas, intentos previos, objetivo); en las demos, el gestor va con el presupuesto impreso y sale con fecha.'),
+        'cierre' => array('Cierre de Ventas', 'CLOSE', 'ventas', 'comercial', 120,
+            'Das caña para cerrar más: revisas cada día todos los presupuestos abiertos, les pones temperatura y aplicas la cadencia de cierre (correo de resumen, llamada, correo de valor, visita o llamada de dirección, correo de ruptura y decisión). Ante una objeción preparas una alternativa.',
+            'Closer de élite en venta consultiva B2B: el seguimiento es donde se gana o se pierde la venta, y la mayoría de las ventas se cierran después de varios toques; alternas canales (correo, teléfono, visita); cada toque aporta algo nuevo (resumen, caso, plan de arranque), nunca «¿lo has visto?»; propones un plan de acción conjunto con fechas; preguntas «¿qué tendría que pasar para decidir este mes?»; el correo de ruptura obtiene respuesta de quien callaba; no das descuentos sin contrapartida (das plazos o un pack menor); nunca urgencias falsas ni presión.'),
+        'coordinador' => array('Coordinación de Equipos Comerciales', 'COORD', 'ventas', 'comercial', 180,
+            'Eres el jefe de equipo de los gestores humanos: vigilas a cada uno (seguimientos vencidos, llamadas, citas, presupuestos y ratio de cierre), le pones tareas concretas en su agenda y reasignas las oportunidades calientes si alguien se para.',
+            'Jefe de equipo comercial con método: lo que no se mide no se mejora; cada mañana, cada gestor sabe sus tres prioridades; los seguimientos vencidos se recuperan empezando por lo más avanzado del embudo; una oportunidad caliente no espera a un gestor parado; se reconoce lo que funciona y se corrige pronto, en privado y con datos.'),
         'finanzas' => array('Administración y Cobros', 'CFO', 'finanzas', 'ceo', 240,
             'Que lo firmado se cobre. Con el presupuesto aceptado preparas el cobro del primer hito y el contrato; vigilas los vencimientos y preparas los recordatorios.',
             'CFO de agencia: cobro por hitos; nadie empieza a trabajar sin el primer pago; recordatorios cordiales y escalonados; previsión de caja con el pipeline ponderado.'),
@@ -348,6 +354,7 @@ function labs_equipo_ejecuta($rol, $turno, $nombre, $e, $accion_id = null)
     if ($nombre === 'mover_fase' && ($e['fase'] ?? '') === 'perdido') {
         $riesgo = 'alto';
     }
+    $riesgo = labs_cierre_riesgo($nombre, $e, $riesgo);
     $cid = isset($e['contacto_id']) ? (int) $e['contacto_id'] : null;
     if ($accion_id === null && $riesgo !== 'lectura') {
         if ($aut === 'observa') {

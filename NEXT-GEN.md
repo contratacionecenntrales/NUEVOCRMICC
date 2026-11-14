@@ -317,7 +317,7 @@ cada 5 minutos que abra la dirección que aparece en la Fábrica de agentes
 
 ## Zona de agentes: una empresa autónoma que aprende
 
-Menú «Zona de agentes», debajo del Motor (dirección y jefes de equipo). Trece
+Menú «Zona de agentes», debajo del Motor (dirección y jefes de equipo). Quince
 agentes en siete departamentos. Cada uno tiene su misión y un **cerebro de
 experto** (los métodos con los que trabaja un profesional de primer nivel en
 ese puesto), y los jefes revisan y corrigen a su equipo.
@@ -328,7 +328,7 @@ ese puesto), y los jefes revisan y corrigen a su equipo.
 | Operaciones y Calidad | **COO** (embudo multicanal y SLA) · **QA** (auditor jefe: busca errores en todo) |
 | Marketing y Crecimiento | **CMO** (jefe) · Prospección e inteligencia de mercado · Copywriting · Análisis y growth |
 | Innovación | **Laboratorio**: siempre hay un experimento en marcha |
-| Ventas | **CSO** (jefe) · SDR · Ventas de campo (visitas presenciales y demos) |
+| Ventas | **CSO** (jefe) · SDR · Ventas de campo (visitas y demos) · **Cierre** (closer) · **Coordinación** de los gestores humanos |
 | Finanzas | **CFO**: cobro por hitos, contrato y recordatorios |
 | Tecnología | **CTO**: Motor, correo, errores y datos |
 
@@ -365,6 +365,35 @@ por ángulo, sector y localidad.
    mismo día, en huecos libres del gestor, con un briefing de cada una.
 3. Quien pidió la baja no vuelve a ser contactado por ningún canal.
 
+**Cierre (pestaña «Cierre»).** Cada presupuesto abierto sigue una cadencia de
+seis toques que alterna canales y en la que cada toque aporta algo nuevo:
+
+| Día | Paso |
+|---|---|
+| 0 | Correo de resumen: lo que contó el cliente y su fuga frente a la inversión |
+| 2 | Llamada del gestor (aprovecha la de seguimiento si ya existe) |
+| 5 | Correo de valor: caso de su sector, plan de arranque en 3 semanas y pago por hitos |
+| 8 | Escalado: visita presencial para propuestas grandes, o llamada de dirección |
+| 12 | Correo de ruptura: «¿Cierro tu expediente?», con tres respuestas de un número |
+| 19 | Decisión: perdido con motivo y recontacto a los 90 días |
+
+- Cada oportunidad tiene una **temperatura** (decisor, fuga calculada, demo
+  hecha, llamadas recientes, días parada).
+- Si hay una demo, visita o firma agendada, la cadencia espera.
+- Ante una objeción de precio, el agente propone una **alternativa** sin
+  descuento: el mismo proyecto en 3 pagos o el pack inferior.
+- Los correos al cliente (firmados por su gestor) y la decisión final esperan
+  aprobación.
+- Si hay una alternativa abierta, solo esa sigue la cadencia.
+
+**Coordinación.** Ve a cada gestor humano: cartera, seguimientos vencidos,
+oportunidades calientes, llamadas, citas y ratio de cierre a 30 días.
+
+- Con 3 o más seguimientos vencidos, le pone en la agenda un plan para
+  ponerse al día, empezando por lo más avanzado.
+- Si un gestor lleva 7 días parado, sus oportunidades calientes pasan al
+  compañero con menos carga (con aprobación).
+
 **Calidad.** El auditor revisa errores de agentes, rechazos, campañas con
 bajas, oportunidades sin seguimiento, presupuestos fríos, cobros vencidos,
 experimentos eternos, tareas atascadas y citas sin cerrar.
@@ -394,7 +423,7 @@ Motor.
 
 ## Briefs de speech telefónico (Centro de Formación)
 
-Ruta **«Speech telefónico · nivel experto»**, con 8 briefs que se leen en el
+Ruta **«Speech telefónico · nivel experto»**, con 9 briefs que se leen en el
 propio CRM (índice, progreso, autoevaluación e impresión a PDF):
 
 1. Encuentra el cuello de botella en 3 minutos
@@ -407,6 +436,9 @@ propio CRM (índice, progreso, autoevaluación e impresión a PDF):
 8. AI Act en España: qué decir y qué no al cliente (calendario tras el Digital
    Omnibus, AESIA y AEPD, estado del proyecto de ley español, cómo hablar de
    multas sin asustar y tres ganchos honestos)
+9. Cierre nivel experto: del presupuesto a la firma (cadencia de seis toques,
+   correo de ruptura, preguntas de cierre, objeciones de la última milla y por
+   qué no se regalan descuentos)
 
 Están basados en el Kit de Venta Rápido, el Manual del Gestor Comercial y la
 Comparativa de Packs, sin cifras inventadas. Como los documentos corporativos,

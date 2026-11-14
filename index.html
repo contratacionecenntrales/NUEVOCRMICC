@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-a++tqAcy2f2BKCW8HZUMOR5IEKu/neHRM2gUtTmDCpI='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-GeA1vtaWBihkUf53bUF6dp6bbppZMBb44K1q55xRK9s='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Labs Command Center 360 - Oficina virtual SaaS de la red comercial de Labs24k.">
 <meta name="theme-color" content="#0B0F19">
@@ -1920,6 +1920,18 @@ a.btn.btn-g:hover{color:#fff}
 .eq-mem{padding:10px 12px;border-radius:12px;border:1px solid var(--line);border-left:3px solid var(--c);background:var(--card-2);margin-bottom:8px}
 .eq-conf{height:4px;border-radius:99px;background:var(--line);overflow:hidden;margin:6px 0 4px}
 .eq-conf i{display:block;height:100%;background:var(--c)}
+.eq-cad{margin-bottom:14px;border-color:rgba(244,63,94,.35)}
+.eq-cad-p{display:flex;gap:6px;align-items:stretch;overflow-x:auto;padding-bottom:2px}
+.eq-cad-s{flex:1;min-width:120px;display:flex;flex-direction:column;gap:2px;padding:10px;border-radius:12px;background:var(--card-2);border:1px solid var(--line)}
+.eq-cad-s b{font-size:12px;color:#FB7185}
+.eq-cad-s span{font-size:12.5px;font-weight:700}
+.eq-cad-s small{font-size:10.5px;color:var(--txt-3)}
+.eq-cierre{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:14px;align-items:start}
+.eq-pasos{display:flex;gap:3px}
+.eq-pasos i{width:12px;height:12px;border-radius:50%;border:1px solid var(--line);background:transparent}
+.eq-pasos i.h{background:#4ADE80;border-color:#4ADE80}
+.eq-pasos i.t{background:#FB7185;border-color:#FB7185;box-shadow:0 0 0 3px rgba(251,113,133,.25)}
+@media (max-width:900px){.eq-cierre{grid-template-columns:1fr}}
 .eq-hal{display:flex;gap:9px;align-items:flex-start;padding:10px;border-radius:12px;border:1px solid var(--line);border-left:3px solid var(--c);background:var(--card-2);margin-bottom:8px}
 @media (max-width:900px){.eq-lab,.eq-cerebro,.eq-cal,.eq-det-g{grid-template-columns:1fr}.eq-ritmo-obj{align-items:flex-start}}
 @media (max-width:900px){.eq-tareas{grid-template-columns:1fr}.eq-aprob{grid-template-columns:1fr}.eq-cob-res{grid-template-columns:repeat(2,minmax(0,1fr))}.eq-cobro{margin-left:0}}
@@ -10168,13 +10180,13 @@ var MOT_MODOS = {aprobacion:['Con aprobación','La IA redacta y tú apruebas cad
    ZONA DE AGENTES · equipo directivo de IA que trabaja solo sobre el CRM
    ========================================================================== */
 var EQ_ROL = {ceo:{ic:'trend', c:'#FBBF24'}, coo:{ic:'refresh', c:'#FB923C'}, qa:{ic:'shield', c:'#F87171'}, prospeccion:{ic:'search', c:'#818CF8'}, copy:{ic:'file', c:'#C084FC'},
-  analista:{ic:'chart', c:'#22D3EE'}, innovacion:{ic:'spark', c:'#FACC15'}, campo:{ic:'building', c:'#34D399'}, marketing:{ic:'globe', c:'#A78BFA'}, sdr:{ic:'phone', c:'#38BDF8'}, comercial:{ic:'case', c:'#4ADE80'},
+  analista:{ic:'chart', c:'#22D3EE'}, innovacion:{ic:'spark', c:'#FACC15'}, campo:{ic:'building', c:'#34D399'}, cierre:{ic:'target', c:'#F43F5E'}, coordinador:{ic:'userPlus', c:'#14B8A6'}, marketing:{ic:'globe', c:'#A78BFA'}, sdr:{ic:'phone', c:'#38BDF8'}, comercial:{ic:'case', c:'#4ADE80'},
   finanzas:{ic:'euro', c:'#F472B6'}, cto:{ic:'cog', c:'#2DD4BF'}, direccion:{ic:'users', c:'#E2E8F0'}};
 var EQ_RIESGO = {lectura:['Consulta','#94A3B8'], bajo:['Interno','#38BDF8'], medio:['Agenda y pipeline','#FBBF24'], alto:['Dinero o cliente','#F87171']};
 var EQ_EST = {hecha:['Hecho','#4ADE80'], pendiente:['Espera aprobación','#FBBF24'], aprobada:['Aprobado','#4ADE80'], rechazada:['Rechazado','#94A3B8'], error:['No se pudo','#F87171']};
 var EQ_AUT = {observa:['Solo observa','#94A3B8','Lee y te informa. No cambia nada.'], propone:['Propone','#FBBF24','Lo interno lo hace solo; agenda, pipeline, prospección, dinero y clientes esperan tu aprobación.'],
   actua:['Actúa','#4ADE80','Hace lo interno, la agenda, el pipeline y la prospección. El dinero y lo que habla con un cliente siempre espera tu aprobación.']};
-var EQ = {tab:'equipo', d:null, reloj:null, cuenta:0, enCurso:false, cfg:null, ocupado:{}, orden:{para:'ceo', titulo:'', detalle:'', prioridad:'alta'}, ed:{}, lab:null, cer:null, cal:null, sel:null};
+var EQ = {tab:'equipo', d:null, reloj:null, cuenta:0, enCurso:false, cfg:null, ocupado:{}, orden:{para:'ceo', titulo:'', detalle:'', prioridad:'alta'}, ed:{}, lab:null, cer:null, cal:null, cie:null, sel:null};
 
 function eqNombre(rol){ if(rol === 'direccion') return 'Dirección (personas)'; var a = EQ.d && EQ.d.agentes.filter(function(x){ return x.rol === rol; })[0]; return a ? a.nombre : rol; }
 function eqAlias(rol){ var a = EQ.d && EQ.d.agentes.filter(function(x){ return x.rol === rol; })[0]; return a ? a.alias : 'DIR'; }
@@ -10212,11 +10224,11 @@ function viewAgentesIA(v){
   var D = EQ.d, avisos = [], pd = D.tareas.filter(function(t){ return t.para === 'direccion' && t.estado === 'pendiente'; }).length;
   if(!D.config.encendido) avisos.push('El equipo está apagado: nadie trabaja hasta que la administración lo encienda.');
   if(!D.ia) avisos.push('Sin clave de Claude los agentes trabajan con su manual de reglas. La clave se pone en el Motor de Scraping IA → Fábrica de agentes.');
-  var tabs = [['equipo','users','La empresa'],['aprobaciones','check','Para aprobar'],['laboratorio','spark','Laboratorio'],['cerebro','book','Cerebro'],['calidad','shield','Calidad'],
+  var tabs = [['equipo','users','La empresa'],['aprobaciones','check','Para aprobar'],['cierre','target','Cierre'],['laboratorio','spark','Laboratorio'],['cerebro','book','Cerebro'],['calidad','shield','Calidad'],
     ['tareas','file','Tareas y órdenes'],['cobros','euro','Cobros'],['ajustes','cog','Ajustes']];
   v.innerHTML =
     '<div class="mt-hero eq-hero"><div><span class="rc-kick">'+ic('bolt',13)+' EMPRESA AUTÓNOMA QUE APRENDE</span><h2>Zona de agentes</h2>'+
-      '<p>Trece agentes expertos en siete departamentos, con jefes que revisan y corrigen. Buscan empresas, prueban mensajes, aprenden de los resultados, cambian de canal (correo, teléfono, visita) cuando uno no funciona y persiguen el cobro. Tú apruebas lo importante.</p></div>'+
+      '<p>Quince agentes expertos en siete departamentos, con jefes que revisan y corrigen. Buscan empresas, prueban mensajes, aprenden de los resultados, cambian de canal (correo, teléfono, visita) cuando uno no funciona y persiguen el cobro. Tú apruebas lo importante.</p></div>'+
       '<div class="mt-hero-st" id="eq-hero-st">'+eqHeroStats()+'</div></div>'+
     (avisos.length ? '<div class="mt-avisos">'+avisos.map(function(a){ return '<span>'+ic('alert',13)+' '+esc(a)+'</span>'; }).join('')+'</div>' : '')+
     '<div class="eq-embudo" id="eq-embudo">'+eqEmbudo()+'</div>'+
@@ -10229,15 +10241,15 @@ function viewAgentesIA(v){
 }
 function eqCuerpo(){
   var t = EQ.tab;
-  if(t === 'laboratorio' || t === 'cerebro' || t === 'calidad'){
-    var k = {laboratorio:'lab', cerebro:'cer', calidad:'cal'}[t];
+  if(t === 'laboratorio' || t === 'cerebro' || t === 'calidad' || t === 'cierre'){
+    var k = {laboratorio:'lab', cerebro:'cer', calidad:'cal', cierre:'cie'}[t];
     if(!EQ[k]){ eqCargaTab(t); return '<div class="card"><p class="muted">Cargando…</p></div>'; }
-    return t === 'laboratorio' ? eqLab() : t === 'cerebro' ? eqCerebro() : eqCalidad();
+    return t === 'laboratorio' ? eqLab() : t === 'cerebro' ? eqCerebro() : t === 'cierre' ? eqCierre() : eqCalidad();
   }
   return t === 'aprobaciones' ? eqAprob() : t === 'tareas' ? eqTareas() : t === 'cobros' ? eqCobros() : t === 'ajustes' ? eqAjustes() : eqEquipo();
 }
 function eqCargaTab(t){
-  var r = {laboratorio:['/equipo/lab','lab'], cerebro:['/equipo/cerebro','cer'], calidad:['/equipo/calidad','cal']}[t];
+  var r = {laboratorio:['/equipo/lab','lab'], cerebro:['/equipo/cerebro','cer'], calidad:['/equipo/calidad','cal'], cierre:['/equipo/cierre','cie']}[t];
   return ngApi(r[0]).then(function(d){ EQ[r[1]] = d; if(S.view === 'agentesia' && EQ.tab === t){ q('#eq-cuerpo').innerHTML = eqCuerpo(); eqEventos(); } }, function(e){ toast(e.message); });
 }
 function eqHeroStats(){
@@ -10341,6 +10353,33 @@ function eqLab(){
         '<div class="eq-rama"><span>'+ic('phone',16)+'</span><b>Teléfono</b><em>'+res.rama_telefono_escalados+' escalados · '+res.rama_telefono_avanzan+' avanzan</em><small>'+R.candidatas_a_telefono+' empresas sin respuesta, esperando a pasar a teléfono</small></div><i class="eq-flecha">'+ic('arrowRight',14)+'</i>'+
         '<div class="eq-rama"><span>'+ic('building',16)+'</span><b>Visita presencial</b><em>'+res.rama_visita_programadas+' programadas · '+res.rama_visita_realizadas+' hechas</em><small>'+(locs.length ? 'Candidatas: '+locs.map(function(l){ return esc(l)+' ('+R.candidatos_a_visita_por_localidad[l]+')'; }).join(', ') : 'Sin candidatas a visita ahora mismo')+'</small></div></div>'+
       '<p class="tiny muted" style="margin:10px 0 0">Operaciones pasa a teléfono a quien no respondió a los 3 correos (4 días después del último); si por teléfono no se localiza a quien decide (2 intentos), Ventas de campo agrupa las visitas por localidad en una ruta para un gestor. Nadie que haya pedido la baja vuelve a ser contactado.</p></section></div>';
+}
+
+/* --- Cierre: cadencia de cierre y equipo comercial ------------------------------------------------ */
+function eqCierre(){
+  var C = EQ.cie, P = C.presupuestos, G = C.equipo_comercial, cad = C.cadencia, toca = P.filter(function(x){ return x.toca_ahora; }).length;
+  var valor = P.reduce(function(a, x){ return a + x.base; }, 0);
+  var col = function(t){ return t >= 70 ? '#4ADE80' : t >= 45 ? '#FBBF24' : '#F87171'; };
+  return '<section class="card eq-cad"><h3 class="eq-h3">'+ic('target',15)+' Cadencia de cierre <span class="tiny muted">· el agente de Cierre la aplica a cada presupuesto abierto</span></h3>'+
+      '<div class="eq-cad-p">'+cad.map(function(c, i){ return '<div class="eq-cad-s"><b>Día '+c.dia+'</b><span>'+esc(c.que.split(':')[0])+'</span><small>'+esc(c.que.indexOf(':') > -1 ? c.que.slice(c.que.indexOf(':') + 1).trim() : '')+'</small></div>'+
+        (i < cad.length - 1 ? '<i class="eq-flecha">'+ic('arrowRight',12)+'</i>' : ''); }).join('')+'</div>'+
+      '<p class="tiny muted" style="margin:8px 0 0">Cada toque aporta algo nuevo y alterna el canal. Los correos al cliente y la decisión final esperan tu aprobación; si ya hay una cita con el cliente, la cadencia espera. Ante una objeción de precio propone pago en 3 hitos o el pack inferior, nunca un descuento sin contrapartida.</p></section>'+
+    '<div class="eq-cierre"><section class="card"><div class="row" style="justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center"><h3 class="eq-h3" style="margin:0">'+ic('calc',15)+' Sala de cierre</h3>'+
+        '<span class="tiny muted">'+P.length+' presupuestos abiertos · '+eur(valor)+' + IVA en juego · <b style="color:#FB7185">'+toca+' tocan hoy</b></span></div>'+
+      (P.length ? '<div class="mt-tabla"><table><thead><tr><th>Cliente</th><th>Propuesta</th><th>Días</th><th style="min-width:120px">Temperatura</th><th>Cadencia</th><th>Siguiente paso</th></tr></thead><tbody>'+P.map(function(x){
+        return '<tr><td><button class="ng-link" data-eq-ficha="'+x.contacto_id+'"><b>'+esc(x.cliente)+'</b></button>'+(x.decisor ? '<div class="tiny muted">'+esc(x.decisor)+'</div>' : '<div class="tiny" style="color:#FCA5A5">sin decisor</div>')+'</td>'+
+          '<td>'+esc(x.codigo)+'<div class="tiny muted">'+eur(x.base)+' + IVA · '+esc(x.estado)+'</div></td><td>'+x.dias+'</td>'+
+          '<td><div class="eq-var-b"><i style="width:'+x.temperatura+'%;background:'+col(x.temperatura)+'"></i></div><b style="color:'+col(x.temperatura)+'">'+x.temperatura+'</b></td>'+
+          '<td><div class="eq-pasos">'+cad.map(function(c, i){ return '<i class="'+(i < x.paso ? 'h' : i === x.paso && x.toca_ahora ? 't' : '')+'" title="'+esc('Día ' + c.dia + ': ' + c.que)+'"></i>'; }).join('')+'</div></td>'+
+          '<td class="tiny">'+(x.espera_cita ? ic('calendar',11)+' Espera a la cita del '+esc(ctFechaCorta(x.espera_cita, true)) : x.siguiente_paso ? (x.toca_ahora ? '<b style="color:#FB7185">Hoy</b> · ' : 'Día '+x.siguiente_paso.dia+' · ')+esc(x.siguiente_paso.que.split(':')[0]) : 'Cadencia completa')+'</td></tr>'; }).join('')+
+      '</tbody></table></div>' : '<div class="mt-vacio">'+ic('calc',22)+'<b>No hay presupuestos abiertos.</b><span>Cuando un gestor o el agente Comercial registre un presupuesto, entrará aquí con su cadencia.</span></div>')+'</section>'+
+    '<section class="card"><h3 class="eq-h3">'+ic('userPlus',15)+' Equipo comercial <span class="tiny muted">· lo vigila Coordinación</span></h3>'+
+      (G.length ? '<div class="mt-tabla"><table><thead><tr><th>Gestor</th><th>Cartera</th><th>Vencidos</th><th>Calientes</th><th>Llamadas 7 d</th><th>Citas 7 d</th><th>Abiertos</th><th>Cierre 30 d</th></tr></thead><tbody>'+G.map(function(g){
+        return '<tr><td><b>'+esc(g.nombre)+'</b><div class="tiny muted">'+(g.jefe_de_equipo ? 'Equipo de '+esc(g.jefe_de_equipo) : g.rol === 'manager' ? 'Jefe de equipo' : 'Sin jefe asignado')+'</div></td><td>'+g.cartera_activa+'</td>'+
+          '<td'+(g.seguimientos_vencidos >= 3 ? ' style="color:#FCA5A5;font-weight:700"' : '')+'>'+g.seguimientos_vencidos+'</td><td>'+g.oportunidades_calientes+'</td><td'+(!g.llamadas_7d ? ' style="color:#FCA5A5"' : '')+'>'+g.llamadas_7d+'</td>'+
+          '<td>'+g.citas_7d+'</td><td>'+g.presupuestos_abiertos+'</td><td>'+(g.tasa_cierre === null ? '<span class="tiny muted">—</span>' : g.tasa_cierre+' %')+' <span class="tiny muted">('+g.aceptados_30d+')</span></td></tr>'; }).join('')+
+      '</tbody></table></div>' : '<div class="tiny muted">No hay gestores comerciales activos.</div>')+
+      '<p class="tiny muted" style="margin:8px 0 0">Con 3 o más seguimientos vencidos, Coordinación le pone al gestor en su agenda un plan para ponerse al día, empezando por lo más avanzado. Si un gestor lleva 7 días sin actividad, sus oportunidades calientes pasan al compañero con menos carga.</p></section></div>';
 }
 
 /* --- Cerebro de la empresa --------------------------------------------------------------------- */
@@ -10488,7 +10527,7 @@ function eqAjustes(){
 function eqRefresca(){ return eqCarga().then(function(){ if(S.view === 'agentesia') renderApp(); }); }
 function eqEventos(){
   qa('[data-eq-tab]').forEach(function(b){ b.onclick = function(){ EQ.tab = b.dataset.eqTab;
-    if(EQ.tab === 'laboratorio') EQ.lab = null; if(EQ.tab === 'cerebro') EQ.cer = null; if(EQ.tab === 'calidad') EQ.cal = null;
+    if(EQ.tab === 'laboratorio') EQ.lab = null; if(EQ.tab === 'cerebro') EQ.cer = null; if(EQ.tab === 'calidad') EQ.cal = null; if(EQ.tab === 'cierre') EQ.cie = null;
     if(EQ.tab === 'ajustes') EQ.cfg = null, eqCarga().then(renderApp); else renderApp(); }; });
   qa('[data-eq-sel]').forEach(function(b){ b.onclick = function(){ EQ.sel = EQ.sel === b.dataset.eqSel ? null : b.dataset.eqSel; q('#eq-cuerpo').innerHTML = eqCuerpo(); eqEventos();
     if(EQ.sel && q('.eq-det')) q('.eq-det').scrollIntoView({block:'nearest', behavior:'smooth'}); }; });
