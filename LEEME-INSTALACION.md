@@ -236,6 +236,11 @@ enchufes, y el panel lo dice claramente:
 
 ## Zona de agentes
 
+**Barrido de Asturias.** Va activo, con 150 consultas a Google Places al día:
+ajusta ese número a tu presupuesto en Zona de agentes → Ajustes. Para usar el
+saldo de OpenAI, elige «OpenAI» como proveedor en el Motor → Fábrica de
+agentes y pega su clave (se guarda cifrada).
+
 Usa la misma clave de Claude y el mismo cron que el Motor: no hay que
 configurar nada más. Viene **apagada**: la administración la enciende desde
 el propio panel cuando quiera. Sin clave de Claude, los agentes trabajan con

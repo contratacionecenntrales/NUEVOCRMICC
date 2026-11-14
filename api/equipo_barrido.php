@@ -193,7 +193,9 @@ function labs_equipo_h_barrer_asturias($e, $rol)
         $tasa[$x['sector']] = $x['contactadas'] >= 10 ? $x['tasa_positiva'] : 0;
     }
     $p = array();
-    $sql = "SELECT id, sector, concejo, comarca, tier FROM motor_cobertura WHERE estado = 'pendiente'";
+    // Solo los sectores activos del barrido (si se acotan, las casillas de los demás quedan en espera).
+    $in = implode(',', array_map(function ($x) { return labs_db()->quote($x); }, labs_barrido_sectores_activos()));
+    $sql = "SELECT id, sector, concejo, comarca, tier FROM motor_cobertura WHERE estado = 'pendiente' AND sector IN ($in)";
     if (!empty($e['sector'])) {
         $sql .= ' AND sector = ' . labs_db()->quote(mb_strtolower(trim($e['sector'])));
     }

@@ -332,6 +332,27 @@ ese puesto), y los jefes revisan y corrigen a su equipo.
 | Finanzas | **CFO**: cobro por hitos, contrato y recordatorios |
 | Tecnología | **CTO**: Motor, correo, errores y datos |
 
+**Barrido de Asturias (el primer paso del embudo, en automático).**
+
+- Es una matriz de **20 sectores × 78 concejos** (las 8 comarcas oficiales).
+  El agente de Prospección la recorre casilla a casilla, por prioridad:
+  primero los grandes núcleos, después las villas y luego el resto, y dentro
+  de cada grupo los sectores que mejor convierten.
+- Tiene un **presupuesto diario de consultas a Google Places** (150 por
+  defecto), porque cada consulta tiene coste.
+- Cada casilla se vuelve a barrer a los 90 días para captar negocios nuevos.
+- Lo que encuentra entra solo en la **campaña siempre activa** de su sector,
+  que abre Marketing. Así se pasa del scraping al correo sin pasos manuales.
+- Las campañas siempre activas van con aprobación de cada correo. Pueden ir
+  en **envío autónomo** solo si la administración lo activa y aceptó el aviso
+  legal (LSSI) en el Motor.
+- El mapa de cobertura (sector × comarca) está en el Laboratorio.
+
+**OpenAI como proveedor.** En la Fábrica de agentes del Motor se elige quién
+redacta los correos y clasifica las respuestas: Claude u OpenAI (con su clave
+y su modelo). Si el elegido falla o se queda sin saldo, se usa el otro, y si
+no hay ninguno, plantillas. El razonamiento de los agentes sigue con Claude.
+
 **Ritmo hacia el objetivo.** Calcula al revés, desde la facturación que falta
 hasta los clientes, propuestas, demos, interesados y empresas a contactar por
 semana. Usa las tasas reales de los últimos 90 días, suavizadas con valores de
