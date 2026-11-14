@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-KziRxRVzA9CV3f5kwmrm5ACPIFjUej86rHp+j1dtryM='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-6pHT0GhG25v7ysgQGHCqy0/iox8j6Psj6ioKa2SJbj8='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Labs Command Center 360 - Oficina virtual SaaS de la red comercial de Labs24k.">
 <meta name="theme-color" content="#0B0F19">
@@ -1941,6 +1941,51 @@ a.btn.btn-g:hover{color:#fff}
 .eq-pasos i.h{background:#4ADE80;border-color:#4ADE80}
 .eq-pasos i.t{background:#FB7185;border-color:#FB7185;box-shadow:0 0 0 3px rgba(251,113,133,.25)}
 @media (max-width:900px){.eq-cierre{grid-template-columns:1fr}}
+.fl-hero{border-color:rgba(56,189,248,.35);background:radial-gradient(620px 260px at 0% 0%,rgba(56,189,248,.2),transparent 70%),radial-gradient(520px 260px at 100% 100%,rgba(192,132,252,.18),transparent 70%),var(--card)}
+.fl-lista,.fl-pls{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px}
+.fl-card{margin:0}
+.fl-card.on{border-color:rgba(74,222,128,.45)}
+.fl-nom{display:block;font-size:15px}
+.fl-met{grid-template-columns:repeat(5,minmax(0,1fr))}
+.fl-mini{display:flex;align-items:center;flex-wrap:wrap;gap:3px;margin-top:10px}
+.fl-mini span{display:grid;place-items:center;width:24px;height:24px;border-radius:8px;color:var(--c);background:color-mix(in srgb,var(--c) 16%,transparent)}
+.fl-mini span svg{display:block}
+.fl-mini i{width:8px;height:2px;background:var(--line)}
+.fl-mini em{font-style:normal;font-size:11px;color:var(--txt-3);margin-left:4px}
+.fl-form{display:flex;flex-direction:column;gap:6px;margin-top:10px;padding:10px;border-radius:12px;border:1px dashed var(--line)}
+.fl-form textarea{font-size:11.5px}
+.fl-h{display:flex;gap:7px;align-items:center;margin:4px 0 10px;font-size:15px}
+.fl-h svg{display:block;color:#38BDF8}
+.fl-pls{margin-bottom:18px}
+.fl-pl{margin:0;display:flex;flex-direction:column}
+.fl-pl b{font-size:14px}
+.fl-ed{display:grid;grid-template-columns:minmax(260px,300px) minmax(0,1fr) minmax(280px,340px);gap:14px;align-items:start}
+.fl-ed-c,.fl-insp{position:sticky;top:12px}
+.fl-ed .eq-h5 svg{display:inline-block;vertical-align:-2px}
+.fl-diag{overflow-x:auto;min-height:360px}
+.fl-arbol{display:flex;flex-direction:column;align-items:center;width:max-content;min-width:100%;margin:0 auto}
+.fl-card .tiny svg,.fl-pl .tiny svg,.fl-ed-c .ng-link svg,.fl-form svg{display:inline-block;vertical-align:-2px}
+.fl-inicio,.fl-obj{display:flex;gap:6px;align-items:center;padding:8px 14px;border-radius:99px;font-size:12.5px;font-weight:700}
+.fl-inicio{background:rgba(251,191,36,.12);color:#FDE68A;border:1px solid rgba(251,191,36,.4)}
+.fl-obj{margin-top:16px;background:rgba(74,222,128,.1);color:#BBF7D0;border:1px solid rgba(74,222,128,.35)}
+.fl-inicio svg,.fl-obj svg{display:block}
+.fl-linea{display:block;width:2px;height:16px;background:var(--line)}
+.fl-nodo{display:flex;gap:8px;align-items:center;width:212px;max-width:100%;padding:8px 10px;border-radius:12px;border:1px solid var(--line);border-left:3px solid var(--c);background:var(--card-2);color:var(--txt);text-align:left;cursor:pointer;font:inherit;position:relative}
+.fl-nodo:hover{border-color:var(--c)}
+.fl-nodo.sel{box-shadow:0 0 0 2px var(--c)}
+.fl-nodo-t{display:flex;flex-direction:column;min-width:0}
+.fl-nodo-t b{font-size:12.5px}
+.fl-nodo-t span{font-size:11px;color:var(--txt-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px}
+.fl-nodo em{position:absolute;top:-7px;right:-7px;min-width:20px;height:20px;padding:0 5px;border-radius:99px;background:#38BDF8;color:#0B0F19;font-style:normal;font-size:11px;font-weight:800;display:grid;place-items:center}
+.fl-ramas{display:flex;gap:8px;align-items:flex-start;margin-top:10px;padding-top:10px;border-top:2px solid var(--line)}
+.fl-rama{display:flex;flex-direction:column;align-items:center;min-width:214px}
+.fl-rama-t{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--txt-3);margin-bottom:6px}
+.fl-finrama{font-size:11px;color:var(--txt-3);padding:4px 10px;border-radius:99px;border:1px dashed var(--line)}
+.fl-vars{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.fl-vars .mt-loc{font-size:11px;padding:3px 7px}
+.fl-hr{border:0;border-top:1px solid var(--line);margin:12px 0}
+@media (max-width:1100px){.fl-ed{grid-template-columns:1fr}.fl-ed-c,.fl-insp{position:static}}
+@media (max-width:560px){.fl-met{grid-template-columns:repeat(3,minmax(0,1fr))}.fl-nodo{width:220px}.fl-rama{min-width:220px}}
 .eq-hal{display:flex;gap:9px;align-items:flex-start;padding:10px;border-radius:12px;border:1px solid var(--line);border-left:3px solid var(--c);background:var(--card-2);margin-bottom:8px}
 @media (max-width:900px){.eq-lab,.eq-cerebro,.eq-cal,.eq-det-g{grid-template-columns:1fr}.eq-ritmo-obj{align-items:flex-start}}
 @media (max-width:900px){.eq-tareas{grid-template-columns:1fr}.eq-aprob{grid-template-columns:1fr}.eq-cob-res{grid-template-columns:repeat(2,minmax(0,1fr))}.eq-cobro{margin-left:0}}
@@ -3131,6 +3176,7 @@ var MENU = [
   {id:'prospeccion', label:'Centro de Prospección',      icon:'target',    sec:'General',   roles:['admin','manager','commercial']},
   {id:'motor',       label:'Motor de Scraping IA',       icon:'spark',     sec:'General',   roles:['admin','manager']},
   {id:'agentesia',   label:'Zona de agentes',            icon:'bolt',      sec:'General',   roles:['admin','manager']},
+  {id:'flujos',      label:'Automatizaciones y Embudos', icon:'filter',    sec:'General',   roles:['admin','manager']},
   {id:'resources',   label:'Centro de Recursos',         icon:'file',      sec:'General',   roles:['admin','manager','commercial','backoffice']},
   {id:'support',     label:'Soporte y Tickets',          icon:'help',      sec:'General',   roles:['admin','manager','commercial','backoffice']},
   {id:'adminsupport',label:'Mesa de Incidencias',        icon:'alert',     sec:'Sistema',   roles:['admin','manager']},
@@ -3395,7 +3441,7 @@ function renderApp(){
     interviews:viewInterviews, users:viewUsers, settings:viewSettings, contactos:viewContactos,
     rolesadmin:viewRolesAdmin, resources:viewResources, support:viewSupport,
     adminsupport:viewAdminSupportDesk, equipo:viewEquipo, mificha:viewMiFicha, seguridad:viewSeguridad, cumplimiento:viewCumplimiento,
-    sala:viewSala, pipeline:viewPipeline, prospeccion:viewProspeccion, motor:viewMotor, agentesia:viewAgentesIA};
+    sala:viewSala, pipeline:viewPipeline, prospeccion:viewProspeccion, motor:viewMotor, agentesia:viewAgentesIA, flujos:viewFlujos};
   (VIEWS[S.view]||viewDashboard)(v);
   reponerToasts();
   vcBanda();
@@ -10613,6 +10659,240 @@ function eqEventos(){
     if(k === 'autonomia' && x.nextElementSibling) x.nextElementSibling.textContent = EQ_AUT[x.value][2]; }; });
   if(q('#eq-guardar')) q('#eq-guardar').onclick = function(){ var b = this; b.disabled = true;
     ngApi('/equipo/config', 'POST', EQ.cfg).then(function(){ toast('Ajustes guardados.'); EQ.cfg = null; return eqRefresca(); }, function(e){ toast(e.message); b.disabled = false; }); };
+}
+
+/* ==========================================================================
+   AUTOMATIZACIONES Y EMBUDOS · motor propio de flujos sobre el CRM
+   ========================================================================== */
+var FL_NODO = {correo:['mail','#38BDF8'], esperar:['clock','#94A3B8'], esperar_cita:['calendar','#94A3B8'], esperar_hasta:['clock','#FBBF24'], condicion:['filter','#FBBF24'],
+  ab:['spark','#C084FC'], tarea:['calendar','#4ADE80'], whatsapp:['chat','#22C55E'], fase:['target','#FB923C'], etiqueta:['check','#2DD4BF'], asignar:['userPlus','#818CF8'],
+  aviso:['bell','#F472B6'], webhook:['plug','#A78BFA'], fin:['check','#64748B']};
+var FL_RAMA = {condicion:[['si','Sí'],['no','No']], esperar_hasta:[['si','Se cumple'],['no','No a tiempo']], ab:[['a','Variante A'],['b','Variante B']]};
+var FL_VARS = ['{{nombre}}','{{empresa}}','{{gestor}}','{{gestor_telefono}}','{{sector}}','{{fecha_cita}}','{{presupuesto}}','{{importe}}'];
+var FL = {tab:'flujos', d:null, ed:null, sel:null, reloj:null, guardando:false};
+
+function flCarga(){ return ngApi('/flujos').then(function(d){ FL.d = d; }); }
+function flLatido(){
+  clearInterval(FL.reloj);
+  FL.reloj = setInterval(function(){
+    if(S.view !== 'flujos'){ clearInterval(FL.reloj); FL.reloj = null; return; }
+    if(FL.ed) return;
+    ngApi('/flujos/tick', 'POST', {}).catch(function(){}).then(function(){ return flCarga(); }).then(function(){ if(S.view === 'flujos' && !FL.ed && !document.querySelector('#fl-cuerpo :focus')) { q('#fl-cuerpo').innerHTML = flCuerpo(); flEventos(); } }, function(){});
+  }, 20000);
+}
+function flResumenNodo(n){
+  var p = n.params || {}, D = FL.d;
+  switch(n.tipo){
+    case 'correo': return p.asunto || 'Sin asunto';
+    case 'esperar': return (p.cantidad || 1) + ' ' + ({minutos:'minutos', horas:'horas', dias:'días'}[p.unidad || 'dias']);
+    case 'esperar_cita': return (p.horas_antes || 24) + ' h antes de la cita';
+    case 'esperar_hasta': return (D.campos[p.campo] || '?') + ' · máx. ' + (p.max_dias || 3) + ' días';
+    case 'condicion': return (D.campos[p.campo] || '?') + (p.valor ? ' ' + ({es:'es', no_es:'no es', contiene:'contiene', mayor:'mayor que', menor:'menor que', alcanza:'llega a'}[p.op || 'es']) + ' «' + p.valor + '»' : (p.op === 'no_es' ? ': no' : ': sí'));
+    case 'ab': return 'A ' + (p.pct_a || 50) + ' % · B ' + (100 - (p.pct_a || 50)) + ' %';
+    case 'tarea': return (p.titulo || 'Tarea') + (p.en_minutos ? ' · en ' + p.en_minutos + ' min' : p.en_dias ? ' · en ' + p.en_dias + ' días' : '');
+    case 'whatsapp': return (p.mensaje || '').slice(0, 60);
+    case 'fase': return D.fases[p.fase] || '?';
+    case 'etiqueta': return (p.accion === 'quitar' ? 'Quitar «' : 'Añadir «') + (p.etiqueta || '') + '»';
+    case 'asignar': return 'Reparto rotativo entre gestores';
+    case 'aviso': return (p.mensaje || '').slice(0, 60);
+    case 'webhook': return (p.url || '').replace(/^https?:\/\//, '').slice(0, 40);
+  }
+  return '';
+}
+function flDisparadorTxt(f){ var d = f.disparador || {}, t = FL.d.disparadores[d.tipo] || '?';
+  if(d.tipo === 'fase_cambia' && d.valor) t += ': ' + (FL.d.fases[d.valor] || d.valor);
+  else if(d.tipo === 'sin_actividad') t = (d.dias || 14) + ' días sin actividad' + (d.valor ? ' (' + d.valor + ')' : '');
+  else if(d.valor) t += ': ' + d.valor;
+  return t; }
+function flObjetivoTxt(o){ o = o || {}; return !o.tipo ? 'Sin objetivo (recorre el flujo entero)' : o.tipo === 'fase' ? 'Llega a «' + (FL.d.fases[o.valor] || o.valor) + '»' :
+  o.tipo === 'cita' ? 'Tiene una reunión agendada' : o.tipo === 'presupuesto_aceptado' ? 'Acepta un presupuesto' : 'Tiene la etiqueta «' + (o.valor || '') + '»'; }
+function flMini(pasos){ return '<div class="fl-mini">'+(pasos || []).slice(0, 12).map(function(n){ var x = FL_NODO[n.tipo] || ['bolt','#94A3B8'];
+  return '<span style="--c:'+x[1]+'" title="'+esc(FL.d.nodos[n.tipo] || n.tipo)+'">'+ic(x[0],12)+'</span>'; }).join('<i></i>')+((pasos || []).length > 12 ? '<em>+'+(pasos.length - 12)+'</em>' : '')+'</div>'; }
+
+function viewFlujos(v){
+  if(!FL.d){ v.innerHTML = '<div class="card"><p class="muted">Cargando automatizaciones…</p></div>'; flCarga().then(function(){ if(S.view === 'flujos') renderApp(); }, function(e){ v.innerHTML = '<div class="card"><p>'+esc(e.message)+'</p></div>'; }); return; }
+  if(!FL.reloj) flLatido();
+  var D = FL.d, R = D.resumen;
+  v.innerHTML = '<div class="mt-hero fl-hero"><div><span class="rc-kick">'+ic('filter',13)+' AUTOMATIZACIONES · EMBUDOS · SIN HERRAMIENTAS EXTERNAS</span><h2>Automatizaciones y Embudos</h2>'+
+      '<p>Flujos que trabajan solos sobre el CRM: un disparador, unos pasos (correos, esperas, condiciones, A/B, tareas, WhatsApp, webhooks) y un objetivo. Quien lo cumple sale del embudo.</p></div>'+
+      '<div class="mt-hero-st">'+[['Flujos activos', R.activos], ['Contactos en curso', R.en_curso], ['Objetivos cumplidos', R.objetivos], ['Acciones 24 h', R.acciones_24h]].map(function(x){ return '<div><b>'+x[1]+'</b><span>'+x[0]+'</span></div>'; }).join('')+'</div></div>'+
+    (R.smtp ? '' : '<div class="mt-avisos"><span>'+ic('alert',13)+' Sin correo de salida configurado: los correos de los flujos quedan preparados en el historial del contacto. Configúralo en el Motor de Scraping IA → Fábrica de agentes.</span></div>')+
+    (FL.ed ? '<div id="fl-cuerpo">'+flEditor()+'</div>' :
+      '<nav class="mt-tabs">'+[['flujos','filter','Mis flujos'],['plantillas','spark','Plantillas'],['actividad','chart','Actividad']].map(function(t){ return '<button class="'+(FL.tab === t[0] ? 'on' : '')+'" data-fl-tab="'+t[0]+'">'+ic(t[1],15)+' '+t[2]+'</button>'; }).join('')+
+        '<button data-fl-nuevo style="margin-left:auto">'+ic('plus',15)+' Flujo en blanco</button></nav><div id="fl-cuerpo">'+flCuerpo()+'</div>');
+  flEventos();
+}
+function flCuerpo(){ return FL.tab === 'plantillas' ? flPlantillas() : FL.tab === 'actividad' ? flActividad() : flLista(); }
+
+function flLista(){
+  var L = FL.d.flujos;
+  if(!L.length) return '<div class="card mt-vacio">'+ic('filter',22)+'<b>Todavía no hay flujos.</b><span>Empieza por una plantilla: en dos clics tienes un embudo profesional funcionando.</span><button class="btn btn-p" data-fl-tab="plantillas" style="margin-top:8px">'+ic('spark',14)+' Ver plantillas</button></div>';
+  return '<div class="fl-lista">'+L.map(function(f){ var s = f.stats, est = {activo:['Activo','#4ADE80'], pausado:['En pausa','#FBBF24'], borrador:['Borrador','#94A3B8']}[f.estado];
+    return '<div class="card fl-card'+(f.estado === 'activo' ? ' on' : '')+'"><div class="row" style="justify-content:space-between;gap:8px;align-items:flex-start"><div style="min-width:0"><b class="fl-nom">'+esc(f.nombre)+'</b>'+
+        '<div class="tiny muted">'+(f.tipo === 'embudo' ? 'Embudo' : 'Automatización')+' · '+ic('bolt',11)+' '+esc(flDisparadorTxt(f))+'</div></div>'+motChip(est[0], est[1])+'</div>'+
+      flMini(f.pasos)+
+      '<div class="mt-met fl-met">'+[['En curso', s.activas], ['Terminados', s.completadas], ['Objetivo', s.objetivo + ' <em>'+String(s.conversion).replace('.', ',')+' %</em>'], ['Correos', s.correos], ['Tareas', s.tareas]].map(function(x){ return '<div><b>'+x[1]+'</b><span>'+x[0]+'</span></div>'; }).join('')+'</div>'+
+      (s.error ? '<div class="tiny" style="color:#FCA5A5;margin-top:6px">'+ic('alert',11)+' '+s.error+' contacto(s) con error: revisa la actividad</div>' : '')+
+      '<div class="tiny muted" style="margin-top:6px">'+ic('target',11)+' Objetivo: '+esc(flObjetivoTxt(f.objetivo))+'</div>'+
+      '<div class="row" style="gap:6px;margin-top:10px;flex-wrap:wrap"><button class="btn btn-s btn-xs" data-fl-editar="'+f.id+'">'+ic('edit',12)+' Editar</button>'+
+        (f.estado === 'activo' ? '<button class="btn btn-s btn-xs" data-fl-est="'+f.id+'" data-a="pausar">'+ic('stop',12)+' Pausar</button>' : '<button class="btn btn-p btn-xs" data-fl-est="'+f.id+'" data-a="activar">'+ic('play',12)+' Activar</button>')+
+        (f.estado === 'activo' ? '<button class="btn btn-s btn-xs" data-fl-ins="'+f.id+'">'+ic('userPlus',12)+' Inscribir</button>' : '')+
+        ((f.disparador || {}).tipo === 'formulario' ? '<button class="btn btn-s btn-xs" data-fl-form="'+f.id+'">'+ic('link',12)+' Formulario</button>' : '')+
+        '<button class="icon-btn sm" data-fl-borrar="'+f.id+'" title="Eliminar">'+ic('x',13)+'</button></div>'+
+      (FL.form === f.id ? flFormulario(f) : '')+'</div>'; }).join('')+'</div>';
+}
+function flFormulario(f){
+  var url = FL.d.url_base + '/api/index.php?ruta=' + encodeURIComponent('/flujos/entrada/' + f.token);
+  var html = '<form method="post" action="'+url+'">\n  <input name="nombre" placeholder="Nombre" required>\n  <input name="email" type="email" placeholder="Correo">\n  <input name="telefono" placeholder="Teléfono">\n  <input name="empresa" placeholder="Empresa">\n  <textarea name="mensaje" placeholder="¿En qué te ayudamos?"></textarea>\n  <input name="web_extra" style="display:none" tabindex="-1" autocomplete="off">\n  <button>Enviar</button>\n</form>';
+  return '<div class="fl-form"><b class="tiny">Formulario de tu landing (HTML)</b><textarea class="inp mono" rows="8" readonly>'+esc(html)+'</textarea>'+
+    '<b class="tiny">Integraciones (Make, Zapier, Meta Lead Ads, n8n…): POST con JSON</b><input class="inp mono" readonly value="'+esc(url)+'">'+
+    '<div class="tiny muted">Campos: nombre, email, telefono, empresa, sector, mensaje, presupuesto, urgencia (si dice «alta» o «urgente» se etiqueta como Urgente) y etiquetas. Cada envío crea el contacto (o lo reconoce), lo reparte y lo mete en este embudo al instante.</div></div>';
+}
+function flPlantillas(){
+  var P = FL.d.plantillas, g = function(t){ return Object.keys(P).filter(function(k){ return P[k].grupo === t; }); };
+  var tarjeta = function(k){ var p = P[k], ram = p.pasos.some(function(n){ return FL_RAMA[n.tipo]; });
+    return '<div class="card fl-pl"><div class="row" style="gap:10px;align-items:flex-start"><span class="eq-bola" style="--c:'+(p.grupo === 'embudo' ? '#C084FC' : '#38BDF8')+';width:36px;height:36px">'+ic(p.icono || 'filter',18)+'</span>'+
+      '<div style="min-width:0"><b>'+esc(p.nombre)+'</b><div class="tiny muted">'+ic('bolt',11)+' '+esc(flDisparadorTxt(p))+' · '+p.pasos.length+' pasos'+(ram ? ' · con ramas' : ' · lineal')+'</div></div></div>'+
+      '<p class="tiny" style="color:var(--txt-2);margin:8px 0">'+esc(p.descripcion)+'</p>'+flMini(p.pasos)+
+      '<div class="tiny muted" style="margin-top:6px">'+ic('target',11)+' '+esc(flObjetivoTxt(p.objetivo))+'</div>'+
+      '<button class="btn btn-p btn-xs" data-fl-pl="'+k+'" style="margin-top:10px">'+ic('plus',12)+' Usar esta plantilla</button></div>'; };
+  return '<h3 class="fl-h">'+ic('bolt',15)+' Automatizaciones básicas de la agencia</h3><div class="fl-pls">'+g('basica').map(tarjeta).join('')+'</div>'+
+    '<h3 class="fl-h">'+ic('filter',15)+' Embudos profesionales</h3><div class="fl-pls">'+g('embudo').map(tarjeta).join('')+'</div>';
+}
+function flActividad(){
+  var A = FL.d.actividad;
+  if(!A.length) return '<div class="card mt-vacio">'+ic('chart',22)+'<b>Sin actividad todavía.</b><span>Cuando un flujo activo reciba contactos, aquí verás cada correo, espera, tarea y decisión.</span></div>';
+  return '<div class="card"><div class="eq-feed" style="max-height:none">'+A.map(function(r){ var x = FL_NODO[r.accion] || ['bolt', r.ok == 1 ? '#4ADE80' : '#F87171'];
+    return '<div class="eq-fl"><span class="eq-bola" style="--c:'+(r.ok == 1 ? x[1] : '#F87171')+';width:28px;height:28px">'+ic(x[0],14)+'</span><div style="min-width:0;flex:1"><div class="eq-fl-t">'+esc(r.resultado)+'</div>'+
+      '<div class="tiny muted">'+esc(r.flujo || '')+' · '+esc(r.empresa || r.contacto || '')+' · '+ngRel(r.ts)+(r.contacto_id ? ' · <button class="ng-link" data-fl-ficha="'+r.contacto_id+'">Ver ficha</button>' : '')+'</div></div></div>'; }).join('')+'</div></div>';
+}
+
+/* --- Editor visual ---------------------------------------------------------------------------- */
+function flNodo(id){ return FL.ed.pasos.filter(function(n){ return n.id === id; })[0]; }
+function flArbol(id, vistos){
+  if(!id) return '<div class="fl-finrama">Fin</div>';
+  var n = flNodo(id); if(!n || vistos[id]) return ''; vistos[id] = 1;
+  var x = FL_NODO[n.tipo] || ['bolt','#94A3B8'], cnt = FL.ed.stats && FL.ed.stats.por_paso ? FL.ed.stats.por_paso[n.id] : 0;
+  var card = '<button class="fl-nodo'+(FL.sel === n.id ? ' sel' : '')+'" data-fl-sel="'+n.id+'" style="--c:'+x[1]+'"><span class="eq-bola" style="--c:'+x[1]+';width:30px;height:30px">'+ic(x[0],15)+'</span>'+
+    '<span class="fl-nodo-t"><b>'+esc(FL.d.nodos[n.tipo] || n.tipo)+'</b><span>'+esc(flResumenNodo(n))+'</span></span>'+(cnt ? '<em title="Contactos en este paso">'+cnt+'</em>' : '')+'</button>';
+  var r = FL_RAMA[n.tipo];
+  if(r) return card+'<div class="fl-ramas">'+r.map(function(b){ return '<div class="fl-rama"><span class="fl-rama-t">'+b[1]+'</span>'+flArbol(n[b[0]], vistos)+'</div>'; }).join('')+'</div>';
+  return card+(n.tipo === 'fin' ? '' : '<i class="fl-linea"></i>'+flArbol(n.sig, vistos));
+}
+function flSelect(attr, val, ops){ return '<select class="inp" '+attr+'>'+ops.map(function(o){ return '<option value="'+esc(o[0])+'"'+(String(val || '') === String(o[0]) ? ' selected' : '')+'>'+esc(o[1])+'</option>'; }).join('')+'</select>'; }
+function flInspector(){
+  var D = FL.d, n = FL.sel ? flNodo(FL.sel) : null;
+  if(!n) return '<div class="tiny muted">Pulsa un paso del diagrama para editarlo, añadir otro detrás o quitarlo.</div>';
+  var p = n.params = n.params || {}, f = function(k, et, tipo, ph){ return '<label class="f">'+et+'</label>'+(tipo === 'area' ? '<textarea class="inp" rows="7" data-fl-p="'+k+'">'+esc(p[k] || '')+'</textarea>' :
+    '<input class="inp" '+(tipo === 'number' ? 'type="number" min="0"' : '')+' data-fl-p="'+k+'" value="'+esc(p[k] == null ? '' : p[k])+'" placeholder="'+esc(ph || '')+'">'); };
+  var campos = Object.keys(D.campos).map(function(k){ return [k, D.campos[k]]; }), ops = [['es','es / sí'],['no_es','no es / no'],['contiene','contiene'],['mayor','mayor que'],['menor','menor que'],['alcanza','llega a (fase)']];
+  var cuerpo = '';
+  switch(n.tipo){
+    case 'correo': cuerpo = f('asunto','Asunto')+f('cuerpo','Texto (la firma y el pie de baja los añade el sistema)','area')+'<div class="fl-vars">'+FL_VARS.map(function(v){ return '<button class="mt-loc" data-fl-var="'+v+'">'+v+'</button>'; }).join('')+'</div>'; break;
+    case 'esperar': cuerpo = '<div class="grid g-2">'+'<div>'+f('cantidad','Cantidad','number')+'</div><div><label class="f">Unidad</label>'+flSelect('data-fl-p="unidad"', p.unidad || 'dias', [['minutos','Minutos'],['horas','Horas'],['dias','Días']])+'</div></div>'; break;
+    case 'esperar_cita': cuerpo = f('horas_antes','Horas antes de la cita','number'); break;
+    case 'esperar_hasta': case 'condicion':
+      cuerpo = '<label class="f">Campo</label>'+flSelect('data-fl-p="campo"', p.campo, campos)+'<label class="f">Comparación</label>'+flSelect('data-fl-p="op"', p.op || 'es', ops)+
+        f('valor','Valor (fase, etiqueta, texto o número)','', 'p. ej. demo, Urgente, inmobiliaria')+(n.tipo === 'esperar_hasta' ? f('max_dias','Esperar como máximo (días)','number') : ''); break;
+    case 'ab': cuerpo = f('pct_a','% de contactos a la variante A','number'); break;
+    case 'tarea': cuerpo = f('titulo','Título')+'<label class="f">Tipo</label>'+flSelect('data-fl-p="tipo"', p.tipo || 'llamada', [['llamada','Llamada'],['seguimiento','Seguimiento'],['visita','Visita'],['interna','Interna']])+
+      '<div class="grid g-2"><div>'+f('en_minutos','En minutos','number')+'</div><div>'+f('en_dias','O en días laborables','number')+'</div></div>'+f('notas','Instrucciones para el gestor','area'); break;
+    case 'whatsapp': cuerpo = f('mensaje','Mensaje (el gestor lo envía con un toque desde su agenda)','area'); break;
+    case 'fase': cuerpo = '<label class="f">Fase</label>'+flSelect('data-fl-p="fase"', p.fase, Object.keys(D.fases).map(function(k){ return [k, D.fases[k]]; })); break;
+    case 'etiqueta': cuerpo = '<label class="f">Acción</label>'+flSelect('data-fl-p="accion"', p.accion || 'anadir', [['anadir','Añadir'],['quitar','Quitar']])+f('etiqueta','Etiqueta'); break;
+    case 'asignar': cuerpo = '<p class="tiny muted">Reparto rotativo: el contacto pasa al comercial activo que lleva más tiempo sin recibir un lead (y sus citas futuras con él).</p>'; break;
+    case 'aviso': cuerpo = f('mensaje','Aviso en el historial del contacto','area'); break;
+    case 'webhook': cuerpo = f('url','URL https:// (Make, n8n, Zapier, tu servidor de WhatsApp…)','', 'https://hook.eu1.make.com/…')+'<p class="tiny muted">Se envía un POST con el contacto en JSON.</p>'; break;
+    case 'fin': cuerpo = '<p class="tiny muted">El contacto termina el flujo aquí.</p>'; break;
+  }
+  var add = '<label class="f">Añadir un paso</label><div class="row" style="gap:6px;flex-wrap:wrap">'+flSelect('id="fl-add-t"', 'correo', Object.keys(D.nodos).map(function(k){ return [k, D.nodos[k]]; }))+
+    (FL_RAMA[n.tipo] ? FL_RAMA[n.tipo].map(function(b){ return '<button class="btn btn-s btn-xs" data-fl-add="'+b[0]+'">'+ic('plus',12)+' en «'+b[1]+'»</button>'; }).join('') :
+      n.tipo === 'fin' ? '' : '<button class="btn btn-s btn-xs" data-fl-add="sig">'+ic('plus',12)+' Después de este</button>')+'</div>';
+  return '<div class="row" style="justify-content:space-between;align-items:center"><b>'+esc(D.nodos[n.tipo])+'</b><button class="ng-link" id="fl-del" style="color:#FCA5A5">'+ic('x',12)+' Quitar paso</button></div>'+cuerpo+'<hr class="fl-hr">'+add;
+}
+function flEditor(){
+  var E = FL.ed, D = FL.d, d = E.disparador = E.disparador || {tipo:'contacto_creado'}, o = E.objetivo = E.objetivo || {}, op = E.opciones = E.opciones || {};
+  var valorDisp = d.tipo === 'fase_cambia' ? flSelect('data-fl-d="valor"', d.valor, [['','Cualquier fase']].concat(Object.keys(D.fases).map(function(k){ return [k, D.fases[k]]; }))) :
+    d.tipo === 'sin_actividad' ? '<input class="inp" type="number" data-fl-d="dias" value="'+esc(d.dias || 14)+'" placeholder="Días"><input class="inp" data-fl-d="valor" value="'+esc(d.valor || '')+'" placeholder="Fases (vacío = todas las abiertas)" style="margin-top:6px">' :
+    ['etiqueta_anadida','llamada_registrada','cita_creada','cita_realizada','cita_no_asistio'].indexOf(d.tipo) > -1 ? '<input class="inp" data-fl-d="valor" value="'+esc(d.valor || '')+'" placeholder="'+({etiqueta_anadida:'Etiqueta', llamada_registrada:'Resultado (no_contesta, interesado…)'}[d.tipo] || 'Tipo de cita (demo, visita… vacío = todas)')+'">' : '';
+  return '<div class="fl-ed"><section class="card fl-ed-c"><div class="row" style="justify-content:space-between;gap:8px"><button class="ng-link" id="fl-volver">'+ic('arrowLeft',12)+' Volver</button>'+motChip(E.estado === 'activo' ? 'Activo' : E.estado === 'pausado' ? 'En pausa' : 'Borrador', E.estado === 'activo' ? '#4ADE80' : '#94A3B8')+'</div>'+
+      '<label class="f">Nombre</label><input class="inp" id="fl-nom" value="'+esc(E.nombre || '')+'">'+
+      '<label class="f">Tipo</label>'+flSelect('id="fl-tipo"', E.tipo || 'automatizacion', [['automatizacion','Automatización'],['embudo','Embudo']])+
+      '<h5 class="eq-h5">'+ic('bolt',12)+' Disparador</h5>'+flSelect('data-fl-d="tipo"', d.tipo, Object.keys(D.disparadores).map(function(k){ return [k, D.disparadores[k]]; }))+valorDisp+
+      '<input class="inp" data-fl-d="origen" value="'+esc(d.origen || '')+'" placeholder="Solo si el origen contiene… (opcional)" style="margin-top:6px"><input class="inp" data-fl-d="sector" value="'+esc(d.sector || '')+'" placeholder="Solo si el sector contiene… (opcional)" style="margin-top:6px">'+
+      '<h5 class="eq-h5">'+ic('target',12)+' Objetivo (sale del flujo al cumplirlo)</h5>'+flSelect('data-fl-o="tipo"', o.tipo || '', [['','Sin objetivo'],['fase','Llega a una fase'],['cita','Tiene una reunión agendada'],['presupuesto_aceptado','Acepta un presupuesto'],['etiqueta','Tiene una etiqueta']])+
+      (o.tipo === 'fase' ? flSelect('data-fl-o="valor"', o.valor, Object.keys(D.fases).map(function(k){ return [k, D.fases[k]]; })) : o.tipo === 'etiqueta' ? '<input class="inp" data-fl-o="valor" value="'+esc(o.valor || '')+'" placeholder="Etiqueta">' : '')+
+      '<h5 class="eq-h5">Opciones</h5><label class="tiny" style="display:flex;gap:6px"><input type="checkbox" data-fl-op="solo_horario"'+(op.solo_horario ? ' checked' : '')+'> Enviar correos solo de lunes a viernes, de 9:00 a 19:00</label>'+
+      '<label class="tiny" style="display:flex;gap:6px;margin-top:4px"><input type="checkbox" data-fl-op="reentrada"'+(op.reentrada ? ' checked' : '')+'> Un contacto puede volver a entrar al terminar</label>'+
+      (d.tipo === 'formulario' ? '<input class="inp" data-fl-op-t="gracias" value="'+esc(op.gracias || '')+'" placeholder="Página de gracias de tu web (https://…)" style="margin-top:6px">' : '')+
+      '<div class="row" style="gap:6px;margin-top:12px;flex-wrap:wrap"><button class="btn btn-p" id="fl-guardar">'+ic('save',14)+' Guardar</button>'+(E.id && E.estado !== 'activo' ? '<button class="btn btn-s" id="fl-activar">'+ic('play',14)+' Guardar y activar</button>' : '')+'</div></section>'+
+    '<section class="card fl-diag"><div class="fl-arbol"><div class="fl-inicio">'+ic('bolt',13)+' '+esc(flDisparadorTxt(E))+'</div><i class="fl-linea"></i>'+(E.pasos.length ? flArbol(E.pasos[0].id, {}) : '<button class="btn btn-s" data-fl-primero>'+ic('plus',14)+' Primer paso</button>')+
+      '<div class="fl-obj">'+ic('target',13)+' '+esc(flObjetivoTxt(E.objetivo))+'</div></div></section>'+
+    '<section class="card fl-insp" id="fl-insp">'+flInspector()+'</section></div>';
+}
+function flNuevoId(){ var m = 0; FL.ed.pasos.forEach(function(n){ var k = parseInt(String(n.id).replace(/\D/g, ''), 10); if(k > m) m = k; }); return 'n' + (m + 1); }
+function flPadre(id){ var r = null; FL.ed.pasos.forEach(function(n){ ['sig','si','no','a','b'].forEach(function(k){ if(n[k] === id) r = [n, k]; }); }); return r; }
+function flDefecto(t){ return {correo:{asunto:'', cuerpo:'Hola {{nombre}}:\n\n'}, esperar:{cantidad:1, unidad:'dias'}, esperar_cita:{horas_antes:24}, esperar_hasta:{campo:'respondio', op:'es', max_dias:3},
+  condicion:{campo:'tiene_telefono', op:'es'}, ab:{pct_a:50}, tarea:{titulo:'Llamar', tipo:'llamada', en_minutos:0}, whatsapp:{mensaje:'Hola {{nombre}}, soy {{gestor}} de Labs24k.'}, fase:{fase:'cualificacion'},
+  etiqueta:{accion:'anadir', etiqueta:''}, asignar:{}, aviso:{mensaje:''}, webhook:{url:''}, fin:{}}[t] || {}; }
+function flCentra(){ var d = q('.fl-diag'); if(d && d.scrollWidth > d.clientWidth && !FL.sel) d.scrollLeft = (d.scrollWidth - d.clientWidth) / 2; }
+function flPintaEditor(){ var d = q('.fl-diag'), x = d ? d.scrollLeft : null; q('#fl-cuerpo').innerHTML = flEditor(); flEventos(); var n = q('.fl-diag'); if(n && x !== null) n.scrollLeft = x; }
+
+function flGuardar(activar){
+  var E = FL.ed; E.nombre = q('#fl-nom').value; E.tipo = q('#fl-tipo').value;
+  if(FL.guardando) return; FL.guardando = true;
+  ngApi('/flujos/guardar', 'POST', {id:E.id || null, nombre:E.nombre, tipo:E.tipo, descripcion:E.descripcion || '', disparador:E.disparador, pasos:E.pasos, objetivo:E.objetivo, opciones:E.opciones}).then(function(d){
+    E.id = d.id; return activar ? ngApi('/flujos/' + d.id + '/activar', 'POST', {}) : null; }).then(function(a){
+    FL.guardando = false; toast(activar ? 'Flujo guardado y activo.' + (a && a.aviso ? ' ' + a.aviso : '') : 'Flujo guardado.');
+    return flCarga().then(function(){ var f = FL.d.flujos.filter(function(x){ return x.id == E.id; })[0]; if(f){ FL.ed = JSON.parse(JSON.stringify(f)); } renderApp(); }); }, function(e){ FL.guardando = false; toast(e.message); });
+}
+function flEventos(){
+  qa('[data-fl-tab]').forEach(function(b){ b.onclick = function(){ FL.tab = b.dataset.flTab; renderApp(); }; });
+  qa('[data-fl-ficha]').forEach(function(b){ b.onclick = function(){ ngAbreFicha(Number(b.dataset.flFicha), 'flujos'); }; });
+  if(q('[data-fl-nuevo]')) q('[data-fl-nuevo]').onclick = function(){ FL.ed = {nombre:'Nuevo flujo', tipo:'automatizacion', disparador:{tipo:'contacto_creado'}, pasos:[], objetivo:{}, opciones:{solo_horario:true}, estado:'borrador'}; FL.sel = null; renderApp(); };
+  qa('[data-fl-pl]').forEach(function(b){ b.onclick = function(){ b.disabled = true;
+    ngApi('/flujos/plantilla', 'POST', {clave:b.dataset.flPl}).then(function(d){ return flCarga().then(function(){ FL.ed = JSON.parse(JSON.stringify(FL.d.flujos.filter(function(x){ return x.id == d.id; })[0])); FL.sel = null;
+      toast('Plantilla creada como borrador: revísala y actívala.'); renderApp(); }); }, function(e){ toast(e.message); b.disabled = false; }); }; });
+  qa('[data-fl-editar]').forEach(function(b){ b.onclick = function(){ FL.ed = JSON.parse(JSON.stringify(FL.d.flujos.filter(function(x){ return x.id == b.dataset.flEditar; })[0])); FL.sel = null; renderApp(); }; });
+  qa('[data-fl-est]').forEach(function(b){ b.onclick = function(){ b.disabled = true;
+    ngApi('/flujos/' + b.dataset.flEst + '/' + b.dataset.a, 'POST', {}).then(function(a){ toast(b.dataset.a === 'activar' ? 'Flujo activo.' + (a.aviso ? ' ' + a.aviso : '') : 'Flujo en pausa.'); return flCarga().then(renderApp); }, function(e){ toast(e.message); b.disabled = false; }); }; });
+  qa('[data-fl-borrar]').forEach(function(b){ b.onclick = function(){ if(!confirm('¿Eliminar este flujo? Los contactos que estén dentro salen de él.')) return;
+    ngApi('/flujos/' + b.dataset.flBorrar + '/borrar', 'POST', {}).then(function(){ return flCarga().then(renderApp); }, function(e){ toast(e.message); }); }; });
+  qa('[data-fl-form]').forEach(function(b){ b.onclick = function(){ FL.form = FL.form == b.dataset.flForm ? null : Number(b.dataset.flForm); q('#fl-cuerpo').innerHTML = flCuerpo(); flEventos(); }; });
+  qa('[data-fl-ins]').forEach(function(b){ b.onclick = function(){ var fase = prompt('Inscribir contactos de la fase (lead, cualificacion, demo, propuesta, negociacion, perdido) o escribe una etiqueta:'); if(!fase) return;
+    var c = FL.d.fases[fase.trim()] ? {fase:fase.trim()} : {etiqueta:fase.trim()};
+    ngApi('/flujos/' + b.dataset.flIns + '/inscribir', 'POST', c).then(function(d){ toast(d.inscritos + ' contacto(s) inscritos.'); return flCarga().then(renderApp); }, function(e){ toast(e.message); }); }; });
+  // Editor
+  if(!FL.ed) return;
+  var E = FL.ed;
+  if(!FL.sel) setTimeout(flCentra, 0);
+  if(q('#fl-volver')) q('#fl-volver').onclick = function(){ FL.ed = null; FL.sel = null; flCarga().then(renderApp); };
+  if(q('#fl-nom')) q('#fl-nom').oninput = function(){ E.nombre = this.value; };
+  qa('[data-fl-d]').forEach(function(x){ x.onchange = function(){ var k = x.dataset.flD; E.disparador[k] = x.type === 'number' ? Number(x.value) : x.value; if(k === 'tipo'){ E.disparador = {tipo:x.value}; flPintaEditor(); } else q('.fl-inicio').innerHTML = ic('bolt',13)+' '+esc(flDisparadorTxt(E)); }; });
+  qa('[data-fl-o]').forEach(function(x){ x.onchange = function(){ E.objetivo[x.dataset.flO] = x.value; if(x.dataset.flO === 'tipo'){ E.objetivo = x.value ? {tipo:x.value} : {}; } flPintaEditor(); }; });
+  qa('[data-fl-op]').forEach(function(x){ x.onchange = function(){ E.opciones[x.dataset.flOp] = x.checked; }; });
+  qa('[data-fl-op-t]').forEach(function(x){ x.oninput = function(){ E.opciones[x.dataset.flOpT] = x.value.trim(); }; });
+  qa('[data-fl-sel]').forEach(function(b){ b.onclick = function(){ FL.sel = b.dataset.flSel; flPintaEditor(); }; });
+  if(q('[data-fl-primero]')) q('[data-fl-primero]').onclick = function(){ E.pasos.push({id:'n1', tipo:'correo', params:flDefecto('correo'), sig:null}); FL.sel = 'n1'; flPintaEditor(); };
+  var n = FL.sel ? flNodo(FL.sel) : null;
+  qa('[data-fl-p]').forEach(function(x){ x.oninput = x.onchange = function(){ if(!n) return; n.params[x.dataset.flP] = x.type === 'number' ? Number(x.value) : x.value;
+    var t = q('[data-fl-sel="'+n.id+'"] .fl-nodo-t span'); if(t) t.textContent = flResumenNodo(n); }; });
+  qa('[data-fl-var]').forEach(function(b){ b.onclick = function(){ var ta = q('[data-fl-p="cuerpo"]'); if(!ta) return; var i = ta.selectionStart || ta.value.length;
+    ta.value = ta.value.slice(0, i) + b.dataset.flVar + ta.value.slice(i); n.params.cuerpo = ta.value; ta.focus(); }; });
+  qa('[data-fl-add]').forEach(function(b){ b.onclick = function(){ var t = q('#fl-add-t').value, id = flNuevoId(), k = b.dataset.flAdd, nuevo = {id:id, tipo:t, params:flDefecto(t), sig:null};
+    if(t !== 'fin' && !FL_RAMA[t]) nuevo.sig = n[k] || null; else if(FL_RAMA[t]) nuevo[FL_RAMA[t][0][0]] = n[k] || null;
+    n[k] = id; E.pasos.push(nuevo); FL.sel = id; flPintaEditor(); }; });
+  if(q('#fl-del')) q('#fl-del').onclick = function(){ if(!n) return;
+    var rama = !!FL_RAMA[n.tipo]; if(rama && !confirm('Este paso tiene ramas: se quitarán también los pasos que cuelgan de él. ¿Seguir?')) return;
+    var borra = {}; var marca = function(id){ var x = flNodo(id); if(!x || borra[id]) return; borra[id] = 1; ['sig','si','no','a','b'].forEach(function(k){ if(x[k]) marca(x[k]); }); };
+    if(rama){ FL_RAMA[n.tipo].forEach(function(b){ if(n[b[0]]) marca(n[b[0]]); }); }
+    var p = flPadre(n.id), sigue = rama ? null : (n.sig || null);
+    if(p) p[0][p[1]] = sigue;
+    var idx = E.pasos.indexOf(n); borra[n.id] = 1;
+    if(idx === 0 && sigue){ var s = flNodo(sigue); E.pasos.splice(E.pasos.indexOf(s), 1); E.pasos.unshift(s); }
+    E.pasos = E.pasos.filter(function(x){ return !borra[x.id]; }); FL.sel = null; flPintaEditor(); };
+  if(q('#fl-guardar')) q('#fl-guardar').onclick = function(){ flGuardar(false); };
+  if(q('#fl-activar')) q('#fl-activar').onclick = function(){ flGuardar(true); };
 }
 
 var MOT = {tab:'radar', estado:null, leads:null, feed:{log:[], pendientes:[]}, ultimo:0, resp:null, sel:{}, f:{estado:'', q:''},

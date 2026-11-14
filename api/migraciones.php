@@ -8,7 +8,7 @@
  */
 defined('LABS') || exit;
 
-define('LABS_VERSION_ESQUEMA', 18);
+define('LABS_VERSION_ESQUEMA', 19);
 
 function labs_columna_existe(PDO $db, $tabla, $col)
 {
@@ -180,6 +180,24 @@ function labs_migra(PDO $db)
            titulo VARCHAR(250) NOT NULL, detalle TEXT NULL, evidencia TEXT NULL, estado VARCHAR(12) NOT NULL DEFAULT 'abierto', detectado_por VARCHAR(20) NOT NULL DEFAULT 'qa',
            tarea_id BIGINT UNSIGNED NULL, creado DATETIME(6) NOT NULL, cerrado DATETIME(6) NULL, PRIMARY KEY (id), KEY equipo_hall_estado_idx (estado, clave)) $opc",
         // v18 · Cadencia de cierre: en qué paso va cada presupuesto abierto.
+        // v19 · Automatizaciones y embudos: flujos, contactos inscritos, cola de eventos y registro.
+        "CREATE TABLE IF NOT EXISTS flujos (
+           id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, nombre VARCHAR(120) NOT NULL, tipo VARCHAR(20) NOT NULL DEFAULT 'automatizacion', descripcion TEXT NULL,
+           estado VARCHAR(12) NOT NULL DEFAULT 'borrador', disparador TEXT NULL, pasos MEDIUMTEXT NULL, objetivo TEXT NULL, opciones TEXT NULL,
+           plantilla VARCHAR(40) NOT NULL DEFAULT '', token VARCHAR(64) NULL, creado_por CHAR(36) NULL, creado DATETIME(6) NOT NULL, actualizado DATETIME(6) NOT NULL,
+           PRIMARY KEY (id), UNIQUE KEY flujos_token_uq (token)) $opc",
+        "CREATE TABLE IF NOT EXISTS flujo_inscripciones (
+           id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, flujo_id BIGINT UNSIGNED NOT NULL, contacto_id BIGINT UNSIGNED NOT NULL, paso VARCHAR(20) NOT NULL DEFAULT '',
+           estado VARCHAR(12) NOT NULL DEFAULT 'activa', proximo DATETIME(6) NULL, paso_desde DATETIME(6) NULL, variante VARCHAR(2) NOT NULL DEFAULT '', datos TEXT NULL,
+           entrada DATETIME(6) NOT NULL, actualizado DATETIME(6) NOT NULL,
+           PRIMARY KEY (id), KEY flujo_ins_cont_idx (flujo_id, contacto_id), KEY flujo_ins_prox_idx (estado, proximo)) $opc",
+        "CREATE TABLE IF NOT EXISTS flujo_eventos (
+           id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, tipo VARCHAR(30) NOT NULL, contacto_id BIGINT UNSIGNED NOT NULL, datos TEXT NULL, ts DATETIME(6) NOT NULL,
+           procesado TINYINT(1) NOT NULL DEFAULT 0, PRIMARY KEY (id), KEY flujo_ev_proc_idx (procesado, id)) $opc",
+        "CREATE TABLE IF NOT EXISTS flujo_registro (
+           id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, flujo_id BIGINT UNSIGNED NOT NULL, inscripcion_id BIGINT UNSIGNED NULL, contacto_id BIGINT UNSIGNED NULL,
+           paso VARCHAR(20) NOT NULL DEFAULT '', accion VARCHAR(30) NOT NULL, resultado VARCHAR(500) NOT NULL DEFAULT '', ok TINYINT(1) NOT NULL DEFAULT 1, ts DATETIME(6) NOT NULL,
+           PRIMARY KEY (id), KEY flujo_reg_flujo_idx (flujo_id, id), KEY flujo_reg_ts_idx (ts)) $opc",
         // v18 · Barrido de Asturias: cada casilla sector × concejo con su estado.
         "CREATE TABLE IF NOT EXISTS motor_cobertura (
            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, sector VARCHAR(60) NOT NULL, concejo VARCHAR(80) NOT NULL, comarca VARCHAR(80) NOT NULL DEFAULT '',

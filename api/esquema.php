@@ -964,6 +964,9 @@ function labs_tablas()
     if (function_exists('labs_tablas_ventas')) {
         labs_tablas_ventas($T, $AHORA);
     }
+    if (function_exists('labs_tablas_flujos')) {
+        labs_tablas_flujos($T);
+    }
     return $T;
 }
 

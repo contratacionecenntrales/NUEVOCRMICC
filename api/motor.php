@@ -1339,6 +1339,9 @@ function labs_motor($metodo, $sub, $b, $pares)
         }
         @ignore_user_abort(true);
         $r = labs_motor_tick(25);
+        if (function_exists('labs_flujos_tick')) {
+            $r['flujos'] = labs_flujos_tick();
+        }
         if (function_exists('labs_equipo_tick')) {
             // El mismo cron hace trabajar a la zona de agentes (un turno por llamada).
             $r['equipo'] = labs_equipo_tick('cron');

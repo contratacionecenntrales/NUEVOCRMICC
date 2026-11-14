@@ -315,6 +315,81 @@ Para que trabaje también sin nadie conectado, programad en Hostalia una tarea
 cada 5 minutos que abra la dirección que aparece en la Fábrica de agentes
 (lleva un token secreto).
 
+## Automatizaciones y Embudos
+
+Menú «Automatizaciones y Embudos», debajo de la Zona de agentes (dirección y
+jefes de equipo). Es un motor propio, sin n8n ni Make, que ejecuta flujos
+sobre el CRM.
+
+**Disparadores** (13):
+
+- Lead nuevo, o formulario web e integración (webhook de entrada).
+- Cambio de fase o etiqueta añadida.
+- Presupuesto registrado, aceptado o rechazado.
+- Cita agendada, realizada o no asistida.
+- Llamada con un resultado concreto (por ejemplo, «no contesta»).
+- Días sin actividad, o inscripción manual por fase o etiqueta.
+- Opcionalmente, filtrado por origen o sector.
+
+**Pasos** (14):
+
+- **Correo**, con variables: `{{nombre}}`, `{{empresa}}`, `{{gestor}}`,
+  `{{fecha_cita}}`, `{{presupuesto}}`, `{{importe}}`… La firma del gestor y
+  el pie de baja los añade el sistema.
+- **Esperas**: X minutos, horas o días; hasta X horas antes de la cita; o
+  hasta que se cumpla una condición, con rama «se cumple / no a tiempo».
+- **Condición sí/no** y **división A/B**.
+- **Tarea** en la agenda del gestor y **WhatsApp**: una tarea con el mensaje
+  listo y el enlace wa.me.
+- **Fase**, **etiqueta**, **reparto rotativo** entre gestores, **aviso** y
+  **webhook** a Make, n8n, Zapier o un proveedor de WhatsApp.
+
+**Objetivo.** Quien llega a una fase, agenda una reunión, acepta un
+presupuesto o tiene una etiqueta sale del embudo y no recibe más mensajes.
+
+**Normas.**
+
+- Opción de enviar correos solo en horario laboral.
+- Nunca se escribe a quien tiene «No contactar» o pidió la baja.
+- Un flujo no puede tener bucles.
+- Al quitar un paso, quien esperaba en él sale del flujo.
+
+**Plantillas** (se activan en dos clics y se editan):
+
+- *Automatizaciones básicas:*
+  - lead nuevo con reparto, bienvenida y llamada en 5 minutos;
+  - recordatorio de cita 24 h y 2 h antes;
+  - no asistió: reprogramar;
+  - seguimiento de presupuesto;
+  - presupuesto aceptado: bienvenida y arranque;
+  - perdido: recuperar a los 90 días;
+  - cliente en producción: reseña y referidos.
+- *Embudos profesionales:*
+  - lineal Lead Magnet → diagnóstico gratuito;
+  - Setter BANT, con condición de urgencia, A/B y espera a la respuesta;
+  - rescate omnicanal 2-24-48 h;
+  - reactivación de la base dormida con A/B.
+
+**Editor visual.**
+
+- Diagrama con las ramas, cuántos contactos hay en cada paso e inspector
+  para editar, añadir o quitar pasos.
+- Estadísticas por flujo: en curso, terminados, objetivo y conversión,
+  correos, tareas y reparto A/B.
+- Registro de cada acción.
+
+**Formulario de entrada.**
+
+- Cada flujo con disparador «formulario» da un HTML listo para pegar en la
+  landing (con campo trampa antirrobots y página de gracias opcional) y una
+  dirección para integraciones (POST con JSON).
+- Crea o reconoce el contacto, lo reparte y lo mete en el embudo al
+  instante.
+- Si el campo «urgencia» dice «alta» o «urgente», lo etiqueta como Urgente.
+
+**Latido.** Mientras el panel está abierto y con el cron del Motor (el mismo
+de siempre).
+
 ## Zona de agentes: una empresa autónoma que aprende
 
 Menú «Zona de agentes», debajo del Motor (dirección y jefes de equipo). Quince

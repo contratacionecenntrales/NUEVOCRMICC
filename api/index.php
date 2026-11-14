@@ -41,6 +41,7 @@ require __DIR__ . '/equipo.php';
 require __DIR__ . '/equipo_lab.php';
 require __DIR__ . '/equipo_cierre.php';
 require __DIR__ . '/equipo_barrido.php';
+require __DIR__ . '/flujos.php';
 
 ini_set('display_errors', '0');
 
@@ -192,6 +193,40 @@ try {
     } elseif (preg_match('#^/motor(/[a-z0-9/]*)?$#', $ruta, $m)) {
         /* --- Motor de Scraping IA ------------------------------------------- */
         $r = labs_motor($metodo, isset($m[1]) ? $m[1] : '', $metodo === 'GET' ? array() : labs_cuerpo_json(), $pares);
+        $estado = $r[0];
+        $resp = $r[1];
+    } elseif (preg_match('#^/flujos(/[a-z0-9/]*)?$#', $ruta, $m)) {
+        /* --- Automatizaciones y embudos (y su formulario público de entrada) --- */
+        $form = $metodo === 'POST' && stripos((string) ($_SERVER['CONTENT_TYPE'] ?? ''), 'application/x-www-form-urlencoded') !== false;
+        try {
+            $r = labs_flujos($metodo, isset($m[1]) ? $m[1] : '', $metodo === 'GET' ? array() : ($form ? $_POST : labs_cuerpo_json()), $pares);
+        } catch (ErrorApi $x) {
+            if (!$form) {
+                throw $x;
+            }
+            $r = array(400, array('ok' => false, 'error' => $x->getMessage()));
+        }
+        if ($form) {
+            // Formulario HTML de una landing: se confirma y se redirige a la página de gracias (o se muestra una).
+            if (labs_db()->inTransaction()) {
+                labs_db()->commit();
+            }
+            $ok = !empty($r[1]['ok']);
+            $dest = $ok ? (string) ($r[1]['redirect'] ?? '') : '';
+            if ($dest !== '' && preg_match('#^https?://#i', $dest)) {
+                header('Location: ' . $dest, true, 303);
+                exit;
+            }
+            header('Content-Type: text/html; charset=utf-8');
+            header("Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'");
+            echo '<!doctype html><html lang="es"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Labs24k</title>' .
+                '<body style="font-family:system-ui,sans-serif;background:#0B0F19;color:#E2E8F0;display:grid;place-items:center;min-height:100vh;margin:0">' .
+                '<div style="max-width:440px;padding:28px;border-radius:18px;background:#111827;border:1px solid #253044;text-align:center">' .
+                ($ok ? '<h1 style="font-size:22px">¡Gracias! Lo hemos recibido</h1><p>En breve te escribimos o te llamamos.</p>'
+                    : '<h1 style="font-size:22px">No se ha podido enviar</h1><p>' . htmlspecialchars($r[1]['error'] ?? 'Revisa los datos e inténtalo de nuevo.') . '</p>') .
+                '</div></body></html>';
+            exit;
+        }
         $estado = $r[0];
         $resp = $r[1];
     } elseif (preg_match('#^/equipo(/[a-z0-9/]*)?$#', $ruta, $m)) {
