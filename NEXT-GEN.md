@@ -315,9 +315,51 @@ Para que trabaje también sin nadie conectado, programad en Hostalia una tarea
 cada 5 minutos que abra la dirección que aparece en la Fábrica de agentes
 (lleva un token secreto).
 
+## Zona de agentes (equipo directivo de IA)
+
+Menú «Zona de agentes», debajo del Motor (dirección y jefes de equipo). Seis
+agentes con su puesto que trabajan solos sobre el CRM, del primer contacto al
+cobro:
+
+| Agente | Qué hace |
+|---|---|
+| **CEO** · Dirección General | Mira el embudo completo, detecta dónde se atasca y reparte tareas al resto. Escribe el parte para la dirección. |
+| **CMO** · Marketing | Lanza extracciones en el Motor de Scraping IA con los sectores y zonas objetivo, monta campañas con las empresas verificadas y las activa. |
+| **SDR** · Desarrollo de Negocio | Pone en la agenda de los gestores las llamadas a los contactos nuevos y en cualificación. |
+| **CSO** · Dirección Comercial | Prepara el presupuesto con el pack oficial de su cuello de botella y **manda a un gestor humano a la oficina del cliente** para la demo, con el presupuesto y un briefing (decisor, dolor, fuga, último contacto). |
+| **CFO** · Administración y Cobros | Con el presupuesto aceptado prepara el cobro del primer hito y el contrato en borrador; si vence, prepara el recordatorio de pago. |
+| **CTO** · Tecnología | Vigila el Motor (claves, correo, errores), la calidad de los datos y la agenda sin cerrar. Si algo va mal, frena los envíos. |
+
+**Cómo trabajan.** Cada agente hace turnos (cada X minutos, en horario). Con
+la clave de Claude (la misma del Motor) razona con la API usando
+herramientas del CRM: consulta, decide, actúa y termina con un informe. Sin
+clave, sigue un **manual de reglas** con las mismas herramientas, así el CRM
+trabaja igual. Los turnos los lanza el propio panel mientras está abierto y
+el cron del hosting del Motor (un agente por llamada).
+
+**Autonomía por puesto.**
+
+- *Solo observa*: lee e informa.
+- *Propone* (por defecto): lo interno (tareas entre agentes, notas) lo hace
+  solo; agenda, pipeline y prospección esperan aprobación.
+- *Actúa*: hace también agenda, pipeline y prospección. Solo la
+  administración puede darla.
+
+**Lo que nunca hace solo**: presupuestos, contratos, cobros y recordatorios de
+pago siempre esperan a una persona («Para aprobar»), que puede corregir la
+propuesta antes de aprobarla (por ejemplo, el pack o el texto del correo).
+Marcar un cobro como pagado o un cliente como firmado lo hacen las personas.
+
+**Más**: interruptor general (solo administración), límites de turnos al día
+y de acciones por agente, órdenes de la dirección a cualquier agente,
+instrucciones permanentes por puesto, la bandeja «El equipo os pide», el
+registro de cada acción (agente, hora y quién la aprobó) y la tabla de
+cobros. Los textos del CRM (webs, respuestas de clientes) se pasan al agente
+como datos, nunca como instrucciones.
+
 ## Briefs de speech telefónico (Centro de Formación)
 
-Ruta **«Speech telefónico · nivel experto»**, con 7 briefs que se leen en el
+Ruta **«Speech telefónico · nivel experto»**, con 8 briefs que se leen en el
 propio CRM (índice, progreso, autoevaluación e impresión a PDF):
 
 1. Encuentra el cuello de botella en 3 minutos
@@ -327,6 +369,9 @@ propio CRM (índice, progreso, autoevaluación e impresión a PDF):
 5. Objeciones nivel experto: rebatir sin discutir
 6. Del teléfono al presupuesto: cerrar con números
 7. Chuleta de bolsillo: la IA sin tecnicismos
+8. AI Act en España: qué decir y qué no al cliente (calendario tras el Digital
+   Omnibus, AESIA y AEPD, estado del proyecto de ley español, cómo hablar de
+   multas sin asustar y tres ganchos honestos)
 
 Están basados en el Kit de Venta Rápido, el Manual del Gestor Comercial y la
 Comparativa de Packs, sin cifras inventadas. Como los documentos corporativos,
@@ -450,5 +495,5 @@ de seguridad cifradas.
 
 ## Pruebas
 
-45 + 25 + 30 + 32 + 32 + 31 + 62 pruebas del servidor y 34 + 36 + 49 + 36 + 37 + 35 + 26 comprobaciones en el navegador, incluido el móvil,
+45 + 25 + 30 + 32 + 32 + 31 + 62 + 59 pruebas del servidor y 34 + 36 + 49 + 36 + 37 + 35 + 26 + 23 comprobaciones en el navegador, incluido el móvil,
 además de todas las anteriores del CRM.

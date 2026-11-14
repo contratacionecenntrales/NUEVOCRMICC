@@ -824,11 +824,13 @@ function labs_motor_smtp_envia($para, $asunto, $cuerpo, $msgid, $lead)
     $cmd('DATA', 354);
     $o = labs_motor_cfg()['outreach'];
     $nombre = $o['remitente_nombre'] !== '' ? $o['remitente_nombre'] . ' · Labs24k' : 'Labs24k';
-    $baja = labs_motor_url_baja($lead);
     $cab = array('Date: ' . date('r'), 'From: =?UTF-8?B?' . base64_encode($nombre) . '?= <' . $e['remitente_email'] . '>', 'To: <' . $para . '>',
         'Subject: =?UTF-8?B?' . base64_encode($asunto) . '?=', 'Message-ID: ' . $msgid, 'MIME-Version: 1.0',
-        'Content-Type: text/plain; charset=UTF-8', 'Content-Transfer-Encoding: base64',
-        'List-Unsubscribe: <mailto:' . ($e['responder_a'] ?: $e['remitente_email']) . '?subject=baja>, <' . $baja . '>', 'List-Unsubscribe-Post: List-Unsubscribe=One-Click');
+        'Content-Type: text/plain; charset=UTF-8', 'Content-Transfer-Encoding: base64');
+    if ($lead) {   // prospección: baja en un clic. Sin lead es un correo a un cliente (por ejemplo, un cobro).
+        $cab[] = 'List-Unsubscribe: <mailto:' . ($e['responder_a'] ?: $e['remitente_email']) . '?subject=baja>, <' . labs_motor_url_baja($lead) . '>';
+        $cab[] = 'List-Unsubscribe-Post: List-Unsubscribe=One-Click';
+    }
     if ($e['responder_a'] !== '') {
         $cab[] = 'Reply-To: <' . $e['responder_a'] . '>';
     }
@@ -1191,7 +1193,13 @@ function labs_motor($metodo, $sub, $b, $pares)
         if ($tok === '' || !hash_equals($tok, (string) $par('token'))) {
             throw new ErrorApi('Token no válido.', 403, '42501');
         }
-        return array(200, labs_motor_tick(25));
+        @ignore_user_abort(true);
+        $r = labs_motor_tick(25);
+        if (function_exists('labs_equipo_tick')) {
+            // El mismo cron hace trabajar a la zona de agentes (un turno por llamada).
+            $r['equipo'] = labs_equipo_tick('cron');
+        }
+        return array(200, $r);
     }
     labs_motor_permitido();
     $u = labs_usuario(true);

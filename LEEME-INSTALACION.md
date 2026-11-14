@@ -234,6 +234,13 @@ enchufes, y el panel lo dice claramente:
 - **Cron**: una tarea cada 5 minutos que abra la dirección de la Fábrica de
   agentes («Cron del hosting»).
 
+## Zona de agentes
+
+Usa la misma clave de Claude y el mismo cron que el Motor: no hay que
+configurar nada más. Viene **apagada**: la administración la enciende desde
+el propio panel cuando quiera. Sin clave de Claude, los agentes trabajan con
+su manual de reglas.
+
 ## Importar contactos
 
 En **Contactos → Importar CSV** (administración y jefatura) se sube la

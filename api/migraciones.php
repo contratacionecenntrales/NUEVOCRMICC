@@ -8,7 +8,7 @@
  */
 defined('LABS') || exit;
 
-define('LABS_VERSION_ESQUEMA', 15);
+define('LABS_VERSION_ESQUEMA', 16);
 
 function labs_columna_existe(PDO $db, $tabla, $col)
 {
@@ -141,6 +141,29 @@ function labs_migra(PDO $db)
         "CREATE TABLE IF NOT EXISTS motor_log (
            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, tipo VARCHAR(20) NOT NULL, texto VARCHAR(1000) NOT NULL, lead_id BIGINT UNSIGNED NULL,
            campana_id BIGINT UNSIGNED NULL, ts DATETIME(6) NOT NULL, PRIMARY KEY (id), KEY motor_log_ts_idx (ts)) $opc",
+        // v16 · Zona de agentes: turnos de trabajo, acciones (con aprobación), tareas entre agentes y cobros.
+        "CREATE TABLE IF NOT EXISTS equipo_turnos (
+           id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, agente VARCHAR(20) NOT NULL, modo VARCHAR(10) NOT NULL DEFAULT 'reglas',
+           estado VARCHAR(12) NOT NULL DEFAULT 'en_curso', origen VARCHAR(20) NOT NULL DEFAULT 'cron', resumen TEXT NULL, error VARCHAR(500) NOT NULL DEFAULT '',
+           iteraciones INT NOT NULL DEFAULT 0, tokens_in INT NOT NULL DEFAULT 0, tokens_out INT NOT NULL DEFAULT 0,
+           inicio DATETIME(6) NOT NULL, fin DATETIME(6) NULL, PRIMARY KEY (id), KEY equipo_turnos_ag_idx (agente, inicio)) $opc",
+        "CREATE TABLE IF NOT EXISTS equipo_acciones (
+           id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, turno_id BIGINT UNSIGNED NULL, agente VARCHAR(20) NOT NULL, herramienta VARCHAR(40) NOT NULL,
+           entrada TEXT NULL, resultado TEXT NULL, resumen VARCHAR(400) NOT NULL DEFAULT '', riesgo VARCHAR(10) NOT NULL DEFAULT 'lectura',
+           estado VARCHAR(12) NOT NULL DEFAULT 'hecha', contacto_id BIGINT UNSIGNED NULL, decidido_por CHAR(36) NULL, decidido DATETIME(6) NULL,
+           motivo VARCHAR(500) NOT NULL DEFAULT '', ts DATETIME(6) NOT NULL,
+           PRIMARY KEY (id), KEY equipo_acc_estado_idx (estado, ts), KEY equipo_acc_ag_idx (agente, ts), KEY equipo_acc_cont_idx (contacto_id)) $opc",
+        "CREATE TABLE IF NOT EXISTS equipo_tareas (
+           id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, de VARCHAR(20) NOT NULL, para VARCHAR(20) NOT NULL, titulo VARCHAR(200) NOT NULL,
+           detalle TEXT NULL, prioridad VARCHAR(10) NOT NULL DEFAULT 'media', estado VARCHAR(12) NOT NULL DEFAULT 'pendiente',
+           contacto_id BIGINT UNSIGNED NULL, resultado TEXT NULL, creado_por CHAR(36) NULL, creado DATETIME(6) NOT NULL, cerrada DATETIME(6) NULL,
+           PRIMARY KEY (id), KEY equipo_tareas_para_idx (para, estado)) $opc",
+        "CREATE TABLE IF NOT EXISTS equipo_cobros (
+           id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, contacto_id BIGINT UNSIGNED NULL, presupuesto_id BIGINT UNSIGNED NULL,
+           concepto VARCHAR(200) NOT NULL, importe DECIMAL(12,2) NOT NULL DEFAULT 0, vence DATE NOT NULL, estado VARCHAR(12) NOT NULL DEFAULT 'pendiente',
+           pagado_el DATE NULL, metodo VARCHAR(40) NOT NULL DEFAULT '', recordatorios INT NOT NULL DEFAULT 0, ultimo_recordatorio DATETIME(6) NULL,
+           creado_por VARCHAR(40) NOT NULL DEFAULT '', creado DATETIME(6) NOT NULL,
+           PRIMARY KEY (id), KEY equipo_cobros_estado_idx (estado, vence), KEY equipo_cobros_presu_idx (presupuesto_id)) $opc",
         "CREATE TABLE IF NOT EXISTS llamadas (
            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, contacto_id BIGINT UNSIGNED NOT NULL, autor_id CHAR(36) NULL,
            inicio DATETIME(6) NOT NULL, duracion INT NOT NULL DEFAULT 0, con_quien VARCHAR(20) NOT NULL DEFAULT 'nadie',
