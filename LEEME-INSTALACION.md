@@ -219,6 +219,21 @@ enchufes, y el panel lo dice claramente:
 
 *Labs24k · Labs Command Center 360™ · Grupo Evolvix Global, S.L. · CIF B21779673*
 
+## Motor de Scraping IA: requisitos
+
+- **PHP 8.1 o superior** (en el panel de Hostalia, «Versión de PHP»). La
+  librería oficial de Claude va dentro del zip, en `api/lib/` (protegida: no
+  se puede abrir desde el navegador). Con PHP más antiguo el Motor sigue
+  funcionando, pero redacta con plantillas.
+- **Claves** (se guardan cifradas desde la Fábrica de agentes, nunca en el
+  zip): Google Places API y API de Claude.
+- **Correo de salida**: un buzón SMTP, mejor en un subdominio dedicado con
+  SPF, DKIM y DMARC.
+- **Respuestas automáticas**: la extensión IMAP de PHP. Si el plan no la
+  tiene, las respuestas se registran a mano.
+- **Cron**: una tarea cada 5 minutos que abra la dirección de la Fábrica de
+  agentes («Cron del hosting»).
+
 ## Importar contactos
 
 En **Contactos → Importar CSV** (administración y jefatura) se sube la

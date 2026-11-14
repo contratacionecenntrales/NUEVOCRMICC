@@ -36,6 +36,7 @@ require __DIR__ . '/configurador.php';
 require __DIR__ . '/recursos.php';
 require __DIR__ . '/papelera.php';
 require __DIR__ . '/ventas.php';
+require __DIR__ . '/motor.php';
 
 ini_set('display_errors', '0');
 
@@ -182,6 +183,11 @@ try {
     } elseif (preg_match('#^/papelera(/[0-9a-z/]*)?$#', $ruta, $m)) {
         /* --- Papelera (30 días) ------------------------------------------- */
         $r = labs_papelera($metodo, isset($m[1]) ? $m[1] : '');
+        $estado = $r[0];
+        $resp = $r[1];
+    } elseif (preg_match('#^/motor(/[a-z0-9/]*)?$#', $ruta, $m)) {
+        /* --- Motor de Scraping IA ------------------------------------------- */
+        $r = labs_motor($metodo, isset($m[1]) ? $m[1] : '', $metodo === 'GET' ? array() : labs_cuerpo_json(), $pares);
         $estado = $r[0];
         $resp = $r[1];
     } elseif (preg_match('#^/ventas(/[a-z]*)?$#', $ruta, $m)) {

@@ -233,6 +233,88 @@ Periodo: hoy, 7, 30, 90 días o un año.
   la lista de clientes por completar, con acceso directo a la ficha o a llamar.
 - Lo último que han dicho los clientes, para aprender de cada conversación.
 
+## Motor de Scraping IA (prospección por correo)
+
+Menú «Motor de Scraping IA», debajo del Centro de Prospección (dirección y jefes
+de equipo). Cuatro secciones:
+
+**A · Radar de extracción.** Sector (con su CNAE) o palabra clave; ubicación
+jerárquica: comunidad → comarca (Asturias con sus 8 comarcas oficiales, Cuencas
+Mineras y Área central) → concejos, más localidades o códigos postales libres.
+Fuentes:
+
+- **Google Maps** mediante la API oficial de Google Places (hace falta clave).
+- **Webs corporativas**: la portada, la página de contacto y el aviso legal,
+  respetando robots.txt. De ahí salen el correo genérico (info@, contacto@…),
+  el teléfono, el CIF y la razón social.
+- **Páginas Amarillas y directorios**: sus condiciones no permiten el rastreo
+  automático, así que se importan listados en CSV o Excel.
+
+La tabla se llena en tiempo real con empresa, sector, comarca, web, correo
+(verificado por MX), teléfono, **madurez digital** (sin chatbot, sin WhatsApp,
+chat sin aviso de IA, web anticuada, sin versión móvil, sin https…) y el
+estado del agente. Desde la tabla se descartan empresas, se pasan al CRM o se
+meten en una campaña.
+
+**B · Sala de campañas.** Una tarjeta por campaña con: leads, verificados,
+enviados, respuestas, positivas, reuniones (llamadas agendadas) y bajas. La
+apertura no se mide, porque los correos van en texto plano y sin píxel de
+seguimiento. Modos:
+
+- **Con aprobación** (por defecto): la IA redacta y una persona aprueba cada
+  correo.
+- **Solo borradores**: se envían desde el correo propio y se marcan aquí.
+- **Autónomo**: solo si la administración acepta el aviso legal.
+
+El **live feed** muestra en directo qué extrae, analiza, redacta y envía el
+Motor; en «Correos para revisar» se aprueban, se editan («Intervenir») o se
+descartan. Hay un botón para pausar todos los envíos.
+
+**C · Fábrica de agentes.**
+
+- **Agente Scraper.** Solo correos genéricos de empresa (B2B), análisis de la
+  web, verificación MX del dominio y respeto de robots.txt. La comprobación
+  SMTP del buzón no se hace: casi todos los servidores la bloquean y daña la
+  reputación del remitente.
+- **Agente de Outreach.** Firma, tono, modelo de Claude (por defecto
+  `claude-opus-5-5`, esfuerzo bajo), cadencia día 1 → día 3 → día 7 y el
+  **prompt maestro** (editable y restaurable).
+  - El agente lee la web de cada empresa y cita un detalle real.
+  - El texto de la web se le pasa como datos, nunca como instrucciones.
+  - Si no hay clave de Claude o la IA no responde, se usan tres plantillas.
+  - El sistema añade siempre la firma, el motivo del contacto, el responsable
+    y el enlace de baja.
+- **Envío.** SMTP (SSL o STARTTLS), remitente, límite diario por buzón (35 por
+  defecto), pausas aleatorias entre envíos (4-9 minutos), horario y solo días
+  laborables. Cabeceras `List-Unsubscribe`.
+- **Buzón.** IMAP si el hosting tiene la extensión, y la dirección del cron.
+
+**D · Buzón de respuestas.** Las respuestas llegan por IMAP o se pegan a mano.
+La IA clasifica la intención: quiere información, pide presupuesto, acepta
+reunión, no le interesa, pide la baja o está fuera de la oficina.
+
+- Cualquier respuesta (salvo fuera de oficina) **para la secuencia**.
+- La baja va a la **lista de exclusión**, que se respeta siempre (correos y
+  dominios enteros).
+- Si hay interés, la empresa **pasa al CRM**: contacto en Cualificación con la
+  conversación en su historial y una llamada en la agenda del gestor al día
+  laborable siguiente. Desde ahí sigue en el Pipeline y en el Centro de
+  Prospección.
+
+**Normativa.** Las obligaciones del AI Act que cita el prompt están
+actualizadas tras el Digital Omnibus: el art. 50 (transparencia) se aplica
+desde el 2 de agosto de 2026, y el art. 4 pide medidas de alfabetización en
+IA. En España la LSSI (art. 21) exige consentimiento previo para enviar
+comunicaciones comerciales por correo, también a direcciones de empresa. Por
+eso el Motor funciona por defecto con aprobación humana, con remitente
+identificado y baja en un clic. Validad el uso con vuestro asesor legal antes
+del modo autónomo.
+
+**Cron.** Mientras el Motor está abierto, el propio panel lo hace trabajar.
+Para que trabaje también sin nadie conectado, programad en Hostalia una tarea
+cada 5 minutos que abra la dirección que aparece en la Fábrica de agentes
+(lleva un token secreto).
+
 ## Briefs de speech telefónico (Centro de Formación)
 
 Ruta **«Speech telefónico · nivel experto»**, con 7 briefs que se leen en el
@@ -368,5 +450,5 @@ de seguridad cifradas.
 
 ## Pruebas
 
-45 + 25 + 30 + 32 + 32 + 31 pruebas del servidor y 34 + 36 + 49 + 36 + 37 + 35 comprobaciones en el navegador, incluido el móvil,
+45 + 25 + 30 + 32 + 32 + 31 + 62 pruebas del servidor y 34 + 36 + 49 + 36 + 37 + 35 + 26 comprobaciones en el navegador, incluido el móvil,
 además de todas las anteriores del CRM.

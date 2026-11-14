@@ -17,7 +17,7 @@ DirectoryIndex index.html
 
 # --- Cabeceras de seguridad ---------------------------------------------------
 <IfModule mod_headers.c>
-  Header always set Content-Security-Policy "default-src 'none'; script-src 'self' 'sha256-a35UAxZKk+DAuGxr1foOB2y+vc/81QgFw1q7j5L9AzI=' 'sha256-R69CpuYXol6TeBpB/Sxo+oBBVNAjdif60RpvZTVNB9Q='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; frame-ancestors 'none'; base-uri 'none'; object-src 'none'"
+  Header always set Content-Security-Policy "default-src 'none'; script-src 'self' 'sha256-JxolqSEbDqRu/kjEQVNpMB/eNWoqRy5DARXaFNKnvdA=' 'sha256-R69CpuYXol6TeBpB/Sxo+oBBVNAjdif60RpvZTVNB9Q='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; frame-ancestors 'none'; base-uri 'none'; object-src 'none'"
   Header always set X-Content-Type-Options "nosniff"
   Header always set X-Frame-Options "DENY"
   Header always set Referrer-Policy "strict-origin-when-cross-origin"

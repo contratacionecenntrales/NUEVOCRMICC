@@ -8,7 +8,7 @@
  */
 defined('LABS') || exit;
 
-define('LABS_VERSION_ESQUEMA', 14);
+define('LABS_VERSION_ESQUEMA', 15);
 
 function labs_columna_existe(PDO $db, $tabla, $col)
 {
@@ -107,6 +107,40 @@ function labs_migra(PDO $db)
            PRIMARY KEY (id), KEY pipeline_mov_ts_idx (ts, a), KEY pipeline_mov_contacto_idx (contacto_id),
            CONSTRAINT pipeline_mov_contacto_fk FOREIGN KEY (contacto_id) REFERENCES contactos(id) ON DELETE CASCADE) $opc",
         // v12 · Proceso de venta: cada llamada con su resultado, notas y grabación.
+        // v15 · Motor de Scraping IA: campañas, empresas extraídas, correos, bajas, tareas y registro en vivo.
+        "CREATE TABLE IF NOT EXISTS motor_campanas (
+           id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, nombre VARCHAR(120) NOT NULL, sector VARCHAR(60) NOT NULL DEFAULT '',
+           ccaa VARCHAR(60) NOT NULL DEFAULT '', comarca VARCHAR(80) NOT NULL DEFAULT '', localidades TEXT NULL,
+           estado VARCHAR(20) NOT NULL DEFAULT 'pausada', modo VARCHAR(20) NOT NULL DEFAULT 'aprobacion', creado_por CHAR(36) NULL,
+           creado DATETIME(6) NOT NULL, actualizado DATETIME(6) NOT NULL, PRIMARY KEY (id)) $opc",
+        "CREATE TABLE IF NOT EXISTS motor_leads (
+           id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, campana_id BIGINT UNSIGNED NULL, empresa VARCHAR(200) NOT NULL, sector VARCHAR(60) NOT NULL DEFAULT '',
+           ccaa VARCHAR(60) NOT NULL DEFAULT '', comarca VARCHAR(80) NOT NULL DEFAULT '', localidad VARCHAR(80) NOT NULL DEFAULT '', cp VARCHAR(10) NOT NULL DEFAULT '',
+           direccion VARCHAR(250) NOT NULL DEFAULT '', web VARCHAR(250) NOT NULL DEFAULT '', dominio VARCHAR(190) NOT NULL DEFAULT '',
+           email VARCHAR(190) NOT NULL DEFAULT '', email_tipo VARCHAR(20) NOT NULL DEFAULT '', email_estado VARCHAR(20) NOT NULL DEFAULT 'sin_verificar',
+           telefono VARCHAR(40) NOT NULL DEFAULT '', cif VARCHAR(20) NOT NULL DEFAULT '', razon_social VARCHAR(200) NOT NULL DEFAULT '',
+           fuente VARCHAR(20) NOT NULL DEFAULT 'manual', place_id VARCHAR(200) NULL, senales TEXT NULL, madurez INT NOT NULL DEFAULT 0, resumen TEXT NULL,
+           estado VARCHAR(20) NOT NULL DEFAULT 'nuevo', paso INT NOT NULL DEFAULT 0, contacto_id BIGINT UNSIGNED NULL,
+           proximo_envio DATETIME(6) NULL, ultimo_envio DATETIME(6) NULL, creado DATETIME(6) NOT NULL, actualizado DATETIME(6) NOT NULL,
+           PRIMARY KEY (id), UNIQUE KEY motor_leads_place_uq (place_id), KEY motor_leads_dom_idx (dominio), KEY motor_leads_email_idx (email),
+           KEY motor_leads_estado_idx (estado, proximo_envio), KEY motor_leads_camp_idx (campana_id)) $opc",
+        "CREATE TABLE IF NOT EXISTS motor_mensajes (
+           id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, lead_id BIGINT UNSIGNED NOT NULL, campana_id BIGINT UNSIGNED NULL, paso INT NOT NULL DEFAULT 1,
+           sentido VARCHAR(10) NOT NULL DEFAULT 'salida', asunto VARCHAR(200) NOT NULL DEFAULT '', cuerpo TEXT NOT NULL, estado VARCHAR(20) NOT NULL DEFAULT 'pendiente',
+           intencion VARCHAR(20) NOT NULL DEFAULT '', error VARCHAR(300) NOT NULL DEFAULT '', con_ia TINYINT(1) NOT NULL DEFAULT 0, message_id VARCHAR(200) NOT NULL DEFAULT '',
+           aprobado_por CHAR(36) NULL, enviado DATETIME(6) NULL, creado DATETIME(6) NOT NULL,
+           PRIMARY KEY (id), KEY motor_msj_lead_idx (lead_id), KEY motor_msj_estado_idx (estado, sentido), KEY motor_msj_camp_idx (campana_id),
+           CONSTRAINT motor_msj_lead_fk FOREIGN KEY (lead_id) REFERENCES motor_leads(id) ON DELETE CASCADE) $opc",
+        "CREATE TABLE IF NOT EXISTS motor_bajas (
+           id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, valor VARCHAR(190) NOT NULL, motivo VARCHAR(120) NOT NULL DEFAULT '', creado DATETIME(6) NOT NULL,
+           PRIMARY KEY (id), UNIQUE KEY motor_bajas_uq (valor)) $opc",
+        "CREATE TABLE IF NOT EXISTS motor_tareas (
+           id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, parametros TEXT NOT NULL, cola MEDIUMTEXT NULL, estado VARCHAR(20) NOT NULL DEFAULT 'cola',
+           total INT NOT NULL DEFAULT 0, hechos INT NOT NULL DEFAULT 0, autor_id CHAR(36) NULL, creado DATETIME(6) NOT NULL, actualizado DATETIME(6) NOT NULL,
+           PRIMARY KEY (id)) $opc",
+        "CREATE TABLE IF NOT EXISTS motor_log (
+           id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, tipo VARCHAR(20) NOT NULL, texto VARCHAR(1000) NOT NULL, lead_id BIGINT UNSIGNED NULL,
+           campana_id BIGINT UNSIGNED NULL, ts DATETIME(6) NOT NULL, PRIMARY KEY (id), KEY motor_log_ts_idx (ts)) $opc",
         "CREATE TABLE IF NOT EXISTS llamadas (
            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, contacto_id BIGINT UNSIGNED NOT NULL, autor_id CHAR(36) NULL,
            inicio DATETIME(6) NOT NULL, duracion INT NOT NULL DEFAULT 0, con_quien VARCHAR(20) NOT NULL DEFAULT 'nadie',

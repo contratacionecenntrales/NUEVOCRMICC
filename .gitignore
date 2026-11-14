@@ -8,3 +8,6 @@ api/importacion-pendiente.php
 *.csv
 # Documentos corporativos que se cargan al desplegar: solo en el zip personal
 api/semilla/
+
+# Librerías de Composer (se instalan en el zip, no en el repositorio)
+api/lib/vendor/

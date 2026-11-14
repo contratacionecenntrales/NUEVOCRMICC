@@ -313,7 +313,8 @@ function labs_tablas_copia()
         'contratos', 'firma_eventos', 'contactos', 'contacto_eventos', 'contacto_comentarios', 'contacto_documentos', 'recursos',
         'recursos_descargas', 'tickets', 'ticket_eventos', 'agente_fichas', 'agente_seguimiento', 'ajustes', 'registro_accesos',
         'bloqueos', 'incidentes', 'alertas', 'solicitudes_rgpd',
-        'citas', 'ia_config', 'pipeline_movimientos', 'recursos_progreso', 'papelera', 'llamadas');
+        'citas', 'ia_config', 'pipeline_movimientos', 'recursos_progreso', 'papelera', 'llamadas',
+        'motor_campanas', 'motor_leads', 'motor_mensajes', 'motor_bajas');
     $hay = labs_q('SELECT table_name FROM information_schema.tables WHERE table_schema = DATABASE()')->fetchAll(PDO::FETCH_COLUMN);
     return array_values(array_intersect($todas, $hay));
 }
@@ -843,6 +844,11 @@ function labs_mantenimiento($forzar = false)
     }
     $r['conservacion'] = labs_conservacion(true);
     $r['papelera'] = function_exists('labs_papelera_purga') ? labs_papelera_purga() : 0;
+    // Registro en vivo del Motor de Scraping IA: se guarda 30 días.
+    try {
+        labs_q('DELETE FROM motor_log WHERE ts < ?', array(labs_hace(30 * 86400)));
+    } catch (Exception $e) {
+    }
     $b = labs_verifica_bitacora();
     $r['bitacora'] = $b['ok'];
     if (!$b['ok']) {
