@@ -1,11 +1,11 @@
 -- =============================================================================
--- ICC CRM v91 · BASE DE DATOS COMPLETA (instalar o actualizar en un solo paso)
+-- ICC CRM v93 · BASE DE DATOS COMPLETA (instalar o actualizar en un solo paso)
 --
 -- Cómo usarlo: phpMyAdmin > tu base de datos > Importar > este archivo > Continuar.
 --
 -- - Si la base de datos YA TIENE datos (tu CRM actual): NO borra nada.
 --   Solo crea las tablas, columnas e índices que falten y amplía lo necesario
---   para la versión v91. Sirve vengas de la versión que vengas (v55 en adelante).
+--   para la versión v93. Sirve vengas de la versión que vengas (v55 en adelante).
 -- - Si la base de datos está VACÍA: crea el CRM completo y un usuario
 --   Super Administrador inicial (ver el final del archivo).
 -- - Se puede ejecutar MÁS DE UNA VEZ sin errores ni duplicados.
@@ -1500,6 +1500,33 @@ CREATE TABLE IF NOT EXISTS `usuarios_sesiones` (
   KEY `idx_ususes_usuario` (`usuario_id`,`cerrada_en`),
   CONSTRAINT `fk_ususes_cerrada_por` FOREIGN KEY (`cerrada_por`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_ususes_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `voz_llamadas` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `cliente_id` int(10) unsigned DEFAULT NULL,
+  `telefono` varchar(40) NOT NULL,
+  `nombre` varchar(190) NOT NULL DEFAULT '',
+  `motivo` varchar(40) NOT NULL DEFAULT 'seguimiento',
+  `detalle` varchar(500) NOT NULL DEFAULT '',
+  `origen` varchar(60) NOT NULL DEFAULT 'manual',
+  `estado` enum('pendiente','en_curso','terminada','error','descartada') NOT NULL DEFAULT 'pendiente',
+  `proveedor_id` varchar(80) DEFAULT NULL,
+  `resultado` varchar(30) DEFAULT NULL,
+  `resumen` text DEFAULT NULL,
+  `transcripcion` mediumtext DEFAULT NULL,
+  `duracion` int(10) unsigned DEFAULT NULL,
+  `grabacion_url` varchar(500) DEFAULT NULL,
+  `acciones` text DEFAULT NULL,
+  `error` varchar(255) DEFAULT NULL,
+  `creado_por` int(10) unsigned DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_voz_proveedor` (`proveedor_id`),
+  KEY `idx_voz_cliente` (`cliente_id`,`created_at`),
+  KEY `idx_voz_estado` (`estado`,`created_at`),
+  CONSTRAINT `fk_voz_cliente` FOREIGN KEY (`cliente_id`) REFERENCES `clientes` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- -----------------------------------------------------------------------------
@@ -3399,6 +3426,45 @@ PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'usuarios_sesiones' AND column_name = 'motivo_cierre'), 'ALTER TABLE `usuarios_sesiones` ADD COLUMN `motivo_cierre` varchar(60) NOT NULL DEFAULT ''''', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'voz_llamadas' AND column_name = 'id'), 'ALTER TABLE `voz_llamadas` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'voz_llamadas' AND column_name = 'cliente_id'), 'ALTER TABLE `voz_llamadas` ADD COLUMN `cliente_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'voz_llamadas' AND column_name = 'telefono'), 'ALTER TABLE `voz_llamadas` ADD COLUMN `telefono` varchar(40) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'voz_llamadas' AND column_name = 'nombre'), 'ALTER TABLE `voz_llamadas` ADD COLUMN `nombre` varchar(190) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'voz_llamadas' AND column_name = 'motivo'), 'ALTER TABLE `voz_llamadas` ADD COLUMN `motivo` varchar(40) NOT NULL DEFAULT ''seguimiento''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'voz_llamadas' AND column_name = 'detalle'), 'ALTER TABLE `voz_llamadas` ADD COLUMN `detalle` varchar(500) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'voz_llamadas' AND column_name = 'origen'), 'ALTER TABLE `voz_llamadas` ADD COLUMN `origen` varchar(60) NOT NULL DEFAULT ''manual''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'voz_llamadas' AND column_name = 'estado'), 'ALTER TABLE `voz_llamadas` ADD COLUMN `estado` enum(''pendiente'',''en_curso'',''terminada'',''error'',''descartada'') NOT NULL DEFAULT ''pendiente''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'voz_llamadas' AND column_name = 'proveedor_id'), 'ALTER TABLE `voz_llamadas` ADD COLUMN `proveedor_id` varchar(80) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'voz_llamadas' AND column_name = 'resultado'), 'ALTER TABLE `voz_llamadas` ADD COLUMN `resultado` varchar(30) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'voz_llamadas' AND column_name = 'resumen'), 'ALTER TABLE `voz_llamadas` ADD COLUMN `resumen` text DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'voz_llamadas' AND column_name = 'transcripcion'), 'ALTER TABLE `voz_llamadas` ADD COLUMN `transcripcion` mediumtext DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'voz_llamadas' AND column_name = 'duracion'), 'ALTER TABLE `voz_llamadas` ADD COLUMN `duracion` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'voz_llamadas' AND column_name = 'grabacion_url'), 'ALTER TABLE `voz_llamadas` ADD COLUMN `grabacion_url` varchar(500) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'voz_llamadas' AND column_name = 'acciones'), 'ALTER TABLE `voz_llamadas` ADD COLUMN `acciones` text DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'voz_llamadas' AND column_name = 'error'), 'ALTER TABLE `voz_llamadas` ADD COLUMN `error` varchar(255) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'voz_llamadas' AND column_name = 'creado_por'), 'ALTER TABLE `voz_llamadas` ADD COLUMN `creado_por` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'voz_llamadas' AND column_name = 'created_at'), 'ALTER TABLE `voz_llamadas` ADD COLUMN `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'voz_llamadas' AND column_name = 'updated_at'), 'ALTER TABLE `voz_llamadas` ADD COLUMN `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
 -- -----------------------------------------------------------------------------
 -- 3) Ampliaciones de columnas existentes
 -- -----------------------------------------------------------------------------
@@ -3744,6 +3810,12 @@ SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHER
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'usuarios_sesiones' AND index_name = 'token_hash'), 'CREATE UNIQUE INDEX `token_hash` ON `usuarios_sesiones` (`token_hash`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'voz_llamadas' AND index_name = 'idx_voz_cliente'), 'CREATE INDEX `idx_voz_cliente` ON `voz_llamadas` (`cliente_id`, `created_at`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'voz_llamadas' AND index_name = 'idx_voz_estado'), 'CREATE INDEX `idx_voz_estado` ON `voz_llamadas` (`estado`, `created_at`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'voz_llamadas' AND index_name = 'uq_voz_proveedor'), 'CREATE UNIQUE INDEX `uq_voz_proveedor` ON `voz_llamadas` (`proveedor_id`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 
 -- -----------------------------------------------------------------------------
 -- 5) Relaciones (claves foráneas) que falten
@@ -3912,6 +3984,8 @@ SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constrain
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'usuarios_sesiones' AND constraint_name = 'fk_ususes_usuario' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `usuarios_sesiones` ADD CONSTRAINT `fk_ususes_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'voz_llamadas' AND constraint_name = 'fk_voz_cliente' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `voz_llamadas` ADD CONSTRAINT `fk_voz_cliente` FOREIGN KEY (`cliente_id`) REFERENCES `clientes` (`id`) ON DELETE SET NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 
 -- -----------------------------------------------------------------------------
 -- 6) Datos
@@ -3919,7 +3993,7 @@ PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 -- Numero de relacion de cada usuario (solo a quien no lo tenga).
 UPDATE usuarios SET numero_relacion = CONCAT('ICC-', LPAD(id, 5, '0')) WHERE numero_relacion IS NULL;
 
--- v91: la identidad Labs24k del Motor pasa a ICC Consultoria (100 % servicios, 100 % companias).
+-- v93: la identidad Labs24k del Motor pasa a ICC Consultoria (100 % servicios, 100 % companias).
 UPDATE motor_campanas SET perfil = 'icc' WHERE perfil = 'labs24k';
 UPDATE motor_campanas SET angulo = 'auditoria_integral' WHERE angulo IN ('ia_transparencia', 'ia_alfabetizacion', 'ia_fundae', 'ia_captacion', 'ia_pregunta');
 DELETE FROM ajustes WHERE clave = 'motor_perfil_labs24k';
@@ -4136,4 +4210,4 @@ UPDATE usuarios SET numero_relacion = CONCAT('ICC-', LPAD(id, 5, '0')) WHERE num
 SET FOREIGN_KEY_CHECKS = 1;
 SET SESSION sql_mode = @icc_modo_anterior;
 
--- Listo. Base de datos al dia para ICC CRM v91.
+-- Listo. Base de datos al dia para ICC CRM v93.

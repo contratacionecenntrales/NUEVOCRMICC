@@ -1,6 +1,6 @@
 /* =============================================================================
    ICC CRM · Zona de agentes (#/zona-agentes)
-   15 agentes de IA por departamentos, Para aprobar, tareas, ritmo hacia el
+   17 agentes de IA por departamentos (con Jefatura de ventas y Coordinadores de equipo), Sala de cierre, agente de voz, Para aprobar, tareas, ritmo hacia el
    objetivo, laboratorio A/B, cerebro, calidad, cierre, cobros y registro.
    Dirección y jefes de equipo (aprobar y lanzar turnos: dirección). API: api/equipo.php
    ============================================================================= */
@@ -32,7 +32,7 @@
     pintar();
   }
   async function cargar() {
-    var mapa = { aprobar: "aprobar", tareas: "tareas", lab: "lab", cerebro: "cerebro", calidad: "calidad", cierre: "cierre", cobros: "cobros", registro: "registro", ajustes: "config" };
+    var mapa = { sala: "sala", voz: "voz", aprobar: "aprobar", tareas: "tareas", lab: "lab", cerebro: "cerebro", calidad: "calidad", cierre: "cierre", cobros: "cobros", registro: "registro", ajustes: "config" };
     S.x = null;
     if (mapa[S.tab]) { try { S.x = await API.get("api/equipo.php?action=" + mapa[S.tab]); } catch (e) { U.toast(e.message, "error"); } }
   }
@@ -41,12 +41,12 @@
     var d = S.d;
     var html = '<div class="icc-ia icc-mo icc-eq">' +
       '<section class="icc-ia-hero icc-mo-hero"><div><span class="icc-ia-eyebrow">IA · Empresa autónoma</span><h1>🧠 Zona de agentes</h1>' +
-      "<p>15 agentes de IA en 7 departamentos trabajan por turnos sobre el CRM. Hacen lo de riesgo bajo; <b>presupuestos, contratos, cobros, correos a clientes y perdidos siempre esperan a una persona</b>. Marcar un cobro como pagado o un cliente como firmado solo lo hacen personas.</p>" +
+      "<p>17 agentes de IA en 7 departamentos trabajan por turnos sobre el CRM. Hacen lo de riesgo bajo; <b>presupuestos, contratos, cobros, correos a clientes y perdidos siempre esperan a una persona</b>. Marcar un cobro como pagado o un cliente como firmado solo lo hacen personas.</p>" +
       '<div class="icc-ia-estado">' + pill(d.activo ? "● Trabajando" : "⏸ Apagada", d.activo ? "ok" : "aviso") + pill(d.ia ? "Con IA" : "Sin IA: manual de reglas", d.ia ? "ok" : "aviso") +
       "<span>Turnos hoy " + d.turnos_hoy + " de " + d.turnos_dia + "</span>" + (d.pendientes ? pill("✍️ " + d.pendientes + " para aprobar", "aviso") : "") + "</div></div></section>" +
       '<nav class="icc-tabs icc-mo-tabs" role="tablist">' +
       [["equipo", "👥 Equipo"], ["aprobar", "✍️ Para aprobar" + (d.pendientes ? " <b>" + d.pendientes + "</b>" : "")], ["tareas", "📋 Tareas"], ["ritmo", "🎯 Ritmo"], ["lab", "🧪 Laboratorio"],
-        ["cerebro", "🧠 Cerebro"], ["calidad", "🔍 Calidad"], ["cierre", "🤝 Cierre"]].concat(d.es_dir ? [["cobros", "💶 Cobros"]] : []).concat([["registro", "🧾 Registro"], ["ajustes", "⚙️ Ajustes"]])
+        ["cerebro", "🧠 Cerebro"], ["calidad", "🔍 Calidad"], ["sala", "🔥 Sala de cierre"], ["cierre", "🤝 Cadencia"]].concat(d.es_config ? [["voz", "📞 Agente de voz"]] : []).concat(d.es_dir ? [["cobros", "💶 Cobros"]] : []).concat([["registro", "🧾 Registro"], ["ajustes", "⚙️ Ajustes"]])
         .map(function (t) { return '<button type="button" role="tab" class="icc-tab' + (S.tab === t[0] ? " is-active" : "") + '" data-tab="' + t[0] + '">' + t[1] + "</button>"; }).join("") +
       '</nav><div id="eq-cuerpo">' + cuerpo() + "</div></div>";
     main().innerHTML = html;
@@ -54,7 +54,7 @@
   }
 
   function cuerpo() {
-    var f = { equipo: equipo, aprobar: aprobar, tareas: tareas, ritmo: ritmo, lab: lab, cerebro: cerebro, calidad: calidad, cierre: cierre, cobros: cobros, registro: registro, ajustes: ajustes }[S.tab];
+    var f = { sala: sala, voz: voz, equipo: equipo, aprobar: aprobar, tareas: tareas, ritmo: ritmo, lab: lab, cerebro: cerebro, calidad: calidad, cierre: cierre, cobros: cobros, registro: registro, ajustes: ajustes }[S.tab];
     if (S.tab !== "equipo" && S.tab !== "ritmo" && !S.x) return '<p class="icc-empty">No se pudo cargar.</p>';
     return f();
   }
@@ -217,6 +217,63 @@
       }).join("") + "</ul>" : '<p class="icc-muted">Ningún presupuesto en cadencia todavía.</p>') + "</section>";
   }
 
+  /* ------------------------------------------------------ SALA DE CIERRE */
+  var ACC = { llamada: "📞 Llamada", visita: "🚗 Visita", backoffice: "🗂️ Estudio a backoffice", firma: "✍️ Firma", escalar: "🤝 Jefe de equipo" };
+  var PEST = { borrador: "Sin factura", factura_subida: "Factura subida", estudio_adjunto: "Estudio hecho", documentacion_contrato: "Documentación" };
+  function sala() {
+    var x = S.x, T = x.tecnicas, voz = x.voz.activo && x.voz.configurado;
+    var parados = x.parados.filter(function (p) { return p.parado; }).length;
+    var html = '<section class="icc-card icc-ia-bloque"><div class="icc-mo-cab"><div><h2>🔥 Sala de cierre</h2><p class="icc-muted">La <b>Jefatura de ventas</b> revisa cada hora todos los presupuestos abiertos y aplica la técnica que toca. <b>Da caña al equipo, nunca al cliente</b>: ningún presupuesto parado más de 48 h, urgencia solo con fechas reales y sin descuentos. Los correos al cliente esperan aprobación.</p></div>' +
+      (x.es_dir ? '<div class="icc-ia-fila"><button class="icc-btn icc-btn-primary" id="eq-empujar">🔥 Empujar los ' + parados + ' parados</button><button class="icc-btn icc-btn-secondary" id="eq-partes">📨 Enviar partes a los jefes</button></div>' : "") + "</div>" +
+      '<div class="icc-mo-kpis icc-eq-salakpi">' + [["📂", x.parados.length, "Presupuestos abiertos"], ["🧊", parados, "Parados sin acción"], ["🤖", voz ? "Encendido" : "Apagado", "Agente de voz"],
+        ["🏆", x.equipos.reduce(function (a, e) { return a + e.ganados_30; }, 0), "Ganados 30 días"], ["⏰", x.equipos.reduce(function (a, e) { return a + e.atrasadas; }, 0), "Llamadas atrasadas"]]
+        .map(function (k) { return '<div class="icc-card icc-mo-kpi"><span>' + k[0] + "</span><b>" + esc(k[1]) + "</b><small>" + k[2] + "</small></div>"; }).join("") + "</div>" +
+      (x.parados.length ? '<div class="icc-eq-sala">' + x.parados.map(function (p) {
+        var t = T[p.tecnica];
+        return '<article class="icc-eq-pres' + (p.parado ? " is-parado" : "") + '"><div class="icc-eq-pres-cab"><div><strong><a href="#/clientes/' + p.id + '">' + esc(p.razon_social) + "</a></strong><small>" + esc((p.gestor || "Sin gestor").trim()) + " · " + esc(PEST[p.pestado] || p.pestado) + " · " + p.dias + " días sin movimiento" + (p.proxima ? " · próxima cita " + esc(fecha(p.proxima)) : "") + "</small></div>" +
+          (p.parado ? pill("Parado", "aviso") : pill("En marcha", "ok")) + "</div>" +
+          '<div class="icc-eq-tec"><b>' + esc(t[0]) + "</b> → " + esc(ACC[p.accion] || p.accion) + (p.grande ? " · cuenta grande" : "") + (p.permanencia_cerca ? " · fin de permanencia cerca" : "") + "<small>" + esc(t[2]) + "</small></div>" +
+          '<div class="icc-ia-fila"><button class="icc-btn icc-btn-secondary icc-mo-mini" data-empujar="' + p.id + '">Empujar ahora</button>' +
+          (voz ? '<button class="icc-btn icc-btn-ghost icc-mo-mini" data-vozllamar="' + p.id + '" data-motivo="' + (p.tecnica === "pedir_factura" ? "pedir_factura" : p.tecnica === "presentar_en_caliente" ? "presentar_estudio" : "seguimiento") + '">🤖 Llamar con IA</button>' : "") + "</div></article>";
+      }).join("") + "</div>" : '<p class="icc-muted">No hay presupuestos abiertos.</p>') + "</section>";
+    html += '<section class="icc-ia-bloque"><h2 class="icc-fl-h2">👥 Coordinadores de equipo</h2><p class="icc-ia-nota">Cada mañana cada jefe de equipo recibe el parte de su equipo y una tarea de 15 minutos con quien se queda atrás (3 o más parados o llamadas atrasadas).</p><div class="icc-mo-camps">' +
+      x.equipos.map(function (e) {
+        return '<article class="icc-card icc-mo-camp"><header><div><strong>' + esc(e.jefe) + "</strong><small>" + e.gestores.length + " personas · " + e.ganados_30 + " ganados en 30 días</small></div>" + (e.parados ? pill(e.parados + " parados", "aviso") : pill("Al día", "ok")) + "</header>" +
+          '<ol class="icc-eq-rank">' + e.gestores.map(function (g) { return "<li><span>" + esc(g.nombre) + "</span><small>" + g.ganados_30 + " ganados · " + g.abiertos + " abiertos" + (g.parados ? " · <b>" + g.parados + " parados</b>" : "") + (g.llamadas_atrasadas ? " · <b>" + g.llamadas_atrasadas + " llamadas atrasadas</b>" : "") + " · " + g.citas_7 + " citas en 7 días</small></li>"; }).join("") + "</ol></article>";
+      }).join("") + "</div></section>";
+    html += '<section class="icc-card icc-ia-bloque"><h2>📚 Manual de técnicas de cierre</h2><div class="icc-eq-tecnicas">' + Object.keys(T).map(function (k) {
+      return "<div><b>" + esc(T[k][0]) + "</b><span>" + esc(T[k][1]) + "</span><small>" + esc(T[k][2]) + "</small></div>"; }).join("") + "</div></section>";
+    html += '<section class="icc-card icc-ia-bloque"><h2>🤖 Llamadas del agente de voz</h2>' + (x.llamadas.length ? '<ul class="icc-ia-lista">' + x.llamadas.map(function (l) {
+      return "<li><div><strong>" + esc(l.razon_social || l.nombre || l.telefono) + "</strong><small>" + esc(fecha(l.created_at)) + " · " + esc(x.motivos[l.motivo] || l.motivo) + " · " + esc(l.origen) + (l.duracion ? " · " + Math.round(l.duracion / 60 * 10) / 10 + " min" : "") + "</small>" +
+        (l.resumen ? "<small>" + esc(l.resumen) + "</small>" : "") + (l.acciones ? "<small>✓ " + esc(l.acciones) + "</small>" : "") + (l.error && l.estado !== "terminada" ? '<small class="icc-ia-err">' + esc(l.error) + "</small>" : "") + "</div>" +
+        pill(l.resultado ? (x.resultados[l.resultado] || l.resultado) : { pendiente: "Pendiente", en_curso: "En curso", error: "Error", descartada: "No llamada", terminada: "Terminada" }[l.estado], l.resultado && ["interesado_factura", "cita_visita", "cita_llamada"].indexOf(l.resultado) !== -1 ? "ok" : l.estado === "error" || l.estado === "descartada" ? "aviso" : "") + "</li>";
+    }).join("") + "</ul>" : '<p class="icc-muted">Todavía no hay llamadas.</p>') + "</section>";
+    return html;
+  }
+
+  /* -------------------------------------------------------- AGENTE DE VOZ */
+  function voz() {
+    var c = S.x;
+    var ch = function (n, t, s2) { return '<label class="icc-ia-switch"><input type="checkbox" name="' + n + '"' + (c[n] ? " checked" : "") + "><span><b>" + t + "</b>" + (s2 ? "<small>" + s2 + "</small>" : "") + "</span></label>"; };
+    return '<div class="icc-ia-dos"><section class="icc-card icc-ia-bloque"><h2>📞 Agente de voz (Vapi + Telnyx o Twilio)</h2><form id="eq-voz" class="icc-ia-form" autocomplete="off">' +
+      ch("activo", "Agente de voz encendido", "Llama en el horario fijado, se presenta como asistente de IA y respeta «No contactar».") +
+      '<label><span>Clave privada de Vapi</span><input class="icc-input" type="password" name="clave" autocomplete="new-password" placeholder="' + (c.tiene_clave ? "•••• guardada" : "Pega la clave privada") + '"></label>' +
+      '<div class="icc-mo-2"><label><span>ID del asistente</span><input class="icc-input" name="assistant_id" value="' + esc(c.assistant_id) + '"></label><label><span>ID del número de teléfono</span><input class="icc-input" name="phone_number_id" value="' + esc(c.phone_number_id) + '"></label></div>' +
+      '<div class="icc-mo-2"><label><span>Llamadas al día (máximo)</span><input class="icc-input" type="number" min="1" max="500" name="limite_dia" value="' + c.limite_dia + '"></label><label><span>Horario de llamadas</span><input class="icc-input" name="horario" value="' + esc(c.horario) + '" placeholder="09:00-14:00,16:00-19:30"></label></div>' +
+      ch("solo_laborables", "Solo días laborables") +
+      ch("auto_leads", "Llamar a los leads nuevos en minutos", "Automatización «Lead nuevo» y SDR. Han pedido que les contactemos.") +
+      ch("auto_cierre", "La Jefatura de ventas llama a los presupuestos parados", "Seguimiento de clientes con presupuesto abierto.") +
+      ch("frio", "Permitir llamadas en frío (solo sociedades)", "Apagado por defecto. Solo a empresas con CIF de sociedad (nunca autónomos ni particulares), sin «No contactar» y como mucho 2 intentos por semana. Revisa antes la normativa de llamadas comerciales.") +
+      '<div class="icc-ia-fila"><button class="icc-btn icc-btn-primary" type="submit">Guardar</button><button type="button" class="icc-btn icc-btn-secondary" id="eq-voz-probar">Probar conexión</button></div></form></section>' +
+      '<section class="icc-card icc-ia-bloque"><h2>Cómo dejarlo listo en Vapi</h2><ol class="icc-eq-pasos">' +
+      "<li>En Vapi, importa tu número de Telnyx o Twilio (Phone Numbers) y copia su ID aquí.</li>" +
+      "<li>Crea un asistente: modelo de OpenAI, voz en español y este <b>primer mensaje</b>:<pre class=\"icc-mo-pre\">" + esc(c.primer_mensaje) + "</pre></li>" +
+      '<li>Pega este <b>prompt</b> como instrucciones del sistema (usa las variables {{empresa}}, {{nombre}}, {{sector}}, {{servicio}}, {{motivo}} y {{gestor}} que manda el CRM):<textarea class="icc-input" rows="8" readonly id="eq-voz-prompt">' + esc(c.prompt) + '</textarea><button type="button" class="icc-btn icc-btn-ghost icc-mo-mini" data-copiar="eq-voz-prompt">Copiar prompt</button></li>' +
+      '<li>En «Server URL» del asistente pon <code>' + esc(c.webhook) + '</code> y como secreto (cabecera X-Vapi-Secret): <input class="icc-input" readonly id="eq-voz-sec" value="' + esc(c.secreto) + '"><button type="button" class="icc-btn icc-btn-ghost icc-mo-mini" data-copiar="eq-voz-sec">Copiar secreto</button></li>' +
+      "<li>Activa el informe de fin de llamada (end-of-call-report). Copia el ID del asistente aquí, guarda y pulsa «Probar conexión».</li></ol>" +
+      '<p class="icc-ia-nota">Al terminar cada llamada, el CRM lee el resumen: si quedó en enviar la factura, etiqueta su interés y programa el seguimiento; si quiere visita (cuentas grandes), la pone en la agenda del gestor; si pide que no le llamemos, marca «No contactar».</p></section></div>';
+  }
+
   /* -------------------------------------------------------------- COBROS */
   function cobros() {
     var x = S.x;
@@ -296,6 +353,24 @@
     var mem = document.getElementById("eq-mem");
     if (mem) mem.addEventListener("submit", function (ev) { ev.preventDefault(); hacer(ev.submitter, async function () { await API.post("api/equipo.php?action=memoria", Object.fromEntries(new FormData(mem))); U.toast("✓ Guardado en el cerebro", "success"); await recargar(); }); });
     r.querySelectorAll("[data-olvidar]").forEach(function (b) { b.addEventListener("click", function () { hacer(b, async function () { await API.post("api/equipo.php?action=memoria_quitar", { id: Number(b.dataset.olvidar) }); await recargar(); }); }); });
+    var emp = document.getElementById("eq-empujar");
+    if (emp) emp.addEventListener("click", function () { hacer(emp, async function () { var x = await API.post("api/equipo.php?action=empujar", {}); U.toast(String(x.texto).slice(0, 220), "success"); await recargar(); }); });
+    var par = document.getElementById("eq-partes");
+    if (par) par.addEventListener("click", function () { hacer(par, async function () { var x = await API.post("api/equipo.php?action=partes", {}); U.toast(x.texto, "success"); }); });
+    r.querySelectorAll("[data-empujar]").forEach(function (b) { b.addEventListener("click", function () { hacer(b, async function () { var x = await API.post("api/equipo.php?action=empujar", { cliente_id: Number(b.dataset.empujar) }); U.toast(String(x.texto).slice(0, 220), "success"); await recargar(); }); }); });
+    r.querySelectorAll("[data-vozllamar]").forEach(function (b) { b.addEventListener("click", function () { hacer(b, async function () { var x = await API.post("api/equipo.php?action=voz_llamar", { cliente_id: Number(b.dataset.vozllamar), motivo: b.dataset.motivo }); U.toast(x.texto, "success"); await recargar(); }); }); });
+    r.querySelectorAll("[data-copiar]").forEach(function (b) { b.addEventListener("click", function () { var el = document.getElementById(b.dataset.copiar); el.select(); try { navigator.clipboard.writeText(el.value); } catch (e) { document.execCommand("copy"); } U.toast("Copiado", "success"); }); });
+    var fv = document.getElementById("eq-voz");
+    if (fv) {
+      fv.addEventListener("submit", function (ev) {
+        ev.preventDefault();
+        var d = { clave: fv.clave.value, assistant_id: fv.assistant_id.value.trim(), phone_number_id: fv.phone_number_id.value.trim(), limite_dia: Number(fv.limite_dia.value), horario: fv.horario.value.trim() };
+        ["activo", "solo_laborables", "auto_leads", "auto_cierre", "frio"].forEach(function (k) { d[k] = fv[k].checked; });
+        hacer(ev.submitter, async function () { await API.put("api/equipo.php?action=voz", d); U.toast("✓ Agente de voz guardado", "success"); await recargar(); });
+      });
+      var pv = document.getElementById("eq-voz-probar");
+      pv.addEventListener("click", function () { hacer(pv, async function () { var x = await API.post("api/equipo.php?action=voz_probar", {}); U.toast(x.texto, "success"); }); });
+    }
     var aud = document.getElementById("eq-auditar");
     if (aud) aud.addEventListener("click", function () { hacer(aud, async function () { var x = await API.post("api/equipo.php?action=auditar", {}); U.toast(x.texto, "success"); await recargar(); }); });
     r.querySelectorAll("[data-hallazgo]").forEach(function (b) { b.addEventListener("click", function () { hacer(b, async function () { await API.post("api/equipo.php?action=hallazgo", { id: Number(b.dataset.hallazgo), accion: "descartar" }); await recargar(); }); }); });

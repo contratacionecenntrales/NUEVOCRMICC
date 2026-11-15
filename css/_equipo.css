@@ -55,3 +55,28 @@
   .icc-eq-aut label { grid-template-columns: minmax(0, 1fr); gap: 4px; }
   .icc-eq-embudo div { width: 100%; }
 }
+/* v93: Sala de cierre, coordinadores de equipo y agente de voz */
+.icc-eq-salakpi { margin: 6px 0 14px; }
+.icc-eq-sala { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 12px; }
+.icc-eq-pres { padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--card-2); display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.icc-eq-pres.is-parado { border-color: rgba(245, 158, 11, .55); box-shadow: inset 3px 0 0 #F59E0B; }
+.icc-eq-pres-cab { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
+.icc-eq-pres-cab > div { display: flex; flex-direction: column; min-width: 0; }
+.icc-eq-pres strong a { color: var(--txt); text-decoration: none; }
+.icc-eq-pres small { color: var(--txt-3); font-size: 12px; overflow-wrap: anywhere; }
+.icc-eq-tec { font-size: 13px; color: var(--txt-2); display: flex; flex-direction: column; gap: 3px; }
+.icc-eq-tec b { color: var(--txt); }
+.icc-eq-tec small { color: #A5B4FC; font-style: italic; }
+.icc-eq-rank { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
+.icc-eq-rank li span { color: var(--txt); font-weight: 600; display: block; }
+.icc-eq-rank li small { color: var(--txt-3); font-size: 12px; }
+.icc-eq-rank li small b { color: #FCD34D; font-weight: 700; }
+.icc-eq-tecnicas { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+.icc-eq-tecnicas > div { padding: 10px 12px; border-radius: 10px; background: var(--card-2); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 4px; }
+.icc-eq-tecnicas b { color: var(--txt); font-size: 13.5px; }
+.icc-eq-tecnicas span { color: var(--txt-2); font-size: 12.5px; line-height: 1.45; }
+.icc-eq-tecnicas small { color: #A5B4FC; font-size: 12px; font-style: italic; line-height: 1.4; }
+.icc-eq-pasos { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 10px; color: var(--txt-2); font-size: 13px; line-height: 1.5; }
+.icc-eq-pasos textarea, .icc-eq-pasos input { margin: 6px 0; font-family: inherit; }
+.icc-eq-pasos code { overflow-wrap: anywhere; }
+@media (max-width: 560px) { .icc-eq-sala, .icc-eq-tecnicas { grid-template-columns: minmax(0, 1fr); } }

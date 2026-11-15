@@ -218,7 +218,7 @@ propio CRM — ya no hace falta volver a tocar la base de datos a mano.
 
 ## Base de datos en un solo paso
 
-`sql/base-de-datos-completa-v91.sql` deja cualquier base de datos al día para la v91 importándolo una sola vez en phpMyAdmin:
+`sql/base-de-datos-completa-v93.sql` deja cualquier base de datos al día para la v93 importándolo una sola vez en phpMyAdmin:
 - Con datos (v55 en adelante): no borra nada; crea solo las tablas, columnas, índices y relaciones que falten y amplía los roles. Deja a Daniela con todo el equipo de María y las agendas de Juan y María.
 - Vacía: crea el CRM completo y un Super Administrador inicial (info@integralconnectionconsulting.es, contraseña provisional `CambiaEsta-2026`, que el CRM obliga a cambiar).
 - Se puede ejecutar varias veces sin errores ni duplicados. Los datos de ejemplo de los comparadores solo se cargan si esas tablas están vacías.
@@ -500,7 +500,7 @@ Montarla (por ejemplo en `demo.crm.tudominio.es`):
 1. Crea el subdominio en Hostalia apuntando a una carpeta nueva y sube ahí el
    mismo zip del CRM.
 2. Crea una base de datos **nueva y vacía** e importa
-   `sql/base-de-datos-completa-v91.sql` (más las migraciones nuevas si las hay).
+   `sql/base-de-datos-completa-v93.sql` (más las migraciones nuevas si las hay).
 3. Crea `api/config.local.php` de esa carpeta con los datos de la BD nueva y
    añade `define('ICC_MODO_DEMO', true);`.
 4. Rellena la demo por SSH (el generador no se puede abrir desde el navegador):
@@ -674,5 +674,44 @@ automático): responde y gestiona solo lo de su departamento y deja a una person
 
 Funciones nuevas: `produccion` y `direccion` (deriva entre buzones). Las contraseñas se escriben en el panel, se
 guardan cifradas y nunca vuelven al navegador; un buzón sin contraseña no se lee. Si un buzón ya existía con
-su agente configurado, se respeta. Sin cambios en la base de datos (vale la completa v91).
+su agente configurado, se respeta. Sin cambios en la base de datos.
+
+## Jefatura de ventas, coordinadores de equipo y agente de voz (v93)
+
+**🧠 Zona de agentes** pasa a 17 agentes. Migración: `sql/migracion_voz.sql` (incluida en la base de datos completa v93).
+
+- **Jefatura de Ventas · Presión de cierre** (turno cada hora, pestaña **🔥 Sala de cierre**): «da caña al equipo,
+  nunca al cliente». Revisa todos los presupuestos abiertos y aplica la técnica que toca:
+  - factura subida sin estudio → *velocidad*: estudio a backoffice para hoy;
+  - sin factura → *micro-compromiso*: llamada para pedirla;
+  - estudio hecho y no presentado → *presentación en caliente* (o *visita* si es cuenta grande: hotel, clínica,
+    nave, más de 15.000 kWh/año o más de 5.000 €);
+  - fin de permanencia en 60 días → *urgencia legítima* (solo fechas reales);
+  - documentación → *firma sin fricción* (contrato a backoffice y llamada para firmar);
+  - en propuesta → *cierre por alternativa*;
+  - 10 días parado con el gestor → *cierre en pareja*: llamada a dos en la agenda del jefe de equipo.
+  Las llamadas las hace el agente de voz si está encendido (si no, van a la agenda del gestor con el guion).
+  Como mucho 6 empujones por gestor y día, sin repetir en 48 h, y parte del día a cada gestor. La pestaña
+  muestra cada presupuesto con su técnica y guion, «Empujar ahora», «🤖 Llamar con IA» y el **manual de
+  12 técnicas** (velocidad, micro-compromiso, presentación en caliente, cierre por alternativa, aislar la
+  objeción, urgencia legítima, firma sin fricción, visita a cuenta grande, cierre en pareja, pack 100 %
+  servicios, correo de ruptura y referidos). La cadencia de 6 toques sigue en **🤝 Cadencia**.
+- **Coordinadores · Jefes de equipo**: cada mañana, el parte de su equipo a cada jefe (ranking por ganados en
+  30 días, parados, llamadas atrasadas y citas) y una tarea de 15 minutos con quien acumula 3 o más parados o
+  llamadas atrasadas. Los comerciales sin jefe van a coordinación. Los jefes ven solo su equipo.
+- **📞 Agente de voz** (`api/voz_lib.php`, `api/voz_webhook.php`; coordinación, admin y super admin): llamadas
+  con IA a través de **Vapi** con tu número de **Telnyx o Twilio**. El CRM manda la llamada con las variables
+  del cliente y Vapi devuelve el informe de fin de llamada al webhook (cabecera `X-Vapi-Secret`). El CRM lo
+  clasifica y actúa: interesado (etiqueta de interés y seguimiento a los 2 días), visita (agenda del gestor el
+  día y franja acordados; cuentas grandes, al equipo de campo), llamada, llamar más tarde o «No contactar».
+  Prompt de ICC listo para pegar en Vapi (se presenta como asistente de IA, AI Act art. 50; sin precios ni
+  cifras de ahorro; facturas a facturacion@). Normas fijas: horario configurable (por defecto 9-14 y
+  16-19:30, laborables), límite diario, 2 intentos por teléfono y semana, nunca a «No contactar» y llamadas en
+  frío apagadas (si se encienden, solo sociedades con CIF). Las transcripciones se borran a los 90 días y las
+  llamadas al año. Sin configurar, todo funciona igual con llamadas del gestor.
+- **Automatizaciones**: paso nuevo «🤖 Llamada del agente de voz» (espera a su horario; si no puede, llamada del
+  gestor). La plantilla «Lead nuevo» llama en minutos con el agente de voz. El SDR también lo usa.
+- **Agentes de correo**: dos buzones más en la oficina de ICC, facturacion@ (Irene · facturas para auditoría:
+  guarda la factura, confirma el plazo de 48 h y crea la tarea del estudio) y activaciones@ (Álvaro ·
+  activaciones y cierres).
 

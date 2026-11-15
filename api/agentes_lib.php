@@ -1,6 +1,6 @@
 <?php
 /**
- * ICC CRM · Zona de agentes (fase 3). Una «empresa autonoma» de 15 agentes de
+ * ICC CRM · Zona de agentes (fase 3). Una «empresa autonoma» de 17 agentes de
  * IA que trabajan por turnos sobre el CRM con herramientas (function calling).
  *
  * Autonomia por puesto:
@@ -56,7 +56,7 @@ const EQ_AGENTES = [
     'Piensas como un director comercial consultivo: diagnóstico antes que propuesta y cada oportunidad con dueño.'],
   'sdr' => ['SDR · Desarrollo de Negocio', 'Ventas', 'comercial', 60,
     'Que cada interesado tenga una llamada en menos de 24 horas.',
-    ['ver_interesados', 'programar_llamada'],
+    ['ver_interesados', 'programar_llamada', 'llamada_ia'],
     'Piensas como un SDR de alto rendimiento: velocidad de respuesta, la llamada en las primeras horas.'],
   'campo' => ['Ventas de Campo', 'Ventas', 'comercial', 180,
     'Armar rutas de visitas por localidad: hasta 6 empresas el mismo día en huecos libres del gestor, con briefing.',
@@ -70,6 +70,14 @@ const EQ_AGENTES = [
     'Vigilar a los gestores humanos: seguimientos vencidos, gestores parados y carga equilibrada.',
     ['ver_gestores', 'encargar_a_gestor', 'reasignar_contacto'],
     'Piensas como un coordinador de equipos comerciales: ayudar antes que señalar, y la cartera nunca parada.'],
+  'jefatura' => ['Jefatura de Ventas · Presión de cierre', 'Ventas', 'comercial', 60,
+    'Más cierres cada semana: ningún presupuesto parado más de 48 horas. A cada uno le aplica la técnica que toca (velocidad, presentación en caliente, cierre por alternativa, urgencia real, firma sin fricción, visita a cuenta grande, cierre en pareja) y lo mueve: llamada del agente de voz o del gestor, estudio a backoffice, visita o escalado al jefe de equipo.',
+    ['ver_presupuestos_parados', 'empujar_presupuestos', 'empujar_presupuesto', 'llamada_ia', 'ver_cierre', 'enviar_correo_cliente', 'asignar_tarea'],
+    'Eres un jefe de ventas exigente que da caña al equipo, nunca al cliente: cada oportunidad con siguiente paso y fecha, velocidad por encima de todo y cero excusas. Con el cliente, consultivo y honesto: urgencia solo con fechas reales, sin descuentos ni promesas.'],
+  'jefes_equipo' => ['Coordinadores · Jefes de equipo', 'Ventas', 'comercial', 240,
+    'Cada mañana, cada jefe de equipo recibe el parte de su equipo (ranking, presupuestos parados y llamadas atrasadas) y una tarea de 15 minutos con quien se queda atrás.',
+    ['ver_equipos', 'parte_de_equipos', 'encargar_a_gestor', 'ver_gestores'],
+    'Piensas como un jefe de equipo comercial que entrena: datos de cada gestor, ayuda concreta y el siguiente paso con fecha.'],
   'cfo' => ['CFO · Administración y Cobros', 'Finanzas', 'ceo', 240,
     'Cobro por hitos y contrato: proponer cobros y recordatorios (siempre con aprobación) y preparar contratos.',
     ['ver_cobros', 'crear_cobro', 'recordar_cobro', 'preparar_contrato'],
@@ -95,6 +103,8 @@ const EQ_HERRAMIENTAS = [
   'ver_cierre' => ['lectura', 'Presupuestos en cadencia de cierre con su temperatura y toque.', [], []],
   'ver_gestores' => ['lectura', 'Cartera, seguimientos vencidos, oportunidades calientes y ratio de cierre de cada gestor.', [], []],
   'ver_cobros' => ['lectura', 'Cobros y proformas pendientes y vencidos.', [], []],
+  'ver_presupuestos_parados' => ['lectura', 'Presupuestos abiertos con días sin movimiento, técnica y acción recomendadas y si están parados.', [], []],
+  'ver_equipos' => ['lectura', 'Cada equipo con su jefe y, por gestor: abiertos, parados, llamadas atrasadas, citas y ganados en 30 días.', [], []],
   'ver_salud' => ['lectura', 'Salud técnica: IA, correo de salida, errores y rebotes, cron.', [], []],
   'asignar_tarea' => ['bajo', 'Encarga una tarea a un agente o a una persona.', ['agente' => ['type' => 'string', 'description' => 'clave del agente (o vacío)'], 'usuario_id' => ['type' => 'integer', 'description' => 'persona (o 0)'], 'titulo' => ['type' => 'string'], 'detalle' => ['type' => 'string']], ['agente', 'usuario_id', 'titulo', 'detalle']],
   'anotar_aprendizaje' => ['bajo', 'Guarda un aprendizaje con evidencia en el cerebro de la empresa.', ['texto' => ['type' => 'string'], 'evidencia' => ['type' => 'string'], 'confianza' => ['type' => 'integer']], ['texto', 'evidencia', 'confianza']],
@@ -115,6 +125,10 @@ const EQ_HERRAMIENTAS = [
   'planificar_ruta_visitas' => ['bajo', 'Arma una ruta de hasta 6 visitas en una localidad para un gestor, con briefing.', ['localidad' => ['type' => 'string']], ['localidad']],
   'avanzar_cierre' => ['bajo', 'Avanza la cadencia de cierre de todos los presupuestos (los correos y decisiones quedan para aprobar).', [], []],
   'encargar_a_gestor' => ['bajo', 'Pone un plan de seguimientos en la agenda de un gestor.', ['usuario_id' => ['type' => 'integer'], 'plan' => ['type' => 'string']], ['usuario_id', 'plan']],
+  'empujar_presupuestos' => ['bajo', 'Empuja todos los presupuestos parados con su técnica (como mucho 6 por gestor y día).', [], []],
+  'empujar_presupuesto' => ['bajo', 'Empuja ahora un presupuesto concreto con su técnica.', ['cliente_id' => ['type' => 'integer']], ['cliente_id']],
+  'llamada_ia' => ['bajo', 'Llama al cliente con el agente de voz (si no puede, la llamada va a la agenda del gestor).', ['cliente_id' => ['type' => 'integer'], 'motivo' => ['type' => 'string', 'enum' => ['bienvenida', 'pedir_factura', 'seguimiento', 'presentar_estudio', 'recuperar']], 'detalle' => ['type' => 'string']], ['cliente_id', 'motivo', 'detalle']],
+  'parte_de_equipos' => ['bajo', 'Envía a cada jefe de equipo el parte de su equipo y le encarga revisar a quien se queda atrás.', [], []],
   'pausar_envios' => ['bajo', 'Pausa todos los envíos del Motor.', ['motivo' => ['type' => 'string']], ['motivo']],
   'preparar_presupuesto' => ['alto', 'Prepara un presupuesto (borrador) para un cliente.', ['cliente_id' => ['type' => 'integer'], 'sector' => ['type' => 'string', 'enum' => ['energia', 'telecomunicaciones', 'alarmas', 'seguros', 'financiero']], 'notas' => ['type' => 'string']], ['cliente_id', 'sector', 'notas']],
   'proponer_alternativa' => ['alto', 'Ante una objeción de precio, propone al cliente una alternativa sin descuento (pago en 3 plazos o servicio inferior).', ['cliente_id' => ['type' => 'integer'], 'alternativa' => ['type' => 'string']], ['cliente_id', 'alternativa']],
@@ -817,6 +831,8 @@ function eq_ejecutar(string $tool, array $a, string $agente, ?int $usuarioId = n
         (SELECT COUNT(*) FROM citas ci WHERE ci.cliente_id = c.id AND ci.fecha >= CURDATE()) citas_futuras, (SELECT COUNT(*) FROM presupuestos p WHERE p.cliente_id = c.id) presupuestos
         FROM clientes c WHERE c.estado IN ('lead_captado','estudio_backoffice') AND c.no_contactar = 0 ORDER BY c.id DESC LIMIT 40")->fetchAll());
     case 'ver_candidatos_visita': return $json(array_map(function ($l) { return count($l); }, eq_candidatos_visita()));
+    case 'ver_presupuestos_parados': return $json(array_slice(array_map(function ($p) { return ['cliente_id' => (int)$p['id'], 'empresa' => $p['razon_social'], 'gestor' => $p['gestor'], 'fase' => $p['fase'], 'presupuesto' => $p['pestado'], 'dias' => $p['dias'], 'parado' => $p['parado'], 'tecnica' => EQ_TECNICAS[$p['tecnica']][0], 'accion' => $p['accion'], 'prioridad' => $p['prioridad']]; }, eq_presupuestos_parados()), 0, 30));
+    case 'ver_equipos': return $json(eq_equipos());
     case 'ver_cierre': return $json($db->query('SELECT e.cliente_id, c.razon_social, e.toque, e.temperatura, e.estado FROM equipo_cierre e JOIN clientes c ON c.id = e.cliente_id WHERE e.estado <> "cerrado" ORDER BY e.temperatura DESC LIMIT 30')->fetchAll());
     case 'ver_gestores': return $json(eq_gestores());
     case 'ver_cobros': return $json(eq_cobros());
@@ -896,6 +912,13 @@ function eq_ejecutar(string $tool, array $a, string $agente, ?int $usuarioId = n
       return ['texto' => 'Llamada el ' . $h[0] . ' a las ' . $h[1] . '.', 'entidad' => 'cita', 'entidad_id' => $cita];
     case 'planificar_ruta_visitas': return ['texto' => eq_planificar_ruta($s('localidad', 120))];
     case 'avanzar_cierre': return ['texto' => eq_avanzar_cierre($agente, null)];
+    case 'empujar_presupuestos': return ['texto' => eq_empujar_presupuestos($agente, null)];
+    case 'empujar_presupuesto': return ['texto' => eq_empujar_presupuestos($agente, null, $i('cliente_id'))];
+    case 'parte_de_equipos': return ['texto' => eq_partes_equipos($agente, null)];
+    case 'llamada_ia':
+      $c = eq_cliente($i('cliente_id'));
+      if (!$c) throw new RuntimeException('Cliente no encontrado.');
+      return ['texto' => voz_o_persona($c, in_array($a['motivo'] ?? '', array_keys(VOZ_MOTIVOS), true) && ($a['motivo'] ?? '') !== 'prospeccion' ? $a['motivo'] : 'seguimiento', $s('detalle', 300), EQ_AGENTES[$agente][0]), 'entidad' => 'cliente', 'entidad_id' => (int)$c['id']];
     case 'encargar_a_gestor':
       $g = $i('usuario_id');
       $h = eq_primer_hueco($g, 30);
@@ -1142,7 +1165,7 @@ function eq_manual(string $agente, int $turno): array {
     case 'sdr':
       foreach ($db->query("SELECT c.id FROM clientes c WHERE c.estado = 'lead_captado' AND c.no_contactar = 0 AND c.created_at >= NOW() - INTERVAL 30 DAY
                            AND NOT EXISTS (SELECT 1 FROM citas ci WHERE ci.cliente_id = c.id AND (ci.fecha >= CURDATE() OR ci.created_at >= NOW() - INTERVAL 2 DAY)) LIMIT 8")->fetchAll(PDO::FETCH_COLUMN) as $cid)
-        $out[] = $u('programar_llamada', ['cliente_id' => (int)$cid, 'motivo' => 'Interesado sin llamada: contactar en menos de 24 h.']);
+        $out[] = voz_config()['activo'] && voz_config()['auto_leads'] ? $u('llamada_ia', ['cliente_id' => (int)$cid, 'motivo' => 'bienvenida', 'detalle' => 'Interesado sin llamada: contactar en menos de 24 h.']) : $u('programar_llamada', ['cliente_id' => (int)$cid, 'motivo' => 'Interesado sin llamada: contactar en menos de 24 h.']);
       if (!$out) $out[] = 'Todos los interesados tienen llamada.';
       break;
     case 'campo':
@@ -1152,6 +1175,8 @@ function eq_manual(string $agente, int $turno): array {
       break;
     case 'cierre': $out[] = 'avanzar_cierre: ' . eq_avanzar_cierre($agente, $turno); break;
     case 'coordinacion': $out[] = eq_revisar_gestores($agente, $turno); break;
+    case 'jefatura': $out[] = 'empujar_presupuestos: ' . eq_empujar_presupuestos($agente, $turno); break;
+    case 'jefes_equipo': $out[] = 'parte_de_equipos: ' . eq_partes_equipos($agente, $turno); break;
     case 'cfo':
       $c = eq_cobros();
       foreach (array_slice($c['proformas_vencidas'], 0, 5) as $p) $out[] = $u('recordar_cobro', ['cobro_id' => 0, 'proforma_id' => (int)$p['id']]);
@@ -1253,3 +1278,201 @@ function eq_tick(): string {
   $r = eq_turno($peor, 'cron');
   return EQ_AGENTES[$peor][0] . ': ' . mb_substr($r['ok'] ? $r['resumen'] : ($r['error'] ?? ''), 0, 200) . $extra;
 }
+
+/* ===========================================================================
+   JEFATURA DE VENTAS (presion de cierre) Y COORDINADORES DE EQUIPO
+   Da cana al equipo, nunca al cliente: ningun presupuesto parado mas de 48 h.
+   Cada presupuesto abierto recibe la tecnica que toca segun su situacion y una
+   accion concreta (llamada del agente de voz o del gestor, tarea a backoffice,
+   visita, firma o escalado al jefe de equipo). Los correos al cliente siempre
+   quedan para aprobar.
+   ========================================================================= */
+const EQ_TECNICAS = [
+  'velocidad' => ['⚡ Velocidad', 'El estudio sale en 48 h como mucho: quien espera se enfría.', 'Backoffice: estudio hoy. Gestor: «Su estudio está casi listo; ¿le viene bien que se lo explique mañana a las 10?»'],
+  'pedir_factura' => ['📄 Micro-compromiso', 'Sin factura no hay estudio: pedir una cosa pequeña y concreta, con fecha.', '«Para tenerle el estudio el jueves solo me falta su última factura. ¿Me la manda hoy por WhatsApp?»'],
+  'presentar_en_caliente' => ['🔥 Presentación en caliente', 'Nunca dejar un estudio solo en el correo: presentarlo por teléfono o videollamada en menos de 24 h.', '«Le he preparado el estudio. Son 10 minutos: ¿se lo explico hoy a las 17:00 o mañana a las 10:00?»'],
+  'cierre_alternativa' => ['🎯 Cierre por alternativa', 'No preguntar «¿qué le parece?», sino elegir entre dos síes con fecha.', '«¿Lo dejamos firmado el martes por la mañana o le viene mejor el jueves?»'],
+  'aislar_objecion' => ['🧩 Aislar la objeción', 'Antes de responder, confirmar que es la única duda.', '«Aparte de eso, ¿hay algo más que le impida seguir adelante?» … «Si lo resolvemos, ¿lo firmamos?»'],
+  'urgencia_real' => ['⏰ Urgencia legítima', 'Solo fechas reales: fin de permanencia, renovación de la póliza o del contrato actual. Nunca escasez inventada.', '«Su contrato actual se renueva el día X: si lo cerramos antes, no se queda otro año con las mismas condiciones.»'],
+  'firma_sin_friccion' => ['✍️ Firma sin fricción', 'El contrato preparado por backoffice y la firma digital o en persona el mismo día.', '«Le dejo el contrato listo para firmar desde el móvil en dos minutos; si prefiere, paso yo a las 12.»'],
+  'visita' => ['🚗 Visita a cuenta grande', 'Hoteles, clínicas, naves o consumo alto: visita con estudio preliminar.', '«Por su volumen, prefiero pasar a verle con el estudio. ¿Mañana por la mañana o por la tarde?»'],
+  'cierre_en_pareja' => ['🤝 Cierre en pareja', 'A los 10 días parado entra el jefe de equipo (llamada a dos o la hace él).', '«Le llamo con mi responsable para resolver lo que falte y dejarlo decidido.»'],
+  'pack_100' => ['📦 Pack 100 % servicios', 'Si duda con un servicio, revisar el resto (luz, teléfono, alarma, seguros): el ahorro conjunto pesa más.', '«Ya que lo miramos, ¿revisamos también el teléfono y la alarma? Un solo interlocutor para todo.»'],
+  'ruptura' => ['📭 Correo de ruptura', 'Tras la cadencia sin respuesta: tres opciones de un número (seguimos, más adelante, cerramos).', '«¿Me ayuda con una respuesta de un número?»'],
+  'referidos' => ['🗣️ Referidos al firmar', 'Quien acaba de firmar contento es el mejor momento para pedir un contacto.', '«¿Conoce a otra empresa que pueda estar pagando de más? Le trataremos igual de bien.»'],
+];
+
+/** Presupuestos abiertos con su situacion, tecnica y accion recomendadas. $visibles: ids de gestor (null = todos). */
+function eq_presupuestos_parados(?array $visibles = null): array {
+  $db = icc_db();
+  $filas = $db->query("SELECT p.id pid, p.estado pestado, p.sector, p.fecha_permanencia, p.consumo_anual_kwh, p.created_at pcreado, p.updated_at pact,
+      c.id, c.razon_social, c.estado fase, c.comercial_id, c.valor_estimado, c.contacto_telefono, c.telefono, c.contacto_email, c.email, c.decisor_email, c.ultima_actividad, c.sector csector,
+      CONCAT(u.nombre, ' ', COALESCE(u.apellidos, '')) gestor, u.supervisor_id jefe_id,
+      (SELECT MIN(CONCAT(ci.fecha, ' ', ci.hora_inicio)) FROM citas ci WHERE ci.cliente_id = c.id AND ci.fecha >= CURDATE() AND ci.estado IN ('programada','confirmada','reprogramada')) proxima
+    FROM presupuestos p JOIN clientes c ON c.id = p.cliente_id LEFT JOIN usuarios u ON u.id = c.comercial_id
+    WHERE p.id = (SELECT MAX(p2.id) FROM presupuestos p2 WHERE p2.cliente_id = c.id) AND p.estado <> 'cerrado' AND c.no_contactar = 0
+      AND c.estado IN ('lead_captado','estudio_backoffice','oferta_presentada','en_cierre') ORDER BY p.updated_at")->fetchAll();
+  $out = [];
+  foreach ($filas as $f) {
+    if ($visibles !== null && !in_array((int)$f['comercial_id'], $visibles, true)) continue;
+    $ult = max(strtotime((string)$f['pact']), strtotime((string)($f['ultima_actividad'] ?: $f['pact'])));
+    $f['dias'] = (int)floor((time() - $ult) / 86400);
+    $grande = (int)$f['consumo_anual_kwh'] >= 15000 || (float)$f['valor_estimado'] >= 5000 || preg_match('/(hotel|cl[ií]nica|residencia|nave|industria|supermercado|hospital)/iu', (string)$f['razon_social'] . ' ' . $f['csector']);
+    $perm = $f['fecha_permanencia'] && $f['fecha_permanencia'] >= date('Y-m-d') && $f['fecha_permanencia'] <= date('Y-m-d', strtotime('+60 days'));
+    // Situacion -> tecnica y accion.
+    if ($f['pestado'] === 'factura_subida') { $t = 'velocidad'; $a = 'backoffice'; }
+    elseif ($f['pestado'] === 'borrador') { $t = 'pedir_factura'; $a = 'llamada'; }
+    elseif ($f['pestado'] === 'documentacion_contrato') { $t = 'firma_sin_friccion'; $a = 'firma'; }
+    elseif (in_array($f['fase'], ['lead_captado', 'estudio_backoffice'], true)) { $t = $grande ? 'visita' : 'presentar_en_caliente'; $a = $grande ? 'visita' : 'llamada'; }
+    elseif ($perm) { $t = 'urgencia_real'; $a = 'llamada'; }
+    else { $t = $grande ? 'visita' : 'cierre_alternativa'; $a = $grande ? 'visita' : 'llamada'; }
+    // 10 dias parado con el gestor (no con backoffice): entra el jefe de equipo.
+    if ($f['dias'] >= 10 && $a !== 'backoffice') { $t = 'cierre_en_pareja'; $a = 'escalar'; }
+    $umbral = $a === 'backoffice' ? 2 : ($f['pestado'] === 'estudio_adjunto' && in_array($f['fase'], ['lead_captado', 'estudio_backoffice'], true) ? 1 : 2);
+    $f['tecnica'] = $t; $f['accion'] = $a; $f['grande'] = (bool)$grande; $f['permanencia_cerca'] = $perm;
+    $f['parado'] = $f['dias'] >= $umbral && !$f['proxima'];
+    $f['prioridad'] = min(100, $f['dias'] * 6 + ($grande ? 20 : 0) + ($perm ? 20 : 0) + ($f['fase'] === 'en_cierre' ? 15 : 0) + ($f['pestado'] === 'documentacion_contrato' ? 25 : 0));
+    unset($f['contacto_email'], $f['email'], $f['decisor_email'], $f['contacto_telefono'], $f['telefono']);
+    $out[] = $f;
+  }
+  usort($out, function ($x, $y) { return [$y['parado'], $y['prioridad']] <=> [$x['parado'], $x['prioridad']]; });
+  return $out;
+}
+
+/** Ya se empujo este cliente hace poco (no repetir). */
+function eq_empujado(int $cid, int $dias = 2): bool {
+  $st = icc_db()->prepare("SELECT (SELECT COUNT(*) FROM equipo_tareas WHERE cliente_id = ? AND origen = 'jefatura' AND created_at >= NOW() - INTERVAL $dias DAY)
+    + (SELECT COUNT(*) FROM citas WHERE cliente_id = ? AND notas LIKE 'Jefatura de ventas%' AND created_at >= NOW() - INTERVAL $dias DAY)
+    + (SELECT COUNT(*) FROM voz_llamadas WHERE cliente_id = ? AND origen = 'jefatura' AND estado IN ('pendiente','en_curso','terminada') AND created_at >= NOW() - INTERVAL $dias DAY)");
+  $st->execute([$cid, $cid, $cid]);
+  return (int)$st->fetchColumn() > 0;
+}
+
+/** Empuja los presupuestos parados. Como mucho 6 por gestor y dia. */
+function eq_empujar_presupuestos(string $agente = 'jefatura', ?int $turno = null, ?int $soloCliente = null): string {
+  $db = icc_db();
+  $hechos = []; $porGestor = []; $parte = [];
+  $bo = (int)$db->query("SELECT id FROM usuarios WHERE rol = 'backoffice' AND bloqueado = 0 ORDER BY id LIMIT 1")->fetchColumn() ?: null;
+  foreach (eq_presupuestos_parados() as $p) {
+    if ($soloCliente !== null ? (int)$p['id'] !== $soloCliente : (!$p['parado'] || eq_empujado((int)$p['id']))) continue;
+    $g = $p['comercial_id'] ? (int)$p['comercial_id'] : null;
+    if ($g && $soloCliente === null) {
+      $hoy = $porGestor[$g] ?? (int)$db->query("SELECT COUNT(*) FROM citas WHERE comercial_id = $g AND notas LIKE 'Jefatura de ventas%' AND created_at >= CURDATE()")->fetchColumn();
+      if ($hoy >= 6) continue;
+      $porGestor[$g] = $hoy + 1;
+    }
+    $c = eq_cliente((int)$p['id']);
+    $tec = EQ_TECNICAS[$p['tecnica']];
+    $motivo = 'Jefatura de ventas · ' . $tec[0] . ': ' . $tec[1] . "\nGuion: " . $tec[2] . "\nPresupuesto #" . $p['pid'] . ' (' . $p['pestado'] . ', ' . $p['dias'] . ' días sin movimiento).';
+    $txt = '';
+    switch ($p['accion']) {
+      case 'backoffice':
+        $db->prepare("INSERT INTO equipo_tareas (origen, asignado_agente, asignado_usuario, titulo, detalle, cliente_id, vence) VALUES ('jefatura', ?, ?, ?, ?, ?, CURDATE())")
+          ->execute([$agente, $bo, 'Estudio de ' . $p['razon_social'] . ' hoy (factura subida hace ' . $p['dias'] . ' días)', $motivo, $p['id']]);
+        if ($bo) icc_notificar($bo, 'cuenta', 'jefatura', 'Jefatura de ventas: el estudio de ' . $p['razon_social'] . ' lleva ' . $p['dias'] . ' días esperando. Hoy, por favor.', (int)$p['id']);
+        $txt = 'estudio a backoffice para hoy';
+        break;
+      case 'escalar':
+        $jefe = $p['jefe_id'] ? (int)$p['jefe_id'] : ((int)$db->query("SELECT id FROM usuarios WHERE rol = 'coordinador' AND bloqueado = 0 ORDER BY id LIMIT 1")->fetchColumn() ?: null);
+        $db->prepare("INSERT INTO equipo_tareas (origen, asignado_agente, asignado_usuario, titulo, detalle, cliente_id, vence) VALUES ('jefatura', ?, ?, ?, ?, ?, CURDATE() + INTERVAL 1 DAY)")
+          ->execute([$agente, $jefe, 'Cierre en pareja con ' . trim((string)$p['gestor']) . ': ' . $p['razon_social'], $motivo, $p['id']]);
+        if ($jefe && ($h = eq_primer_hueco($jefe, 15))) eq_crear_cita($jefe, (int)$p['id'], 'llamada', $h[0], $h[1], 15, (string)$p['razon_social'], 'Jefatura de ventas · cierre en pareja con ' . trim((string)$p['gestor']) . ".\n" . $motivo);
+        if ($jefe) icc_notificar($jefe, 'cuenta', 'jefatura', 'Jefatura de ventas: ' . $p['razon_social'] . ' lleva ' . $p['dias'] . ' días parado. Llamada a dos con ' . trim((string)$p['gestor']) . '.', (int)$p['id']);
+        $txt = 'escalado al jefe de equipo (cierre en pareja)';
+        break;
+      case 'firma':
+        $db->prepare("INSERT INTO equipo_tareas (origen, asignado_agente, asignado_usuario, titulo, detalle, cliente_id, vence) VALUES ('jefatura', ?, ?, ?, ?, ?, CURDATE())")
+          ->execute([$agente, $bo, 'Contrato listo para firmar: ' . $p['razon_social'], $motivo, $p['id']]);
+        // sigue con la llamada para cerrar la firma
+      case 'visita':
+        if ($p['accion'] === 'visita' && $g && ($h = eq_primer_hueco($g, 45))) {
+          eq_crear_cita($g, (int)$p['id'], 'visita', $h[0], $h[1], 45, (string)$p['razon_social'], $motivo . "\nConfirmar la visita por teléfono antes de ir.");
+          icc_notificar($g, 'cuenta', 'jefatura', 'Jefatura de ventas: visita a ' . $p['razon_social'] . ' el ' . $h[0] . ' a las ' . $h[1] . ' (cuenta grande). Confírmala por teléfono.', (int)$p['id']);
+          $txt = 'visita el ' . $h[0] . ' a las ' . $h[1];
+          break;
+        }
+        // sin hueco de visita: llamada
+      default:
+        $motivoVoz = ['pedir_factura' => 'pedir_factura', 'presentar_en_caliente' => 'presentar_estudio'][$p['tecnica']] ?? 'seguimiento';
+        $usarVoz = $c && voz_config()['auto_cierre'] && $p['tecnica'] !== 'firma_sin_friccion';
+        $txt = $usarVoz ? voz_o_persona($c, $motivoVoz, $tec[0] . ' · ' . $tec[2], 'jefatura') : '';
+        if (!$usarVoz && $g && ($h = eq_primer_hueco($g, 15))) {
+          eq_crear_cita($g, (int)$p['id'], 'llamada', $h[0], $h[1], 15, (string)$p['razon_social'], $motivo);
+          $txt = 'llamada del gestor el ' . $h[0] . ' a las ' . $h[1];
+        }
+        // voz_o_persona crea la cita con el texto de origen: se marca como de jefatura
+        $db->prepare("UPDATE citas SET notas = CONCAT('Jefatura de ventas · ', notas) WHERE cliente_id = ? AND notas LIKE 'jefatura:%' AND created_at >= NOW() - INTERVAL 1 MINUTE")->execute([$p['id']]);
+    }
+    if ($txt === '') continue;
+    icc_nota_cliente((int)$p['id'], 'Jefatura de ventas · ' . $tec[0] . ': ' . $txt . '.', 'agente:' . $agente);
+    $hechos[] = $p['razon_social'] . ': ' . $tec[0] . ' → ' . $txt;
+    if ($g) $parte[$g][] = $p['razon_social'] . ' (' . $tec[0] . ')';
+  }
+  // Parte del dia a cada gestor empujado.
+  foreach ($parte as $g => $l) icc_notificar($g, 'cuenta', 'jefatura', 'Jefatura de ventas: hoy empujas ' . count($l) . ' cierre' . (count($l) > 1 ? 's' : '') . ': ' . implode(', ', array_slice($l, 0, 5)) . '. Tienes el guion en cada cita.');
+  return $hechos ? 'Jefatura: ' . count($hechos) . ' presupuestos empujados · ' . implode(' · ', array_slice($hechos, 0, 6)) : 'Jefatura: ningún presupuesto parado sin acción.';
+}
+
+/** Equipos: cada jefe de equipo con sus gestores; los gestores sin jefe van a coordinacion. */
+function eq_equipos(): array {
+  $db = icc_db();
+  $u = $db->query("SELECT id, CONCAT(nombre, ' ', COALESCE(apellidos, '')) nombre, rol, supervisor_id FROM usuarios WHERE bloqueado = 0")->fetchAll();
+  $coord = 0;
+  foreach ($u as $x) if (in_array($x['rol'], ['coordinador', 'gerente'], true)) { $coord = (int)$x['id']; if ($x['rol'] === 'coordinador') break; }
+  $eq = [];
+  foreach ($u as $x) if ($x['rol'] === 'jefe_de_equipo') $eq[(int)$x['id']] = ['jefe_id' => (int)$x['id'], 'jefe' => trim($x['nombre']), 'miembros' => [(int)$x['id']]];
+  $sin = ['jefe_id' => $coord ?: null, 'jefe' => 'Coordinación (sin jefe de equipo)', 'miembros' => []];
+  foreach ($u as $x) {
+    if (!in_array($x['rol'], ['comercial'], true)) continue;
+    $s = (int)$x['supervisor_id'];
+    if (isset($eq[$s])) $eq[$s]['miembros'][] = (int)$x['id']; else $sin['miembros'][] = (int)$x['id'];
+  }
+  if ($sin['miembros']) $eq[0] = $sin;
+  $parados = eq_presupuestos_parados();
+  $out = [];
+  foreach ($eq as $e) {
+    $ids = $e['miembros'];
+    $lista = implode(',', $ids ?: [0]);
+    $gest = [];
+    foreach ($ids as $id) {
+      $mios = array_values(array_filter($parados, function ($p) use ($id) { return (int)$p['comercial_id'] === $id; }));
+      $q = function (string $sql) use ($db, $id) { $st = $db->prepare($sql); $st->execute([$id]); return (int)$st->fetchColumn(); };
+      $gest[] = ['id' => $id, 'nombre' => trim((string)$db->query('SELECT CONCAT(nombre, " ", COALESCE(apellidos, "")) FROM usuarios WHERE id = ' . $id)->fetchColumn()),
+        'abiertos' => count($mios), 'parados' => count(array_filter($mios, function ($p) { return $p['parado']; })),
+        'llamadas_atrasadas' => $q("SELECT COUNT(*) FROM citas WHERE comercial_id = ? AND tipo = 'llamada' AND estado = 'programada' AND fecha < CURDATE() AND fecha >= CURDATE() - INTERVAL 14 DAY"),
+        'ganados_30' => $q("SELECT COUNT(DISTINCT h.cliente_id) FROM historial_estado h JOIN clientes c ON c.id = h.cliente_id WHERE c.comercial_id = ? AND h.estado_nuevo = 'cliente_activo' AND h.created_at >= NOW() - INTERVAL 30 DAY"),
+        'citas_7' => $q("SELECT COUNT(*) FROM citas WHERE comercial_id = ? AND tipo IN ('reunion','visita','firma') AND fecha BETWEEN CURDATE() AND CURDATE() + INTERVAL 7 DAY")];
+    }
+    usort($gest, function ($a, $b) { return [$b['ganados_30'], $a['parados']] <=> [$a['ganados_30'], $b['parados']]; });
+    $out[] = $e + ['gestores' => $gest, 'parados' => array_sum(array_column($gest, 'parados')), 'ganados_30' => array_sum(array_column($gest, 'ganados_30')), 'atrasadas' => array_sum(array_column($gest, 'llamadas_atrasadas'))];
+  }
+  return $out;
+}
+
+/** Parte diario de cada equipo a su jefe; tarea al jefe por cada gestor que se queda atras. */
+function eq_partes_equipos(string $agente = 'jefes_equipo', ?int $turno = null, bool $forzar = false): string {
+  $db = icc_db();
+  $hechos = [];
+  foreach (eq_equipos() as $e) {
+    if (!$e['jefe_id'] || !$e['gestores']) continue;
+    $clave = 'jefes_parte_' . $e['jefe_id'];
+    if (!$forzar && (string)icc_ajuste($clave, '') === date('Y-m-d')) continue;
+    $rank = array_map(function ($g) { return $g['nombre'] . ' ' . $g['ganados_30'] . ' ganados' . ($g['parados'] ? ', ' . $g['parados'] . ' parados' : '') . ($g['llamadas_atrasadas'] ? ', ' . $g['llamadas_atrasadas'] . ' llamadas atrasadas' : ''); }, $e['gestores']);
+    icc_notificar($e['jefe_id'], 'cuenta', 'parte_equipo', 'Parte de tu equipo: ' . $e['ganados_30'] . ' ganados en 30 días, ' . $e['parados'] . ' presupuestos parados, ' . $e['atrasadas'] . ' llamadas atrasadas. Ranking: ' . mb_substr(implode(' · ', $rank), 0, 380));
+    foreach ($e['gestores'] as $g) {
+      if ($g['id'] === $e['jefe_id'] || ($g['parados'] < 3 && $g['llamadas_atrasadas'] < 3)) continue;
+      $st = $db->prepare("SELECT 1 FROM equipo_tareas WHERE origen = 'coordinacion_equipo' AND asignado_usuario = ? AND titulo LIKE ? AND estado = 'abierta' AND created_at >= NOW() - INTERVAL 3 DAY");
+      $st->execute([$e['jefe_id'], '%' . $g['nombre'] . '%']);
+      if ($st->fetchColumn()) continue;
+      $db->prepare("INSERT INTO equipo_tareas (origen, asignado_agente, asignado_usuario, titulo, detalle, vence) VALUES ('coordinacion_equipo', ?, ?, ?, ?, CURDATE() + INTERVAL 1 DAY)")
+        ->execute([$agente, $e['jefe_id'], '15 minutos con ' . $g['nombre'] . ': ' . $g['parados'] . ' parados y ' . $g['llamadas_atrasadas'] . ' llamadas atrasadas',
+          "Revisad juntos sus presupuestos parados en la Sala de cierre, elegid la técnica de cada uno y dejad cada siguiente paso con fecha. Ayudar antes que señalar."]);
+      $hechos[] = $e['jefe'] . ' → revisar con ' . $g['nombre'];
+    }
+    icc_ajuste_guardar($clave, date('Y-m-d'));
+    $hechos[] = 'parte a ' . $e['jefe'];
+  }
+  return $hechos ? 'Coordinadores: ' . implode(' · ', $hechos) : 'Coordinadores: los partes de hoy ya están enviados.';
+}
+
+require_once __DIR__ . '/voz_lib.php';

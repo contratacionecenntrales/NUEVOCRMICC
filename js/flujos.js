@@ -14,6 +14,7 @@
   var GRUPOS = [["basica", "📦 Automatizaciones básicas de la oficina", "Lo que una oficina de ICC repite cada día: reparto y bienvenida, recordatorios, estudio en 48 h, propuestas, altas, incidencias, renovaciones y referidos."],
     ["lineal", "➡️ Embudos profesionales lineales", "Secuencias paso a paso por servicio (energía, telefonía, alarmas y seguros): correo, WhatsApp y llamada con su cadencia. Se activan con la etiqueta «Interés: …»."],
     ["avanzado", "🔀 Embudos profesionales avanzados", "Con ramas sí/no, división A/B y esperas a que el cliente actúe: auditoría integral 100 % servicios, venta cruzada, setter y reactivación."]];
+  var VOZM = { bienvenida: "Lead nuevo: llamada en minutos", pedir_factura: "Pedir la factura", seguimiento: "Seguimiento del presupuesto", presentar_estudio: "Agendar la presentación del estudio", recuperar: "Recuperar un contacto parado" };
   var VARS = "{{nombre}} {{empresa}} {{gestor}} {{servicio}} {{fecha_cita}} {{presupuesto}} {{importe}} {{web}}";
 
   function main() { return document.getElementById("icc-main"); }
@@ -106,6 +107,7 @@
       case "ab": return "Mitad A, mitad B al azar";
       case "tarea": return c.titulo || "Tarea";
       case "llamada": return (c.en_minutos ? "En " + c.en_minutos + " min · " : "") + (c.motivo || "Llamada");
+      case "llamada_ia": return (VOZM[c.motivo] || "Llamada") + (c.detalle ? " · " + c.detalle : "");
       case "whatsapp": return String(c.mensaje || "").slice(0, 60);
       case "fase": return S.d.fases[c.estado] || "Elige la fase";
       case "etiqueta": return (c.quitar ? "Quita " : "Pone ") + (c.etiqueta || "…");
@@ -150,6 +152,7 @@
       case "esperar_condicion": case "condicion":
         f = campo("Condición", sel("tipo", c.tipo || "etiqueta", COND)) + campo(c.tipo === "tiene_servicio" || c.tipo === "interes_servicio" ? "Servicio (energia, telecomunicaciones, alarmas o seguros)" : "Valor (etiqueta, fase u origen)", inp("valor", c.valor, c.tipo === "tiene_servicio" || c.tipo === "interes_servicio" ? ' list="fl-serv"' : ' list="fl-etq"')) + (x.tipo === "esperar_condicion" ? campo("Esperar como máximo (horas)", inp("max_horas", c.max_horas || 48, ' type="number" min="1"')) : ""); break;
       case "tarea": f = campo("Tarea", inp("titulo", c.titulo)) + campo("Dentro de (horas)", inp("en_horas", c.en_horas || 24, ' type="number" min="0"')); break;
+      case "llamada_ia": f = campo("Para qué llama", sel("motivo", c.motivo || "bienvenida", VOZM)) + campo("Contexto para el agente", inp("detalle", c.detalle)) + '<p class="icc-ia-nota">Llama el agente de voz (se presenta como asistente de IA, en su horario y con sus límites). Si está apagado o no puede, la llamada va a la agenda del gestor.</p>'; break;
       case "llamada": f = campo("Motivo", inp("motivo", c.motivo)) + campo("Dentro de (minutos)", inp("en_minutos", c.en_minutos || 0, ' type="number" min="0"')); break;
       case "whatsapp": f = campo("Mensaje", '<textarea class="icc-input" rows="4" data-cfg="mensaje">' + esc(c.mensaje) + "</textarea>") + '<p class="icc-ia-nota">Crea una tarea al gestor con el mensaje listo y el enlace wa.me.</p>'; break;
       case "fase": f = campo("Nueva fase", sel("estado", c.estado || "estudio_backoffice", S.d.fases)); break;
@@ -250,6 +253,7 @@
   function nuevoId() { var i = 1; while (S.ed.pasos.nodos["p" + i]) i++; return "p" + i; }
   function nodoNuevo(tipo, destino) {
     var n = { tipo: tipo, cfg: {} };
+    if (tipo === "llamada_ia") n.cfg = { motivo: "seguimiento", detalle: "" };
     if (tipo === "correo") n.cfg = { asunto: "Asunto", cuerpo: "Hola {{nombre}}:\n\n\n\nUn saludo,\n{{gestor}}" };
     if (tipo === "esperar") n.cfg = { cantidad: 1, unidad: "dias" };
     if (tipo === "fase") n.cfg = { estado: "estudio_backoffice" };

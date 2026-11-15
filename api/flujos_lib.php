@@ -50,6 +50,7 @@ const FL_PASOS = [
   'ab' => ['🅰️', 'División A/B'],
   'tarea' => ['📋', 'Tarea para el gestor'],
   'llamada' => ['📞', 'Llamada del gestor'],
+  'llamada_ia' => ['🤖', 'Llamada del agente de voz'],
   'whatsapp' => ['💬', 'WhatsApp'],
   'fase' => ['🎯', 'Cambiar de fase'],
   'etiqueta' => ['🏷️', 'Etiqueta'],
@@ -83,8 +84,8 @@ function fl_plantillas(): array {
     'lead_reparto' => ['Lead nuevo: reparto, bienvenida y llamada en 5 minutos', 'basica', 'lead_nuevo', [], $lineal([
       ['tipo' => 'reparto', 'cfg' => []],
       $c('Gracias por contactar con ICC', "Hola {{nombre}}:\n\nGracias por su interés. Soy {{gestor}}, de ICC Consultoría, y voy a ser su persona de contacto para todos sus servicios: luz, gas, telefonía, alarmas y seguros.\n\nEn breve le llamo para conocer su caso. Si lo prefiere, responda a este correo con una factura reciente o su póliza y empezamos a revisarla. Trabajamos con todas las compañías: si no encontramos una mejora real, se lo decimos y no cambia nada.\n\nUn saludo."),
-      $ll(5, 'Lead nuevo: llamar en 5 minutos'),
-    ]), ['cita' => true], 'Asigna un gestor por turnos, envía la bienvenida y le pone una llamada a los 5 minutos.'],
+      ['tipo' => 'llamada_ia', 'cfg' => ['motivo' => 'bienvenida', 'detalle' => 'Lead nuevo: llamar en minutos y pedir la factura']],
+    ]), ['cita' => true], 'Asigna un gestor por turnos, envía la bienvenida y llama en minutos con el agente de voz (si está apagado, la llamada va a la agenda del gestor).'],
     'recordatorio_cita' => ['Recordatorio de cita 24 h y 2 h antes', 'basica', 'cita_agendada', [], $lineal([
       ['tipo' => 'esperar_cita', 'cfg' => ['horas' => 24]],
       $c('Le recordamos nuestra cita', "Hola {{nombre}}:\n\nLe recuerdo que tenemos una cita el {{fecha_cita}}. Si puede, tenga a mano sus últimas facturas (luz, gas, teléfono) y las pólizas que quiera revisar: así le damos respuesta en la misma reunión.\n\nSi necesita cambiarla, responda a este correo.\n\nUn saludo,\n{{gestor}}"),
@@ -551,6 +552,15 @@ function fl_avanzar(array $insc, array $flujo): int {
         $insc['variante'] = $var;
         $sig = $var === 'A' ? ($n['a'] ?? null) : ($n['b'] ?? null);
         fl_registro($fid, $iid, $cid, $paso, 'ab', 'Variante ' . $var);
+        break;
+      case 'llamada_ia':
+        // Agente de voz (Vapi). Fuera de su horario espera; si no puede llamar, la llamada pasa al gestor.
+        if (function_exists('voz_o_persona')) {
+          if (voz_config()['activo'] && !voz_en_horario() && empty($datos['voz_espera_' . $paso])) { $datos['voz_espera_' . $paso] = 1; $esperar = fl_siguiente_horario(); $sig = $paso; break; }
+          unset($datos['voz_espera_' . $paso]);
+          $mot = in_array($cfg['motivo'] ?? '', ['bienvenida', 'pedir_factura', 'seguimiento', 'presentar_estudio', 'recuperar'], true) ? $cfg['motivo'] : 'bienvenida';
+          fl_registro($fid, $iid, $cid, $paso, 'llamada', voz_o_persona($c, $mot, fl_variables($c, (string)($cfg['detalle'] ?? ''), $datos), 'Automatización «' . $flujo['nombre'] . '»'));
+        } else fl_registro($fid, $iid, $cid, $paso, 'omitido', 'Agente de voz no disponible');
         break;
       case 'tarea':
       case 'llamada':

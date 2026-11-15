@@ -162,7 +162,7 @@ function apr_piloto(bool $encender, int $uid): array {
       fl_instalar(APR_FLUJOS_PILOTO, $uid, true);
       $hecho[] = count(APR_FLUJOS_PILOTO) . ' automatizaciones activas';
     }
-    $hecho[] = '15 agentes con autonomía «actúa»';
+    $hecho[] = count(EQ_AGENTES) . ' agentes con autonomía «actúa»';
     $hecho[] = $legal ? 'barrido con envío autónomo (aviso legal aceptado)' : 'barrido con aprobación de cada correo (falta aceptar el aviso legal)';
     $hecho[] = 'mantenimiento del pipeline con llamadas';
     $hecho[] = 'agentes de correo en automático';
@@ -216,7 +216,12 @@ function apr_checklist(): array {
   $kb = (string)icc_ajuste('correo_conocimiento', '') !== '';
   $add('Correo', 'conocimiento', $kb ? 'ok' : 'aviso', 'Base de conocimiento', $kb ? 'Personalizada.' : 'Revisa «Cómo responde»: servicios, horario y precios públicos son lo único que la IA puede afirmar.', '#/agente-correo');
   // Automatico
-  $add('Automático', 'agentes', eq_config()['activo'] ? 'ok' : 'falta', 'Zona de agentes encendida', eq_config()['activo'] ? 'Los 15 agentes trabajan por turnos (8 a 20 h, laborables).' : 'Enciende el interruptor general o activa el piloto automático.', '#/zona-agentes');
+  $add('Automático', 'agentes', eq_config()['activo'] ? 'ok' : 'falta', 'Zona de agentes encendida', eq_config()['activo'] ? 'Los 17 agentes trabajan por turnos (8 a 20 h, laborables).' : 'Enciende el interruptor general o activa el piloto automático.', '#/zona-agentes');
+  if (function_exists('voz_config')) {
+    $v = voz_config();
+    $okV = $v['activo'] && $v['tiene_clave'] && $v['assistant_id'] !== '' && $v['phone_number_id'] !== '';
+    $add('Automático', 'voz', $okV ? 'ok' : 'aviso', 'Agente de voz (llamadas con IA)', $okV ? 'Llama a los leads nuevos y a los presupuestos parados en su horario.' : 'Opcional: conecta Vapi con tu número de Telnyx o Twilio en Zona de agentes → Agente de voz. Mientras tanto, esas llamadas van a la agenda del gestor.', '#/zona-agentes');
+  }
   $fl = (int)$q("SELECT COUNT(*) FROM flujos WHERE estado = 'activo'");
   $add('Automático', 'flujos', $fl ? 'ok' : 'falta', 'Automatizaciones activas', $fl ? $fl . ' flujos en marcha.' : 'Activa las plantillas o el piloto automático.', '#/automatizaciones');
   $add('Automático', 'saneo', sn_config_seguro() ? 'ok' : 'falta', 'Mantenimiento del pipeline', sn_config_seguro() ? 'Revisa el pipeline cada hora.' : 'Enciéndelo en la tarjeta del Pipeline.', '#/pipeline');

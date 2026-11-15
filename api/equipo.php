@@ -9,7 +9,8 @@
  * POST ?action=tarea {id, estado}                 POST ?action=experimento {...} · experimento_accion {id, accion}
  * POST ?action=memoria {tipo, texto, evidencia} · memoria_quitar {id}
  * POST ?action=hallazgo {id, accion} · auditar    POST ?action=cobro {id, accion: pagado|anular}
- * PUT  ?action=config {...}
+ * GET  ?action=sala · voz        POST ?action=empujar {cliente_id?} · partes · voz_llamar {cliente_id, motivo} · voz_probar
+ * PUT  ?action=config {...} · voz {...}
  */
 require __DIR__ . '/config.php';
 require_once __DIR__ . '/agentes_lib.php';
@@ -185,6 +186,66 @@ if ($accion === 'cierre' && $metodo === 'GET') {
                    WHERE e.estado <> 'cerrado' ORDER BY e.temperatura DESC")->fetchAll();
   if ($visibles !== null) $f = array_values(array_filter($f, function ($x) use ($visibles) { return $x['comercial_id'] !== null && in_array((int)$x['comercial_id'], $visibles, true); }));
   icc_json(['cierre' => $f, 'toques' => array_values(array_map(function ($t) { return ['dia' => $t[0], 'tipo' => $t[1]]; }, EQ_TOQUES))]);
+}
+
+/* ---------------------------------------------------------------- SALA DE CIERRE */
+if ($accion === 'sala' && $metodo === 'GET') {
+  $eqs = eq_equipos();
+  if ($visibles !== null) $eqs = array_values(array_filter($eqs, function ($e) use ($uid) { return (int)$e['jefe_id'] === $uid; }));
+  $ll = $db->query("SELECT v.id, v.cliente_id, v.nombre, v.telefono, v.motivo, v.origen, v.estado, v.resultado, v.resumen, v.acciones, v.error, v.duracion, v.created_at, c.razon_social, c.comercial_id
+                    FROM voz_llamadas v LEFT JOIN clientes c ON c.id = v.cliente_id ORDER BY v.id DESC LIMIT 40")->fetchAll();
+  if ($visibles !== null) $ll = array_values(array_filter($ll, function ($x) use ($visibles) { return $x['comercial_id'] !== null && in_array((int)$x['comercial_id'], $visibles, true); }));
+  $v = voz_config();
+  icc_json(['parados' => eq_presupuestos_parados($visibles), 'tecnicas' => EQ_TECNICAS, 'equipos' => $eqs, 'llamadas' => $ll, 'resultados' => VOZ_RESULTADOS, 'motivos' => VOZ_MOTIVOS,
+    'voz' => ['activo' => $v['activo'], 'configurado' => $v['tiene_clave'] && $v['assistant_id'] !== '' && $v['phone_number_id'] !== ''], 'es_dir' => $esDir, 'es_config' => $esConfig]);
+}
+if ($accion === 'empujar' && $metodo === 'POST') {
+  $cid = (int)($body['cliente_id'] ?? 0);
+  if (!$cid) { eq_solo_dir($esDir); icc_json(['ok' => true, 'texto' => eq_empujar_presupuestos('jefatura', null)]); }
+  if (!eq_cliente_visible($visibles, $cid)) icc_json(['error' => 'No encontrado.'], 404);
+  icc_json(['ok' => true, 'texto' => eq_empujar_presupuestos('jefatura', null, $cid)]);
+}
+if ($accion === 'partes' && $metodo === 'POST') {
+  eq_solo_dir($esDir);
+  icc_json(['ok' => true, 'texto' => eq_partes_equipos('jefes_equipo', null, true)]);
+}
+if ($accion === 'voz_llamar' && $metodo === 'POST') {
+  $cid = (int)($body['cliente_id'] ?? 0);
+  if (!$cid || !eq_cliente_visible($visibles, $cid)) icc_json(['error' => 'No encontrado.'], 404);
+  $c = eq_cliente($cid);
+  $mot = (string)($body['motivo'] ?? 'seguimiento');
+  if ($mot === 'prospeccion' || !isset(VOZ_MOTIVOS[$mot])) $mot = 'seguimiento';
+  $r = voz_llamar($c, $mot, mb_substr((string)($body['detalle'] ?? ''), 0, 300), 'manual · ' . $user['nombre'], $uid);
+  icc_json($r['ok'] ? ['ok' => true, 'texto' => 'Llamada en curso: el resultado aparecerá aquí y en la ficha.'] : ['error' => $r['error']], $r['ok'] ? 200 : 409);
+}
+if ($accion === 'voz' && $metodo === 'GET') {
+  if (!$esConfig) icc_json(['error' => 'Solo la administración configura el agente de voz.'], 403);
+  icc_json(voz_config() + ['webhook' => voz_webhook_url(), 'secreto' => voz_secreto(), 'prompt' => VOZ_PROMPT, 'motivos' => VOZ_MOTIVOS,
+    'primer_mensaje' => 'Hola, buenos días. Le llamo de ICC Consultoría; soy Carlos, un asistente de inteligencia artificial. ¿Hablo con {{nombre}}?']);
+}
+if ($accion === 'voz' && $metodo === 'PUT') {
+  if (!$esConfig) icc_json(['error' => 'Solo la administración configura el agente de voz.'], 403);
+  $limpio = function ($v) { return preg_replace('/[^A-Za-z0-9_-]/', '', (string)$v); };
+  icc_ajuste_guardar('voz_activo', !empty($body['activo']) ? '1' : '0', false, $uid);
+  icc_ajuste_guardar('voz_assistant_id', mb_substr($limpio($body['assistant_id'] ?? ''), 0, 80), false, $uid);
+  icc_ajuste_guardar('voz_phone_number_id', mb_substr($limpio($body['phone_number_id'] ?? ''), 0, 80), false, $uid);
+  icc_ajuste_guardar('voz_limite_dia', (string)max(1, min(500, (int)($body['limite_dia'] ?? 40))), false, $uid);
+  icc_ajuste_guardar('voz_frio', !empty($body['frio']) ? '1' : '0', false, $uid);
+  icc_ajuste_guardar('voz_auto_leads', !empty($body['auto_leads']) ? '1' : '0', false, $uid);
+  icc_ajuste_guardar('voz_auto_cierre', !empty($body['auto_cierre']) ? '1' : '0', false, $uid);
+  $hor = preg_replace('/\s+/', '', (string)($body['horario'] ?? ''));
+  if (preg_match('/^\d{2}:\d{2}-\d{2}:\d{2}(,\d{2}:\d{2}-\d{2}:\d{2}){0,3}$/', $hor)) icc_ajuste_guardar('voz_horario', $hor, false, $uid);
+  icc_ajuste_guardar('voz_solo_laborables', !empty($body['solo_laborables']) ? '1' : '0', false, $uid);
+  if (isset($body['base']) && preg_match('#^https://[a-z0-9.-]+(:\d+)?$#i', (string)$body['base'])) icc_ajuste_guardar('voz_base', (string)$body['base'], false, $uid);
+  if (trim((string)($body['clave'] ?? '')) !== '') { icc_ajuste_guardar('voz_clave', icc_cifrar(trim((string)$body['clave'])), false, $uid); icc_seg_anota('Clave de Vapi guardada', 'Agente de voz', $uid); }
+  icc_json(['ok' => true]);
+}
+if ($accion === 'voz_probar' && $metodo === 'POST') {
+  if (!$esConfig) icc_json(['error' => 'Solo la administración configura el agente de voz.'], 403);
+  $id = voz_config()['assistant_id'];
+  if ($id === '') icc_json(['error' => 'Escribe el identificador del asistente de Vapi.'], 422);
+  $r = voz_peticion('GET', '/assistant/' . rawurlencode($id));
+  icc_json($r['ok'] ? ['ok' => true, 'texto' => 'Conectado con Vapi: asistente «' . mb_substr((string)($r['datos']['name'] ?? $id), 0, 80) . '».'] : ['error' => 'Vapi: ' . $r['error']], $r['ok'] ? 200 : 502);
 }
 
 if ($accion === 'cobros' && $metodo === 'GET') {
