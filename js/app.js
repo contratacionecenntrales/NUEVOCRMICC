@@ -271,13 +271,22 @@
       ],
     });
 
+    // Capa de IA: dirección y jefes de equipo (los ajustes, solo coordinación y admin).
+    if (window.icc.auth.puedeVerIA()) items.push({
+      label: "🤖 IA",
+      href: "#/motor",
+      submenu: [
+        { href: "#/motor", label: "🛰️ Motor de prospección" },
+      ].concat(window.icc.auth.puedeVerCopias() ? [{ href: "#/inteligencia-artificial", label: "⚙️ Ajustes de IA y cron" }] : []),
+    });
+
     // Centro de Seguridad: dirección lo ve entero. El resto entra a su doble
     // factor y sus sesiones desde «Mi ficha → Seguridad avanzada».
     if (window.icc.auth.esAdminOSuperior()) items.push({
       label: "Seguridad",
       href: "#/seguridad",
       submenu: [{ href: "#/seguridad", label: "🛡️ Centro de Seguridad" }].concat(
-        window.icc.auth.puedeVerCopias() ? [{ href: "#/copias-seguridad", label: "🗑️ Papelera y copias" }, { href: "#/inteligencia-artificial", label: "🤖 Inteligencia artificial" }] : []
+        window.icc.auth.puedeVerCopias() ? [{ href: "#/copias-seguridad", label: "🗑️ Papelera y copias" }] : []
       ),
     });
 
@@ -741,6 +750,9 @@
       } else if (ruta === "#/copias-seguridad") {
         if (window.icc.copias) await window.icc.copias.view();
         else await window.icc.views.viewCopiasSeguridad();
+      } else if (ruta === "#/motor") {
+        if (!window.icc.auth.puedeVerIA() || !window.icc.motor) location.hash = "#/dashboard";
+        else await window.icc.motor.view();
       } else if (ruta === "#/inteligencia-artificial") {
         if (!window.icc.auth.puedeVerCopias() || !window.icc.ia) location.hash = "#/dashboard";
         else await window.icc.ia.view();

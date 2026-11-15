@@ -25,6 +25,10 @@ function &icc_cron_bloques_ref(): array {
         $n += $db->exec('DELETE FROM ia_registro WHERE ts < NOW() - INTERVAL 90 DAY');
         $n += $db->exec('DELETE FROM cron_registro WHERE ts < NOW() - INTERVAL 30 DAY');
         $n += $db->exec('DELETE FROM ia_acciones WHERE ts < NOW() - INTERVAL 365 DAY');
+        // Correos 1 ano y registros del Motor 180 dias.
+        foreach (['DELETE FROM motor_mensajes WHERE created_at < NOW() - INTERVAL 365 DAY', 'DELETE FROM motor_log WHERE ts < NOW() - INTERVAL 180 DAY'] as $sql) {
+          try { $n += $db->exec($sql); } catch (Throwable $e) { /* tabla aun no creada */ }
+        }
         return $n . ' registros antiguos borrados.';
       }],
     ];
@@ -99,3 +103,11 @@ function icc_cron_ejecutar(string $origen, bool $forzar = false): array {
   }
   return $out;
 }
+
+/* ---------------------------------------------------------------------------
+   Bloques de cada modulo, en el orden del latido: Motor -> buzones ->
+   mantenimiento del pipeline -> flujos -> turnos de los agentes.
+   ------------------------------------------------------------------------- */
+require_once __DIR__ . '/motor_lib.php';
+icc_cron_registrar('motor', 1, function (): string { return motor_tick(); });
+icc_cron_registrar('motor_analisis', 5, function (): string { return motor_analizar_pendientes(); });

@@ -155,6 +155,7 @@ window.icc.auth = (function () {
     // Oficinas: solo Coordinador, Admin y Super Admin (lo comprueba también el servidor).
     puedeVerOficinas: function () { return !!state.user && ["coordinador", "admin", "super_admin"].indexOf(state.rolPrincipal) !== -1; },
     puedeVerCopias: function () { return !!state.user && ["coordinador", "admin", "super_admin"].indexOf(state.rolPrincipal) !== -1; },
+    puedeVerIA: function () { return !!state.user && ["jefe_de_equipo", "coordinador", "gerente", "admin", "super_admin"].indexOf(state.rolPrincipal) !== -1; },
     puedeVerSala: function () { return !!state.user && state.rolPrincipal !== "comercial"; },
     esAdminOSuperior: esAdminOSuperior,
     esSuperAdmin: esSuperAdmin,

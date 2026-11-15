@@ -11,7 +11,7 @@
   var S = { d: null };
   var TIPOS = { factura: "Lectura de facturas", prueba: "Prueba de conexión", chat: "Consulta", transcripcion: "Voz a texto", voz: "Texto a voz" };
   var ESFUERZO = { minimal: "Mínimo (más rápido)", low: "Bajo (recomendado)", medium: "Medio (más preciso)" };
-  var BLOQUES = { copias: "Copias de seguridad", purga: "Limpieza de registros (RGPD)" };
+  var BLOQUES = { copias: "Copias de seguridad", purga: "Limpieza de registros (RGPD)", motor: "Motor de prospección: envíos y respuestas", motor_analisis: "Motor: lectura de webs" };
 
   function main() { return document.getElementById("icc-main"); }
   function fecha(f) {
