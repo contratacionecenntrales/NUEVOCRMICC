@@ -809,3 +809,36 @@ smtp.servidor-correo.net (587, STARTTLS), con el correo como usuario. El botón
 «Rellenar con los datos de Hostalia» lo pone solo; falta la contraseña de cada
 buzón.
 
+**Más departamentos** (según el nombre del buzón; se puede cambiar):
+
+- **Ventas** (info@, comercial@, ventas@): Lucía.
+- **Atención al cliente** (clientes@): Sara.
+  - Clientes que ya tienen el servicio: dudas, ampliaciones (tarea para su
+    gestor y presupuesto para aprobar) e incidencias.
+  - Lo de facturas y documentación lo deriva.
+- **Franquicias** (franquicia@): Diego.
+  - Guarda al candidato a franquiciado (sector «Franquicia»), lo cualifica y
+    propone videollamada con huecos reales.
+  - No da cifras de canon ni de rentabilidad que no estén en lo que sabe.
+- **Talento** (talento@, empleo@, rrhh@): Nuria.
+  - Registra la candidatura en Entrevistas y Talento, con el CV del correo, que
+    se puede descargar.
+  - Responde con una llamada propuesta y el aviso de protección de datos.
+- **Tramitación** (tramitacion@, gestiones@): Carmen.
+- **Administración** (admin@): Marta.
+- **Soporte** (soporte@): Leo.
+- **Asistente personal** (el correo de una persona del equipo, por ejemplo
+  jalvarez@):
+  - su dueño es el encargado: agenda en su agenda, le crea tareas y prepara
+    las respuestas en primera persona;
+  - por defecto, todo con aprobación: no envía nada solo.
+- **Solo envío** (no-response@, noreply@): no se lee ni se responde.
+- **General** (cualquier otro, por ejemplo soy@): Álex.
+
+**Conectar varios buzones**: en Buzones, «Conectar varios buzones». Se pega la
+lista tal cual (con o sin tamaños) y se pone la contraseña de cada uno. Se
+conectan con los datos de Hostalia y cada fila dice si ha conectado.
+
+**Archivos recibidos**: los adjuntos de los correos se guardan (5 como máximo,
+de 10 MB cada uno) y se descargan desde el detalle del correo.
+

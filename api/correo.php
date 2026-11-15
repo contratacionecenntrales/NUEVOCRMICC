@@ -33,7 +33,7 @@ function labs_correo_cfg()
 function labs_correo_categorias()
 {
     return array('lead' => 'Cliente potencial', 'presupuesto' => 'Pide presupuesto', 'cita' => 'Cita o llamada', 'cliente_soporte' => 'Cliente: soporte',
-        'administracion' => 'Facturas y pagos', 'tramite' => 'Trámite o documentación', 'queja' => 'Queja', 'proveedor' => 'Proveedor', 'baja' => 'Pide la baja', 'spam' => 'Spam o publicidad',
+        'administracion' => 'Facturas y pagos', 'tramite' => 'Trámite o documentación', 'candidatura' => 'Candidatura de empleo', 'franquicia' => 'Interés en franquicia', 'queja' => 'Queja', 'proveedor' => 'Proveedor', 'baja' => 'Pide la baja', 'spam' => 'Spam o publicidad',
         'automatico' => 'Automático', 'otro' => 'Otro');
 }
 
@@ -45,6 +45,11 @@ function labs_correo_funciones()
         'administracion' => array('Administración', 'Buzón de administración: facturas, pagos, bancos, proveedores y gestiones de la empresa.'),
         'tramitacion' => array('Tramitación', 'Buzón de tramitación: documentación, contratos, altas, firmas y trámites de los clientes.'),
         'soporte' => array('Soporte', 'Buzón de soporte técnico para clientes con asistentes, webs o automatizaciones instaladas.'),
+        'clientes' => array('Atención al cliente', 'Buzón de clientes que ya tienen el servicio: seguimiento, dudas, ampliaciones, renovaciones e incidencias.'),
+        'franquicia' => array('Franquicias', 'Buzón de franquicias: personas o empresas interesadas en abrir una franquicia de Labs24k en su zona.'),
+        'talento' => array('Talento y selección', 'Buzón de empleo: candidaturas, currículums y entrevistas para trabajar en Labs24k.'),
+        'personal' => array('Buzón personal', 'Buzón personal de una persona del equipo: el agente es su asistente (prepara, agenda y le deja tareas).'),
+        'envio' => array('Solo envío', 'Buzón que solo envía (no-response): no se lee ni se responde.'),
         'general' => array('General', 'Buzón general de la agencia.'),
     );
 }
@@ -53,11 +58,17 @@ function labs_correo_funciones()
 function labs_correo_funcion_de($email)
 {
     $l = strtolower(strtok((string) $email, '@'));
-    foreach (array('info' => '/^(info|hola|ventas|comercial|contacto)/', 'administracion' => '/^(admin|administracion|facturas?|contabilidad)/',
-        'tramitacion' => '/^(tramit|tramites|gestion|documenta)/', 'soporte' => '/^(soporte|support|ayuda|incidencias|tecnico)/') as $f => $re) {
+    foreach (array('envio' => '/^(no-?respon|no-?reply|noreply|donotreply|do-not-reply|notificaciones)/', 'info' => '/^(info|hola|ventas|comercial|contacto)/',
+        'administracion' => '/^(admin|administracion|facturas?|contabilidad)/', 'tramitacion' => '/^(tramit|tramites|gestion|documenta)/',
+        'soporte' => '/^(soporte|support|ayuda|incidencias|tecnico)/', 'clientes' => '/^(clientes|atencion|cliente|customer)/', 'franquicia' => '/^(franquicia|franquicias|franchise)/',
+        'talento' => '/^(talento|empleo|rrhh|trabaja|seleccion|jobs|cv)/') as $f => $re) {
         if (preg_match($re, $l)) {
             return $f;
         }
+    }
+    // El correo de una persona del equipo (perfil del CRM) es su buzón personal.
+    if (labs_fila("SELECT 1 FROM perfiles WHERE LOWER(email) = ? AND estado = 'Activo'", array(strtolower((string) $email)))) {
+        return 'personal';
     }
     return 'general';
 }
@@ -769,8 +780,11 @@ function labs_correo_lee($c, $max = 25)
                 mb_substr(labs_correo_cabecera($h['subject'] ?? '(sin asunto)'), 0, 250), $texto, gmdate('Y-m-d H:i:s', $ts), $k ? $k['id'] : null,
                 $auto ? 'automatico' : '', $auto ? 'ignorado' : 'nuevo', $auto ? 'No se responde: ' . $auto : '', labs_ahora(), $adjE ? json_encode($adjE, JSON_UNESCAPED_UNICODE) : null));
             $res['nuevos']++;
-            if (!$auto) {
-                labs_correo_procesa((int) labs_db()->lastInsertId());
+            $nid = (int) labs_db()->lastInsertId();
+            if ($c['funcion'] === 'envio') {
+                labs_q("UPDATE mail_mensajes SET estado = 'ignorado', categoria = 'automatico', motivo = 'Buzón de solo envío: no se responde' WHERE id = ?", array($nid));
+            } elseif (!$auto) {
+                labs_correo_procesa($nid);
             }
         }
         $i->cierra();
@@ -882,6 +896,27 @@ function labs_correo($metodo, $sub, $b)
     if (preg_match('#^/accion/(\d+)/(aprobar|rechazar)$#', $sub, $m) && $metodo === 'POST') {
         return array(200, labs_cag_resuelve_accion((int) $m[1], $m[2] === 'aprobar'));
     }
+    if (preg_match('#^/adjunto/(\d+)/(\d+)$#', $sub, $m) && $metodo === 'GET') {
+        $x = labs_fila('SELECT adjuntos_entrada FROM mail_mensajes WHERE id = ?', array((int) $m[1]));
+        $a = $x ? (json_decode((string) $x['adjuntos_entrada'], true) ?: array()) : array();
+        $a = $a[(int) $m[2]] ?? null;
+        $f = $a ? labs_almacen_fichero($a['ruta']) : null;
+        if (!$f || !is_file($f)) {
+            throw new ErrorApi('Ese archivo no existe.', 404, 'PGRST116');
+        }
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
+        if (labs_db()->inTransaction()) {
+            labs_db()->commit();
+        }
+        header('Content-Type: application/octet-stream');
+        header('Content-Disposition: attachment; filename="' . preg_replace('/[^A-Za-z0-9._-]/', '_', $a['nombre']) . '"');
+        header('X-Content-Type-Options: nosniff');
+        header('Content-Length: ' . filesize($f));
+        readfile($f);
+        exit;
+    }
     if ($sub === '/revisar' && $metodo === 'POST') {
         return array(200, array('ok' => true, 'resultado' => labs_correo_tick()));
     }
@@ -929,6 +964,16 @@ function labs_correo($metodo, $sub, $b)
         $f['adjuntos'] = json_encode(array_values(array_slice(array_unique(array_map('intval', (array) ($b['adjuntos'] ?? json_decode((string) ($v['adjuntos'] ?? '[]'), true)))), 0, 3)));
         $rp = (string) ($b['responsable_id'] ?? ($v['responsable_id'] ?? ''));
         $f['responsable_id'] = $rp !== '' && labs_fila("SELECT 1 FROM perfiles WHERE id = ? AND estado = 'Activo'", array($rp)) ? $rp : null;
+        if (!$id && $f['funcion'] === 'personal') {
+            // Buzón personal: su dueño es el encargado y, salvo que se diga otra cosa, todo con aprobación.
+            $du = labs_fila("SELECT id FROM perfiles WHERE LOWER(email) = ? AND estado = 'Activo'", array($f['email']));
+            if (!$f['responsable_id'] && $du) {
+                $f['responsable_id'] = $du['id'];
+            }
+            if (!isset($b['modo'])) {
+                $f['modo'] = 'aprobacion';
+            }
+        }
         $f['carpeta'] = $f['carpeta'] ?: 'INBOX';
         if (!filter_var($f['email'], FILTER_VALIDATE_EMAIL) || $f['imap_host'] === '' || $f['smtp_host'] === '') {
             throw new ErrorApi('Faltan el correo, el servidor IMAP o el servidor SMTP.', 400, 'CORREO');

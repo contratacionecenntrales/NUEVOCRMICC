@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-7r630Nf5eTwW+k7ztTZcZi8SG+kZoxiQ+OPSHOc0UCs='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-ZjDUwg0eefkaTQDuS0qA5fH8L91vdZWKO3NDI6DnODg='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Labs Command Center 360 - Oficina virtual SaaS de la red comercial de Labs24k.">
 <meta name="theme-color" content="#0B0F19">
@@ -2068,6 +2068,10 @@ a.btn.btn-g:hover{color:#fff}
 .co-txt{white-space:pre-wrap;word-break:break-word;font:inherit;font-size:13px;line-height:1.5;margin:10px 0 0;padding:12px;border-radius:12px;background:var(--card-2);border:1px solid var(--line);max-height:340px;overflow-y:auto}
 .co-resp{border-color:rgba(74,222,128,.35)}
 .co-cuentas{display:flex;flex-direction:column;gap:12px}
+.co-lote{display:flex;flex-direction:column;gap:6px}
+.co-lote-f{display:grid;grid-template-columns:minmax(180px,1.2fr) minmax(170px,1fr) minmax(160px,1fr) minmax(120px,1fr);gap:8px;align-items:center;padding:6px 8px;border-radius:10px;border:1px solid var(--line);background:var(--card-2)}
+.co-lote-f b{font-size:13px;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:760px){.co-lote-f{grid-template-columns:1fr}}
 .co-agentes{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:12px}
 .co-agente{margin:0;border-top:3px solid var(--ac)}
 .co-ag-h{display:flex;gap:10px;align-items:center}
@@ -11271,10 +11275,11 @@ function sanEventos(){
    AGENTE DE CORREO · buzones corporativos con respuesta automática (OpenAI)
    ========================================================================== */
 var CO = {d:null, tab:'bandeja', sel:null, filtro:'', form:null, ocupado:false, ag:{}};
-var CO_DEP = {info:['#38BDF8','Ventas'], soporte:['#F87171','Soporte'], tramitacion:['#FBBF24','Tramitación'], administracion:['#4ADE80','Administración'], general:['#C084FC','General']};
+var CO_DEP = {info:['#38BDF8','Ventas'], soporte:['#F87171','Soporte'], tramitacion:['#FBBF24','Tramitación'], administracion:['#4ADE80','Administración'], general:['#C084FC','General'],
+  clientes:['#2DD4BF','Atención al cliente'], franquicia:['#F472B6','Franquicias'], talento:['#A78BFA','Talento'], personal:['#94A3B8','Personal'], envio:['#64748B','Solo envío']};
 var CO_HERR = {anotar_en_ficha:'Anotar en la ficha', crear_tarea:'Crear tareas', derivar:'Derivar a otro departamento', guardar_lead:'Guardar leads', reservar_cita:'Reservar citas',
   mover_fase:'Mover de fase', preparar_presupuesto:'Preparar presupuestos', abrir_ticket:'Abrir tickets', actualizar_ticket:'Actualizar y cerrar tickets',
-  guardar_adjuntos:'Guardar documentos recibidos', registrar_pago:'Marcar cobros como pagados'};
+  guardar_adjuntos:'Guardar documentos recibidos', registrar_pago:'Marcar cobros como pagados', guardar_candidato:'Registrar candidaturas'};
 var CO_ESTADO = {respondido:['Respondido','#4ADE80'], pendiente:['Para aprobar','#FBBF24'], ignorado:['Archivado','#94A3B8'], nuevo:['Procesando','#38BDF8'], error:['Error','#F87171']};
 function coCarga(){ return ngApi('/correo/estado').then(function(d){ CO.d = d; if(S.view === 'correo') renderApp(); }, function(e){ CO.d = {error:e.message}; if(S.view === 'correo') renderApp(); }); }
 function coChip(t, col){ return '<span class="co-chip" style="--cc:'+col+'">'+esc(t)+'</span>'; }
@@ -11290,7 +11295,7 @@ function viewCorreo(v){
   var tabs = [['bandeja','mail','Bandeja'],['agentes','users','Agentes'],['aprobar','check','Para aprobar' + (pend ? ' · ' + pend : '')],['cuentas','plug','Buzones']].concat(admin ? [['ajustes','cog','Cómo responde']] : []);
   v.innerHTML =
     '<div class="mt-hero co-hero"><div><span class="rc-kick">'+ic('mail',13)+' BUZONES DE LA AGENCIA · OPENAI</span><h2>Agente de correo</h2>'+
-      '<p class="muted">Un agente por departamento (Ventas, Soporte, Tramitación, Administración) en cada buzón de la agencia: lee cada correo, gestiona en el CRM lo que hace falta (leads, citas, tickets, documentos, cobros), se pasa entre ellos lo que no es suyo y responde con los dosieres. Lo que toca dinero o es delicado, te lo deja para aprobar.</p>'+
+      '<p class="muted">Un agente por buzón (Ventas, Atención al cliente, Soporte, Tramitación, Administración, Franquicias, Talento y asistentes personales): lee cada correo, gestiona en el CRM lo que hace falta (leads, citas, tickets, documentos, cobros), se pasa entre ellos lo que no es suyo y responde con los dosieres. Lo que toca dinero o es delicado, te lo deja para aprobar.</p>'+
       '<div class="mt-hero-st">'+[['Respondidos solos (24 h)', D.auto_24h], ['Para aprobar', pend], ['Respondidos en total', D.contadores.respondido || 0], ['Buzones', D.cuentas.filter(function(c){ return Number(c.activa); }).length]].map(function(x){
         return '<div><b>'+x[1]+'</b><span>'+x[0]+'</span></div>'; }).join('')+'</div></div>'+
       '<div class="row" style="gap:8px;align-self:flex-start"><button class="btn btn-p" id="co-revisar"'+(CO.ocupado || !D.cuentas.length ? ' disabled' : '')+'>'+ic('refresh',15)+(CO.ocupado ? ' Leyendo…' : ' Revisar ahora')+'</button></div></div>'+
@@ -11334,7 +11339,8 @@ function coDetalle(){
     (m.motivo ? '<p class="tiny" style="color:#FDE68A;margin:6px 0">'+ic('alert',12)+' '+esc(m.motivo)+'</p>' : '')+
     (m.acciones ? '<p class="tiny co-acc" style="margin:6px 0">'+ic('bolt',12)+' Hecho por el agente: '+esc(m.acciones)+'</p>' : '')+
     '<pre class="co-txt">'+esc(m.cuerpo || '')+'</pre>'+
-    ((m.adjuntos_entrada || []).length ? '<p class="tiny co-acc">'+ic('file',12)+' Recibido con: '+m.adjuntos_entrada.map(function(a){ return esc(a.nombre) + ' (' + Math.max(1, Math.round(a.bytes / 1024)) + ' KB)'; }).join(', ')+'</p>' : '')+
+    ((m.adjuntos_entrada || []).length ? '<div class="co-dos">'+ic('file',12)+'<span class="tiny muted">Recibido con:</span>'+m.adjuntos_entrada.map(function(a, i){
+      return '<button class="mt-loc" data-co-desc="'+i+'">'+ic('download',12)+' '+esc(a.nombre)+' · '+Math.max(1, Math.round(a.bytes / 1024))+' KB</button>'; }).join('')+'</div>' : '')+
     ((m.traza || []).length ? '<details class="co-traza"'+(m.estado === 'pendiente' ? ' open' : '')+'><summary>'+ic('bolt',12)+' Cómo lo ha gestionado ('+m.traza.length+' pasos)</summary><ol>'+m.traza.map(function(t){
       return '<li><b>'+esc(CO_HERR[t.h] || t.h.replace(/_/g, ' '))+'</b> <span class="muted">'+esc(t.r || '')+'</span></li>'; }).join('')+'</ol></details>' : '')+
     ((m.acciones_pendientes || []).length ? '<div class="co-accs-m">'+m.acciones_pendientes.map(function(a){
@@ -11359,6 +11365,20 @@ function coDosieresElegir(m){
   var marca = c.adjuntar === 'nunca' ? [] : fijos.concat(m.dosieres_ia || []);
   return '<div class="co-dos"><span class="tiny muted">Adjuntar:</span>'+D.dosieres.map(function(x){
     return '<label class="tiny"><input type="checkbox" data-co-adj="'+x.id+'"'+(marca.indexOf(Number(x.id)) > -1 ? ' checked' : '')+'> '+esc(x.nombre)+'</label>'; }).join('')+'</div>';
+}
+function coLote(){
+  var L = CO.lote, D = CO.d;
+  return '<div class="card co-form"><h3 style="margin:0 0 6px;font-size:15px">'+ic('users',15)+' Conectar varios buzones de Hostalia</h3>'+
+    '<p class="tiny muted" style="margin:0 0 8px">Pega la lista (uno por línea; da igual si lleva el tamaño). Cada buzón recibe su agente según su nombre; puedes cambiarlo. Se conectan con los datos de Hostalia: solo falta la contraseña de cada uno.</p>'+
+    (L.filas.length ? '' : '<textarea class="inp" id="co-lote-txt" rows="6" placeholder="info@labs24k.com&#10;soporte@labs24k.com&#10;tramitacion@labs24k.com">'+esc(L.texto)+'</textarea>'+
+      '<div class="row" style="gap:6px;margin-top:8px"><button class="btn btn-p btn-xs" id="co-lote-prep">Preparar la lista</button><button class="btn btn-xs" id="co-lote-x">Cancelar</button></div>')+
+    (L.filas.length ? '<div class="co-lote">'+L.filas.map(function(f, i){
+      var ya = D.cuentas.some(function(c){ return c.email === f.email; });
+      return '<div class="co-lote-f"><b>'+esc(f.email)+'</b>'+
+        '<select class="inp" data-co-lf="'+i+'"'+(ya ? ' disabled' : '')+'><option value="">Agente automático (por el nombre)</option>'+Object.keys(D.funciones).map(function(k){ return '<option value="'+k+'"'+(f.funcion === k ? ' selected' : '')+'>'+esc(D.funciones[k][0])+'</option>'; }).join('')+'</select>'+
+        (ya ? '<span class="tiny" style="color:#86EFAC">Ya conectado</span>' : '<input class="inp" type="password" autocomplete="new-password" placeholder="Contraseña del buzón" data-co-lc="'+i+'" value="'+esc(f.clave || '')+'">')+
+        '<span class="tiny co-lote-st" style="color:'+(f.ok ? '#86EFAC' : f.error ? '#FCA5A5' : 'var(--txt-3)')+'">'+esc(f.ok ? 'Conectado · ' + f.ok : f.error || '')+'</span></div>'; }).join('')+'</div>'+
+      '<div class="row" style="gap:6px;margin-top:10px"><button class="btn btn-p" id="co-lote-ok"'+(L.ocupado ? ' disabled' : '')+'>'+ic('plug',14)+(L.ocupado ? ' Conectando…' : ' Conectar los que tienen contraseña')+'</button><button class="btn" id="co-lote-x">Cerrar</button></div>' : '')+'</div>';
 }
 function coAgentes(){
   var D = CO.d, admin = D.admin;
@@ -11417,7 +11437,8 @@ function coCuentas(){
           '<p class="tiny muted" style="align-self:end">Seguro: contesta solo a clientes potenciales, presupuestos, citas, bajas y consultas generales con confianza alta. Amplio: también soporte y proveedores. Nunca contesta solo a quejas, facturas o importes que no estén en la base.</p></div>'+
         '<p class="tiny muted">Los datos del servidor están en el panel de tu proveedor de correo (en Hostalia: Correo → configurar un cliente de correo). La contraseña se guarda cifrada y nunca vuelve al navegador.</p>'+
         '<div class="row" style="gap:6px;margin-top:8px"><button class="btn btn-p" id="co-guardar">'+ic('save',14)+' Guardar y conectar</button><button class="btn" id="co-cancelar">Cancelar</button></div></div>' :
-      '<button class="btn btn-p" id="co-nueva">'+ic('plus',15)+' Conectar un buzón</button>') : '')+'</div>';
+      (CO.lote ? coLote() : '<div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn btn-p" id="co-nueva">'+ic('plus',15)+' Conectar un buzón</button>'+
+        '<button class="btn" id="co-varios">'+ic('users',15)+' Conectar varios buzones</button></div>')) : '')+'</div>';
 }
 function coAjustes(){
   var C = CO.d.config;
@@ -11433,6 +11454,32 @@ function coAjustes(){
 }
 function coEventos(){
   qa('[data-co-tab]').forEach(function(b){ b.onclick = function(){ CO.tab = b.dataset.coTab; CO.sel = null; renderApp(); }; });
+  if(q('#co-varios')) q('#co-varios').onclick = function(){ CO.form = null; CO.lote = {texto:'', filas:[]}; renderApp(); };
+  if(q('#co-lote-x')) q('#co-lote-x').onclick = function(){ CO.lote = null; renderApp(); };
+  if(q('#co-lote-txt')) q('#co-lote-txt').oninput = function(){ CO.lote.texto = this.value; };
+  if(q('#co-lote-prep')) q('#co-lote-prep').onclick = function(){ var vistos = {};
+    CO.lote.filas = (CO.lote.texto.match(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g) || []).map(function(e){ return e.toLowerCase(); }).filter(function(e){ if(vistos[e]) return false; vistos[e] = 1; return true; }).map(function(e){ return {email:e, funcion:'', clave:''}; });
+    if(!CO.lote.filas.length) return toast('No encuentro ningún correo en la lista.'); renderApp(); };
+  qa('[data-co-lf]').forEach(function(el){ el.onchange = function(){ CO.lote.filas[el.dataset.coLf].funcion = el.value; }; });
+  qa('[data-co-lc]').forEach(function(el){ el.oninput = function(){ CO.lote.filas[el.dataset.coLc].clave = el.value; }; });
+  if(q('#co-lote-ok')) q('#co-lote-ok').onclick = function(){ var L = CO.lote, cola = L.filas.filter(function(f){ return f.clave && !f.ok && !CO.d.cuentas.some(function(c){ return c.email === f.email; }); });
+    if(!cola.length) return toast('Escribe la contraseña de los buzones que quieras conectar.');
+    L.ocupado = true; renderApp();
+    var uno = function(i){
+      if(i >= cola.length){ L.ocupado = false; var n = cola.filter(function(f){ return f.ok; }).length; toast(n + ' de ' + cola.length + ' buzones conectados.'); return coCarga(); }
+      var f = cola[i], loc = f.email.split('@')[0], cuerpo = {email:f.email, imap_usuario:f.email, clave:f.clave, nombre:'Labs24k',
+        imap_host:'imap.servidor-correo.net', imap_puerto:993, imap_seguridad:'ssl', smtp_host:'smtp.servidor-correo.net', smtp_puerto:587, smtp_seguridad:'tls'};
+      if(f.funcion) cuerpo.funcion = f.funcion;
+      ngApi('/correo/cuentas', 'POST', cuerpo).then(function(d){ f.clave = '';
+        return ngApi('/correo/cuentas/' + d.cuenta.id + '/probar', 'POST', {}).then(function(p){
+          if(p.imap === 'ok' && p.smtp === 'ok') f.ok = (CO.d.funciones[d.cuenta.funcion] || ['General'])[0]; else { f.ok = ''; f.error = 'Guardado, pero ' + (p.imap !== 'ok' ? 'IMAP: ' + p.imap : 'SMTP: ' + p.smtp); } });
+      }, function(e){ f.error = e.message; }).then(function(){ if(S.view === 'correo') renderApp(); uno(i + 1); });
+    };
+    uno(0); };
+  qa('[data-co-desc]').forEach(function(b){ b.onclick = function(){ var a = CO.sel.adjuntos_entrada[Number(b.dataset.coDesc)];
+    sbConSesion(function(){ return fetch(sbUrl('/correo/adjunto/' + CO.sel.id + '/' + b.dataset.coDesc), {headers:sbCabeceras(true), credentials:'same-origin'}).then(function(r){
+      if(!r.ok) throw new Error('No se ha podido descargar.'); return r.blob(); }).then(function(bl){ var u = URL.createObjectURL(bl), l = document.createElement('a'); l.href = u; l.download = a.nombre; document.body.appendChild(l); l.click(); l.remove(); setTimeout(function(){ URL.revokeObjectURL(u); }, 4000); return {ok:true}; });
+    }).catch(function(e){ toast(e.message); }); }; });
   qa('[data-co-ag]').forEach(function(el){ el.oninput = function(){ CO.ag[el.dataset.coAg][el.dataset.k] = el.value; }; });
   qa('[data-co-aut]').forEach(function(el){ el.onchange = function(){ CO.ag[el.dataset.coAut].autonomia[el.dataset.k] = el.value; }; });
   qa('[data-co-ag-on]').forEach(function(el){ el.onchange = function(){ CO.ag[el.dataset.coAgOn].activo = el.checked; }; });

@@ -52,6 +52,37 @@ function labs_cag_plantillas()
             "3. Si pregunta por un importe, da solo lo que figura en el CRM; si no cuadra o reclama, crea una tarea para administración y déjalo para una persona.\n" .
             "4. Proveedores y bancos: crea la tarea y archiva si no requiere respuesta.",
             'conocimiento' => ''),
+        'clientes' => array('nombre' => 'Sara', 'cargo' => 'Agente de Atención al cliente', 'instrucciones' => $comun .
+            "Tu objetivo: que cada cliente se sienta atendido, siga contento y crezca con nosotros.\n" .
+            "1. Identifica al cliente: ficha, historial de correos, tickets, documentos y presupuestos.\n" .
+            "2. Dudas de uso: respóndelas con lo que sabes. Averías: abre o actualiza el ticket (o derívalo a Soporte si es técnico de verdad).\n" .
+            "3. Si quiere ampliar o renovar, crea la tarea para su gestor y, si lo pide, propón una reunión con huecos reales; si pide precio de una ampliación, prepara el presupuesto (para aprobar).\n" .
+            "4. Facturas y pagos: derívalo a Administración. Documentación: a Tramitación.\n" .
+            "5. Si detectas que está descontento o quiere darse de baja, déjalo para una persona con un borrador cuidadoso y crea la tarea urgente para su gestor.",
+            'conocimiento' => ''),
+        'franquicia' => array('nombre' => 'Diego', 'cargo' => 'Agente de Franquicias', 'instrucciones' => $comun .
+            "Tu objetivo: atender a quien quiere abrir una franquicia de Labs24k, cualificarlo y llevarlo a una videollamada informativa.\n" .
+            "1. Guarda al candidato como lead (sector «Franquicia») con zona, experiencia, inversión disponible y plazo si los dice.\n" .
+            "2. Agradece el interés, cuenta en dos frases el modelo y adjunta el dosier de franquicia si está en la lista.\n" .
+            "3. Pregunta lo que falte para cualificar (zona, inversión, si tiene red de contactos en pymes, cuándo quiere empezar).\n" .
+            "4. Propón dos huecos reales para una videollamada; si elige uno, resérvalo.\n" .
+            "5. No des cifras de canon, royalties o rentabilidad que no estén en lo que sabes.",
+            'conocimiento' => ''),
+        'talento' => array('nombre' => 'Nuria', 'cargo' => 'Agente de Talento', 'instrucciones' => $comun .
+            "Tu objetivo: que cada candidatura llegue ordenada a selección y que el candidato tenga respuesta rápida y amable.\n" .
+            "1. Si es una candidatura, regístrala con guardar_candidato (nombre, puesto, teléfono). El CV adjunto queda con el correo.\n" .
+            "2. Responde agradeciendo, confirma que la revisamos y, si encaja con un puesto abierto de lo que sabes, propón una llamada con huecos reales.\n" .
+            "3. Informa en una frase de que sus datos se usarán solo para este proceso de selección y que puede pedir su borrado cuando quiera.\n" .
+            "4. No prometas el puesto ni hables de salario si no está en lo que sabes.",
+            'conocimiento' => "Puestos abiertos habituales: Comercial de zona (Gijón, Oviedo, Avilés), Agente de ventas telefónicas y Técnico de implantación de IA."),
+        'personal' => array('nombre' => 'Asistente', 'cargo' => 'Asistente personal', 'instrucciones' => $comun .
+            "Eres el asistente personal de la persona dueña de este buzón (es tu «encargado»).\n" .
+            "1. Mira quién escribe (ficha e historial) y qué necesita.\n" .
+            "2. Si propone o pide una reunión, busca huecos reales en SU agenda y, si ya ha elegido uno, resérvalo.\n" .
+            "3. Crea una tarea para él con lo que tenga que hacer (y para cuándo).\n" .
+            "4. Prepara la respuesta como si la escribiera él, en primera persona, breve y cordial: él la revisa y la envía.\n" .
+            "5. Lo que sea de otro departamento (soporte, facturas, documentación), derívalo.",
+            'conocimiento' => ''),
         'general' => array('nombre' => 'Álex', 'cargo' => 'Agente de la agencia', 'instrucciones' => $comun . 'Atiende el correo, gestiona lo que puedas con tus herramientas y deriva al departamento que corresponda.', 'conocimiento' => ''),
     );
 }
@@ -64,7 +95,7 @@ function labs_cag_herramientas()
 {
     $s = array('type' => 'string');
     $i = array('type' => 'integer');
-    $cat = array('type' => 'string', 'enum' => array('lead', 'presupuesto', 'cita', 'cliente_soporte', 'administracion', 'tramite', 'queja', 'proveedor', 'baja', 'otro'));
+    $cat = array('type' => 'string', 'enum' => array('lead', 'presupuesto', 'cita', 'cliente_soporte', 'administracion', 'tramite', 'candidatura', 'franquicia', 'queja', 'proveedor', 'baja', 'otro'));
     $urg = array('type' => 'string', 'enum' => array('baja', 'media', 'alta'));
     return array(
         'ver_ficha' => array(null, 'leer', 'Ficha del remitente en el CRM (o de otro contacto por su id): fase, gestor, próximo paso, decisor, notas y últimos eventos.', array('contacto_id' => $i), array()),
@@ -74,26 +105,28 @@ function labs_cag_herramientas()
         'crear_tarea' => array(null, 'bajo', 'Crea una tarea en la agenda del encargado del buzón (o del gestor del cliente) para dentro de N días laborables.',
             array('titulo' => $s, 'detalle' => $s, 'dias' => $i, 'para' => array('type' => 'string', 'enum' => array('encargado', 'gestor'))), array('titulo')),
         'derivar' => array(null, 'bajo', 'Pasa el correo al agente de otro departamento cuando no es tuyo. Él lo gestiona y contesta desde su buzón. Termina tu gestión.',
-            array('departamento' => array('type' => 'string', 'enum' => array('info', 'soporte', 'tramitacion', 'administracion')), 'motivo' => $s), array('departamento', 'motivo')),
-        'guardar_lead' => array(array('info', 'general'), 'bajo', 'Crea el lead (o completa los datos vacíos del contacto vinculado).',
+            array('departamento' => array('type' => 'string', 'enum' => array('info', 'soporte', 'tramitacion', 'administracion', 'clientes', 'franquicia', 'talento')), 'motivo' => $s), array('departamento', 'motivo')),
+        'guardar_lead' => array(array('info', 'general', 'franquicia', 'personal'), 'bajo', 'Crea el lead (o completa los datos vacíos del contacto vinculado).',
             array('nombre' => $s, 'empresa' => $s, 'telefono' => $s, 'sector' => $s, 'cuello' => array('type' => 'string', 'enum' => array('', 'captacion', 'embudo', 'atencion')),
                 'decisor' => array('type' => 'string', 'description' => 'Quién decide la compra (si quien escribe es el dueño o gerente, su nombre).'), 'decisor_cargo' => $s, 'notas' => $s), array('nombre')),
-        'huecos_agenda' => array(array('info', 'soporte', 'general'), 'leer', 'Huecos libres reales en la agenda del gestor del cliente (o del encargado) en los próximos días laborables.', array('dias' => $i), array()),
-        'reservar_cita' => array(array('info', 'soporte', 'general'), 'bajo', 'Reserva una cita (llamada, demo o visita) en la agenda del gestor. Solo si el cliente ha elegido o aceptado ese día y hora.',
+        'huecos_agenda' => array(array('info', 'soporte', 'general', 'clientes', 'franquicia', 'talento', 'personal'), 'leer', 'Huecos libres reales en la agenda del gestor del cliente (o del encargado) en los próximos días laborables.', array('dias' => $i), array()),
+        'reservar_cita' => array(array('info', 'soporte', 'general', 'clientes', 'franquicia', 'talento', 'personal'), 'bajo', 'Reserva una cita (llamada, demo o visita) en la agenda del gestor. Solo si el cliente ha elegido o aceptado ese día y hora.',
             array('fecha' => $s, 'hora' => $s, 'tipo' => array('type' => 'string', 'enum' => array('llamada', 'demo', 'visita')), 'notas' => $s), array('fecha', 'hora', 'tipo')),
-        'mover_fase' => array(array('info', 'general'), 'bajo', 'Cambia la fase del embudo del contacto (no clientes ya firmados).',
+        'mover_fase' => array(array('info', 'general', 'franquicia'), 'bajo', 'Cambia la fase del embudo del contacto (no clientes ya firmados).',
             array('fase' => array('type' => 'string', 'enum' => array('lead', 'cualificacion', 'demo', 'propuesta', 'negociacion', 'perdido')), 'motivo' => $s), array('fase', 'motivo')),
-        'preparar_presupuesto' => array(array('info'), 'alto', 'Prepara el presupuesto con un pack oficial (pk1 1.700 €, pk2 2.800 €, pk3 3.900 €).',
+        'preparar_presupuesto' => array(array('info', 'clientes'), 'alto', 'Prepara el presupuesto con un pack oficial (pk1 1.700 €, pk2 2.800 €, pk3 3.900 €).',
             array('pack' => array('type' => 'string', 'enum' => array('pk1', 'pk2', 'pk3')), 'nota' => $s), array('pack')),
-        'tickets_cliente' => array(array('soporte', 'general'), 'leer', 'Tickets de soporte de este cliente (abiertos y recientes).', array(), array()),
-        'abrir_ticket' => array(array('soporte', 'general'), 'bajo', 'Abre un ticket en Soporte.', array('titulo' => $s, 'prioridad' => array('type' => 'string', 'enum' => array('baja', 'media', 'alta', 'critica')), 'descripcion' => $s), array('titulo', 'prioridad')),
-        'actualizar_ticket' => array(array('soporte'), 'bajo', 'Actualiza un ticket: estado y nota de seguimiento.',
+        'tickets_cliente' => array(array('soporte', 'general', 'clientes'), 'leer', 'Tickets de soporte de este cliente (abiertos y recientes).', array(), array()),
+        'abrir_ticket' => array(array('soporte', 'general', 'clientes'), 'bajo', 'Abre un ticket en Soporte.', array('titulo' => $s, 'prioridad' => array('type' => 'string', 'enum' => array('baja', 'media', 'alta', 'critica')), 'descripcion' => $s), array('titulo', 'prioridad')),
+        'actualizar_ticket' => array(array('soporte', 'clientes'), 'bajo', 'Actualiza un ticket: estado y nota de seguimiento.',
             array('ticket_id' => $i, 'estado' => array('type' => 'string', 'enum' => array('abierto', 'en_progreso', 'escalado', 'resuelto')), 'nota' => $s), array('ticket_id', 'estado')),
-        'estado_servicio' => array(array('soporte'), 'leer', 'Estado del servicio del cliente: su asistente de IA (desplegado o no) y su expediente.', array(), array()),
-        'documentos_cliente' => array(array('tramitacion', 'administracion'), 'leer', 'Documentos de la ficha del cliente y estado de sus contratos.', array(), array()),
-        'guardar_adjuntos' => array(array('tramitacion', 'administracion', 'soporte'), 'bajo', 'Guarda los archivos que trae este correo en la ficha del cliente.', array(), array()),
-        'presupuestos_cobros' => array(array('administracion', 'info'), 'leer', 'Presupuestos y cobros del cliente (importes, estados y vencimientos).', array(), array()),
+        'estado_servicio' => array(array('soporte', 'clientes'), 'leer', 'Estado del servicio del cliente: su asistente de IA (desplegado o no) y su expediente.', array(), array()),
+        'documentos_cliente' => array(array('tramitacion', 'administracion', 'clientes'), 'leer', 'Documentos de la ficha del cliente y estado de sus contratos.', array(), array()),
+        'guardar_adjuntos' => array(array('tramitacion', 'administracion', 'soporte', 'clientes'), 'bajo', 'Guarda los archivos que trae este correo en la ficha del cliente.', array(), array()),
+        'presupuestos_cobros' => array(array('administracion', 'info', 'clientes'), 'leer', 'Presupuestos y cobros del cliente (importes, estados y vencimientos).', array(), array()),
         'registrar_pago' => array(array('administracion'), 'alto', 'Marca un cobro como pagado (el cliente dice que ya ha pagado).', array('cobro_id' => $i, 'nota' => $s), array('cobro_id')),
+        'guardar_candidato' => array(array('talento'), 'bajo', 'Registra la candidatura en Entrevistas y Talento (el CV del correo queda vinculado).',
+            array('nombre' => $s, 'puesto' => $s, 'telefono' => $s, 'nota' => array('type' => 'integer', 'description' => 'Primera impresión de 0 a 10 (opcional).')), array('nombre', 'puesto')),
         'responder' => array(null, 'final', 'Termina: responde al correo. El cuerpo sin firma (se añade sola). Puedes adjuntar dosieres (números de la lista).',
             array('categoria' => $cat, 'urgencia' => $urg, 'resumen' => $s, 'asunto' => $s, 'cuerpo' => $s, 'dosieres' => array('type' => 'array', 'items' => $i), 'confianza' => $i),
             array('categoria', 'urgencia', 'resumen', 'cuerpo', 'confianza')),
@@ -137,6 +170,10 @@ function labs_cag_cfg($c)
         }
     }
     $d['funcion'] = $f;
+    if ($f === 'personal' && !(is_array($g) && isset($g['nombre']))) {
+        $du = !empty($c['responsable_id']) ? labs_fila('SELECT nombre FROM perfiles WHERE id = ?', array($c['responsable_id'])) : null;
+        $d['nombre'] = 'Asistente de ' . ($du ? trim(strtok($du['nombre'], ' ')) : strtok((string) ($c['email'] ?? ''), '@'));
+    }
     return $d;
 }
 
@@ -201,6 +238,9 @@ function labs_cag_dia($d)
 
 function labs_cag_persona($c, $k, $para = 'gestor')
 {
+    if (($c['funcion'] ?? '') === 'personal' || ($c['funcion'] ?? '') === 'talento') {
+        return labs_correo_responsable($c);
+    }
     if ($para === 'gestor' && $k && $k['gestor_id'] && labs_fila("SELECT 1 FROM perfiles WHERE id = ? AND estado = 'Activo'", array($k['gestor_id']))) {
         return $k['gestor_id'];
     }
@@ -388,6 +428,20 @@ function labs_cag_ejecuta($n, $e, &$ctx)
                 }
             }
             return array('ok' => true, 'guardados' => $n, 'resumen' => count($n) . ' archivo(s) en la ficha: ' . implode(', ', $n));
+        case 'guardar_candidato':
+            $ya = labs_fila('SELECT id FROM candidatos WHERE email = ? ORDER BY id DESC LIMIT 1', array($m['de_email']));
+            $adj = json_decode((string) $m['adjuntos_entrada'], true) ?: array();
+            $orig = mb_substr('Correo ' . $c['email'] . ($adj ? ' · CV: ' . $adj[0]['nombre'] : ''), 0, 120);
+            if ($ya) {
+                labs_q('UPDATE candidatos SET puesto = ?, origen = ?, actualizado = ? WHERE id = ?', array(mb_substr(trim((string) $e['puesto']), 0, 120), $orig, $ahora, $ya['id']));
+                return array('ok' => true, 'candidato_id' => (int) $ya['id'], 'resumen' => 'Candidatura actualizada (#' . $ya['id'] . ')');
+            }
+            $nota = isset($e['nota']) ? max(0, min(10, (int) $e['nota'])) : null;
+            labs_q("INSERT INTO candidatos (nombre, puesto, email, telefono, fase, nota, origen, responsable_id, creado, actualizado) VALUES (?,?,?,?,?,?,?,?,?,?)",
+                array(mb_substr(trim((string) $e['nombre']), 0, 120), mb_substr(trim((string) $e['puesto']), 0, 120), $m['de_email'], mb_substr(preg_replace('/[^\d+ ]/', '', (string) ($e['telefono'] ?? '')), 0, 40),
+                    'seleccionado', $nota, $orig, labs_correo_responsable($c), $ahora, $ahora));
+            $id2 = (int) labs_db()->lastInsertId();
+            return array('ok' => true, 'candidato_id' => $id2, 'resumen' => 'Candidatura #' . $id2 . ' en Entrevistas y Talento (' . mb_substr($e['puesto'], 0, 60) . ')');
         case 'presupuestos_cobros':
             if (!$k) {
                 return array('nota' => 'No está en el CRM.');
@@ -413,7 +467,8 @@ function labs_cag_describe($n, $e)
         'reservar_cita' => 'Reservar ' . ($e['tipo'] ?? 'cita') . ' el ' . ($e['fecha'] ?? '') . ' a las ' . ($e['hora'] ?? ''), 'mover_fase' => 'Mover a ' . ($e['fase'] ?? ''),
         'crear_tarea' => 'Tarea: ' . ($e['titulo'] ?? ''), 'abrir_ticket' => 'Abrir ticket: ' . ($e['titulo'] ?? ''), 'guardar_lead' => 'Guardar lead: ' . ($e['nombre'] ?? ''),
         'anotar_en_ficha' => 'Nota: ' . mb_substr((string) ($e['texto'] ?? ''), 0, 80), 'guardar_adjuntos' => 'Guardar los archivos del correo en la ficha',
-        'actualizar_ticket' => 'Ticket #' . (int) ($e['ticket_id'] ?? 0) . ' → ' . ($e['estado'] ?? ''), 'derivar' => 'Derivar a ' . ($e['departamento'] ?? ''));
+        'actualizar_ticket' => 'Ticket #' . (int) ($e['ticket_id'] ?? 0) . ' → ' . ($e['estado'] ?? ''), 'derivar' => 'Derivar a ' . ($e['departamento'] ?? ''),
+        'guardar_candidato' => 'Registrar candidatura: ' . ($e['nombre'] ?? '') . ' (' . ($e['puesto'] ?? '') . ')');
     return $t[$n] ?? $n;
 }
 
@@ -609,7 +664,9 @@ function labs_correo_bloqueo_agente($c, $m, $d, $cfg)
         return 'Delicado: ' . ($d['motivo'] ?: 'necesita una persona');
     }
     $propias = array('info' => array('lead', 'presupuesto', 'cita', 'otro', 'baja'), 'soporte' => array('cliente_soporte', 'otro', 'baja'),
-        'tramitacion' => array('tramite', 'otro', 'baja'), 'administracion' => array('administracion', 'proveedor', 'otro', 'baja'), 'general' => array('lead', 'presupuesto', 'cita', 'otro', 'baja'));
+        'tramitacion' => array('tramite', 'otro', 'baja'), 'administracion' => array('administracion', 'proveedor', 'otro', 'baja'), 'general' => array('lead', 'presupuesto', 'cita', 'otro', 'baja'),
+        'clientes' => array('cliente_soporte', 'cita', 'otro', 'baja'), 'franquicia' => array('franquicia', 'lead', 'cita', 'otro', 'baja'), 'talento' => array('candidatura', 'cita', 'otro', 'baja'),
+        'personal' => array('lead', 'cita', 'otro'));
     $ok = $propias[$c['funcion']] ?? $propias['general'];
     if ($c['modo'] === 'auto') {
         $ok = array_merge($ok, array('lead', 'presupuesto', 'cita', 'cliente_soporte', 'tramite', 'proveedor', 'administracion'));
