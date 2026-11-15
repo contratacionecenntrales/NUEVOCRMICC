@@ -747,7 +747,7 @@ los configura la administración).
   - quejas, facturas o pagos;
   - si la respuesta menciona un importe que no está en la base de
     conocimiento, o habla de descuentos, contratos o devoluciones;
-  - si ya ha contestado dos veces hoy al mismo remitente (antibucles);
+  - si ya ha contestado 3 veces en la última hora o 10 en el día al mismo remitente (antibucles);
   - por encima del límite diario.
   Esos quedan en «Para aprobar» con el borrador listo para editar y enviar.
 - **Las respuestas** salen desde el propio buzón, en el mismo hilo, con la
