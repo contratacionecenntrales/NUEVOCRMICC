@@ -1,0 +1,16 @@
+/* ICC CRM · Puesta en marcha (js/puesta.js) */
+.icc-pm-barra { height: 10px; border-radius: 99px; background: var(--card-2); margin: 14px 0 4px; overflow: hidden; max-width: 520px; }
+.icc-pm-barra i { display: block; height: 100%; background: linear-gradient(90deg, #10B981, #22D3EE); border-radius: 99px; }
+.icc-pm-piloto { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; border-color: rgba(34, 211, 238, .35); }
+.icc-pm-piloto > div:first-child { flex: 1; min-width: 260px; }
+.icc-pm-piloto ul { margin: 6px 0; padding-left: 18px; color: var(--txt-2); font-size: 13.5px; line-height: 1.6; }
+.icc-pm-piloto p { margin: 4px 0; color: var(--txt-2); }
+.icc-pm-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.icc-pm-lista li { display: flex; gap: 12px; align-items: center; padding: 10px 12px; border-radius: 12px; background: var(--card-2); border: 1px solid var(--line); }
+.icc-pm-lista li.is-falta { border-color: rgba(248, 113, 113, .45); }
+.icc-pm-lista li.is-aviso { border-color: rgba(251, 191, 36, .35); }
+.icc-pm-lista li > div { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.icc-pm-lista strong { color: var(--txt); font-size: 14px; }
+.icc-pm-lista small { color: var(--txt-3); font-size: 12.5px; line-height: 1.45; }
+.icc-pm-ico { font-size: 18px; }
+@media (max-width: 560px) { .icc-pm-acc, .icc-pm-acc .icc-btn { width: 100%; } }

@@ -260,7 +260,8 @@ function motor_redactar(array $lead, array $campana, int $paso, ?int $usuarioId 
       'tipo' => $paso === 1 ? 'primer contacto' : ($paso === 2 ? 'seguimiento corto (no respondió)' : 'último correo: preguntar si cerramos el expediente'),
     ];
     $r = icc_ia_chat([
-      ['role' => 'system', 'content' => $cfg['agente']['prompt'] . "\nTono: " . $cfg['agente']['tono'] . '.'],
+      ['role' => 'system', 'content' => $cfg['agente']['prompt'] . "\nTono: " . $cfg['agente']['tono'] . '.'
+        . (function_exists('apr_ejemplos_texto') ? apr_ejemplos_texto('motor', 'Correos que dirección corrigió y aprobó') : '')],
       ['role' => 'user', 'content' => "Datos de la empresa (JSON):\n" . json_encode($datos, JSON_UNESCAPED_UNICODE) . "\n\n" . icc_ia_datos('TEXTO DE SU WEB', (string)$lead['extracto'], 1800)],
     ], ['tipo' => 'motor_correo', 'usuario_id' => $usuarioId, 'modelo' => $cfg['agente']['modelo'] ?: null, 'max_tokens' => 2500,
         'esquema' => ['nombre' => 'correo', 'schema' => ['type' => 'object', 'additionalProperties' => false, 'required' => ['asunto', 'cuerpo'],

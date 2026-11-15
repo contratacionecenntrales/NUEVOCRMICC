@@ -20,6 +20,7 @@
  */
 require __DIR__ . '/config.php';
 require_once __DIR__ . '/motor_lib.php';
+require_once __DIR__ . '/aprendizaje_lib.php';
 
 $user = icc_require_auth();
 if (!icc_ve_ia_equipo($user)) icc_json(['error' => 'No encontrado'], 404);
@@ -231,6 +232,8 @@ if ($accion === 'mensaje' && $metodo === 'POST') {
       $cuerpo = trim((string)($body['cuerpo'] ?? ''));
       if ($asunto === '' || $cuerpo === '') icc_json(['error' => 'Asunto y texto no pueden quedar vacíos.'], 422);
       $db->prepare('UPDATE motor_mensajes SET asunto = ?, cuerpo = ? WHERE id = ?')->execute([mb_substr($asunto, 0, 255), mb_substr($cuerpo, 0, 8000), $id]);
+      // Aprende de la correccion: el agente imitara este estilo.
+      if (trim((string)$m['cuerpo']) !== $cuerpo) apr_ejemplo_guardar('motor', 'Borrador del agente: ' . $m['asunto'] . "\n" . $m['cuerpo'], $asunto . "\n" . $cuerpo);
     }
     if ($acc === 'aprobar') {
       if (icc_excluido($m['email'])) icc_json(['error' => 'Esta empresa está en la lista de exclusión.'], 409);

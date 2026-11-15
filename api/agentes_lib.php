@@ -44,7 +44,7 @@ const EQ_AGENTES = [
     'Piensas como un copywriter de respuesta directa: un mensaje, un dolor, una petición; los datos deciden.'],
   'growth' => ['Análisis y Growth', 'Marketing', 'marketing', 180,
     'Medir tasas por sector, zona, ángulo y canal, y evaluar los experimentos en marcha.',
-    ['ver_que_funciona', 'evaluar_experimento', 'anotar_aprendizaje'],
+    ['ver_que_funciona', 'evaluar_experimento', 'anotar_aprendizaje', 'aprender_de_resultados'],
     'Piensas como un analista de growth: tasas con muestra suficiente, significación antes que intuición.'],
   'innovacion' => ['Innovación y Laboratorio', 'Innovación', 'ceo', 360,
     'Tener siempre un experimento en marcha: proponer y lanzar tests A/B de ángulo o de nicho nuevo.',
@@ -99,6 +99,7 @@ const EQ_HERRAMIENTAS = [
   'asignar_tarea' => ['bajo', 'Encarga una tarea a un agente o a una persona.', ['agente' => ['type' => 'string', 'description' => 'clave del agente (o vacío)'], 'usuario_id' => ['type' => 'integer', 'description' => 'persona (o 0)'], 'titulo' => ['type' => 'string'], 'detalle' => ['type' => 'string']], ['agente', 'usuario_id', 'titulo', 'detalle']],
   'anotar_aprendizaje' => ['bajo', 'Guarda un aprendizaje con evidencia en el cerebro de la empresa.', ['texto' => ['type' => 'string'], 'evidencia' => ['type' => 'string'], 'confianza' => ['type' => 'integer']], ['texto', 'evidencia', 'confianza']],
   'escalar_lead' => ['bajo', 'Embudo multicanal: quien no responde a los 3 correos pasa a teléfono (o a visita si no tiene teléfono).', [], []],
+  'aprender_de_resultados' => ['bajo', 'Aprende de los resultados reales: ángulo ganador por sector, sectores y zonas que convierten, rechazos de dirección y agentes con nota baja.', [], []],
   'auditar' => ['bajo', 'Revisa todo el sistema y registra o cierra hallazgos.', [], []],
   'pausar_campana' => ['bajo', 'Pausa una campaña del Motor.', ['campana_id' => ['type' => 'integer'], 'motivo' => ['type' => 'string']], ['campana_id', 'motivo']],
   'motor_crear_campana' => ['bajo', 'Crea una campaña del Motor (con aprobación de cada correo).', ['nombre' => ['type' => 'string'], 'sector' => ['type' => 'string'], 'angulo' => ['type' => 'string']], ['nombre', 'sector', 'angulo']],
@@ -309,7 +310,12 @@ function eq_barrer(int $maxConsultas): array {
   if ($quedan <= 0) return ['texto' => 'Presupuesto diario de consultas a Google agotado (' . $hechas . '/' . $cfg['barrido_presupuesto'] . ').'];
   if (icc_places_clave() === '') return ['texto' => 'Sin clave de Google Places: el barrido no puede trabajar.'];
   $sectores = array_values(array_filter($cfg['barrido_sectores'], function ($s) { return isset(MOTOR_SECTORES[$s]); }));
-  usort($sectores, function ($a, $b) { return MOTOR_SECTORES[$a][3] <=> MOTOR_SECTORES[$b][3]; });
+  $aprendida = json_decode((string)icc_ajuste('barrido_prioridad', ''), true) ?: [];
+  usort($sectores, function ($a, $b) use ($aprendida) {
+    $ta = $aprendida[$a] ?? null; $tb = $aprendida[$b] ?? null;
+    if ($ta !== null || $tb !== null) return ($tb ?? -1) <=> ($ta ?? -1);
+    return MOTOR_SECTORES[$a][3] <=> MOTOR_SECTORES[$b][3];
+  });
   $hecho = []; $nuevos = 0; $consultas = 0;
   $vistas = [];
   foreach ($db->query('SELECT sector, concejo, ultima FROM motor_cobertura')->fetchAll() as $c) $vistas[$c['sector'] . '|' . $c['concejo']] = $c['ultima'];
@@ -828,6 +834,9 @@ function eq_ejecutar(string $tool, array $a, string $agente, ?int $usuarioId = n
       return ['texto' => 'Aprendizaje guardado en el cerebro.'];
     case 'escalar_lead': return ['texto' => eq_escalar()];
     case 'auditar': return ['texto' => eq_auditar()];
+    case 'aprender_de_resultados':
+      if (!function_exists('apr_ciclo')) require_once __DIR__ . '/aprendizaje_lib.php';
+      return ['texto' => apr_ciclo()];
     case 'pausar_campana':
       $db->prepare("UPDATE motor_campanas SET estado = 'pausada' WHERE id = ? AND estado = 'activa'")->execute([$i('campana_id')]);
       motor_log('campana', 'Campaña pausada por ' . EQ_AGENTES[$agente][0] . ': ' . $s('motivo', 200), null, $i('campana_id'));
@@ -1106,6 +1115,7 @@ function eq_manual(string $agente, int $turno): array {
     case 'copy': $out[] = $u('aplicar_ganadores'); break;
     case 'growth':
       foreach ($db->query("SELECT id FROM equipo_experimentos WHERE estado = 'en_marcha'")->fetchAll(PDO::FETCH_COLUMN) as $id) $out[] = $u('evaluar_experimento', ['experimento_id' => (int)$id]);
+      if ((string)icc_ajuste('aprendizaje_ultimo', '') < date('Y-m-d H:i:s', time() - 20 * 3600)) $out[] = $u('aprender_de_resultados');
       if (!$out) $out[] = 'Ningún experimento en marcha que evaluar.';
       break;
     case 'innovacion':

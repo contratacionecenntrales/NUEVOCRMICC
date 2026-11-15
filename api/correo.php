@@ -12,6 +12,7 @@
  */
 require __DIR__ . '/config.php';
 require_once __DIR__ . '/correo_agentes_lib.php';
+require_once __DIR__ . '/aprendizaje_lib.php';
 
 $user = icc_require_auth();
 if (!icc_ve_ia_equipo($user)) icc_json(['error' => 'No encontrado'], 404);
@@ -111,6 +112,7 @@ if ($accion === 'enviar' && $metodo === 'POST') {
   if (!$r['ok']) icc_json(['error' => 'No se pudo enviar: ' . $r['error']], 502);
   $traza = json_decode((string)$m['traza'], true) ?: [];
   ca_traza($traza, 'enviado por una persona', $user['nombre']);
+  if (trim((string)$m['borrador_cuerpo']) !== $cuerpo) apr_ejemplo_guardar('correo_' . (int)$m['cuenta_id'], 'Correo de ' . $m['de'] . ' («' . $m['asunto'] . '»): ' . mb_substr((string)$m['cuerpo'], 0, 500), $cuerpo);
   ca_guardar((int)$m['id'], ['estado' => 'enviado_manual', 'respondido_por' => $uid, 'respuesta_id' => $r['message_id'], 'borrador_asunto' => $asunto, 'borrador_cuerpo' => $cuerpo, 'traza' => $traza]);
   if ($m['cliente_id']) icc_nota_cliente((int)$m['cliente_id'], $user['nombre'] . " respondió al correo «" . $m['asunto'] . "»:\n" . mb_substr($cuerpo, 0, 1500), 'correo', $uid);
   icc_json(['ok' => true]);

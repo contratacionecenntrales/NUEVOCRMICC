@@ -275,12 +275,12 @@
     if (window.icc.auth.puedeVerIA()) items.push({
       label: "🤖 IA",
       href: "#/motor",
-      submenu: [
+      submenu: [].concat(window.icc.auth.puedeVerCopias() ? [{ href: "#/puesta-en-marcha", label: "🚀 Puesta en marcha" }] : []).concat([
         { href: "#/motor", label: "🛰️ Motor de prospección" },
         { href: "#/zona-agentes", label: "🧠 Zona de agentes" },
         { href: "#/automatizaciones", label: "⚡ Automatizaciones" },
         { href: "#/agente-correo", label: "📬 Agente de correo" },
-      ].concat(window.icc.auth.puedeVerCopias() ? [{ href: "#/inteligencia-artificial", label: "⚙️ Ajustes de IA y cron" }] : []),
+      ]).concat(window.icc.auth.puedeVerCopias() ? [{ href: "#/inteligencia-artificial", label: "⚙️ Ajustes de IA y cron" }] : []),
     });
 
     // Centro de Seguridad: dirección lo ve entero. El resto entra a su doble
@@ -755,6 +755,9 @@
       } else if (ruta === "#/copias-seguridad") {
         if (window.icc.copias) await window.icc.copias.view();
         else await window.icc.views.viewCopiasSeguridad();
+      } else if (ruta === "#/puesta-en-marcha") {
+        if (!window.icc.auth.puedeVerCopias() || !window.icc.puesta) location.hash = "#/dashboard";
+        else await window.icc.puesta.view();
       } else if (ruta === "#/motor") {
         if (!window.icc.auth.puedeVerIA() || !window.icc.motor) location.hash = "#/dashboard";
         else await window.icc.motor.view();
