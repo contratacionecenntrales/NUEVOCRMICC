@@ -20,6 +20,14 @@ define('ICC_BACKUP_TOKEN', 'CAMBIA_ESTE_TOKEN_POR_UNO_LARGO_Y_SECRETO');
 // Clave para cifrar secretos (opcional; si no, se genera sola en la carpeta privada).
 // define('ICC_CLAVE_CIFRADO', 'otra-cadena-larga-y-aleatoria');
 
+// Motor de prospeccion (opcional): clave de Google Places (tambien desde el panel).
+// define('ICC_PLACES_API_KEY', 'AIza...');
+// Direccion publica del CRM para los enlaces de baja y los formularios (opcional).
+// define('ICC_URL_PUBLICA', 'https://crm.tudominio.es');
+// Agentes de correo: alta automatica de buzones de Hostalia (una sola vez).
+// define('ICC_BUZONES', ['info@tudominio.es', 'soporte@tudominio.es', 'no-response@tudominio.es']);
+// define('ICC_BUZONES_CLAVE', 'contrasena-comun-de-esos-buzones');
+
 // Comparador de Energia (opcional): consulta SIPS.
 // define('ICC_SIPS_URL', 'https://proveedor.example/api/sips?cups={cups}');
 // define('ICC_SIPS_TOKEN', '...');

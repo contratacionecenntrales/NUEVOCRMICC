@@ -1,11 +1,11 @@
 -- =============================================================================
--- ICC CRM v87 · BASE DE DATOS COMPLETA (instalar o actualizar en un solo paso)
+-- ICC CRM v88 · BASE DE DATOS COMPLETA (instalar o actualizar en un solo paso)
 --
 -- Cómo usarlo: phpMyAdmin > tu base de datos > Importar > este archivo > Continuar.
 --
 -- - Si la base de datos YA TIENE datos (tu CRM actual): NO borra nada.
 --   Solo crea las tablas, columnas e índices que falten y amplía lo necesario
---   para la versión v87. Sirve vengas de la versión que vengas (v55 en adelante).
+--   para la versión v88. Sirve vengas de la versión que vengas (v55 en adelante).
 -- - Si la base de datos está VACÍA: crea el CRM completo y un usuario
 --   Super Administrador inicial (ver el final del archivo).
 -- - Se puede ejecutar MÁS DE UNA VEZ sin errores ni duplicados.
@@ -130,6 +130,22 @@ CREATE TABLE IF NOT EXISTS `backoffice_equipos` (
   CONSTRAINT `fk_bo_eq_jefe` FOREIGN KEY (`jefe_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS `candidatos` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(150) NOT NULL,
+  `email` varchar(190) NOT NULL DEFAULT '',
+  `telefono` varchar(40) NOT NULL DEFAULT '',
+  `puesto` varchar(150) NOT NULL DEFAULT '',
+  `zona` varchar(120) NOT NULL DEFAULT '',
+  `cv_ruta` varchar(255) DEFAULT NULL,
+  `notas` text DEFAULT NULL,
+  `estado` enum('nuevo','entrevista','descartado','contratado') NOT NULL DEFAULT 'nuevo',
+  `mensaje_id` int(10) unsigned DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_candidatos_estado` (`estado`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS `citas` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `comercial_id` int(10) unsigned DEFAULT NULL,
@@ -192,11 +208,28 @@ CREATE TABLE IF NOT EXISTS `clientes` (
   `upload_token` char(36) NOT NULL,
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `decisor_nombre` varchar(150) NOT NULL DEFAULT '',
+  `decisor_cargo` varchar(120) NOT NULL DEFAULT '',
+  `decisor_email` varchar(190) NOT NULL DEFAULT '',
+  `proximo_paso` varchar(255) NOT NULL DEFAULT '',
+  `proximo_contacto` datetime DEFAULT NULL,
+  `ultima_actividad` datetime DEFAULT NULL,
+  `origen` varchar(40) NOT NULL DEFAULT 'manual',
+  `no_contactar` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   UNIQUE KEY `upload_token` (`upload_token`),
   KEY `idx_clientes_estado` (`estado`),
   KEY `idx_clientes_comercial` (`comercial_id`),
   CONSTRAINT `fk_clientes_comercial` FOREIGN KEY (`comercial_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `cliente_etiquetas` (
+  `cliente_id` int(10) unsigned NOT NULL,
+  `etiqueta` varchar(60) NOT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`cliente_id`,`etiqueta`),
+  KEY `idx_cliente_etiquetas_etiqueta` (`etiqueta`),
+  CONSTRAINT `fk_cliente_etiquetas_cliente` FOREIGN KEY (`cliente_id`) REFERENCES `clientes` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `cliente_notas` (
@@ -439,6 +472,146 @@ CREATE TABLE IF NOT EXISTS `documentos` (
   CONSTRAINT `fk_doc_usuario` FOREIGN KEY (`subido_por`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS `equipo_acciones` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `ts` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `agente` varchar(30) NOT NULL,
+  `turno_id` int(10) unsigned DEFAULT NULL,
+  `herramienta` varchar(60) NOT NULL,
+  `riesgo` enum('lectura','bajo','alto') NOT NULL DEFAULT 'bajo',
+  `args` mediumtext DEFAULT NULL,
+  `resultado` text DEFAULT NULL,
+  `estado` enum('hecha','pendiente','aprobada','rechazada','fallida') NOT NULL DEFAULT 'hecha',
+  `motivo` varchar(255) DEFAULT NULL,
+  `entidad` varchar(40) DEFAULT NULL,
+  `entidad_id` int(10) unsigned DEFAULT NULL,
+  `decidido_por` int(10) unsigned DEFAULT NULL,
+  `decidido_en` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_eq_acc_estado` (`estado`),
+  KEY `idx_eq_acc_agente` (`agente`,`ts`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `equipo_cierre` (
+  `cliente_id` int(10) unsigned NOT NULL,
+  `presupuesto_id` int(10) unsigned DEFAULT NULL,
+  `toque` tinyint(3) unsigned NOT NULL DEFAULT 0,
+  `inicio` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `ultimo_toque` datetime DEFAULT NULL,
+  `temperatura` tinyint(3) unsigned NOT NULL DEFAULT 0,
+  `estado` enum('en_curso','pausado','decision','cerrado') NOT NULL DEFAULT 'en_curso',
+  `nota` varchar(255) NOT NULL DEFAULT '',
+  PRIMARY KEY (`cliente_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `equipo_cobros` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `cliente_id` int(10) unsigned DEFAULT NULL,
+  `concepto` varchar(200) NOT NULL,
+  `hito` varchar(120) NOT NULL DEFAULT '',
+  `importe` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `vence` date DEFAULT NULL,
+  `estado` enum('pendiente','pagado','anulado') NOT NULL DEFAULT 'pendiente',
+  `recordatorios` tinyint(3) unsigned NOT NULL DEFAULT 0,
+  `ultimo_recordatorio` datetime DEFAULT NULL,
+  `creado_por` int(10) unsigned DEFAULT NULL,
+  `pagado_por` int(10) unsigned DEFAULT NULL,
+  `pagado_en` datetime DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_eq_cobros_estado` (`estado`,`vence`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `equipo_experimentos` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `tipo` enum('angulo','nicho') NOT NULL DEFAULT 'angulo',
+  `hipotesis` varchar(400) NOT NULL DEFAULT '',
+  `sector` varchar(60) NOT NULL DEFAULT '',
+  `sector_b` varchar(60) NOT NULL DEFAULT '',
+  `variante_a` varchar(40) NOT NULL DEFAULT '',
+  `variante_b` varchar(40) NOT NULL DEFAULT '',
+  `campana_a` int(10) unsigned DEFAULT NULL,
+  `campana_b` int(10) unsigned DEFAULT NULL,
+  `estado` enum('propuesto','en_marcha','ganador','sin_diferencia','detenido') NOT NULL DEFAULT 'propuesto',
+  `ganador` char(1) DEFAULT NULL,
+  `resultado` text DEFAULT NULL,
+  `propuesto_por` varchar(30) NOT NULL DEFAULT '',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `lanzado_en` datetime DEFAULT NULL,
+  `cerrado_en` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_eq_exp_estado` (`estado`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `equipo_hallazgos` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `clave` varchar(120) NOT NULL,
+  `tipo` varchar(40) NOT NULL,
+  `gravedad` enum('baja','media','alta') NOT NULL DEFAULT 'media',
+  `texto` varchar(400) NOT NULL,
+  `evidencia` varchar(600) NOT NULL DEFAULT '',
+  `responsable` varchar(30) NOT NULL DEFAULT '',
+  `tarea_id` int(10) unsigned DEFAULT NULL,
+  `estado` enum('abierto','resuelto','descartado') NOT NULL DEFAULT 'abierto',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `visto_en` datetime DEFAULT NULL,
+  `resuelto_en` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_eq_hallazgos_clave` (`clave`),
+  KEY `idx_eq_hallazgos_estado` (`estado`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `equipo_memoria` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `tipo` enum('regla','aprendizaje','aviso','casa') NOT NULL DEFAULT 'aprendizaje',
+  `texto` varchar(600) NOT NULL,
+  `evidencia` varchar(600) NOT NULL DEFAULT '',
+  `confianza` tinyint(3) unsigned NOT NULL DEFAULT 50,
+  `sector` varchar(60) NOT NULL DEFAULT '',
+  `angulo` varchar(40) NOT NULL DEFAULT '',
+  `agente` varchar(30) NOT NULL DEFAULT '',
+  `activo` tinyint(1) NOT NULL DEFAULT 1,
+  `creado_por` int(10) unsigned DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_eq_mem_tipo` (`tipo`,`activo`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `equipo_tareas` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `origen` varchar(30) NOT NULL DEFAULT '',
+  `asignado_agente` varchar(30) DEFAULT NULL,
+  `asignado_usuario` int(10) unsigned DEFAULT NULL,
+  `titulo` varchar(200) NOT NULL,
+  `detalle` text DEFAULT NULL,
+  `cliente_id` int(10) unsigned DEFAULT NULL,
+  `hallazgo_id` int(10) unsigned DEFAULT NULL,
+  `vence` date DEFAULT NULL,
+  `estado` enum('abierta','hecha','cancelada') NOT NULL DEFAULT 'abierta',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `cerrada_en` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_eq_tareas_estado` (`estado`),
+  KEY `idx_eq_tareas_agente` (`asignado_agente`),
+  KEY `idx_eq_tareas_usuario` (`asignado_usuario`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `equipo_turnos` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `agente` varchar(30) NOT NULL,
+  `inicio` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `fin` datetime DEFAULT NULL,
+  `origen` varchar(20) NOT NULL DEFAULT 'cron',
+  `ia` tinyint(1) NOT NULL DEFAULT 0,
+  `rondas` tinyint(3) unsigned NOT NULL DEFAULT 0,
+  `acciones` smallint(5) unsigned NOT NULL DEFAULT 0,
+  `ok` tinyint(1) NOT NULL DEFAULT 1,
+  `resumen` text DEFAULT NULL,
+  `error` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_eq_turnos_agente` (`agente`,`inicio`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS `estudios` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `cliente_id` int(10) unsigned NOT NULL,
@@ -528,6 +701,80 @@ CREATE TABLE IF NOT EXISTS `firmas` (
   CONSTRAINT `fk_firma_usuario` FOREIGN KEY (`firmado_por`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS `flujos` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(160) NOT NULL,
+  `descripcion` varchar(500) NOT NULL DEFAULT '',
+  `disparador` varchar(40) NOT NULL,
+  `disparador_cfg` text DEFAULT NULL,
+  `filtro` text DEFAULT NULL,
+  `pasos` mediumtext NOT NULL,
+  `objetivo` text DEFAULT NULL,
+  `solo_horario` tinyint(1) NOT NULL DEFAULT 1,
+  `estado` enum('borrador','activo','pausado') NOT NULL DEFAULT 'borrador',
+  `token_entrada` char(32) DEFAULT NULL,
+  `gracias_url` varchar(255) NOT NULL DEFAULT '',
+  `plantilla` varchar(40) NOT NULL DEFAULT '',
+  `creado_por` int(10) unsigned DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_flujos_token` (`token_entrada`),
+  KEY `idx_flujos_estado` (`estado`,`disparador`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `flujo_eventos` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `ts` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `tipo` varchar(40) NOT NULL,
+  `cliente_id` int(10) unsigned DEFAULT NULL,
+  `datos` text DEFAULT NULL,
+  `procesado` tinyint(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`),
+  KEY `idx_flujo_eventos_pend` (`procesado`,`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `flujo_inscripciones` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `flujo_id` int(10) unsigned NOT NULL,
+  `cliente_id` int(10) unsigned NOT NULL,
+  `paso_id` varchar(20) NOT NULL DEFAULT '',
+  `proximo` datetime DEFAULT NULL,
+  `espera_hasta` datetime DEFAULT NULL,
+  `estado` enum('en_curso','terminado','objetivo','salido') NOT NULL DEFAULT 'en_curso',
+  `motivo` varchar(255) NOT NULL DEFAULT '',
+  `variante` char(1) DEFAULT NULL,
+  `datos` text DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_flujo_insc_flujo` (`flujo_id`,`estado`),
+  KEY `idx_flujo_insc_cliente` (`cliente_id`),
+  KEY `idx_flujo_insc_proximo` (`estado`,`proximo`),
+  CONSTRAINT `fk_flujo_insc_cliente` FOREIGN KEY (`cliente_id`) REFERENCES `clientes` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_flujo_insc_flujo` FOREIGN KEY (`flujo_id`) REFERENCES `flujos` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `flujo_registro` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `ts` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `flujo_id` int(10) unsigned NOT NULL,
+  `inscripcion_id` int(10) unsigned DEFAULT NULL,
+  `cliente_id` int(10) unsigned DEFAULT NULL,
+  `paso_id` varchar(20) NOT NULL DEFAULT '',
+  `accion` varchar(40) NOT NULL,
+  `detalle` varchar(500) NOT NULL DEFAULT '',
+  PRIMARY KEY (`id`),
+  KEY `idx_flujo_registro_flujo` (`flujo_id`,`ts`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `flujo_vistos` (
+  `entidad` varchar(20) NOT NULL,
+  `entidad_id` int(10) unsigned NOT NULL,
+  `estado` varchar(40) NOT NULL,
+  PRIMARY KEY (`entidad`,`entidad_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS `historial_estado` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `cliente_id` int(10) unsigned NOT NULL,
@@ -578,6 +825,28 @@ CREATE TABLE IF NOT EXISTS `ia_registro` (
   KEY `idx_ia_registro_usuario` (`usuario_id`,`ts`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS `jarvis_registro` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `ts` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `usuario_id` int(10) unsigned DEFAULT NULL,
+  `tipo` varchar(20) NOT NULL DEFAULT 'texto',
+  `pregunta` varchar(1000) NOT NULL DEFAULT '',
+  `herramientas` varchar(500) NOT NULL DEFAULT '',
+  `ia` tinyint(1) NOT NULL DEFAULT 1,
+  PRIMARY KEY (`id`),
+  KEY `idx_jarvis_registro_ts` (`ts`),
+  KEY `idx_jarvis_registro_usuario` (`usuario_id`,`ts`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `jarvis_usadas` (
+  `nonce` char(32) NOT NULL,
+  `usuario_id` int(10) unsigned DEFAULT NULL,
+  `resultado` varchar(20) NOT NULL DEFAULT 'confirmada',
+  `ts` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`nonce`),
+  KEY `idx_jarvis_usadas_ts` (`ts`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS `logs_impersonacion` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `admin_id` int(10) unsigned NOT NULL,
@@ -590,6 +859,212 @@ CREATE TABLE IF NOT EXISTS `logs_impersonacion` (
   KEY `idx_impersonacion_admin` (`admin_id`,`iniciado_en`),
   CONSTRAINT `fk_impersonacion_admin` FOREIGN KEY (`admin_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_impersonacion_objetivo` FOREIGN KEY (`usuario_objetivo_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `mail_acciones` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `mensaje_id` int(10) unsigned NOT NULL,
+  `cuenta_id` int(10) unsigned NOT NULL,
+  `agente` varchar(120) NOT NULL DEFAULT '',
+  `herramienta` varchar(60) NOT NULL,
+  `args` text DEFAULT NULL,
+  `estado` enum('pendiente','aprobada','rechazada') NOT NULL DEFAULT 'pendiente',
+  `motivo` varchar(255) DEFAULT NULL,
+  `resultado` varchar(500) DEFAULT NULL,
+  `decidido_por` int(10) unsigned DEFAULT NULL,
+  `decidido_en` datetime DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_mail_acc_estado` (`estado`),
+  KEY `fk_mail_acc_msg` (`mensaje_id`),
+  CONSTRAINT `fk_mail_acc_msg` FOREIGN KEY (`mensaje_id`) REFERENCES `mail_mensajes` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `mail_cuentas` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `email` varchar(190) NOT NULL,
+  `nombre` varchar(120) NOT NULL DEFAULT '',
+  `host_imap` varchar(120) NOT NULL DEFAULT '',
+  `puerto_imap` smallint(5) unsigned NOT NULL DEFAULT 993,
+  `seguridad_imap` varchar(10) NOT NULL DEFAULT 'ssl',
+  `host_smtp` varchar(120) NOT NULL DEFAULT '',
+  `puerto_smtp` smallint(5) unsigned NOT NULL DEFAULT 587,
+  `seguridad_smtp` varchar(10) NOT NULL DEFAULT 'starttls',
+  `usuario` varchar(190) NOT NULL DEFAULT '',
+  `clave` text DEFAULT NULL,
+  `firma` text DEFAULT NULL,
+  `funcion` varchar(30) NOT NULL DEFAULT 'general',
+  `responsable_id` int(10) unsigned DEFAULT NULL,
+  `modo` enum('aprobacion','automatico','amplio') NOT NULL DEFAULT 'automatico',
+  `agente` mediumtext DEFAULT NULL,
+  `adjuntos` varchar(255) NOT NULL DEFAULT '',
+  `adjuntar` tinyint(1) NOT NULL DEFAULT 1,
+  `acuse` tinyint(1) NOT NULL DEFAULT 1,
+  `activo` tinyint(1) NOT NULL DEFAULT 1,
+  `ultimo_uid` int(10) unsigned DEFAULT NULL,
+  `uidvalidity` int(10) unsigned DEFAULT NULL,
+  `dias_atras` tinyint(3) unsigned NOT NULL DEFAULT 0,
+  `conectado_en` datetime DEFAULT NULL,
+  `ultima_lectura` datetime DEFAULT NULL,
+  `error` varchar(255) DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_mail_cuentas_email` (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `mail_mensajes` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `cuenta_id` int(10) unsigned NOT NULL,
+  `uid` int(10) unsigned DEFAULT NULL,
+  `message_id` varchar(255) NOT NULL DEFAULT '',
+  `in_reply_to` varchar(255) NOT NULL DEFAULT '',
+  `referencias` text DEFAULT NULL,
+  `de` varchar(190) NOT NULL DEFAULT '',
+  `de_nombre` varchar(190) NOT NULL DEFAULT '',
+  `asunto` varchar(255) NOT NULL DEFAULT '',
+  `cuerpo` mediumtext DEFAULT NULL,
+  `fecha` datetime DEFAULT NULL,
+  `cliente_id` int(10) unsigned DEFAULT NULL,
+  `categoria` varchar(30) DEFAULT NULL,
+  `confianza` tinyint(3) unsigned DEFAULT NULL,
+  `resumen` varchar(500) DEFAULT NULL,
+  `estado` enum('nuevo','archivado','respondido','para_aprobar','enviado_manual','derivado','error') NOT NULL DEFAULT 'nuevo',
+  `motivo` varchar(500) DEFAULT NULL,
+  `borrador_asunto` varchar(255) DEFAULT NULL,
+  `borrador_cuerpo` text DEFAULT NULL,
+  `borrador_adjuntos` varchar(255) DEFAULT NULL,
+  `agente` varchar(120) DEFAULT NULL,
+  `traza` mediumtext DEFAULT NULL,
+  `acciones` text DEFAULT NULL,
+  `acuse_id` varchar(255) DEFAULT NULL,
+  `respuesta_id` varchar(255) DEFAULT NULL,
+  `derivado_de` int(10) unsigned DEFAULT NULL,
+  `ticket_id` int(10) unsigned DEFAULT NULL,
+  `adjuntos_entrada` text DEFAULT NULL,
+  `ia` tinyint(1) NOT NULL DEFAULT 0,
+  `respondido_por` int(10) unsigned DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_mail_msg_cuenta` (`cuenta_id`,`estado`),
+  KEY `idx_mail_msg_mid` (`message_id`),
+  KEY `idx_mail_msg_de` (`de`,`created_at`),
+  KEY `idx_mail_msg_cliente` (`cliente_id`),
+  CONSTRAINT `fk_mail_msg_cuenta` FOREIGN KEY (`cuenta_id`) REFERENCES `mail_cuentas` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `motor_bajas` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `tipo` enum('email','dominio') NOT NULL DEFAULT 'email',
+  `valor` varchar(190) NOT NULL,
+  `motivo` varchar(255) NOT NULL DEFAULT '',
+  `origen` varchar(40) NOT NULL DEFAULT 'manual',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_motor_bajas` (`tipo`,`valor`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `motor_campanas` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(160) NOT NULL,
+  `sector` varchar(60) NOT NULL DEFAULT '',
+  `angulo` varchar(40) NOT NULL DEFAULT 'ahorro_factura',
+  `modo` enum('aprobacion','borradores','autonomo') NOT NULL DEFAULT 'aprobacion',
+  `estado` enum('activa','pausada','terminada') NOT NULL DEFAULT 'activa',
+  `siempre_activa` tinyint(1) NOT NULL DEFAULT 0,
+  `gestor_id` int(10) unsigned DEFAULT NULL,
+  `experimento_id` int(10) unsigned DEFAULT NULL,
+  `variante` char(1) DEFAULT NULL,
+  `creado_por` int(10) unsigned DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_motor_camp_estado` (`estado`),
+  KEY `idx_motor_camp_sector` (`sector`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `motor_cobertura` (
+  `sector` varchar(60) NOT NULL,
+  `concejo` varchar(120) NOT NULL,
+  `comarca` varchar(80) NOT NULL DEFAULT '',
+  `ultima` datetime DEFAULT NULL,
+  `encontrados` int(10) unsigned NOT NULL DEFAULT 0,
+  `consultas` int(10) unsigned NOT NULL DEFAULT 0,
+  PRIMARY KEY (`sector`,`concejo`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `motor_leads` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `campana_id` int(10) unsigned DEFAULT NULL,
+  `place_id` varchar(190) DEFAULT NULL,
+  `nombre` varchar(190) NOT NULL,
+  `razon_social` varchar(190) NOT NULL DEFAULT '',
+  `cif` varchar(20) NOT NULL DEFAULT '',
+  `sector` varchar(60) NOT NULL DEFAULT '',
+  `direccion` varchar(255) NOT NULL DEFAULT '',
+  `localidad` varchar(120) NOT NULL DEFAULT '',
+  `concejo` varchar(120) NOT NULL DEFAULT '',
+  `comarca` varchar(80) NOT NULL DEFAULT '',
+  `cp` varchar(10) NOT NULL DEFAULT '',
+  `telefono` varchar(40) NOT NULL DEFAULT '',
+  `web` varchar(255) NOT NULL DEFAULT '',
+  `email` varchar(190) NOT NULL DEFAULT '',
+  `mx_ok` tinyint(1) NOT NULL DEFAULT 0,
+  `madurez` varchar(255) NOT NULL DEFAULT '',
+  `extracto` text DEFAULT NULL,
+  `analizado_en` datetime DEFAULT NULL,
+  `analisis_error` varchar(255) DEFAULT NULL,
+  `estado` enum('nuevo','en_campana','contactado','respondido','interesado','descartado','baja','en_crm') NOT NULL DEFAULT 'nuevo',
+  `canal` enum('correo','telefono','visita') NOT NULL DEFAULT 'correo',
+  `paso` tinyint(3) unsigned NOT NULL DEFAULT 0,
+  `proximo_envio` datetime DEFAULT NULL,
+  `ultimo_envio` datetime DEFAULT NULL,
+  `cliente_id` int(10) unsigned DEFAULT NULL,
+  `origen` enum('places','csv','barrido','manual') NOT NULL DEFAULT 'places',
+  `creado_por` int(10) unsigned DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_motor_leads_place` (`place_id`),
+  KEY `idx_motor_leads_estado` (`estado`),
+  KEY `idx_motor_leads_campana` (`campana_id`),
+  KEY `idx_motor_leads_email` (`email`),
+  KEY `idx_motor_leads_envio` (`proximo_envio`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `motor_log` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `ts` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `tipo` varchar(30) NOT NULL,
+  `mensaje` varchar(500) NOT NULL,
+  `lead_id` int(10) unsigned DEFAULT NULL,
+  `campana_id` int(10) unsigned DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_motor_log_ts` (`ts`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `motor_mensajes` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `lead_id` int(10) unsigned NOT NULL,
+  `campana_id` int(10) unsigned DEFAULT NULL,
+  `paso` tinyint(3) unsigned NOT NULL DEFAULT 1,
+  `direccion` enum('salida','entrada') NOT NULL DEFAULT 'salida',
+  `asunto` varchar(255) NOT NULL DEFAULT '',
+  `cuerpo` text DEFAULT NULL,
+  `estado` enum('borrador','pendiente','aprobado','enviado','descartado','error','recibido') NOT NULL DEFAULT 'pendiente',
+  `angulo` varchar(40) NOT NULL DEFAULT '',
+  `ia` tinyint(1) NOT NULL DEFAULT 0,
+  `clasificacion` varchar(30) DEFAULT NULL,
+  `message_id` varchar(255) DEFAULT NULL,
+  `error` varchar(255) DEFAULT NULL,
+  `aprobado_por` int(10) unsigned DEFAULT NULL,
+  `enviado_en` datetime DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_motor_msg_lead` (`lead_id`),
+  KEY `idx_motor_msg_estado` (`estado`),
+  KEY `idx_motor_msg_mid` (`message_id`),
+  CONSTRAINT `fk_motor_msg_lead` FOREIGN KEY (`lead_id`) REFERENCES `motor_leads` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `notificaciones` (
@@ -691,6 +1166,34 @@ CREATE TABLE IF NOT EXISTS `proformas` (
   KEY `idx_proformas_facturado_por` (`facturado_por`),
   KEY `idx_proformas_fecha` (`fecha`),
   CONSTRAINT `fk_proforma_comercial` FOREIGN KEY (`comercial_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `saneo_memoria` (
+  `cliente_id` int(10) unsigned NOT NULL,
+  `reprogramaciones` tinyint(3) unsigned NOT NULL DEFAULT 0,
+  `mantener_hasta` date DEFAULT NULL,
+  `valor_quitado` tinyint(1) NOT NULL DEFAULT 0,
+  `actualizado` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`cliente_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `saneo_registro` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `ts` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `lote` char(16) NOT NULL,
+  `origen` varchar(20) NOT NULL DEFAULT 'cron',
+  `usuario_id` int(10) unsigned DEFAULT NULL,
+  `cliente_id` int(10) unsigned NOT NULL,
+  `problema` varchar(30) NOT NULL,
+  `campo` varchar(40) NOT NULL,
+  `antes` varchar(500) DEFAULT NULL,
+  `despues` varchar(500) DEFAULT NULL,
+  `cita_id` int(10) unsigned DEFAULT NULL,
+  `deshecho` tinyint(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`),
+  KEY `idx_saneo_registro_lote` (`lote`),
+  KEY `idx_saneo_registro_cliente` (`cliente_id`),
+  KEY `idx_saneo_registro_ts` (`ts`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `seg_2fa` (
@@ -880,6 +1383,23 @@ CREATE TABLE IF NOT EXISTS `tarifa_telefonia` (
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `idx_tarifa_telefonia_tipo` (`tipo`,`activo`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `tickets` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `referencia` varchar(20) NOT NULL DEFAULT '',
+  `cliente_id` int(10) unsigned DEFAULT NULL,
+  `email` varchar(190) NOT NULL DEFAULT '',
+  `asunto` varchar(255) NOT NULL,
+  `descripcion` text DEFAULT NULL,
+  `prioridad` enum('baja','media','alta','urgente') NOT NULL DEFAULT 'media',
+  `estado` enum('abierto','en_curso','resuelto','cerrado') NOT NULL DEFAULT 'abierto',
+  `cuenta_id` int(10) unsigned DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_tickets_cliente` (`cliente_id`),
+  KEY `idx_tickets_estado` (`estado`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `usuarios` (
@@ -1098,6 +1618,29 @@ PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'backoffice_equipos' AND column_name = 'created_at'), 'ALTER TABLE `backoffice_equipos` ADD COLUMN `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'candidatos' AND column_name = 'id'), 'ALTER TABLE `candidatos` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'candidatos' AND column_name = 'nombre'), 'ALTER TABLE `candidatos` ADD COLUMN `nombre` varchar(150) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'candidatos' AND column_name = 'email'), 'ALTER TABLE `candidatos` ADD COLUMN `email` varchar(190) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'candidatos' AND column_name = 'telefono'), 'ALTER TABLE `candidatos` ADD COLUMN `telefono` varchar(40) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'candidatos' AND column_name = 'puesto'), 'ALTER TABLE `candidatos` ADD COLUMN `puesto` varchar(150) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'candidatos' AND column_name = 'zona'), 'ALTER TABLE `candidatos` ADD COLUMN `zona` varchar(120) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'candidatos' AND column_name = 'cv_ruta'), 'ALTER TABLE `candidatos` ADD COLUMN `cv_ruta` varchar(255) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'candidatos' AND column_name = 'notas'), 'ALTER TABLE `candidatos` ADD COLUMN `notas` text DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'candidatos' AND column_name = 'estado'), 'ALTER TABLE `candidatos` ADD COLUMN `estado` enum(''nuevo'',''entrevista'',''descartado'',''contratado'') NOT NULL DEFAULT ''nuevo''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'candidatos' AND column_name = 'mensaje_id'), 'ALTER TABLE `candidatos` ADD COLUMN `mensaje_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'candidatos' AND column_name = 'created_at'), 'ALTER TABLE `candidatos` ADD COLUMN `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'citas' AND column_name = 'id'), 'ALTER TABLE `citas` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'citas' AND column_name = 'comercial_id'), 'ALTER TABLE `citas` ADD COLUMN `comercial_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
@@ -1186,6 +1729,29 @@ PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'clientes' AND column_name = 'created_at'), 'ALTER TABLE `clientes` ADD COLUMN `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'clientes' AND column_name = 'updated_at'), 'ALTER TABLE `clientes` ADD COLUMN `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'clientes' AND column_name = 'decisor_nombre'), 'ALTER TABLE `clientes` ADD COLUMN `decisor_nombre` varchar(150) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'clientes' AND column_name = 'decisor_cargo'), 'ALTER TABLE `clientes` ADD COLUMN `decisor_cargo` varchar(120) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'clientes' AND column_name = 'decisor_email'), 'ALTER TABLE `clientes` ADD COLUMN `decisor_email` varchar(190) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'clientes' AND column_name = 'proximo_paso'), 'ALTER TABLE `clientes` ADD COLUMN `proximo_paso` varchar(255) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'clientes' AND column_name = 'proximo_contacto'), 'ALTER TABLE `clientes` ADD COLUMN `proximo_contacto` datetime DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'clientes' AND column_name = 'ultima_actividad'), 'ALTER TABLE `clientes` ADD COLUMN `ultima_actividad` datetime DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'clientes' AND column_name = 'origen'), 'ALTER TABLE `clientes` ADD COLUMN `origen` varchar(40) NOT NULL DEFAULT ''manual''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'clientes' AND column_name = 'no_contactar'), 'ALTER TABLE `clientes` ADD COLUMN `no_contactar` tinyint(1) NOT NULL DEFAULT 0', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'cliente_etiquetas' AND column_name = 'cliente_id'), 'ALTER TABLE `cliente_etiquetas` ADD COLUMN `cliente_id` int(10) unsigned NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'cliente_etiquetas' AND column_name = 'etiqueta'), 'ALTER TABLE `cliente_etiquetas` ADD COLUMN `etiqueta` varchar(60) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'cliente_etiquetas' AND column_name = 'created_at'), 'ALTER TABLE `cliente_etiquetas` ADD COLUMN `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'cliente_notas' AND column_name = 'id'), 'ALTER TABLE `cliente_notas` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
@@ -1479,6 +2045,208 @@ PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'documentos' AND column_name = 'created_at'), 'ALTER TABLE `documentos` ADD COLUMN `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_acciones' AND column_name = 'id'), 'ALTER TABLE `equipo_acciones` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_acciones' AND column_name = 'ts'), 'ALTER TABLE `equipo_acciones` ADD COLUMN `ts` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_acciones' AND column_name = 'agente'), 'ALTER TABLE `equipo_acciones` ADD COLUMN `agente` varchar(30) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_acciones' AND column_name = 'turno_id'), 'ALTER TABLE `equipo_acciones` ADD COLUMN `turno_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_acciones' AND column_name = 'herramienta'), 'ALTER TABLE `equipo_acciones` ADD COLUMN `herramienta` varchar(60) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_acciones' AND column_name = 'riesgo'), 'ALTER TABLE `equipo_acciones` ADD COLUMN `riesgo` enum(''lectura'',''bajo'',''alto'') NOT NULL DEFAULT ''bajo''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_acciones' AND column_name = 'args'), 'ALTER TABLE `equipo_acciones` ADD COLUMN `args` mediumtext DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_acciones' AND column_name = 'resultado'), 'ALTER TABLE `equipo_acciones` ADD COLUMN `resultado` text DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_acciones' AND column_name = 'estado'), 'ALTER TABLE `equipo_acciones` ADD COLUMN `estado` enum(''hecha'',''pendiente'',''aprobada'',''rechazada'',''fallida'') NOT NULL DEFAULT ''hecha''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_acciones' AND column_name = 'motivo'), 'ALTER TABLE `equipo_acciones` ADD COLUMN `motivo` varchar(255) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_acciones' AND column_name = 'entidad'), 'ALTER TABLE `equipo_acciones` ADD COLUMN `entidad` varchar(40) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_acciones' AND column_name = 'entidad_id'), 'ALTER TABLE `equipo_acciones` ADD COLUMN `entidad_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_acciones' AND column_name = 'decidido_por'), 'ALTER TABLE `equipo_acciones` ADD COLUMN `decidido_por` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_acciones' AND column_name = 'decidido_en'), 'ALTER TABLE `equipo_acciones` ADD COLUMN `decidido_en` datetime DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_cierre' AND column_name = 'cliente_id'), 'ALTER TABLE `equipo_cierre` ADD COLUMN `cliente_id` int(10) unsigned NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_cierre' AND column_name = 'presupuesto_id'), 'ALTER TABLE `equipo_cierre` ADD COLUMN `presupuesto_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_cierre' AND column_name = 'toque'), 'ALTER TABLE `equipo_cierre` ADD COLUMN `toque` tinyint(3) unsigned NOT NULL DEFAULT 0', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_cierre' AND column_name = 'inicio'), 'ALTER TABLE `equipo_cierre` ADD COLUMN `inicio` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_cierre' AND column_name = 'ultimo_toque'), 'ALTER TABLE `equipo_cierre` ADD COLUMN `ultimo_toque` datetime DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_cierre' AND column_name = 'temperatura'), 'ALTER TABLE `equipo_cierre` ADD COLUMN `temperatura` tinyint(3) unsigned NOT NULL DEFAULT 0', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_cierre' AND column_name = 'estado'), 'ALTER TABLE `equipo_cierre` ADD COLUMN `estado` enum(''en_curso'',''pausado'',''decision'',''cerrado'') NOT NULL DEFAULT ''en_curso''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_cierre' AND column_name = 'nota'), 'ALTER TABLE `equipo_cierre` ADD COLUMN `nota` varchar(255) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_cobros' AND column_name = 'id'), 'ALTER TABLE `equipo_cobros` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_cobros' AND column_name = 'cliente_id'), 'ALTER TABLE `equipo_cobros` ADD COLUMN `cliente_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_cobros' AND column_name = 'concepto'), 'ALTER TABLE `equipo_cobros` ADD COLUMN `concepto` varchar(200) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_cobros' AND column_name = 'hito'), 'ALTER TABLE `equipo_cobros` ADD COLUMN `hito` varchar(120) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_cobros' AND column_name = 'importe'), 'ALTER TABLE `equipo_cobros` ADD COLUMN `importe` decimal(10,2) NOT NULL DEFAULT 0.00', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_cobros' AND column_name = 'vence'), 'ALTER TABLE `equipo_cobros` ADD COLUMN `vence` date DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_cobros' AND column_name = 'estado'), 'ALTER TABLE `equipo_cobros` ADD COLUMN `estado` enum(''pendiente'',''pagado'',''anulado'') NOT NULL DEFAULT ''pendiente''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_cobros' AND column_name = 'recordatorios'), 'ALTER TABLE `equipo_cobros` ADD COLUMN `recordatorios` tinyint(3) unsigned NOT NULL DEFAULT 0', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_cobros' AND column_name = 'ultimo_recordatorio'), 'ALTER TABLE `equipo_cobros` ADD COLUMN `ultimo_recordatorio` datetime DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_cobros' AND column_name = 'creado_por'), 'ALTER TABLE `equipo_cobros` ADD COLUMN `creado_por` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_cobros' AND column_name = 'pagado_por'), 'ALTER TABLE `equipo_cobros` ADD COLUMN `pagado_por` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_cobros' AND column_name = 'pagado_en'), 'ALTER TABLE `equipo_cobros` ADD COLUMN `pagado_en` datetime DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_cobros' AND column_name = 'created_at'), 'ALTER TABLE `equipo_cobros` ADD COLUMN `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_experimentos' AND column_name = 'id'), 'ALTER TABLE `equipo_experimentos` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_experimentos' AND column_name = 'tipo'), 'ALTER TABLE `equipo_experimentos` ADD COLUMN `tipo` enum(''angulo'',''nicho'') NOT NULL DEFAULT ''angulo''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_experimentos' AND column_name = 'hipotesis'), 'ALTER TABLE `equipo_experimentos` ADD COLUMN `hipotesis` varchar(400) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_experimentos' AND column_name = 'sector'), 'ALTER TABLE `equipo_experimentos` ADD COLUMN `sector` varchar(60) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_experimentos' AND column_name = 'sector_b'), 'ALTER TABLE `equipo_experimentos` ADD COLUMN `sector_b` varchar(60) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_experimentos' AND column_name = 'variante_a'), 'ALTER TABLE `equipo_experimentos` ADD COLUMN `variante_a` varchar(40) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_experimentos' AND column_name = 'variante_b'), 'ALTER TABLE `equipo_experimentos` ADD COLUMN `variante_b` varchar(40) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_experimentos' AND column_name = 'campana_a'), 'ALTER TABLE `equipo_experimentos` ADD COLUMN `campana_a` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_experimentos' AND column_name = 'campana_b'), 'ALTER TABLE `equipo_experimentos` ADD COLUMN `campana_b` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_experimentos' AND column_name = 'estado'), 'ALTER TABLE `equipo_experimentos` ADD COLUMN `estado` enum(''propuesto'',''en_marcha'',''ganador'',''sin_diferencia'',''detenido'') NOT NULL DEFAULT ''propuesto''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_experimentos' AND column_name = 'ganador'), 'ALTER TABLE `equipo_experimentos` ADD COLUMN `ganador` char(1) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_experimentos' AND column_name = 'resultado'), 'ALTER TABLE `equipo_experimentos` ADD COLUMN `resultado` text DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_experimentos' AND column_name = 'propuesto_por'), 'ALTER TABLE `equipo_experimentos` ADD COLUMN `propuesto_por` varchar(30) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_experimentos' AND column_name = 'created_at'), 'ALTER TABLE `equipo_experimentos` ADD COLUMN `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_experimentos' AND column_name = 'lanzado_en'), 'ALTER TABLE `equipo_experimentos` ADD COLUMN `lanzado_en` datetime DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_experimentos' AND column_name = 'cerrado_en'), 'ALTER TABLE `equipo_experimentos` ADD COLUMN `cerrado_en` datetime DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_hallazgos' AND column_name = 'id'), 'ALTER TABLE `equipo_hallazgos` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_hallazgos' AND column_name = 'clave'), 'ALTER TABLE `equipo_hallazgos` ADD COLUMN `clave` varchar(120) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_hallazgos' AND column_name = 'tipo'), 'ALTER TABLE `equipo_hallazgos` ADD COLUMN `tipo` varchar(40) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_hallazgos' AND column_name = 'gravedad'), 'ALTER TABLE `equipo_hallazgos` ADD COLUMN `gravedad` enum(''baja'',''media'',''alta'') NOT NULL DEFAULT ''media''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_hallazgos' AND column_name = 'texto'), 'ALTER TABLE `equipo_hallazgos` ADD COLUMN `texto` varchar(400) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_hallazgos' AND column_name = 'evidencia'), 'ALTER TABLE `equipo_hallazgos` ADD COLUMN `evidencia` varchar(600) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_hallazgos' AND column_name = 'responsable'), 'ALTER TABLE `equipo_hallazgos` ADD COLUMN `responsable` varchar(30) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_hallazgos' AND column_name = 'tarea_id'), 'ALTER TABLE `equipo_hallazgos` ADD COLUMN `tarea_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_hallazgos' AND column_name = 'estado'), 'ALTER TABLE `equipo_hallazgos` ADD COLUMN `estado` enum(''abierto'',''resuelto'',''descartado'') NOT NULL DEFAULT ''abierto''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_hallazgos' AND column_name = 'created_at'), 'ALTER TABLE `equipo_hallazgos` ADD COLUMN `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_hallazgos' AND column_name = 'visto_en'), 'ALTER TABLE `equipo_hallazgos` ADD COLUMN `visto_en` datetime DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_hallazgos' AND column_name = 'resuelto_en'), 'ALTER TABLE `equipo_hallazgos` ADD COLUMN `resuelto_en` datetime DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_memoria' AND column_name = 'id'), 'ALTER TABLE `equipo_memoria` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_memoria' AND column_name = 'tipo'), 'ALTER TABLE `equipo_memoria` ADD COLUMN `tipo` enum(''regla'',''aprendizaje'',''aviso'',''casa'') NOT NULL DEFAULT ''aprendizaje''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_memoria' AND column_name = 'texto'), 'ALTER TABLE `equipo_memoria` ADD COLUMN `texto` varchar(600) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_memoria' AND column_name = 'evidencia'), 'ALTER TABLE `equipo_memoria` ADD COLUMN `evidencia` varchar(600) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_memoria' AND column_name = 'confianza'), 'ALTER TABLE `equipo_memoria` ADD COLUMN `confianza` tinyint(3) unsigned NOT NULL DEFAULT 50', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_memoria' AND column_name = 'sector'), 'ALTER TABLE `equipo_memoria` ADD COLUMN `sector` varchar(60) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_memoria' AND column_name = 'angulo'), 'ALTER TABLE `equipo_memoria` ADD COLUMN `angulo` varchar(40) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_memoria' AND column_name = 'agente'), 'ALTER TABLE `equipo_memoria` ADD COLUMN `agente` varchar(30) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_memoria' AND column_name = 'activo'), 'ALTER TABLE `equipo_memoria` ADD COLUMN `activo` tinyint(1) NOT NULL DEFAULT 1', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_memoria' AND column_name = 'creado_por'), 'ALTER TABLE `equipo_memoria` ADD COLUMN `creado_por` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_memoria' AND column_name = 'created_at'), 'ALTER TABLE `equipo_memoria` ADD COLUMN `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_tareas' AND column_name = 'id'), 'ALTER TABLE `equipo_tareas` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_tareas' AND column_name = 'origen'), 'ALTER TABLE `equipo_tareas` ADD COLUMN `origen` varchar(30) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_tareas' AND column_name = 'asignado_agente'), 'ALTER TABLE `equipo_tareas` ADD COLUMN `asignado_agente` varchar(30) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_tareas' AND column_name = 'asignado_usuario'), 'ALTER TABLE `equipo_tareas` ADD COLUMN `asignado_usuario` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_tareas' AND column_name = 'titulo'), 'ALTER TABLE `equipo_tareas` ADD COLUMN `titulo` varchar(200) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_tareas' AND column_name = 'detalle'), 'ALTER TABLE `equipo_tareas` ADD COLUMN `detalle` text DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_tareas' AND column_name = 'cliente_id'), 'ALTER TABLE `equipo_tareas` ADD COLUMN `cliente_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_tareas' AND column_name = 'hallazgo_id'), 'ALTER TABLE `equipo_tareas` ADD COLUMN `hallazgo_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_tareas' AND column_name = 'vence'), 'ALTER TABLE `equipo_tareas` ADD COLUMN `vence` date DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_tareas' AND column_name = 'estado'), 'ALTER TABLE `equipo_tareas` ADD COLUMN `estado` enum(''abierta'',''hecha'',''cancelada'') NOT NULL DEFAULT ''abierta''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_tareas' AND column_name = 'created_at'), 'ALTER TABLE `equipo_tareas` ADD COLUMN `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_tareas' AND column_name = 'cerrada_en'), 'ALTER TABLE `equipo_tareas` ADD COLUMN `cerrada_en` datetime DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_turnos' AND column_name = 'id'), 'ALTER TABLE `equipo_turnos` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_turnos' AND column_name = 'agente'), 'ALTER TABLE `equipo_turnos` ADD COLUMN `agente` varchar(30) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_turnos' AND column_name = 'inicio'), 'ALTER TABLE `equipo_turnos` ADD COLUMN `inicio` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_turnos' AND column_name = 'fin'), 'ALTER TABLE `equipo_turnos` ADD COLUMN `fin` datetime DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_turnos' AND column_name = 'origen'), 'ALTER TABLE `equipo_turnos` ADD COLUMN `origen` varchar(20) NOT NULL DEFAULT ''cron''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_turnos' AND column_name = 'ia'), 'ALTER TABLE `equipo_turnos` ADD COLUMN `ia` tinyint(1) NOT NULL DEFAULT 0', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_turnos' AND column_name = 'rondas'), 'ALTER TABLE `equipo_turnos` ADD COLUMN `rondas` tinyint(3) unsigned NOT NULL DEFAULT 0', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_turnos' AND column_name = 'acciones'), 'ALTER TABLE `equipo_turnos` ADD COLUMN `acciones` smallint(5) unsigned NOT NULL DEFAULT 0', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_turnos' AND column_name = 'ok'), 'ALTER TABLE `equipo_turnos` ADD COLUMN `ok` tinyint(1) NOT NULL DEFAULT 1', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_turnos' AND column_name = 'resumen'), 'ALTER TABLE `equipo_turnos` ADD COLUMN `resumen` text DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'equipo_turnos' AND column_name = 'error'), 'ALTER TABLE `equipo_turnos` ADD COLUMN `error` varchar(255) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'estudios' AND column_name = 'id'), 'ALTER TABLE `estudios` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'estudios' AND column_name = 'cliente_id'), 'ALTER TABLE `estudios` ADD COLUMN `cliente_id` int(10) unsigned NOT NULL', 'DO 0'));
@@ -1572,6 +2340,101 @@ PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'firmas' AND column_name = 'firmado_en'), 'ALTER TABLE `firmas` ADD COLUMN `firmado_en` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'flujos' AND column_name = 'id'), 'ALTER TABLE `flujos` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'flujos' AND column_name = 'nombre'), 'ALTER TABLE `flujos` ADD COLUMN `nombre` varchar(160) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'flujos' AND column_name = 'descripcion'), 'ALTER TABLE `flujos` ADD COLUMN `descripcion` varchar(500) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'flujos' AND column_name = 'disparador'), 'ALTER TABLE `flujos` ADD COLUMN `disparador` varchar(40) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'flujos' AND column_name = 'disparador_cfg'), 'ALTER TABLE `flujos` ADD COLUMN `disparador_cfg` text DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'flujos' AND column_name = 'filtro'), 'ALTER TABLE `flujos` ADD COLUMN `filtro` text DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'flujos' AND column_name = 'pasos'), 'ALTER TABLE `flujos` ADD COLUMN `pasos` mediumtext NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'flujos' AND column_name = 'objetivo'), 'ALTER TABLE `flujos` ADD COLUMN `objetivo` text DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'flujos' AND column_name = 'solo_horario'), 'ALTER TABLE `flujos` ADD COLUMN `solo_horario` tinyint(1) NOT NULL DEFAULT 1', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'flujos' AND column_name = 'estado'), 'ALTER TABLE `flujos` ADD COLUMN `estado` enum(''borrador'',''activo'',''pausado'') NOT NULL DEFAULT ''borrador''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'flujos' AND column_name = 'token_entrada'), 'ALTER TABLE `flujos` ADD COLUMN `token_entrada` char(32) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'flujos' AND column_name = 'gracias_url'), 'ALTER TABLE `flujos` ADD COLUMN `gracias_url` varchar(255) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'flujos' AND column_name = 'plantilla'), 'ALTER TABLE `flujos` ADD COLUMN `plantilla` varchar(40) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'flujos' AND column_name = 'creado_por'), 'ALTER TABLE `flujos` ADD COLUMN `creado_por` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'flujos' AND column_name = 'created_at'), 'ALTER TABLE `flujos` ADD COLUMN `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'flujos' AND column_name = 'updated_at'), 'ALTER TABLE `flujos` ADD COLUMN `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'flujo_eventos' AND column_name = 'id'), 'ALTER TABLE `flujo_eventos` ADD COLUMN `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'flujo_eventos' AND column_name = 'ts'), 'ALTER TABLE `flujo_eventos` ADD COLUMN `ts` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'flujo_eventos' AND column_name = 'tipo'), 'ALTER TABLE `flujo_eventos` ADD COLUMN `tipo` varchar(40) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'flujo_eventos' AND column_name = 'cliente_id'), 'ALTER TABLE `flujo_eventos` ADD COLUMN `cliente_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'flujo_eventos' AND column_name = 'datos'), 'ALTER TABLE `flujo_eventos` ADD COLUMN `datos` text DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'flujo_eventos' AND column_name = 'procesado'), 'ALTER TABLE `flujo_eventos` ADD COLUMN `procesado` tinyint(1) NOT NULL DEFAULT 0', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'flujo_inscripciones' AND column_name = 'id'), 'ALTER TABLE `flujo_inscripciones` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'flujo_inscripciones' AND column_name = 'flujo_id'), 'ALTER TABLE `flujo_inscripciones` ADD COLUMN `flujo_id` int(10) unsigned NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'flujo_inscripciones' AND column_name = 'cliente_id'), 'ALTER TABLE `flujo_inscripciones` ADD COLUMN `cliente_id` int(10) unsigned NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'flujo_inscripciones' AND column_name = 'paso_id'), 'ALTER TABLE `flujo_inscripciones` ADD COLUMN `paso_id` varchar(20) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'flujo_inscripciones' AND column_name = 'proximo'), 'ALTER TABLE `flujo_inscripciones` ADD COLUMN `proximo` datetime DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'flujo_inscripciones' AND column_name = 'espera_hasta'), 'ALTER TABLE `flujo_inscripciones` ADD COLUMN `espera_hasta` datetime DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'flujo_inscripciones' AND column_name = 'estado'), 'ALTER TABLE `flujo_inscripciones` ADD COLUMN `estado` enum(''en_curso'',''terminado'',''objetivo'',''salido'') NOT NULL DEFAULT ''en_curso''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'flujo_inscripciones' AND column_name = 'motivo'), 'ALTER TABLE `flujo_inscripciones` ADD COLUMN `motivo` varchar(255) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'flujo_inscripciones' AND column_name = 'variante'), 'ALTER TABLE `flujo_inscripciones` ADD COLUMN `variante` char(1) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'flujo_inscripciones' AND column_name = 'datos'), 'ALTER TABLE `flujo_inscripciones` ADD COLUMN `datos` text DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'flujo_inscripciones' AND column_name = 'created_at'), 'ALTER TABLE `flujo_inscripciones` ADD COLUMN `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'flujo_inscripciones' AND column_name = 'updated_at'), 'ALTER TABLE `flujo_inscripciones` ADD COLUMN `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'flujo_registro' AND column_name = 'id'), 'ALTER TABLE `flujo_registro` ADD COLUMN `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'flujo_registro' AND column_name = 'ts'), 'ALTER TABLE `flujo_registro` ADD COLUMN `ts` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'flujo_registro' AND column_name = 'flujo_id'), 'ALTER TABLE `flujo_registro` ADD COLUMN `flujo_id` int(10) unsigned NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'flujo_registro' AND column_name = 'inscripcion_id'), 'ALTER TABLE `flujo_registro` ADD COLUMN `inscripcion_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'flujo_registro' AND column_name = 'cliente_id'), 'ALTER TABLE `flujo_registro` ADD COLUMN `cliente_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'flujo_registro' AND column_name = 'paso_id'), 'ALTER TABLE `flujo_registro` ADD COLUMN `paso_id` varchar(20) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'flujo_registro' AND column_name = 'accion'), 'ALTER TABLE `flujo_registro` ADD COLUMN `accion` varchar(40) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'flujo_registro' AND column_name = 'detalle'), 'ALTER TABLE `flujo_registro` ADD COLUMN `detalle` varchar(500) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'flujo_vistos' AND column_name = 'entidad'), 'ALTER TABLE `flujo_vistos` ADD COLUMN `entidad` varchar(20) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'flujo_vistos' AND column_name = 'entidad_id'), 'ALTER TABLE `flujo_vistos` ADD COLUMN `entidad_id` int(10) unsigned NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'flujo_vistos' AND column_name = 'estado'), 'ALTER TABLE `flujo_vistos` ADD COLUMN `estado` varchar(40) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'historial_estado' AND column_name = 'id'), 'ALTER TABLE `historial_estado` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'historial_estado' AND column_name = 'cliente_id'), 'ALTER TABLE `historial_estado` ADD COLUMN `cliente_id` int(10) unsigned NOT NULL', 'DO 0'));
@@ -1633,6 +2496,30 @@ PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'ia_registro' AND column_name = 'error'), 'ALTER TABLE `ia_registro` ADD COLUMN `error` varchar(255) DEFAULT NULL', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'jarvis_registro' AND column_name = 'id'), 'ALTER TABLE `jarvis_registro` ADD COLUMN `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'jarvis_registro' AND column_name = 'ts'), 'ALTER TABLE `jarvis_registro` ADD COLUMN `ts` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'jarvis_registro' AND column_name = 'usuario_id'), 'ALTER TABLE `jarvis_registro` ADD COLUMN `usuario_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'jarvis_registro' AND column_name = 'tipo'), 'ALTER TABLE `jarvis_registro` ADD COLUMN `tipo` varchar(20) NOT NULL DEFAULT ''texto''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'jarvis_registro' AND column_name = 'pregunta'), 'ALTER TABLE `jarvis_registro` ADD COLUMN `pregunta` varchar(1000) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'jarvis_registro' AND column_name = 'herramientas'), 'ALTER TABLE `jarvis_registro` ADD COLUMN `herramientas` varchar(500) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'jarvis_registro' AND column_name = 'ia'), 'ALTER TABLE `jarvis_registro` ADD COLUMN `ia` tinyint(1) NOT NULL DEFAULT 1', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'jarvis_usadas' AND column_name = 'nonce'), 'ALTER TABLE `jarvis_usadas` ADD COLUMN `nonce` char(32) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'jarvis_usadas' AND column_name = 'usuario_id'), 'ALTER TABLE `jarvis_usadas` ADD COLUMN `usuario_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'jarvis_usadas' AND column_name = 'resultado'), 'ALTER TABLE `jarvis_usadas` ADD COLUMN `resultado` varchar(20) NOT NULL DEFAULT ''confirmada''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'jarvis_usadas' AND column_name = 'ts'), 'ALTER TABLE `jarvis_usadas` ADD COLUMN `ts` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'logs_impersonacion' AND column_name = 'id'), 'ALTER TABLE `logs_impersonacion` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'logs_impersonacion' AND column_name = 'admin_id'), 'ALTER TABLE `logs_impersonacion` ADD COLUMN `admin_id` int(10) unsigned NOT NULL', 'DO 0'));
@@ -1644,6 +2531,311 @@ PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'logs_impersonacion' AND column_name = 'finalizado_en'), 'ALTER TABLE `logs_impersonacion` ADD COLUMN `finalizado_en` datetime DEFAULT NULL', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'logs_impersonacion' AND column_name = 'ip'), 'ALTER TABLE `logs_impersonacion` ADD COLUMN `ip` varchar(45) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_acciones' AND column_name = 'id'), 'ALTER TABLE `mail_acciones` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_acciones' AND column_name = 'mensaje_id'), 'ALTER TABLE `mail_acciones` ADD COLUMN `mensaje_id` int(10) unsigned NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_acciones' AND column_name = 'cuenta_id'), 'ALTER TABLE `mail_acciones` ADD COLUMN `cuenta_id` int(10) unsigned NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_acciones' AND column_name = 'agente'), 'ALTER TABLE `mail_acciones` ADD COLUMN `agente` varchar(120) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_acciones' AND column_name = 'herramienta'), 'ALTER TABLE `mail_acciones` ADD COLUMN `herramienta` varchar(60) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_acciones' AND column_name = 'args'), 'ALTER TABLE `mail_acciones` ADD COLUMN `args` text DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_acciones' AND column_name = 'estado'), 'ALTER TABLE `mail_acciones` ADD COLUMN `estado` enum(''pendiente'',''aprobada'',''rechazada'') NOT NULL DEFAULT ''pendiente''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_acciones' AND column_name = 'motivo'), 'ALTER TABLE `mail_acciones` ADD COLUMN `motivo` varchar(255) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_acciones' AND column_name = 'resultado'), 'ALTER TABLE `mail_acciones` ADD COLUMN `resultado` varchar(500) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_acciones' AND column_name = 'decidido_por'), 'ALTER TABLE `mail_acciones` ADD COLUMN `decidido_por` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_acciones' AND column_name = 'decidido_en'), 'ALTER TABLE `mail_acciones` ADD COLUMN `decidido_en` datetime DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_acciones' AND column_name = 'created_at'), 'ALTER TABLE `mail_acciones` ADD COLUMN `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_cuentas' AND column_name = 'id'), 'ALTER TABLE `mail_cuentas` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_cuentas' AND column_name = 'email'), 'ALTER TABLE `mail_cuentas` ADD COLUMN `email` varchar(190) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_cuentas' AND column_name = 'nombre'), 'ALTER TABLE `mail_cuentas` ADD COLUMN `nombre` varchar(120) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_cuentas' AND column_name = 'host_imap'), 'ALTER TABLE `mail_cuentas` ADD COLUMN `host_imap` varchar(120) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_cuentas' AND column_name = 'puerto_imap'), 'ALTER TABLE `mail_cuentas` ADD COLUMN `puerto_imap` smallint(5) unsigned NOT NULL DEFAULT 993', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_cuentas' AND column_name = 'seguridad_imap'), 'ALTER TABLE `mail_cuentas` ADD COLUMN `seguridad_imap` varchar(10) NOT NULL DEFAULT ''ssl''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_cuentas' AND column_name = 'host_smtp'), 'ALTER TABLE `mail_cuentas` ADD COLUMN `host_smtp` varchar(120) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_cuentas' AND column_name = 'puerto_smtp'), 'ALTER TABLE `mail_cuentas` ADD COLUMN `puerto_smtp` smallint(5) unsigned NOT NULL DEFAULT 587', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_cuentas' AND column_name = 'seguridad_smtp'), 'ALTER TABLE `mail_cuentas` ADD COLUMN `seguridad_smtp` varchar(10) NOT NULL DEFAULT ''starttls''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_cuentas' AND column_name = 'usuario'), 'ALTER TABLE `mail_cuentas` ADD COLUMN `usuario` varchar(190) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_cuentas' AND column_name = 'clave'), 'ALTER TABLE `mail_cuentas` ADD COLUMN `clave` text DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_cuentas' AND column_name = 'firma'), 'ALTER TABLE `mail_cuentas` ADD COLUMN `firma` text DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_cuentas' AND column_name = 'funcion'), 'ALTER TABLE `mail_cuentas` ADD COLUMN `funcion` varchar(30) NOT NULL DEFAULT ''general''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_cuentas' AND column_name = 'responsable_id'), 'ALTER TABLE `mail_cuentas` ADD COLUMN `responsable_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_cuentas' AND column_name = 'modo'), 'ALTER TABLE `mail_cuentas` ADD COLUMN `modo` enum(''aprobacion'',''automatico'',''amplio'') NOT NULL DEFAULT ''automatico''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_cuentas' AND column_name = 'agente'), 'ALTER TABLE `mail_cuentas` ADD COLUMN `agente` mediumtext DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_cuentas' AND column_name = 'adjuntos'), 'ALTER TABLE `mail_cuentas` ADD COLUMN `adjuntos` varchar(255) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_cuentas' AND column_name = 'adjuntar'), 'ALTER TABLE `mail_cuentas` ADD COLUMN `adjuntar` tinyint(1) NOT NULL DEFAULT 1', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_cuentas' AND column_name = 'acuse'), 'ALTER TABLE `mail_cuentas` ADD COLUMN `acuse` tinyint(1) NOT NULL DEFAULT 1', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_cuentas' AND column_name = 'activo'), 'ALTER TABLE `mail_cuentas` ADD COLUMN `activo` tinyint(1) NOT NULL DEFAULT 1', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_cuentas' AND column_name = 'ultimo_uid'), 'ALTER TABLE `mail_cuentas` ADD COLUMN `ultimo_uid` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_cuentas' AND column_name = 'uidvalidity'), 'ALTER TABLE `mail_cuentas` ADD COLUMN `uidvalidity` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_cuentas' AND column_name = 'dias_atras'), 'ALTER TABLE `mail_cuentas` ADD COLUMN `dias_atras` tinyint(3) unsigned NOT NULL DEFAULT 0', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_cuentas' AND column_name = 'conectado_en'), 'ALTER TABLE `mail_cuentas` ADD COLUMN `conectado_en` datetime DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_cuentas' AND column_name = 'ultima_lectura'), 'ALTER TABLE `mail_cuentas` ADD COLUMN `ultima_lectura` datetime DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_cuentas' AND column_name = 'error'), 'ALTER TABLE `mail_cuentas` ADD COLUMN `error` varchar(255) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_cuentas' AND column_name = 'created_at'), 'ALTER TABLE `mail_cuentas` ADD COLUMN `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_mensajes' AND column_name = 'id'), 'ALTER TABLE `mail_mensajes` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_mensajes' AND column_name = 'cuenta_id'), 'ALTER TABLE `mail_mensajes` ADD COLUMN `cuenta_id` int(10) unsigned NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_mensajes' AND column_name = 'uid'), 'ALTER TABLE `mail_mensajes` ADD COLUMN `uid` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_mensajes' AND column_name = 'message_id'), 'ALTER TABLE `mail_mensajes` ADD COLUMN `message_id` varchar(255) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_mensajes' AND column_name = 'in_reply_to'), 'ALTER TABLE `mail_mensajes` ADD COLUMN `in_reply_to` varchar(255) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_mensajes' AND column_name = 'referencias'), 'ALTER TABLE `mail_mensajes` ADD COLUMN `referencias` text DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_mensajes' AND column_name = 'de'), 'ALTER TABLE `mail_mensajes` ADD COLUMN `de` varchar(190) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_mensajes' AND column_name = 'de_nombre'), 'ALTER TABLE `mail_mensajes` ADD COLUMN `de_nombre` varchar(190) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_mensajes' AND column_name = 'asunto'), 'ALTER TABLE `mail_mensajes` ADD COLUMN `asunto` varchar(255) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_mensajes' AND column_name = 'cuerpo'), 'ALTER TABLE `mail_mensajes` ADD COLUMN `cuerpo` mediumtext DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_mensajes' AND column_name = 'fecha'), 'ALTER TABLE `mail_mensajes` ADD COLUMN `fecha` datetime DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_mensajes' AND column_name = 'cliente_id'), 'ALTER TABLE `mail_mensajes` ADD COLUMN `cliente_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_mensajes' AND column_name = 'categoria'), 'ALTER TABLE `mail_mensajes` ADD COLUMN `categoria` varchar(30) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_mensajes' AND column_name = 'confianza'), 'ALTER TABLE `mail_mensajes` ADD COLUMN `confianza` tinyint(3) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_mensajes' AND column_name = 'resumen'), 'ALTER TABLE `mail_mensajes` ADD COLUMN `resumen` varchar(500) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_mensajes' AND column_name = 'estado'), 'ALTER TABLE `mail_mensajes` ADD COLUMN `estado` enum(''nuevo'',''archivado'',''respondido'',''para_aprobar'',''enviado_manual'',''derivado'',''error'') NOT NULL DEFAULT ''nuevo''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_mensajes' AND column_name = 'motivo'), 'ALTER TABLE `mail_mensajes` ADD COLUMN `motivo` varchar(500) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_mensajes' AND column_name = 'borrador_asunto'), 'ALTER TABLE `mail_mensajes` ADD COLUMN `borrador_asunto` varchar(255) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_mensajes' AND column_name = 'borrador_cuerpo'), 'ALTER TABLE `mail_mensajes` ADD COLUMN `borrador_cuerpo` text DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_mensajes' AND column_name = 'borrador_adjuntos'), 'ALTER TABLE `mail_mensajes` ADD COLUMN `borrador_adjuntos` varchar(255) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_mensajes' AND column_name = 'agente'), 'ALTER TABLE `mail_mensajes` ADD COLUMN `agente` varchar(120) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_mensajes' AND column_name = 'traza'), 'ALTER TABLE `mail_mensajes` ADD COLUMN `traza` mediumtext DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_mensajes' AND column_name = 'acciones'), 'ALTER TABLE `mail_mensajes` ADD COLUMN `acciones` text DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_mensajes' AND column_name = 'acuse_id'), 'ALTER TABLE `mail_mensajes` ADD COLUMN `acuse_id` varchar(255) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_mensajes' AND column_name = 'respuesta_id'), 'ALTER TABLE `mail_mensajes` ADD COLUMN `respuesta_id` varchar(255) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_mensajes' AND column_name = 'derivado_de'), 'ALTER TABLE `mail_mensajes` ADD COLUMN `derivado_de` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_mensajes' AND column_name = 'ticket_id'), 'ALTER TABLE `mail_mensajes` ADD COLUMN `ticket_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_mensajes' AND column_name = 'adjuntos_entrada'), 'ALTER TABLE `mail_mensajes` ADD COLUMN `adjuntos_entrada` text DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_mensajes' AND column_name = 'ia'), 'ALTER TABLE `mail_mensajes` ADD COLUMN `ia` tinyint(1) NOT NULL DEFAULT 0', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_mensajes' AND column_name = 'respondido_por'), 'ALTER TABLE `mail_mensajes` ADD COLUMN `respondido_por` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_mensajes' AND column_name = 'created_at'), 'ALTER TABLE `mail_mensajes` ADD COLUMN `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'mail_mensajes' AND column_name = 'updated_at'), 'ALTER TABLE `mail_mensajes` ADD COLUMN `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_bajas' AND column_name = 'id'), 'ALTER TABLE `motor_bajas` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_bajas' AND column_name = 'tipo'), 'ALTER TABLE `motor_bajas` ADD COLUMN `tipo` enum(''email'',''dominio'') NOT NULL DEFAULT ''email''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_bajas' AND column_name = 'valor'), 'ALTER TABLE `motor_bajas` ADD COLUMN `valor` varchar(190) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_bajas' AND column_name = 'motivo'), 'ALTER TABLE `motor_bajas` ADD COLUMN `motivo` varchar(255) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_bajas' AND column_name = 'origen'), 'ALTER TABLE `motor_bajas` ADD COLUMN `origen` varchar(40) NOT NULL DEFAULT ''manual''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_bajas' AND column_name = 'created_at'), 'ALTER TABLE `motor_bajas` ADD COLUMN `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_campanas' AND column_name = 'id'), 'ALTER TABLE `motor_campanas` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_campanas' AND column_name = 'nombre'), 'ALTER TABLE `motor_campanas` ADD COLUMN `nombre` varchar(160) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_campanas' AND column_name = 'sector'), 'ALTER TABLE `motor_campanas` ADD COLUMN `sector` varchar(60) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_campanas' AND column_name = 'angulo'), 'ALTER TABLE `motor_campanas` ADD COLUMN `angulo` varchar(40) NOT NULL DEFAULT ''ahorro_factura''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_campanas' AND column_name = 'modo'), 'ALTER TABLE `motor_campanas` ADD COLUMN `modo` enum(''aprobacion'',''borradores'',''autonomo'') NOT NULL DEFAULT ''aprobacion''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_campanas' AND column_name = 'estado'), 'ALTER TABLE `motor_campanas` ADD COLUMN `estado` enum(''activa'',''pausada'',''terminada'') NOT NULL DEFAULT ''activa''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_campanas' AND column_name = 'siempre_activa'), 'ALTER TABLE `motor_campanas` ADD COLUMN `siempre_activa` tinyint(1) NOT NULL DEFAULT 0', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_campanas' AND column_name = 'gestor_id'), 'ALTER TABLE `motor_campanas` ADD COLUMN `gestor_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_campanas' AND column_name = 'experimento_id'), 'ALTER TABLE `motor_campanas` ADD COLUMN `experimento_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_campanas' AND column_name = 'variante'), 'ALTER TABLE `motor_campanas` ADD COLUMN `variante` char(1) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_campanas' AND column_name = 'creado_por'), 'ALTER TABLE `motor_campanas` ADD COLUMN `creado_por` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_campanas' AND column_name = 'created_at'), 'ALTER TABLE `motor_campanas` ADD COLUMN `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_campanas' AND column_name = 'updated_at'), 'ALTER TABLE `motor_campanas` ADD COLUMN `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_cobertura' AND column_name = 'sector'), 'ALTER TABLE `motor_cobertura` ADD COLUMN `sector` varchar(60) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_cobertura' AND column_name = 'concejo'), 'ALTER TABLE `motor_cobertura` ADD COLUMN `concejo` varchar(120) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_cobertura' AND column_name = 'comarca'), 'ALTER TABLE `motor_cobertura` ADD COLUMN `comarca` varchar(80) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_cobertura' AND column_name = 'ultima'), 'ALTER TABLE `motor_cobertura` ADD COLUMN `ultima` datetime DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_cobertura' AND column_name = 'encontrados'), 'ALTER TABLE `motor_cobertura` ADD COLUMN `encontrados` int(10) unsigned NOT NULL DEFAULT 0', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_cobertura' AND column_name = 'consultas'), 'ALTER TABLE `motor_cobertura` ADD COLUMN `consultas` int(10) unsigned NOT NULL DEFAULT 0', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_leads' AND column_name = 'id'), 'ALTER TABLE `motor_leads` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_leads' AND column_name = 'campana_id'), 'ALTER TABLE `motor_leads` ADD COLUMN `campana_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_leads' AND column_name = 'place_id'), 'ALTER TABLE `motor_leads` ADD COLUMN `place_id` varchar(190) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_leads' AND column_name = 'nombre'), 'ALTER TABLE `motor_leads` ADD COLUMN `nombre` varchar(190) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_leads' AND column_name = 'razon_social'), 'ALTER TABLE `motor_leads` ADD COLUMN `razon_social` varchar(190) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_leads' AND column_name = 'cif'), 'ALTER TABLE `motor_leads` ADD COLUMN `cif` varchar(20) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_leads' AND column_name = 'sector'), 'ALTER TABLE `motor_leads` ADD COLUMN `sector` varchar(60) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_leads' AND column_name = 'direccion'), 'ALTER TABLE `motor_leads` ADD COLUMN `direccion` varchar(255) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_leads' AND column_name = 'localidad'), 'ALTER TABLE `motor_leads` ADD COLUMN `localidad` varchar(120) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_leads' AND column_name = 'concejo'), 'ALTER TABLE `motor_leads` ADD COLUMN `concejo` varchar(120) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_leads' AND column_name = 'comarca'), 'ALTER TABLE `motor_leads` ADD COLUMN `comarca` varchar(80) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_leads' AND column_name = 'cp'), 'ALTER TABLE `motor_leads` ADD COLUMN `cp` varchar(10) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_leads' AND column_name = 'telefono'), 'ALTER TABLE `motor_leads` ADD COLUMN `telefono` varchar(40) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_leads' AND column_name = 'web'), 'ALTER TABLE `motor_leads` ADD COLUMN `web` varchar(255) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_leads' AND column_name = 'email'), 'ALTER TABLE `motor_leads` ADD COLUMN `email` varchar(190) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_leads' AND column_name = 'mx_ok'), 'ALTER TABLE `motor_leads` ADD COLUMN `mx_ok` tinyint(1) NOT NULL DEFAULT 0', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_leads' AND column_name = 'madurez'), 'ALTER TABLE `motor_leads` ADD COLUMN `madurez` varchar(255) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_leads' AND column_name = 'extracto'), 'ALTER TABLE `motor_leads` ADD COLUMN `extracto` text DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_leads' AND column_name = 'analizado_en'), 'ALTER TABLE `motor_leads` ADD COLUMN `analizado_en` datetime DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_leads' AND column_name = 'analisis_error'), 'ALTER TABLE `motor_leads` ADD COLUMN `analisis_error` varchar(255) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_leads' AND column_name = 'estado'), 'ALTER TABLE `motor_leads` ADD COLUMN `estado` enum(''nuevo'',''en_campana'',''contactado'',''respondido'',''interesado'',''descartado'',''baja'',''en_crm'') NOT NULL DEFAULT ''nuevo''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_leads' AND column_name = 'canal'), 'ALTER TABLE `motor_leads` ADD COLUMN `canal` enum(''correo'',''telefono'',''visita'') NOT NULL DEFAULT ''correo''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_leads' AND column_name = 'paso'), 'ALTER TABLE `motor_leads` ADD COLUMN `paso` tinyint(3) unsigned NOT NULL DEFAULT 0', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_leads' AND column_name = 'proximo_envio'), 'ALTER TABLE `motor_leads` ADD COLUMN `proximo_envio` datetime DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_leads' AND column_name = 'ultimo_envio'), 'ALTER TABLE `motor_leads` ADD COLUMN `ultimo_envio` datetime DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_leads' AND column_name = 'cliente_id'), 'ALTER TABLE `motor_leads` ADD COLUMN `cliente_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_leads' AND column_name = 'origen'), 'ALTER TABLE `motor_leads` ADD COLUMN `origen` enum(''places'',''csv'',''barrido'',''manual'') NOT NULL DEFAULT ''places''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_leads' AND column_name = 'creado_por'), 'ALTER TABLE `motor_leads` ADD COLUMN `creado_por` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_leads' AND column_name = 'created_at'), 'ALTER TABLE `motor_leads` ADD COLUMN `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_leads' AND column_name = 'updated_at'), 'ALTER TABLE `motor_leads` ADD COLUMN `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_log' AND column_name = 'id'), 'ALTER TABLE `motor_log` ADD COLUMN `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_log' AND column_name = 'ts'), 'ALTER TABLE `motor_log` ADD COLUMN `ts` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_log' AND column_name = 'tipo'), 'ALTER TABLE `motor_log` ADD COLUMN `tipo` varchar(30) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_log' AND column_name = 'mensaje'), 'ALTER TABLE `motor_log` ADD COLUMN `mensaje` varchar(500) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_log' AND column_name = 'lead_id'), 'ALTER TABLE `motor_log` ADD COLUMN `lead_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_log' AND column_name = 'campana_id'), 'ALTER TABLE `motor_log` ADD COLUMN `campana_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_mensajes' AND column_name = 'id'), 'ALTER TABLE `motor_mensajes` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_mensajes' AND column_name = 'lead_id'), 'ALTER TABLE `motor_mensajes` ADD COLUMN `lead_id` int(10) unsigned NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_mensajes' AND column_name = 'campana_id'), 'ALTER TABLE `motor_mensajes` ADD COLUMN `campana_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_mensajes' AND column_name = 'paso'), 'ALTER TABLE `motor_mensajes` ADD COLUMN `paso` tinyint(3) unsigned NOT NULL DEFAULT 1', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_mensajes' AND column_name = 'direccion'), 'ALTER TABLE `motor_mensajes` ADD COLUMN `direccion` enum(''salida'',''entrada'') NOT NULL DEFAULT ''salida''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_mensajes' AND column_name = 'asunto'), 'ALTER TABLE `motor_mensajes` ADD COLUMN `asunto` varchar(255) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_mensajes' AND column_name = 'cuerpo'), 'ALTER TABLE `motor_mensajes` ADD COLUMN `cuerpo` text DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_mensajes' AND column_name = 'estado'), 'ALTER TABLE `motor_mensajes` ADD COLUMN `estado` enum(''borrador'',''pendiente'',''aprobado'',''enviado'',''descartado'',''error'',''recibido'') NOT NULL DEFAULT ''pendiente''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_mensajes' AND column_name = 'angulo'), 'ALTER TABLE `motor_mensajes` ADD COLUMN `angulo` varchar(40) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_mensajes' AND column_name = 'ia'), 'ALTER TABLE `motor_mensajes` ADD COLUMN `ia` tinyint(1) NOT NULL DEFAULT 0', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_mensajes' AND column_name = 'clasificacion'), 'ALTER TABLE `motor_mensajes` ADD COLUMN `clasificacion` varchar(30) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_mensajes' AND column_name = 'message_id'), 'ALTER TABLE `motor_mensajes` ADD COLUMN `message_id` varchar(255) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_mensajes' AND column_name = 'error'), 'ALTER TABLE `motor_mensajes` ADD COLUMN `error` varchar(255) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_mensajes' AND column_name = 'aprobado_por'), 'ALTER TABLE `motor_mensajes` ADD COLUMN `aprobado_por` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_mensajes' AND column_name = 'enviado_en'), 'ALTER TABLE `motor_mensajes` ADD COLUMN `enviado_en` datetime DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_mensajes' AND column_name = 'created_at'), 'ALTER TABLE `motor_mensajes` ADD COLUMN `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'notificaciones' AND column_name = 'id'), 'ALTER TABLE `notificaciones` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
@@ -1765,6 +2957,42 @@ PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'proformas' AND column_name = 'notas'), 'ALTER TABLE `proformas` ADD COLUMN `notas` varchar(500) NOT NULL DEFAULT ''''', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'proformas' AND column_name = 'created_at'), 'ALTER TABLE `proformas` ADD COLUMN `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'saneo_memoria' AND column_name = 'cliente_id'), 'ALTER TABLE `saneo_memoria` ADD COLUMN `cliente_id` int(10) unsigned NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'saneo_memoria' AND column_name = 'reprogramaciones'), 'ALTER TABLE `saneo_memoria` ADD COLUMN `reprogramaciones` tinyint(3) unsigned NOT NULL DEFAULT 0', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'saneo_memoria' AND column_name = 'mantener_hasta'), 'ALTER TABLE `saneo_memoria` ADD COLUMN `mantener_hasta` date DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'saneo_memoria' AND column_name = 'valor_quitado'), 'ALTER TABLE `saneo_memoria` ADD COLUMN `valor_quitado` tinyint(1) NOT NULL DEFAULT 0', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'saneo_memoria' AND column_name = 'actualizado'), 'ALTER TABLE `saneo_memoria` ADD COLUMN `actualizado` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'saneo_registro' AND column_name = 'id'), 'ALTER TABLE `saneo_registro` ADD COLUMN `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'saneo_registro' AND column_name = 'ts'), 'ALTER TABLE `saneo_registro` ADD COLUMN `ts` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'saneo_registro' AND column_name = 'lote'), 'ALTER TABLE `saneo_registro` ADD COLUMN `lote` char(16) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'saneo_registro' AND column_name = 'origen'), 'ALTER TABLE `saneo_registro` ADD COLUMN `origen` varchar(20) NOT NULL DEFAULT ''cron''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'saneo_registro' AND column_name = 'usuario_id'), 'ALTER TABLE `saneo_registro` ADD COLUMN `usuario_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'saneo_registro' AND column_name = 'cliente_id'), 'ALTER TABLE `saneo_registro` ADD COLUMN `cliente_id` int(10) unsigned NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'saneo_registro' AND column_name = 'problema'), 'ALTER TABLE `saneo_registro` ADD COLUMN `problema` varchar(30) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'saneo_registro' AND column_name = 'campo'), 'ALTER TABLE `saneo_registro` ADD COLUMN `campo` varchar(40) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'saneo_registro' AND column_name = 'antes'), 'ALTER TABLE `saneo_registro` ADD COLUMN `antes` varchar(500) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'saneo_registro' AND column_name = 'despues'), 'ALTER TABLE `saneo_registro` ADD COLUMN `despues` varchar(500) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'saneo_registro' AND column_name = 'cita_id'), 'ALTER TABLE `saneo_registro` ADD COLUMN `cita_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'saneo_registro' AND column_name = 'deshecho'), 'ALTER TABLE `saneo_registro` ADD COLUMN `deshecho` tinyint(1) NOT NULL DEFAULT 0', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'seg_2fa' AND column_name = 'usuario_id'), 'ALTER TABLE `seg_2fa` ADD COLUMN `usuario_id` int(10) unsigned NOT NULL', 'DO 0'));
@@ -2023,6 +3251,29 @@ PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'tarifa_telefonia' AND column_name = 'updated_at'), 'ALTER TABLE `tarifa_telefonia` ADD COLUMN `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'tickets' AND column_name = 'id'), 'ALTER TABLE `tickets` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'tickets' AND column_name = 'referencia'), 'ALTER TABLE `tickets` ADD COLUMN `referencia` varchar(20) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'tickets' AND column_name = 'cliente_id'), 'ALTER TABLE `tickets` ADD COLUMN `cliente_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'tickets' AND column_name = 'email'), 'ALTER TABLE `tickets` ADD COLUMN `email` varchar(190) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'tickets' AND column_name = 'asunto'), 'ALTER TABLE `tickets` ADD COLUMN `asunto` varchar(255) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'tickets' AND column_name = 'descripcion'), 'ALTER TABLE `tickets` ADD COLUMN `descripcion` text DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'tickets' AND column_name = 'prioridad'), 'ALTER TABLE `tickets` ADD COLUMN `prioridad` enum(''baja'',''media'',''alta'',''urgente'') NOT NULL DEFAULT ''media''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'tickets' AND column_name = 'estado'), 'ALTER TABLE `tickets` ADD COLUMN `estado` enum(''abierto'',''en_curso'',''resuelto'',''cerrado'') NOT NULL DEFAULT ''abierto''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'tickets' AND column_name = 'cuenta_id'), 'ALTER TABLE `tickets` ADD COLUMN `cuenta_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'tickets' AND column_name = 'created_at'), 'ALTER TABLE `tickets` ADD COLUMN `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'tickets' AND column_name = 'updated_at'), 'ALTER TABLE `tickets` ADD COLUMN `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'usuarios' AND column_name = 'id'), 'ALTER TABLE `usuarios` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'usuarios' AND column_name = 'numero_relacion'), 'ALTER TABLE `usuarios` ADD COLUMN `numero_relacion` varchar(20) DEFAULT NULL', 'DO 0'));
@@ -2167,6 +3418,8 @@ SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHER
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'backoffice_equipos' AND index_name = 'idx_bo_eq_jefe'), 'CREATE INDEX `idx_bo_eq_jefe` ON `backoffice_equipos` (`jefe_id`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'candidatos' AND index_name = 'idx_candidatos_estado'), 'CREATE INDEX `idx_candidatos_estado` ON `candidatos` (`estado`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'citas' AND index_name = 'fk_cita_asignada_por'), 'CREATE INDEX `fk_cita_asignada_por` ON `citas` (`asignada_por`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'citas' AND index_name = 'fk_cita_creado_por'), 'CREATE INDEX `fk_cita_creado_por` ON `citas` (`creado_por`)', 'DO 0'));
@@ -2186,6 +3439,8 @@ PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'clientes' AND index_name = 'idx_clientes_estado'), 'CREATE INDEX `idx_clientes_estado` ON `clientes` (`estado`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'clientes' AND index_name = 'upload_token'), 'CREATE UNIQUE INDEX `upload_token` ON `clientes` (`upload_token`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'cliente_etiquetas' AND index_name = 'idx_cliente_etiquetas_etiqueta'), 'CREATE INDEX `idx_cliente_etiquetas_etiqueta` ON `cliente_etiquetas` (`etiqueta`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'cliente_notas' AND index_name = 'fk_cliente_notas_autor'), 'CREATE INDEX `fk_cliente_notas_autor` ON `cliente_notas` (`autor_id`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
@@ -2251,6 +3506,28 @@ SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHER
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'documentos' AND index_name = 'idx_documentos_tipo'), 'CREATE INDEX `idx_documentos_tipo` ON `documentos` (`tipo`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'equipo_acciones' AND index_name = 'idx_eq_acc_agente'), 'CREATE INDEX `idx_eq_acc_agente` ON `equipo_acciones` (`agente`, `ts`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'equipo_acciones' AND index_name = 'idx_eq_acc_estado'), 'CREATE INDEX `idx_eq_acc_estado` ON `equipo_acciones` (`estado`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'equipo_cobros' AND index_name = 'idx_eq_cobros_estado'), 'CREATE INDEX `idx_eq_cobros_estado` ON `equipo_cobros` (`estado`, `vence`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'equipo_experimentos' AND index_name = 'idx_eq_exp_estado'), 'CREATE INDEX `idx_eq_exp_estado` ON `equipo_experimentos` (`estado`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'equipo_hallazgos' AND index_name = 'idx_eq_hallazgos_estado'), 'CREATE INDEX `idx_eq_hallazgos_estado` ON `equipo_hallazgos` (`estado`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'equipo_hallazgos' AND index_name = 'uq_eq_hallazgos_clave'), 'CREATE UNIQUE INDEX `uq_eq_hallazgos_clave` ON `equipo_hallazgos` (`clave`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'equipo_memoria' AND index_name = 'idx_eq_mem_tipo'), 'CREATE INDEX `idx_eq_mem_tipo` ON `equipo_memoria` (`tipo`, `activo`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'equipo_tareas' AND index_name = 'idx_eq_tareas_agente'), 'CREATE INDEX `idx_eq_tareas_agente` ON `equipo_tareas` (`asignado_agente`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'equipo_tareas' AND index_name = 'idx_eq_tareas_estado'), 'CREATE INDEX `idx_eq_tareas_estado` ON `equipo_tareas` (`estado`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'equipo_tareas' AND index_name = 'idx_eq_tareas_usuario'), 'CREATE INDEX `idx_eq_tareas_usuario` ON `equipo_tareas` (`asignado_usuario`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'equipo_turnos' AND index_name = 'idx_eq_turnos_agente'), 'CREATE INDEX `idx_eq_turnos_agente` ON `equipo_turnos` (`agente`, `inicio`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'estudios' AND index_name = 'fk_est_cliente'), 'CREATE INDEX `fk_est_cliente` ON `estudios` (`cliente_id`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'estudios' AND index_name = 'fk_est_documento'), 'CREATE INDEX `fk_est_documento` ON `estudios` (`documento_id`)', 'DO 0'));
@@ -2275,6 +3552,20 @@ SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHER
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'firmas' AND index_name = 'fk_firma_usuario'), 'CREATE INDEX `fk_firma_usuario` ON `firmas` (`firmado_por`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'flujos' AND index_name = 'idx_flujos_estado'), 'CREATE INDEX `idx_flujos_estado` ON `flujos` (`estado`, `disparador`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'flujos' AND index_name = 'uq_flujos_token'), 'CREATE UNIQUE INDEX `uq_flujos_token` ON `flujos` (`token_entrada`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'flujo_eventos' AND index_name = 'idx_flujo_eventos_pend'), 'CREATE INDEX `idx_flujo_eventos_pend` ON `flujo_eventos` (`procesado`, `id`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'flujo_inscripciones' AND index_name = 'idx_flujo_insc_cliente'), 'CREATE INDEX `idx_flujo_insc_cliente` ON `flujo_inscripciones` (`cliente_id`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'flujo_inscripciones' AND index_name = 'idx_flujo_insc_flujo'), 'CREATE INDEX `idx_flujo_insc_flujo` ON `flujo_inscripciones` (`flujo_id`, `estado`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'flujo_inscripciones' AND index_name = 'idx_flujo_insc_proximo'), 'CREATE INDEX `idx_flujo_insc_proximo` ON `flujo_inscripciones` (`estado`, `proximo`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'flujo_registro' AND index_name = 'idx_flujo_registro_flujo'), 'CREATE INDEX `idx_flujo_registro_flujo` ON `flujo_registro` (`flujo_id`, `ts`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'historial_estado' AND index_name = 'fk_hist_usuario'), 'CREATE INDEX `fk_hist_usuario` ON `historial_estado` (`cambiado_por`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'historial_estado' AND index_name = 'idx_historial_cliente_estado'), 'CREATE INDEX `idx_historial_cliente_estado` ON `historial_estado` (`cliente_id`, `estado_nuevo`, `created_at`)', 'DO 0'));
@@ -2289,9 +3580,53 @@ SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHER
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'ia_registro' AND index_name = 'idx_ia_registro_usuario'), 'CREATE INDEX `idx_ia_registro_usuario` ON `ia_registro` (`usuario_id`, `ts`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'jarvis_registro' AND index_name = 'idx_jarvis_registro_ts'), 'CREATE INDEX `idx_jarvis_registro_ts` ON `jarvis_registro` (`ts`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'jarvis_registro' AND index_name = 'idx_jarvis_registro_usuario'), 'CREATE INDEX `idx_jarvis_registro_usuario` ON `jarvis_registro` (`usuario_id`, `ts`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'jarvis_usadas' AND index_name = 'idx_jarvis_usadas_ts'), 'CREATE INDEX `idx_jarvis_usadas_ts` ON `jarvis_usadas` (`ts`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'logs_impersonacion' AND index_name = 'fk_impersonacion_objetivo'), 'CREATE INDEX `fk_impersonacion_objetivo` ON `logs_impersonacion` (`usuario_objetivo_id`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'logs_impersonacion' AND index_name = 'idx_impersonacion_admin'), 'CREATE INDEX `idx_impersonacion_admin` ON `logs_impersonacion` (`admin_id`, `iniciado_en`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'mail_acciones' AND index_name = 'fk_mail_acc_msg'), 'CREATE INDEX `fk_mail_acc_msg` ON `mail_acciones` (`mensaje_id`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'mail_acciones' AND index_name = 'idx_mail_acc_estado'), 'CREATE INDEX `idx_mail_acc_estado` ON `mail_acciones` (`estado`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'mail_cuentas' AND index_name = 'uq_mail_cuentas_email'), 'CREATE UNIQUE INDEX `uq_mail_cuentas_email` ON `mail_cuentas` (`email`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'mail_mensajes' AND index_name = 'idx_mail_msg_cliente'), 'CREATE INDEX `idx_mail_msg_cliente` ON `mail_mensajes` (`cliente_id`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'mail_mensajes' AND index_name = 'idx_mail_msg_cuenta'), 'CREATE INDEX `idx_mail_msg_cuenta` ON `mail_mensajes` (`cuenta_id`, `estado`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'mail_mensajes' AND index_name = 'idx_mail_msg_de'), 'CREATE INDEX `idx_mail_msg_de` ON `mail_mensajes` (`de`, `created_at`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'mail_mensajes' AND index_name = 'idx_mail_msg_mid'), 'CREATE INDEX `idx_mail_msg_mid` ON `mail_mensajes` (`message_id`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'motor_bajas' AND index_name = 'uq_motor_bajas'), 'CREATE UNIQUE INDEX `uq_motor_bajas` ON `motor_bajas` (`tipo`, `valor`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'motor_campanas' AND index_name = 'idx_motor_camp_estado'), 'CREATE INDEX `idx_motor_camp_estado` ON `motor_campanas` (`estado`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'motor_campanas' AND index_name = 'idx_motor_camp_sector'), 'CREATE INDEX `idx_motor_camp_sector` ON `motor_campanas` (`sector`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'motor_leads' AND index_name = 'idx_motor_leads_campana'), 'CREATE INDEX `idx_motor_leads_campana` ON `motor_leads` (`campana_id`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'motor_leads' AND index_name = 'idx_motor_leads_email'), 'CREATE INDEX `idx_motor_leads_email` ON `motor_leads` (`email`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'motor_leads' AND index_name = 'idx_motor_leads_envio'), 'CREATE INDEX `idx_motor_leads_envio` ON `motor_leads` (`proximo_envio`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'motor_leads' AND index_name = 'idx_motor_leads_estado'), 'CREATE INDEX `idx_motor_leads_estado` ON `motor_leads` (`estado`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'motor_leads' AND index_name = 'uq_motor_leads_place'), 'CREATE UNIQUE INDEX `uq_motor_leads_place` ON `motor_leads` (`place_id`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'motor_log' AND index_name = 'idx_motor_log_ts'), 'CREATE INDEX `idx_motor_log_ts` ON `motor_log` (`ts`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'motor_mensajes' AND index_name = 'idx_motor_msg_estado'), 'CREATE INDEX `idx_motor_msg_estado` ON `motor_mensajes` (`estado`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'motor_mensajes' AND index_name = 'idx_motor_msg_lead'), 'CREATE INDEX `idx_motor_msg_lead` ON `motor_mensajes` (`lead_id`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'motor_mensajes' AND index_name = 'idx_motor_msg_mid'), 'CREATE INDEX `idx_motor_msg_mid` ON `motor_mensajes` (`message_id`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'notificaciones' AND index_name = 'fk_notif_cliente'), 'CREATE INDEX `fk_notif_cliente` ON `notificaciones` (`cliente_id`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
@@ -2325,6 +3660,12 @@ SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHER
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'proformas' AND index_name = 'idx_proformas_fecha'), 'CREATE INDEX `idx_proformas_fecha` ON `proformas` (`fecha`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'saneo_registro' AND index_name = 'idx_saneo_registro_cliente'), 'CREATE INDEX `idx_saneo_registro_cliente` ON `saneo_registro` (`cliente_id`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'saneo_registro' AND index_name = 'idx_saneo_registro_lote'), 'CREATE INDEX `idx_saneo_registro_lote` ON `saneo_registro` (`lote`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'saneo_registro' AND index_name = 'idx_saneo_registro_ts'), 'CREATE INDEX `idx_saneo_registro_ts` ON `saneo_registro` (`ts`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'seg_accesos' AND index_name = 'idx_seg_accesos_ip'), 'CREATE INDEX `idx_seg_accesos_ip` ON `seg_accesos` (`ip`, `ts`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'seg_accesos' AND index_name = 'idx_seg_accesos_ts'), 'CREATE INDEX `idx_seg_accesos_ts` ON `seg_accesos` (`ts`)', 'DO 0'));
@@ -2354,6 +3695,10 @@ PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'tarifa_mercado' AND index_name = 'idx_tarifa_mercado_activo'), 'CREATE INDEX `idx_tarifa_mercado_activo` ON `tarifa_mercado` (`activo`, `cuota_mensual`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'tarifa_telefonia' AND index_name = 'idx_tarifa_telefonia_tipo'), 'CREATE INDEX `idx_tarifa_telefonia_tipo` ON `tarifa_telefonia` (`tipo`, `activo`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'tickets' AND index_name = 'idx_tickets_cliente'), 'CREATE INDEX `idx_tickets_cliente` ON `tickets` (`cliente_id`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'tickets' AND index_name = 'idx_tickets_estado'), 'CREATE INDEX `idx_tickets_estado` ON `tickets` (`estado`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'usuarios' AND index_name = 'email'), 'CREATE UNIQUE INDEX `email` ON `usuarios` (`email`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
@@ -2429,6 +3774,8 @@ SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constrain
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'clientes' AND constraint_name = 'fk_clientes_comercial' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `clientes` ADD CONSTRAINT `fk_clientes_comercial` FOREIGN KEY (`comercial_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'cliente_etiquetas' AND constraint_name = 'fk_cliente_etiquetas_cliente' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `cliente_etiquetas` ADD CONSTRAINT `fk_cliente_etiquetas_cliente` FOREIGN KEY (`cliente_id`) REFERENCES `clientes` (`id`) ON DELETE CASCADE', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'cliente_notas' AND constraint_name = 'fk_cliente_notas_autor' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `cliente_notas` ADD CONSTRAINT `fk_cliente_notas_autor` FOREIGN KEY (`autor_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'cliente_notas' AND constraint_name = 'fk_cliente_notas_cliente' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `cliente_notas` ADD CONSTRAINT `fk_cliente_notas_cliente` FOREIGN KEY (`cliente_id`) REFERENCES `clientes` (`id`) ON DELETE CASCADE', 'DO 0'));
@@ -2489,6 +3836,10 @@ SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constrain
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'firmas' AND constraint_name = 'fk_firma_usuario' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `firmas` ADD CONSTRAINT `fk_firma_usuario` FOREIGN KEY (`firmado_por`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'flujo_inscripciones' AND constraint_name = 'fk_flujo_insc_cliente' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `flujo_inscripciones` ADD CONSTRAINT `fk_flujo_insc_cliente` FOREIGN KEY (`cliente_id`) REFERENCES `clientes` (`id`) ON DELETE CASCADE', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'flujo_inscripciones' AND constraint_name = 'fk_flujo_insc_flujo' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `flujo_inscripciones` ADD CONSTRAINT `fk_flujo_insc_flujo` FOREIGN KEY (`flujo_id`) REFERENCES `flujos` (`id`) ON DELETE CASCADE', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'historial_estado' AND constraint_name = 'fk_hist_cliente' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `historial_estado` ADD CONSTRAINT `fk_hist_cliente` FOREIGN KEY (`cliente_id`) REFERENCES `clientes` (`id`) ON DELETE CASCADE', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'historial_estado' AND constraint_name = 'fk_hist_usuario' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `historial_estado` ADD CONSTRAINT `fk_hist_usuario` FOREIGN KEY (`cambiado_por`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL', 'DO 0'));
@@ -2496,6 +3847,12 @@ PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'logs_impersonacion' AND constraint_name = 'fk_impersonacion_admin' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `logs_impersonacion` ADD CONSTRAINT `fk_impersonacion_admin` FOREIGN KEY (`admin_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'logs_impersonacion' AND constraint_name = 'fk_impersonacion_objetivo' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `logs_impersonacion` ADD CONSTRAINT `fk_impersonacion_objetivo` FOREIGN KEY (`usuario_objetivo_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'mail_acciones' AND constraint_name = 'fk_mail_acc_msg' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `mail_acciones` ADD CONSTRAINT `fk_mail_acc_msg` FOREIGN KEY (`mensaje_id`) REFERENCES `mail_mensajes` (`id`) ON DELETE CASCADE', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'mail_mensajes' AND constraint_name = 'fk_mail_msg_cuenta' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `mail_mensajes` ADD CONSTRAINT `fk_mail_msg_cuenta` FOREIGN KEY (`cuenta_id`) REFERENCES `mail_cuentas` (`id`) ON DELETE CASCADE', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'motor_mensajes' AND constraint_name = 'fk_motor_msg_lead' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `motor_mensajes` ADD CONSTRAINT `fk_motor_msg_lead` FOREIGN KEY (`lead_id`) REFERENCES `motor_leads` (`id`) ON DELETE CASCADE', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'notificaciones' AND constraint_name = 'fk_notif_cliente' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `notificaciones` ADD CONSTRAINT `fk_notif_cliente` FOREIGN KEY (`cliente_id`) REFERENCES `clientes` (`id`) ON DELETE CASCADE', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
@@ -2755,4 +4112,4 @@ UPDATE usuarios SET numero_relacion = CONCAT('ICC-', LPAD(id, 5, '0')) WHERE num
 SET FOREIGN_KEY_CHECKS = 1;
 SET SESSION sql_mode = @icc_modo_anterior;
 
--- Listo. Base de datos al dia para ICC CRM v87.
+-- Listo. Base de datos al dia para ICC CRM v88.

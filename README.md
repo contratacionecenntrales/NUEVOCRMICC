@@ -79,7 +79,7 @@ para abrir cada informe, descargar su PDF o borrarlo.
   comparador"); solo Admin borra tarifas, cambia comisiones o numeración.
   Las comisiones nunca salen en el PDF del cliente.
 - **Lectura de facturas con IA** (opcional, de pago por uso): usa la clave de
-  OpenAI de **Seguridad → Inteligencia artificial** (ver más abajo). Límite: 60
+  OpenAI de **IA → Ajustes de IA y cron** (ver más abajo). Límite: 60
   facturas por hora y usuario. La factura solo se envía para leerla; no se guarda.
 - **SIPS** (cuando contratéis un proveedor): `ICC_SIPS_URL` (con `{cups}`),
   `ICC_SIPS_TOKEN` e `ICC_SIPS_HEADER` en `api/config.local.php`.
@@ -218,7 +218,7 @@ propio CRM — ya no hace falta volver a tocar la base de datos a mano.
 
 ## Base de datos en un solo paso
 
-`sql/base-de-datos-completa-v87.sql` deja cualquier base de datos al día para la v87 importándolo una sola vez en phpMyAdmin:
+`sql/base-de-datos-completa-v88.sql` deja cualquier base de datos al día para la v88 importándolo una sola vez en phpMyAdmin:
 - Con datos (v55 en adelante): no borra nada; crea solo las tablas, columnas, índices y relaciones que falten y amplía los roles. Deja a Daniela con todo el equipo de María y las agendas de Juan y María.
 - Vacía: crea el CRM completo y un Super Administrador inicial (info@integralconnectionconsulting.es, contraseña provisional `CambiaEsta-2026`, que el CRM obliga a cambiar).
 - Se puede ejecutar varias veces sin errores ni duplicados. Los datos de ejemplo de los comparadores solo se cargan si esas tablas están vacías.
@@ -500,7 +500,7 @@ Montarla (por ejemplo en `demo.crm.tudominio.es`):
 1. Crea el subdominio en Hostalia apuntando a una carpeta nueva y sube ahí el
    mismo zip del CRM.
 2. Crea una base de datos **nueva y vacía** e importa
-   `sql/base-de-datos-completa-v87.sql` (más las migraciones nuevas si las hay).
+   `sql/base-de-datos-completa-v88.sql` (más las migraciones nuevas si las hay).
 3. Crea `api/config.local.php` de esa carpeta con los datos de la BD nueva y
    añade `define('ICC_MODO_DEMO', true);`.
 4. Rellena la demo por SSH (el generador no se puede abrir desde el navegador):
@@ -525,7 +525,7 @@ aparece nada de esto.
 
 ## Inteligencia artificial y cron único (v87, fase 1 de 7)
 
-Menú **Seguridad → 🤖 Inteligencia artificial** (`#/inteligencia-artificial`,
+Menú **🤖 IA → ⚙️ Ajustes de IA y cron** (`#/inteligencia-artificial`,
 `api/ia.php`), solo Coordinador, Admin y Super Admin.
 
 - **Solo OpenAI** (`api/ia_lib.php`): Chat Completions con herramientas y
@@ -549,3 +549,34 @@ Menú **Seguridad → 🤖 Inteligencia artificial** (`#/inteligencia-artificial
   (`api/latido.php`). Bloques de esta fase: copias de seguridad y limpieza de
   registros (RGPD). Cada bloque queda en `cron_registro` (30 días).
 - Tablas nuevas: `sql/migracion_ia_base.sql` (incluida en la base de datos completa v87).
+
+## Capa de IA completa (v88, fases 2 a 7)
+
+Menú **🤖 IA** (dirección y jefes de equipo; los ajustes, coordinación, admin y super admin). Jarvis, para todo el equipo.
+Todo funciona sin IA (plantillas y reglas) y nunca se inventa nada. Tablas: `sql/migracion_motor.sql`,
+`migracion_agentes.sql`, `migracion_flujos.sql`, `migracion_jarvis.sql`, `migracion_saneo.sql` y
+`migracion_correo_agentes.sql` (todas incluidas en la base de datos completa v88).
+
+- **Motor de prospección** (`#/motor`, `api/motor.php`, `motor_lib.php`, `web_lib.php`): Google Places
+  (clave en *Agente y ajustes*) y lectura de webs respetando robots.txt; solo correos genéricos con MX;
+  CSV; campañas con aprobación de cada correo (por defecto, LSSI art. 21), solo borradores o autónomo (exige
+  aceptar el aviso legal); cadencia 1-3-7; límite diario, pausa de 4 a 9 min, horario; baja en un clic
+  (`api/baja.php`, List-Unsubscribe); respuestas por IMAP o pegadas; interesados al CRM con llamada.
+- **Zona de agentes** (`#/zona-agentes`, `api/equipo.php`, `agentes_lib.php`): 15 agentes por turnos;
+  autonomía *observa / propone / actúa*; presupuestos, contratos, cobros, correos a clientes, perdidos,
+  reasignaciones e instrucciones siempre esperan aprobación de dirección. Barrido de Asturias (20 sectores ×
+  78 concejos, presupuesto diario), Laboratorio A/B, cerebro, calidad, cierre, cobros y ritmo. Se enciende en
+  *Ajustes* (viene apagada).
+- **Automatizaciones** (`#/automatizaciones`, `api/flujos.php`, `flujos_lib.php`, `api/flujo_entrada.php`):
+  13 disparadores, 14 pasos, 11 plantillas, editor visual, formulario web público.
+- **Jarvis** (`api/jarvis.php`, `jarvis_lib.php`, `js/jarvis.js`): botón en la cabecera, núcleo flotante o
+  Alt+J. Los cambios se confirman en tarjetas firmadas. **El micrófono necesita https** (el texto y la voz
+  de respuesta funcionan ya).
+- **Mantenimiento del pipeline** (`api/saneo.php`, `saneo_lib.php`): tarjeta en el Pipeline; cada hora;
+  se puede deshacer cada pasada.
+- **Agente de correo** (`#/agente-correo`, `api/correo.php`, `correo_agentes_lib.php`, `correo_lib.php`):
+  conecta cada buzón (botón *Datos de Hostalia*: IMAP `imap.servidor-correo.net` 993 SSL, SMTP
+  `smtp.servidor-correo.net` 587 STARTTLS). Un buzón nuevo empieza desde ahora.
+- El **cron único** (`api/cron.php`, cada 5 minutos) mueve, en este orden: copias, limpieza, Motor, buzones,
+  mantenimiento del pipeline (cada hora), automatizaciones y turnos de los agentes.
+- Conservación (RGPD): correos 1 año, registros de IA y Jarvis 90 días, registros de flujos y del Motor 180 días.
