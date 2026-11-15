@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-hB7mM4QxnMTdNiAyJFXL5BmxJPD12Hr8vusOXj4Q9AQ='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-BVDT9vrV/LamjMrCXNBQaUHX8nHBYxzm80SRpB9QOgQ='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Labs Command Center 360 - Oficina virtual SaaS de la red comercial de Labs24k.">
 <meta name="theme-color" content="#0B0F19">
@@ -2035,6 +2035,18 @@ a.btn.btn-g:hover{color:#fff}
 .jv-cfg label.f{margin:0 0 3px}
 @media (max-width:560px){#jv{right:12px;bottom:12px;left:12px;align-items:flex-end}.jv-panel{width:100%;max-width:100%;height:calc(100vh - 100px)}.jv-orb{width:54px;height:54px}}
 @media (prefers-reduced-motion:reduce){.jv-orb i,.jv-orb.hablando .jv-core,.jv-mic.on{animation:none}}
+.san{margin-bottom:16px;border-color:rgba(251,191,36,.35);background:radial-gradient(520px 200px at 0% 0%,rgba(251,191,36,.1),transparent 70%),var(--card)}
+.san.ok{border-color:rgba(74,222,128,.35);background:radial-gradient(520px 200px at 0% 0%,rgba(74,222,128,.08),transparent 70%),var(--card)}
+.san-top{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.san-ic{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;color:#FDE68A;background:rgba(251,191,36,.14)}
+.san.ok .san-ic{color:#86EFAC;background:rgba(74,222,128,.14)}
+.san-ic svg,.san-chip svg{display:block}
+.san-auto{display:flex;gap:5px;align-items:center;padding:0 6px}
+.san-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.san-chip{display:inline-flex;gap:5px;align-items:center;padding:5px 10px;border-radius:99px;font-size:12.5px;color:var(--sc);border:1px solid color-mix(in srgb,var(--sc) 40%,transparent);background:color-mix(in srgb,var(--sc) 10%,transparent)}
+.san-chip b{color:var(--txt)}
+.san-lista{margin-top:12px;display:flex;flex-direction:column;gap:6px}
+.san-fila{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--card-2)}
 .eq-hal{display:flex;gap:9px;align-items:flex-start;padding:10px;border-radius:12px;border:1px solid var(--line);border-left:3px solid var(--c);background:var(--card-2);margin-bottom:8px}
 @media (max-width:900px){.eq-lab,.eq-cerebro,.eq-cal,.eq-det-g{grid-template-columns:1fr}.eq-ritmo-obj{align-items:flex-start}}
 @media (max-width:900px){.eq-tareas{grid-template-columns:1fr}.eq-aprob{grid-template-columns:1fr}.eq-cob-res{grid-template-columns:repeat(2,minmax(0,1fr))}.eq-cobro{margin-left:0}}
@@ -5782,6 +5794,7 @@ function viewPipeline(v){
       '<p class="ng-sub">Arrastra cada tarjeta a su fase. El SLA mide el tiempo en la fase y la temperatura, lo caliente que está el lead.</p></div>'+
     '<div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn btn-p" id="pl-nuevo">'+ic('plus',15)+' Nuevo deal</button></div>'+
   '</div>'+
+  (sanPuede() ? '<div id="san-caja">'+sanHtml()+'</div>' : '')+
   '<div class="ng-kpis" style="grid-template-columns:repeat(5,minmax(0,1fr))">'+
     [['Pipeline abierto', ngEuros(suma(abiertos)), 'trend', '#17C8C0'], ['Previsión ponderada', ngEuros(ponderado), 'target', '#818CF8'],
      ['Deals abiertos', abiertos.length, 'filter', '#38BDF8'], ['Ganados', ganados.length + ' · ' + ngEuros(suma(ganados)), 'check', '#4ADE80'],
@@ -5829,6 +5842,7 @@ function viewPipeline(v){
   q('#pl-sol').onchange = function(){ PL.sol = this.value; renderApp(); };
   q('#pl-temp').onchange = function(){ PL.temp = this.value; renderApp(); };
   q('#pl-nuevo').onclick = function(){ CT.volverA = 'pipeline'; S.view = 'contactos'; ctNuevo(); };
+  if(sanPuede()){ if(!SAN.d) sanCarga(); else sanEventos(); }
 
   /* Arrastrar y soltar */
   qa('[data-pl-card]').forEach(function(el){
@@ -11148,6 +11162,60 @@ document.addEventListener('keydown', function(e){
 
 var jvRenderOriginal = renderApp;
 renderApp = function(){ jvRenderOriginal.apply(this, arguments); jvMonta(); };
+
+/* --- Agente de mantenimiento del pipeline ----------------------------------------------------- */
+var SAN = {d:null, cargando:false, cambios:false, ocupado:false};
+function sanPuede(){ return ['admin','manager'].indexOf(S.role) > -1; }
+function sanCarga(){
+  if(SAN.cargando) return; SAN.cargando = true;
+  ngApi('/saneo/estado').then(function(d){ SAN.cargando = false; SAN.d = d; sanPinta(); }, function(e){ SAN.cargando = false; SAN.d = {error:e.message}; sanPinta(); });
+}
+function sanPinta(){ var el = q('#san-caja'); if(!el) return; el.innerHTML = sanHtml(); sanEventos(); }
+function sanHtml(){
+  var d = SAN.d;
+  if(!d) return '<div class="card san"><span class="tiny muted">El agente de mantenimiento está revisando el pipeline…</span></div>';
+  if(d.error) return '<div class="card san"><span class="tiny muted">'+esc(d.error)+'</span></div>';
+  var D = d.diagnostico, C = d.config, u = d.ultimo;
+  var chip = function(n, t, ic_, col){ return '<span class="san-chip" style="--sc:'+(n ? col : '#4ADE80')+'">'+ic(n ? ic_ : 'check',12)+' <b>'+n+'</b> '+esc(t)+'</span>'; };
+  var pend = D.sin_accion + D.sin_valor + D.sin_gestor;
+  return '<div class="card san'+(pend ? '' : ' ok')+'">'+
+    '<div class="san-top"><div class="san-ic">'+ic('bolt',18)+'</div><div style="flex:1;min-width:200px"><b>Agente de mantenimiento</b>'+
+      '<div class="tiny muted">'+(C.automatico ? 'Automático · revisa y corrige el pipeline cada hora' : 'En manual · solo cuando pulsas «Arreglar ahora»')+
+      (u ? ' · última pasada '+ngRel(u.ts)+': '+(u.proximo_paso + u.rescates)+' próximos pasos, '+u.valor+' valores, '+u.gestor+' gestores' : '')+'</div></div>'+
+      '<div class="row" style="gap:6px;flex-wrap:wrap">'+
+        '<button class="btn btn-p" id="san-ya"'+(SAN.ocupado ? ' disabled' : '')+'>'+ic('bolt',14)+(SAN.ocupado ? ' Arreglando…' : ' Arreglar ahora')+'</button>'+
+        '<button class="btn btn-s" id="san-cambios">'+ic('refresh',14)+' Cambios</button>'+
+        (d.admin ? '<label class="tiny san-auto"><input type="checkbox" id="san-auto"'+(C.automatico ? ' checked' : '')+'> Automático</label>' : '')+'</div></div>'+
+    '<div class="san-chips">'+chip(D.sin_accion, 'sin próxima acción', 'alert', '#FBBF24')+chip(D.sin_valor, 'sin valor', 'euro', '#FBBF24')+
+      chip(D.sin_gestor, 'sin gestor', 'user', '#FBBF24')+chip(D.sla_vencido, 'SLA vencido', 'clock', '#F87171')+chip(D.candidatos_perdido, 'para revisar si siguen vivos', 'alert', '#C084FC')+'</div>'+
+    '<p class="tiny muted" style="margin:8px 0 0">El SLA vencido solo desaparece cuando el deal avanza de fase: el agente le pone una acción de rescate con fecha y prioridad y, si sigue muerto, te propone cerrarlo. Nunca marca nada como perdido por su cuenta.</p>'+
+    (d.candidatos.length ? '<div class="san-lista"><h5 class="eq-h5">Para revisar: ¿siguen vivos?</h5>'+d.candidatos.map(function(c){
+      return '<div class="san-fila"><div style="flex:1;min-width:0"><b>'+esc(c.empresa || c.nombre)+'</b><div class="tiny muted">'+esc(c.motivo)+'</div></div>'+
+        '<button class="btn btn-xs" data-san-ficha="'+c.contacto_id+'">Ficha</button><button class="btn btn-xs" data-san-mant="'+c.contacto_id+'">Mantener</button>'+
+        '<button class="btn btn-xs btn-r" data-san-perder="'+c.contacto_id+'">Marcar perdido</button></div>'; }).join('')+'</div>' : '')+
+    (SAN.cambios ? '<div class="san-lista"><h5 class="eq-h5">Últimas pasadas (memoria del agente)</h5>'+(d.lotes.length ? d.lotes.map(function(l){
+      var hecho = Number(l.deshechos) >= Number(l.cambios);
+      return '<div class="san-fila"><div style="flex:1;min-width:0"><b>'+ngRel(l.ts)+'</b> <span class="tiny muted">· '+esc(l.origen)+'</span><div class="tiny muted">'+l.contactos+' deals · '+l.pasos+' próximos pasos · '+l.valores+' valores · '+l.gestores+' gestores'+(hecho ? ' · deshecho' : '')+'</div></div>'+
+        (hecho ? '' : '<button class="btn btn-xs" data-san-desh="'+esc(l.lote)+'">Deshacer</button>')+'</div>'; }).join('') : '<p class="tiny muted">Todavía no ha hecho ninguna pasada.</p>')+'</div>' : '')+
+  '</div>';
+}
+function sanRecarga(){ SAN.d = null; sanCarga(); if(typeof ctCarga === 'function'){ CT.cargado = false; ctCarga(); } }
+function sanEventos(){
+  if(q('#san-ya')) q('#san-ya').onclick = function(){ SAN.ocupado = true; sanPinta();
+    ngApi('/saneo/ejecutar', 'POST', {}).then(function(d){ SAN.ocupado = false; var r = d.resultado;
+      toast('Agente de mantenimiento: ' + (r.proximo_paso + r.rescates) + ' próximos pasos (' + r.rescates + ' rescates), ' + r.valor + ' valores y ' + r.gestor + ' gestores.'); sanRecarga();
+    }, function(e){ SAN.ocupado = false; toast(e.message); sanPinta(); }); };
+  if(q('#san-cambios')) q('#san-cambios').onclick = function(){ SAN.cambios = !SAN.cambios; sanPinta(); };
+  if(q('#san-auto')) q('#san-auto').onchange = function(){ var v = this.checked;
+    ngApi('/saneo/config', 'POST', {config:{automatico:v}}).then(function(){ toast(v ? 'Agente en automático: revisará el pipeline cada hora.' : 'Agente en manual.'); SAN.d = null; sanCarga(); }, function(e){ toast(e.message); }); };
+  qa('[data-san-desh]').forEach(function(b){ b.onclick = function(){ if(!confirm('¿Deshacer los cambios de esa pasada? Lo que una persona haya tocado después se respeta.')) return;
+    ngApi('/saneo/deshacer', 'POST', {lote:b.dataset.sanDesh}).then(function(d){ toast(d.deshechos + ' cambios deshechos.'); sanRecarga(); }, function(e){ toast(e.message); }); }; });
+  qa('[data-san-perder]').forEach(function(b){ b.onclick = function(){ var m = prompt('¿Por qué se pierde? (queda en la ficha)', 'No contesta desde hace meses'); if(!m) return;
+    ngApi('/saneo/candidato/' + b.dataset.sanPerder, 'POST', {accion:'perder', motivo:m}).then(function(){ toast('Marcado como perdido.'); sanRecarga(); }, function(e){ toast(e.message); }); }; });
+  qa('[data-san-mant]').forEach(function(b){ b.onclick = function(){
+    ngApi('/saneo/candidato/' + b.dataset.sanMant, 'POST', {accion:'mantener'}).then(function(){ toast('Se mantiene abierto.'); SAN.d = null; sanCarga(); }, function(e){ toast(e.message); }); }; });
+  qa('[data-san-ficha]').forEach(function(b){ b.onclick = function(){ ngAbreFicha(Number(b.dataset.sanFicha), 'pipeline'); }; });
+}
 
 var MOT = {tab:'radar', estado:null, leads:null, feed:{log:[], pendientes:[]}, ultimo:0, resp:null, sel:{}, f:{estado:'', q:''},
   r:{sectores:['inmobiliaria'], clave:'', ccaa:'Asturias', comarca:'Comarca de Gijón', locs:['Gijón'], extra:'', places:true, web:true, max:100, campana:''},

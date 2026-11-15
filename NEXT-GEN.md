@@ -699,3 +699,25 @@ de abajo a la derecha, el botón «Jarvis» de la cabecera o **Alt+J**.
 - Usa la misma clave de OpenAI que el Motor. Cada consulta queda registrada
   (persona, tipo, tokens) 90 días para auditoría y control de gasto.
 
+## Agente de mantenimiento del pipeline
+
+Corrige solo lo que el Pipeline marca como «requiere acción». Está en el propio
+Pipeline (dirección y jefes de equipo), en automático cada hora (con el cron
+del Motor) y también se le puede pedir a Jarvis: «arregla el pipeline».
+
+- **Sin próxima acción**: le pone el paso típico de su fase y una fecha real,
+  repartida en la agenda de su gestor (15 al día como máximo, días laborables,
+  mañanas y tardes). Opcionalmente crea también la llamada en la agenda.
+- **Sin valor**: valor estimado con su presupuesto, el pack de su cuello de
+  botella, lo vendido de verdad a su sector o el pack de entrada.
+- **Sin gestor** (o gestor dado de baja): al comercial activo con menos deals.
+- **SLA vencido**: no se maquilla, porque solo desaparece al cambiar de fase.
+  Esos van primero, con una acción de «Rescate». Si un deal sigue muerto pese a
+  los rescates (2 reprogramaciones y 45 días sin actividad), lo propone «para
+  revisar»: una persona decide si se marca como perdido (con motivo) o se
+  mantiene. Nunca lo marca solo.
+- **Memoria**: cada cambio queda guardado con su valor anterior. Se puede
+  deshacer una pasada entera; no vuelve a tocar lo que una persona ha corregido
+  después; recuerda cuántas veces ha reprogramado un deal y lo que se decidió
+  mantener. Cada cambio deja una nota en el historial del cliente.
+

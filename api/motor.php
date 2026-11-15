@@ -1405,6 +1405,13 @@ function labs_motor($metodo, $sub, $b, $pares)
         }
         @ignore_user_abort(true);
         $r = labs_motor_tick(25);
+        if (function_exists('labs_saneo_tick')) {
+            try {
+                $r['saneo'] = labs_saneo_tick();
+            } catch (Throwable $x) {
+                $r['saneo'] = array('error' => mb_substr($x->getMessage(), 0, 200));
+            }
+        }
         if (function_exists('labs_flujos_tick')) {
             $r['flujos'] = labs_flujos_tick();
         }

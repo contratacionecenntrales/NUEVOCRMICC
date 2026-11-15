@@ -94,6 +94,8 @@ function labs_jarvis_herramientas()
         'resumen_ventas' => array('Cómo va el negocio visible: contactos por fase, presupuestos abiertos y aceptados del mes, citas de hoy y tareas vencidas.', array(), array(), 'leer'),
         'presupuestos' => array('Presupuestos visibles, por estado (Borrador, Enviado, Aceptado, Rechazado...).', array(
             'estado' => array('type' => 'string'), 'limite' => array('type' => 'integer')), array(), 'leer'),
+        'estado_pipeline' => array('Solo dirección: cuántos deals requieren acción (sin próxima acción, sin valor, SLA vencido, sin gestor) y los candidatos a perdido del agente de mantenimiento.', array(), array(), 'leer'),
+        'arreglar_pipeline' => array('Solo dirección: lanza el agente de mantenimiento, que pone próxima acción con fecha, valor estimado y gestor a los deals que lo necesitan y planifica el rescate de los de SLA vencido.', array(), array(), 'cambio'),
         'zona_agentes' => array('Solo dirección: propuestas de los agentes IA esperando aprobación y últimos turnos.', array(), array(), 'leer'),
         'abrir_pantalla' => array('Lleva a la persona a una pantalla del CRM.', array(
             'pantalla' => array('type' => 'string', 'enum' => array_keys(labs_jarvis_pantallas()))), array('pantalla'), 'ui'),
@@ -251,6 +253,13 @@ function labs_jarvis_lee($n, $e)
         }
         return array('presupuestos' => $r);
     }
+    if ($n === 'estado_pipeline') {
+        if (!in_array(labs_mi_rol(), array('admin', 'manager'), true)) {
+            throw new Exception('El estado del pipeline completo es para dirección y jefes de equipo.');
+        }
+        return array('diagnostico' => labs_saneo_diagnostico(), 'candidatos_a_perdido' => array_slice(labs_saneo_candidatos(), 0, 8),
+            'automatico' => labs_saneo_cfg()['automatico'], 'ultima_pasada' => json_decode((string) labs_ajuste('saneo.ultimo', ''), true));
+    }
     if ($n === 'zona_agentes') {
         if (!in_array(labs_mi_rol(), array('admin', 'manager'), true) || !labs_tabla_existe('equipo_acciones')) {
             throw new Exception('La zona de agentes es solo para dirección y jefes de equipo.');
@@ -270,6 +279,12 @@ function labs_jarvis_describe($n, $e)
     }
     $quien = $c ? labs_jarvis_nombre($c) : '';
     switch ($n) {
+        case 'arreglar_pipeline':
+            if (!in_array(labs_mi_rol(), array('admin', 'manager'), true)) {
+                throw new Exception('Arreglar el pipeline completo es cosa de dirección y jefes de equipo.');
+            }
+            $d = labs_saneo_diagnostico();
+            return 'Agente de mantenimiento: arreglar ' . $d['sin_accion'] . ' sin próxima acción, ' . $d['sin_valor'] . ' sin valor y ' . $d['sin_gestor'] . ' sin gestor, y planificar el rescate de ' . $d['sla_vencido'] . ' con SLA vencido';
         case 'crear_cita':
             labs_jarvis_a_utc($e['fecha'] ?? '', $e['hora'] ?? '');
             return 'Cita (' . ($e['tipo'] ?? 'llamada') . ') «' . trim((string) ($e['titulo'] ?? '')) . '»' . ($quien ? ' con ' . $quien : '') . ' el ' .
@@ -311,6 +326,13 @@ function labs_jarvis_firma($n, $e, $exp)
 function labs_jarvis_aplica($n, $e)
 {
     $uid = labs_uid();
+    if ($n === 'arreglar_pipeline') {
+        if (!in_array(labs_mi_rol(), array('admin', 'manager'), true)) {
+            throw new Exception('Arreglar el pipeline completo es cosa de dirección y jefes de equipo.');
+        }
+        $r = labs_saneo_ejecuta('jarvis');
+        return array('resultado' => $r, 'vista' => 'pipeline');
+    }
     $c = !empty($e['contacto_id']) ? labs_jarvis_contacto($e['contacto_id']) : null;
     if ($n === 'crear_cita') {
         $ini = labs_jarvis_a_utc($e['fecha'] ?? '', $e['hora'] ?? '');
