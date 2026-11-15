@@ -571,6 +571,10 @@ function labs_correo_procesa($id)
     if (!$m || !$c || $m['estado'] !== 'nuevo') {
         return;
     }
+    // Con agente de departamento (y clave de OpenAI), gestiona él; si no, el flujo sencillo.
+    if (function_exists('labs_cag_gestiona') && labs_cag_gestiona($id, $c)) {
+        return;
+    }
     $cfg = labs_correo_cfg();
     $contacto = $m['contacto_id'] ? labs_fila('SELECT * FROM contactos WHERE id = ?', array($m['contacto_id'])) : null;
     $m['limpio'] = labs_correo_limpia((string) $m['cuerpo']) ?: (string) $m['cuerpo'];
@@ -739,14 +743,18 @@ function labs_correo_lee($c, $max = 25)
             list($de, $nombre) = labs_correo_direccion($h['reply-to'] ?? ($h['from'] ?? ''));
             list($from) = labs_correo_direccion($h['from'] ?? '');
             $texto = mb_substr(labs_correo_texto($h, $cuerpo), 0, 60000);
+            $adjE = array();
+            if (function_exists('labs_correo_extrae_adjuntos')) {
+                labs_correo_extrae_adjuntos($h, $cuerpo, $mid, $adjE);
+            }
             $auto = labs_correo_es_automatico($h, $from, $propios);
             $k = labs_fila('SELECT id FROM contactos WHERE activo = 1 AND (email = ? OR decisor_email = ?) ORDER BY id DESC LIMIT 1', array($de, $de));
             $ts = strtotime($h['date'] ?? '') ?: time();
-            labs_q('INSERT INTO mail_mensajes (cuenta_id, uid, message_id, en_respuesta, referencias, sentido, de_email, de_nombre, para, asunto, cuerpo, fecha, contacto_id, categoria, estado, motivo, creado)
-                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', array($c['id'], $uid, mb_substr($mid, 0, 250), mb_substr(trim($h['in-reply-to'] ?? ''), 0, 250),
+            labs_q('INSERT INTO mail_mensajes (cuenta_id, uid, message_id, en_respuesta, referencias, sentido, de_email, de_nombre, para, asunto, cuerpo, fecha, contacto_id, categoria, estado, motivo, creado, adjuntos_entrada)
+                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', array($c['id'], $uid, mb_substr($mid, 0, 250), mb_substr(trim($h['in-reply-to'] ?? ''), 0, 250),
                 mb_substr(trim($h['references'] ?? ''), 0, 1000), 'entrada', mb_substr($de, 0, 190), mb_substr($nombre, 0, 120), $c['email'],
                 mb_substr(labs_correo_cabecera($h['subject'] ?? '(sin asunto)'), 0, 250), $texto, gmdate('Y-m-d H:i:s', $ts), $k ? $k['id'] : null,
-                $auto ? 'automatico' : '', $auto ? 'ignorado' : 'nuevo', $auto ? 'No se responde: ' . $auto : '', labs_ahora()));
+                $auto ? 'automatico' : '', $auto ? 'ignorado' : 'nuevo', $auto ? 'No se responde: ' . $auto : '', labs_ahora(), $adjE ? json_encode($adjE, JSON_UNESCAPED_UNICODE) : null));
             $res['nuevos']++;
             if (!$auto) {
                 labs_correo_procesa((int) labs_db()->lastInsertId());
@@ -787,11 +795,30 @@ function labs_correo($metodo, $sub, $b)
         foreach (labs_q("SELECT estado, COUNT(*) n FROM mail_mensajes WHERE sentido = 'entrada' GROUP BY estado")->fetchAll() as $x) {
             $cnt[$x['estado']] = (int) $x['n'];
         }
-        $msgs = labs_q("SELECT m.id, m.cuenta_id, m.de_email, m.de_nombre, m.asunto, m.fecha, m.contacto_id, m.categoria, m.urgencia, m.resumen, m.confianza, m.estado, m.motivo, m.respondido_por, m.acciones, m.acuse_id,
+        $msgs = labs_q("SELECT m.id, m.cuenta_id, m.de_email, m.de_nombre, m.asunto, m.fecha, m.contacto_id, m.categoria, m.urgencia, m.resumen, m.confianza, m.estado, m.motivo, m.respondido_por, m.acciones, m.acuse_id, m.agente,
                                k.nombre contacto, k.empresa FROM mail_mensajes m LEFT JOIN contactos k ON k.id = m.contacto_id WHERE m.sentido = 'entrada' ORDER BY m.fecha DESC, m.id DESC LIMIT 120")->fetchAll();
         $auto24 = (int) labs_q("SELECT COUNT(*) FROM mail_mensajes WHERE sentido = 'salida' AND respondido_por = 'agente' AND creado >= ?", array(labs_hace(86400)))->fetchColumn();
         $perf = labs_q("SELECT id, TRIM(CONCAT(nombre, ' ', apellidos)) n FROM perfiles WHERE estado = 'Activo' AND rol IN ('admin', 'manager', 'backoffice', 'commercial') ORDER BY nombre")->fetchAll();
+        $agentes = array();
+        foreach (labs_q('SELECT * FROM mail_cuentas ORDER BY id')->fetchAll() as $cu) {
+            $a = labs_cag_cfg($cu);
+            $k = labs_fila("SELECT COUNT(*) g, SUM(estado = 'respondido' AND respondido_por = 'agente') r, SUM(estado = 'pendiente') p FROM mail_mensajes WHERE sentido = 'entrada' AND agente <> '' AND cuenta_id = ? AND fecha >= ?",
+                array($cu['id'], labs_hace(7 * 86400)));
+            $agentes[] = array('cuenta_id' => (int) $cu['id'], 'email' => $cu['email'], 'funcion' => $a['funcion'], 'nombre' => $a['nombre'], 'cargo' => $a['cargo'], 'activo' => $a['activo'],
+                'instrucciones' => $a['instrucciones'], 'conocimiento' => $a['conocimiento'], 'autonomia' => $a['autonomia'],
+                'semana' => array('gestionados' => (int) $k['g'], 'respondidos' => (int) $k['r'], 'pendientes' => (int) $k['p'],
+                    'acciones' => (int) labs_q("SELECT COUNT(*) FROM mail_acciones WHERE cuenta_id = ? AND ts >= ?", array($cu['id'], labs_hace(7 * 86400)))->fetchColumn()));
+        }
+        $herr = array();
+        foreach (labs_cag_herramientas() as $n => $h) {
+            if ($h[1] === 'bajo' || $h[1] === 'alto') {
+                $herr[$n] = array('departamentos' => $h[0], 'riesgo' => $h[1], 'descripcion' => $h[2]);
+            }
+        }
+        $acc = labs_q("SELECT a.id, a.herramienta, a.resumen, a.ts, a.mensaje_id, m.de_email, m.asunto, c.email buzon FROM mail_acciones a JOIN mail_mensajes m ON m.id = a.mensaje_id JOIN mail_cuentas c ON c.id = a.cuenta_id
+                       WHERE a.estado = 'pendiente' ORDER BY a.id DESC LIMIT 50")->fetchAll();
         return array(200, array('cuentas' => $cuentas, 'config' => labs_correo_cfg(), 'contadores' => $cnt, 'mensajes' => $msgs, 'auto_24h' => $auto24, 'funciones' => labs_correo_funciones(),
+            'agentes' => $agentes, 'herramientas' => $herr, 'acciones' => $acc,
             'dosieres' => array_map(function ($x) { unset($x['ruta']); return $x; }, labs_correo_dosieres()), 'personas' => $perf,
             'categorias' => labs_correo_categorias(), 'ia' => labs_motor_secreto('openai_key') !== null, 'admin' => $admin));
     }
@@ -803,6 +830,9 @@ function labs_correo($metodo, $sub, $b)
         $x['respuesta'] = $x['respuesta_id'] ? labs_fila('SELECT asunto, cuerpo, creado, respondido_por, adjuntos FROM mail_mensajes WHERE id = ?', array($x['respuesta_id'])) : null;
         $x['acuse'] = $x['acuse_id'] ? labs_fila('SELECT cuerpo, creado, adjuntos FROM mail_mensajes WHERE id = ?', array($x['acuse_id'])) : null;
         $x['dosieres_ia'] = array_values(array_filter(array_map('intval', explode(',', (string) $x['adjuntos']))));
+        $x['traza'] = json_decode((string) $x['traza'], true) ?: array();
+        $x['adjuntos_entrada'] = array_map(function ($a) { return array('nombre' => $a['nombre'], 'bytes' => $a['bytes']); }, json_decode((string) $x['adjuntos_entrada'], true) ?: array());
+        $x['acciones_pendientes'] = labs_q('SELECT id, herramienta, resumen, estado, resultado FROM mail_acciones WHERE mensaje_id = ? ORDER BY id', array($x['id']))->fetchAll();
         unset($x['referencias']);
         return array(200, $x);
     }
@@ -835,6 +865,9 @@ function labs_correo($metodo, $sub, $b)
         }
         labs_anota('Correo respondido', $c['email'] . ' → ' . labs_enmascara($x['de_email']));
         return array(200, array('ok' => true));
+    }
+    if (preg_match('#^/accion/(\d+)/(aprobar|rechazar)$#', $sub, $m) && $metodo === 'POST') {
+        return array(200, labs_cag_resuelve_accion((int) $m[1], $m[2] === 'aprobar'));
     }
     if ($sub === '/revisar' && $metodo === 'POST') {
         return array(200, array('ok' => true, 'resultado' => labs_correo_tick()));
@@ -901,6 +934,11 @@ function labs_correo($metodo, $sub, $b)
         if ($sclave !== '') {
             $f['smtp_clave'] = labs_ia_cifra($sclave);
         }
+        if (isset($b['agente']) && is_array($b['agente']) && array_key_exists('activo', $b['agente'])) {
+            $ag = json_decode((string) ($v['agente'] ?? ''), true) ?: array();
+            $ag['activo'] = (bool) $b['agente']['activo'];
+            $f['agente'] = json_encode($ag, JSON_UNESCAPED_UNICODE);
+        }
         if ($id) {
             $sets = implode(', ', array_map(function ($k) { return '`' . $k . '` = ?'; }, array_keys($f)));
             labs_q('UPDATE mail_cuentas SET ' . $sets . ' WHERE id = ?', array_merge(array_values($f), array($id)));
@@ -911,6 +949,26 @@ function labs_correo($metodo, $sub, $b)
         }
         labs_anota('Buzón de correo conectado', $f['email']);
         return array(200, array('ok' => true, 'cuenta' => labs_correo_cuenta_publica(labs_fila('SELECT * FROM mail_cuentas WHERE id = ?', array($id)))));
+    }
+    if (preg_match('#^/cuentas/(\d+)/agente$#', $sub, $m) && $metodo === 'POST') {
+        $cu = labs_fila('SELECT * FROM mail_cuentas WHERE id = ?', array((int) $m[1]));
+        if (!$cu) {
+            throw new ErrorApi('Ese buzón no existe.', 404, 'PGRST116');
+        }
+        $a = labs_cag_cfg($cu);
+        $g = (array) ($b['agente'] ?? array());
+        $n = array('nombre' => mb_substr(trim((string) ($g['nombre'] ?? $a['nombre'])), 0, 40) ?: $a['nombre'], 'cargo' => mb_substr(trim((string) ($g['cargo'] ?? $a['cargo'])), 0, 60),
+            'instrucciones' => mb_substr(trim((string) ($g['instrucciones'] ?? $a['instrucciones'])), 0, 6000), 'conocimiento' => mb_substr(trim((string) ($g['conocimiento'] ?? $a['conocimiento'])), 0, 8000),
+            'activo' => array_key_exists('activo', $g) ? (bool) $g['activo'] : $a['activo'], 'autonomia' => array());
+        foreach ($a['autonomia'] as $k => $v) {
+            $n['autonomia'][$k] = in_array($g['autonomia'][$k] ?? $v, array('auto', 'aprobar', 'no'), true) ? ($g['autonomia'][$k] ?? $v) : $v;
+        }
+        if (mb_strlen($n['instrucciones']) < 20) {
+            throw new ErrorApi('Las instrucciones del agente son demasiado cortas.', 400, 'CORREO');
+        }
+        labs_q('UPDATE mail_cuentas SET agente = ? WHERE id = ?', array(json_encode($n, JSON_UNESCAPED_UNICODE), $cu['id']));
+        labs_anota('Agente de correo configurado', $cu['email'] . ' · ' . $n['nombre']);
+        return array(200, array('ok' => true, 'agente' => labs_cag_cfg(labs_fila('SELECT * FROM mail_cuentas WHERE id = ?', array($cu['id'])))));
     }
     if (preg_match('#^/cuentas/(\d+)/(probar|borrar)$#', $sub, $m) && $metodo === 'POST') {
         $c = labs_fila('SELECT * FROM mail_cuentas WHERE id = ?', array((int) $m[1]));

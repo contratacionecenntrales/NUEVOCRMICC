@@ -8,7 +8,7 @@
  */
 defined('LABS') || exit;
 
-define('LABS_VERSION_ESQUEMA', 23);
+define('LABS_VERSION_ESQUEMA', 24);
 
 function labs_columna_existe(PDO $db, $tabla, $col)
 {
@@ -224,6 +224,11 @@ function labs_migra(PDO $db)
            estado VARCHAR(12) NOT NULL DEFAULT 'nuevo', motivo VARCHAR(300) NOT NULL DEFAULT '', borrador_asunto VARCHAR(250) NOT NULL DEFAULT '', borrador TEXT NULL,
            respondido_por VARCHAR(8) NOT NULL DEFAULT '', respuesta_id BIGINT UNSIGNED NULL, creado DATETIME(6) NOT NULL,
            PRIMARY KEY (id), UNIQUE KEY mail_msg_uq (cuenta_id, message_id(190)), KEY mail_msg_estado_idx (sentido, estado, fecha), KEY mail_msg_para_idx (para, creado)) $opc",
+        // v24 · Agentes de correo por departamento: acciones que esperan aprobación.
+        "CREATE TABLE IF NOT EXISTS mail_acciones (
+           id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, mensaje_id BIGINT UNSIGNED NOT NULL, cuenta_id BIGINT UNSIGNED NOT NULL, herramienta VARCHAR(30) NOT NULL,
+           datos TEXT NULL, resumen VARCHAR(250) NOT NULL DEFAULT '', estado VARCHAR(12) NOT NULL DEFAULT 'pendiente', resultado VARCHAR(300) NOT NULL DEFAULT '',
+           resuelto_por CHAR(36) NULL, resuelto DATETIME(6) NULL, ts DATETIME(6) NOT NULL, PRIMARY KEY (id), KEY mail_acc_estado_idx (estado, id)) $opc",
         // v18 · Barrido de Asturias: cada casilla sector × concejo con su estado.
         "CREATE TABLE IF NOT EXISTS motor_cobertura (
            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, sector VARCHAR(60) NOT NULL, concejo VARCHAR(80) NOT NULL, comarca VARCHAR(80) NOT NULL DEFAULT '',
@@ -303,6 +308,11 @@ function labs_migra(PDO $db)
         array('mail_mensajes', 'adjuntos', "ALTER TABLE mail_mensajes ADD COLUMN adjuntos VARCHAR(600) NOT NULL DEFAULT ''"),
         array('mail_mensajes', 'acciones', "ALTER TABLE mail_mensajes ADD COLUMN acciones VARCHAR(300) NOT NULL DEFAULT ''"),
         array('mail_mensajes', 'acuse_id', 'ALTER TABLE mail_mensajes ADD COLUMN acuse_id BIGINT UNSIGNED NULL'),
+        // v24 · Un agente por buzón: su configuración, la traza de cada gestión y los archivos recibidos.
+        array('mail_cuentas', 'agente', 'ALTER TABLE mail_cuentas ADD COLUMN agente TEXT NULL'),
+        array('mail_mensajes', 'agente', "ALTER TABLE mail_mensajes ADD COLUMN agente VARCHAR(60) NOT NULL DEFAULT ''"),
+        array('mail_mensajes', 'traza', 'ALTER TABLE mail_mensajes ADD COLUMN traza MEDIUMTEXT NULL'),
+        array('mail_mensajes', 'adjuntos_entrada', 'ALTER TABLE mail_mensajes ADD COLUMN adjuntos_entrada TEXT NULL'),
         // v12 · Sector y persona que decide en cada contacto, y el siguiente paso.
         array('contactos', 'sector', "ALTER TABLE contactos ADD COLUMN sector VARCHAR(60) NOT NULL DEFAULT '', ADD KEY contactos_sector_idx (sector)"),
         array('contactos', 'decisor_nombre', "ALTER TABLE contactos ADD COLUMN decisor_nombre VARCHAR(120) NOT NULL DEFAULT ''"),

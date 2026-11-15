@@ -45,6 +45,7 @@ require __DIR__ . '/flujos.php';
 require __DIR__ . '/jarvis.php';
 require __DIR__ . '/saneo.php';
 require __DIR__ . '/correo.php';
+require __DIR__ . '/correo_agentes.php';
 
 ini_set('display_errors', '0');
 
