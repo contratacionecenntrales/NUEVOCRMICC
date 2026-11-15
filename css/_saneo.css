@@ -1,0 +1,28 @@
+/* ICC CRM · Tarjeta del agente de mantenimiento en el Pipeline (js/saneo.js) */
+.icc-sn-hueco { min-height: 132px; margin-bottom: 16px; border-radius: 16px; border: 1px solid var(--line); background: var(--card); }
+.icc-sn-hueco:empty { background: linear-gradient(90deg, var(--card), var(--card-2), var(--card)); }
+.icc-sn-hueco[hidden] { display: none; }
+.icc-sn { padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; }
+.icc-sn-cab { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: center; }
+.icc-sn-cab > div:first-child { display: flex; flex-direction: column; min-width: 0; }
+.icc-sn-cab strong { color: var(--txt); }
+.icc-sn-cab small { color: var(--txt-3); font-size: 12px; }
+.icc-sn-acc { display: flex; gap: 8px; flex-wrap: wrap; }
+.icc-sn-kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+.icc-sn-kpi { display: flex; flex-direction: column; gap: 2px; padding: 8px 12px; border-radius: 12px; background: var(--card-2); border: 1px solid var(--line); text-align: left; font: inherit; color: inherit; }
+.icc-sn-kpi b { font-size: 20px; color: var(--txt); }
+.icc-sn-kpi small { color: var(--txt-3); font-size: 12px; }
+.icc-sn-kpi.is-aviso b { color: #FCD34D; }
+.icc-sn-kpi.is-mal b { color: #FCA5A5; }
+.icc-sn-kpi--btn { cursor: pointer; }
+.icc-sn-kpi--btn:disabled { cursor: default; }
+.icc-sn-revisar { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.icc-sn-revisar li { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 8px 10px; border-radius: 10px; background: var(--card-2); }
+.icc-sn-revisar li > div { flex: 1; min-width: 200px; display: flex; flex-direction: column; }
+.icc-sn-revisar small { color: var(--txt-3); font-size: 12px; }
+.icc-sn-revisar .icc-input { width: 200px; }
+.icc-sn-cfg { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; padding-top: 10px; border-top: 1px solid var(--line); font-size: 13px; color: var(--txt-2); }
+.icc-sn-cfg label { display: flex; gap: 6px; align-items: center; }
+.icc-sn-cfg .icc-input { width: 80px; }
+@media (max-width: 760px) { .icc-sn-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } .icc-sn-hueco { min-height: 220px; } }
+@media (max-width: 420px) { .icc-sn-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .icc-sn-hueco { min-height: 270px; } .icc-sn-revisar .icc-input { width: 100%; } }

@@ -39,8 +39,10 @@
 .icc-jv-mic:disabled { opacity: .4; cursor: not-allowed; }
 .icc-jarvis-btn { display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--card-2); color: var(--txt); font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
 .icc-jarvis-btn .icc-jv-orb { width: 18px; height: 18px; animation: none; }
-@media (max-width: 860px) { .icc-jarvis-btn span:last-child { display: none; } .icc-jarvis-btn { padding: 0 9px; } }
+@media (max-width: 1680px) { .icc-jarvis-btn span:last-child { display: none; } .icc-jarvis-btn { padding: 0 9px; } }
 @media (max-width: 560px) {
   .icc-jv-nucleo { right: 14px; bottom: 14px; width: 52px; height: 52px; }
   .icc-jv-panel { right: 8px; left: 8px; width: auto; max-width: none; bottom: 76px; height: calc(100vh - 150px); }
 }
+/* Con el grupo «IA» el menú de dirección no cabe en dos filas: enlaces algo más compactos. */
+@media (min-width: 1100px) and (max-width: 1800px) { .icc-topnav-link { padding: 10px 8px; font-size: 12px; letter-spacing: .02em; } .icc-topnav-nav { gap: 0; } }

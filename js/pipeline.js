@@ -147,6 +147,7 @@ window.icc.pipeline = (function () {
       (window.icc.auth.puede("clientes.crear") ? '<button class="icc-btn icc-btn-primary icc-ag-btn-nueva" id="pl-nueva">+ Nueva oportunidad</button>' : "") +
       "</div></header>" +
       (!conValor ? '<div class="icc-aviso icc-aviso-oro">⚠️ Importa <code>sql/migracion_pipeline_oportunidades.sql</code> para poner valor y fecha de cierre a cada oportunidad (previsión de ventas).</div>' : "") +
+      (window.icc.auth.puedeVerIA && window.icc.auth.puedeVerIA() && window.icc.saneo ? '<div id="sn-tarjeta" class="icc-sn-hueco"></div>' : "") +
       kpis(abiertas, m, nEstancadas, sinAccion, conValor, prevision, f) +
       (f.estancadas || f.sin_accion
         ? '<div class="icc-aviso icc-pl-filtro-activo">' + (f.estancadas ? "🧊 Mostrando solo las oportunidades <b>estancadas</b>." : "📅 Mostrando solo las oportunidades <b>sin próxima acción</b> en la agenda.") +
@@ -158,6 +159,7 @@ window.icc.pipeline = (function () {
       '<div class="icc-pl-paneles">' + (conValor ? panelPrevision(abiertas) : "") + panelMotivos(m) + panelComerciales(abiertas, conValor) + "</div>";
 
     enlazar(f);
+    if (window.icc.saneo && document.getElementById("sn-tarjeta")) window.icc.saneo.tarjeta();
   }
 
   // Cada indicador lleva a algo: un filtro (enlace) o el panel donde se explica (data-ir).

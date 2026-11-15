@@ -116,5 +116,7 @@ icc_cron_registrar('motor', 1, function (): string { return motor_tick(); });
 icc_cron_registrar('motor_analisis', 5, function (): string { return motor_analizar_pendientes(); });
 require_once __DIR__ . '/agentes_lib.php';
 require_once __DIR__ . '/flujos_lib.php';
+require_once __DIR__ . '/saneo_lib.php';
+icc_cron_registrar('saneo', 60, function (): string { return sn_tick(); });
 icc_cron_registrar('flujos', 1, function (): string { return fl_tick(); });
 icc_cron_registrar('agentes', 5, function (): string { return eq_tick(); });
