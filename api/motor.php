@@ -326,7 +326,7 @@ if ($accion === 'config' && $metodo === 'GET') {
   foreach (array_keys(MOTOR_PERFILES) as $k) {
     $p = motor_perfil($k);
     $perfiles[$k] = ['nombre' => $p['nombre'], 'empresa' => $p['empresa'], 'firma' => $p['firma'], 'responsable' => $p['responsable'], 'tono' => $p['tono'], 'prompt' => $p['prompt'],
-      'palabras' => $p['palabras'], 'modelo' => $p['modelo'], 'angulos' => $p['angulos'], 'pasos' => $p['pasos'], 'prompt_defecto' => $k === 'labs24k' ? MOTOR_PROMPT_LABS : MOTOR_PROMPT,
+      'palabras' => $p['palabras'], 'modelo' => $p['modelo'], 'angulos' => $p['angulos'], 'pasos' => $p['pasos'], 'prompt_defecto' => MOTOR_PROMPT,
       'ejemplos' => count(function_exists('apr_ejemplos') ? apr_ejemplos('motor_' . $k) : [])];
   }
   $buz = array_map(function ($b) { $b['tiene_clave'] = motor_buzon_clave((string)$b['id']) !== ''; $b['limite_hoy'] = motor_buzon_limite_hoy($b); unset($b['clave']); return $b; }, motor_buzones());

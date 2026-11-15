@@ -1190,7 +1190,7 @@ function eq_turno(string $agente, string $origen = 'cron', ?int $usuarioId = nul
           'parameters' => ['type' => 'object', 'properties' => $props ?: new stdClass(), 'required' => $req, 'additionalProperties' => false]]];
       }
       $extra = trim((string)($cfg['instrucciones'][$agente] ?? ''));
-      $sistema = "[agente:$agente] Eres «" . $ag[0] . "», del departamento de " . $ag[1] . ' de Integral Connection Consulting (consultoría de energía y telecomunicaciones para empresas en Asturias).'
+      $sistema = "[agente:$agente] Eres «" . $ag[0] . "», del departamento de " . $ag[1] . ' de ICC Consultoría · Integral Connection Consulting (consultoría B2B en Asturias: 100 % servicios —energía, telefonía, alarmas y seguros—, 100 % compañías, reducción de costes garantizada: si no hay mejora real, se le dice al cliente y no cambia nada).'
         . "\nMisión: " . $ag[4] . "\nCómo piensas: " . $ag[6] . "\nAutonomía: " . eq_autonomia($agente) . '.'
         . ($extra !== '' ? "\nInstrucciones de dirección: " . $extra : '') . "\n\n" . EQ_REGLAS_CASA . "\n\nCerebro de la empresa:\n" . eq_cerebro_texto();
       $msgs = [['role' => 'system', 'content' => $sistema], ['role' => 'user', 'content' => icc_ia_datos('SITUACIÓN DEL CRM', json_encode(eq_situacion($agente), JSON_UNESCAPED_UNICODE), 6000) . "\n\nHaz tu turno."]];

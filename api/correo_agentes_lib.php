@@ -78,7 +78,7 @@ const CA_SIEMPRE_APROBACION = ['preparar_presupuesto', 'registrar_pago'];
 function ca_config(): array {
   return [
     'tono' => (string)icc_ajuste('correo_tono', 'cercano y profesional, de usted'),
-    'conocimiento' => (string)icc_ajuste('correo_conocimiento', "Integral Connection Consulting (ICC) es una consultoría de energía y telecomunicaciones para empresas y particulares en Asturias.\nServicios: revisión gratuita de facturas de luz, gas y telefonía; cambio de comercializadora sin cortes; alarmas y seguros.\nHorario de atención: lunes a viernes de 9:00 a 14:00 y de 16:00 a 19:00."),
+    'conocimiento' => (string)icc_ajuste('correo_conocimiento', "ICC Consultoría (Integral Connection Consulting, integralconnectionconsulting.es) es una consultoría B2B de Asturias. Lema: 100 % servicios, 100 % compañías, reducción de costes garantizada.\nServicios: energía (luz y gas), telefonía e internet, alarmas y seguridad, y seguros de empresa. Trabajamos con todas las compañías del mercado.\nEstudio gratuito de facturas y pólizas: si no encontramos una mejora real, se lo decimos al cliente y no cambia nada. Nos encargamos de los trámites del cambio, sin cortes.\nHorario de atención: lunes a viernes de 9:00 a 14:00 y de 16:00 a 19:00."),
     'modelo' => (string)icc_ajuste('correo_modelo', ''),
     'limite_dia' => max(1, (int)icc_ajuste('correo_limite_dia', '150')),
     'aviso_ia' => (string)icc_ajuste('correo_aviso_ia', '1') === '1',

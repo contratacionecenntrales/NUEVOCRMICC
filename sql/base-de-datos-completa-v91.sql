@@ -1,11 +1,11 @@
 -- =============================================================================
--- ICC CRM v90 · BASE DE DATOS COMPLETA (instalar o actualizar en un solo paso)
+-- ICC CRM v91 · BASE DE DATOS COMPLETA (instalar o actualizar en un solo paso)
 --
 -- Cómo usarlo: phpMyAdmin > tu base de datos > Importar > este archivo > Continuar.
 --
 -- - Si la base de datos YA TIENE datos (tu CRM actual): NO borra nada.
 --   Solo crea las tablas, columnas e índices que falten y amplía lo necesario
---   para la versión v90. Sirve vengas de la versión que vengas (v55 en adelante).
+--   para la versión v91. Sirve vengas de la versión que vengas (v55 en adelante).
 -- - Si la base de datos está VACÍA: crea el CRM completo y un usuario
 --   Super Administrador inicial (ver el final del archivo).
 -- - Se puede ejecutar MÁS DE UNA VEZ sin errores ni duplicados.
@@ -3919,6 +3919,12 @@ PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 -- Numero de relacion de cada usuario (solo a quien no lo tenga).
 UPDATE usuarios SET numero_relacion = CONCAT('ICC-', LPAD(id, 5, '0')) WHERE numero_relacion IS NULL;
 
+-- v91: la identidad Labs24k del Motor pasa a ICC Consultoria (100 % servicios, 100 % companias).
+UPDATE motor_campanas SET perfil = 'icc' WHERE perfil = 'labs24k';
+UPDATE motor_campanas SET angulo = 'auditoria_integral' WHERE angulo IN ('ia_transparencia', 'ia_alfabetizacion', 'ia_fundae', 'ia_captacion', 'ia_pregunta');
+DELETE FROM ajustes WHERE clave = 'motor_perfil_labs24k';
+UPDATE ajustes SET valor = 'icc' WHERE clave = 'barrido_perfil' AND valor = 'labs24k';
+
 -- Citas antiguas: quedan en el equipo del jefe de su comercial (solo las que no tengan equipo).
 UPDATE citas c JOIN usuarios u ON u.id = c.comercial_id
   SET c.equipo_id = u.supervisor_id
@@ -4130,4 +4136,4 @@ UPDATE usuarios SET numero_relacion = CONCAT('ICC-', LPAD(id, 5, '0')) WHERE num
 SET FOREIGN_KEY_CHECKS = 1;
 SET SESSION sql_mode = @icc_modo_anterior;
 
--- Listo. Base de datos al dia para ICC CRM v90.
+-- Listo. Base de datos al dia para ICC CRM v91.

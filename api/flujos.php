@@ -7,6 +7,7 @@
  * POST ?action=plantilla {clave}        crea un flujo (borrador) desde una plantilla
  * POST ?action=guardar {...}            crea o guarda (valida que no haya bucles)
  * POST ?action=estado {id, estado}      activar | pausar
+ * POST ?action=instalar {grupo}         crea y activa un grupo de plantillas (basica|lineal|avanzado|oficina)
  * POST ?action=borrar {id}
  * POST ?action=inscribir {id, fase?, etiqueta?, cliente_id?}
  * POST ?action=tick                     pasada del motor ahora
@@ -14,6 +15,7 @@
 require __DIR__ . '/config.php';
 require_once __DIR__ . '/agentes_lib.php';
 require_once __DIR__ . '/flujos_lib.php';
+require_once __DIR__ . '/aprendizaje_lib.php';
 
 $user = icc_require_auth();
 if (!icc_ve_ia_equipo($user)) icc_json(['error' => 'No encontrado'], 404);
@@ -38,9 +40,10 @@ if ($accion === 'lista' && $metodo === 'GET') {
   $out = [];
   foreach ($db->query('SELECT * FROM flujos ORDER BY estado = "activo" DESC, id DESC')->fetchAll() as $f) $out[] = fl_publico($f) + ['stats' => fl_estadisticas((int)$f['id'])];
   $pl = [];
-  foreach (fl_plantillas() as $k => $p) $pl[] = ['clave' => $k, 'nombre' => $p[0], 'grupo' => $p[1], 'disparador' => $p[2], 'pasos' => count($p[4]['nodos'])];
+  foreach (fl_plantillas() as $k => $p) $pl[] = ['clave' => $k, 'nombre' => $p[0], 'grupo' => $p[1], 'disparador' => $p[2], 'pasos' => count($p[4]['nodos']), 'descripcion' => $p[6] ?? '',
+    'ramas' => count(array_filter($p[4]['nodos'], function ($x) { return in_array($x['tipo'], ['condicion', 'esperar_condicion', 'ab'], true); }))];
   $etq = $db->query('SELECT etiqueta, COUNT(*) n FROM cliente_etiquetas GROUP BY etiqueta ORDER BY n DESC LIMIT 50')->fetchAll();
-  icc_json(['flujos' => $out, 'plantillas' => $pl, 'disparadores' => FL_DISPARADORES, 'pasos' => FL_PASOS, 'fases' => FL_FASES, 'etiquetas' => $etq,
+  icc_json(['flujos' => $out, 'plantillas' => $pl, 'disparadores' => FL_DISPARADORES, 'pasos' => FL_PASOS, 'fases' => FL_FASES, 'servicios' => FL_SERVICIOS, 'intereses' => array_values(ICC_INTERESES), 'oficina' => count(APR_FLUJOS_PILOTO), 'etiquetas' => $etq,
     'buzon' => motor_cuenta() !== null, 'ultimo' => (string)icc_ajuste('cron_ultimo_flujos', '')]);
 }
 
@@ -63,8 +66,8 @@ if ($accion === 'plantilla' && $metodo === 'POST') {
   $pl = fl_plantillas()[(string)($body['clave'] ?? '')] ?? null;
   if (!$pl) icc_json(['error' => 'Plantilla no encontrada.'], 404);
   [$nombre, , $disp, $cfg, $pasos, $obj] = $pl;
-  $db->prepare("INSERT INTO flujos (nombre, disparador, disparador_cfg, filtro, pasos, objetivo, plantilla, token_entrada, creado_por) VALUES (?, ?, ?, '{}', ?, ?, ?, ?, ?)")
-    ->execute([$nombre, $disp, json_encode($cfg ?: new stdClass()), json_encode($pasos, JSON_UNESCAPED_UNICODE), json_encode($obj ?: new stdClass()), (string)$body['clave'], $disp === 'formulario' ? bin2hex(random_bytes(16)) : null, $uid]);
+  $db->prepare("INSERT INTO flujos (nombre, descripcion, disparador, disparador_cfg, filtro, pasos, objetivo, plantilla, token_entrada, creado_por) VALUES (?, ?, ?, ?, '{}', ?, ?, ?, ?, ?)")
+    ->execute([$nombre, mb_substr((string)($pl[6] ?? ''), 0, 500), $disp, json_encode($cfg ?: new stdClass()), json_encode($pasos, JSON_UNESCAPED_UNICODE), json_encode($obj ?: new stdClass()), (string)$body['clave'], $disp === 'formulario' ? bin2hex(random_bytes(16)) : null, $uid]);
   icc_json(['ok' => true, 'id' => (int)$db->lastInsertId()]);
 }
 
@@ -79,7 +82,9 @@ if ($accion === 'guardar' && $metodo === 'POST') {
     $prev = $id0 ? (string)$db->query('SELECT pasos FROM flujos WHERE id = ' . $id0)->fetchColumn() : '';
     if (strpos($prev, (string)$n['cfg']['url']) === false) icc_json(['error' => 'Solo la administración añade webhooks salientes.'], 403);
   }
-  $dcfg = array_intersect_key((array)($body['disparador_cfg'] ?? []), array_flip(['fase', 'etiqueta', 'tipo_cita', 'resultado', 'dias']));
+  $dcfg = array_intersect_key((array)($body['disparador_cfg'] ?? []), array_flip(['fase', 'etiqueta', 'tipo_cita', 'resultado', 'dias', 'sector']));
+  if (isset($dcfg['sector']) && !isset(FL_SERVICIOS[$dcfg['sector']])) unset($dcfg['sector']);
+  if (isset($dcfg['dias'])) $dcfg['dias'] = max(1, min(3650, (int)$dcfg['dias']));
   $filtro = array_intersect_key((array)($body['filtro'] ?? []), array_flip(['origen', 'sector']));
   $obj = array_intersect_key((array)($body['objetivo'] ?? []), array_flip(['fase', 'cita', 'presupuesto_aceptado', 'etiqueta']));
   $gracias = trim((string)($body['gracias_url'] ?? ''));
@@ -103,6 +108,15 @@ if ($accion === 'guardar' && $metodo === 'POST') {
     $id = (int)$db->lastInsertId();
   }
   icc_json(['ok' => true, 'id' => $id]);
+}
+
+if ($accion === 'instalar' && $metodo === 'POST') {
+  // Instala y activa un grupo de plantillas (basica | lineal | avanzado | oficina = las del piloto automatico).
+  $grupo = (string)($body['grupo'] ?? '');
+  $claves = $grupo === 'oficina' ? APR_FLUJOS_PILOTO : array_keys(array_filter(fl_plantillas(), function ($p) use ($grupo) { return $p[1] === $grupo && $p[2] !== 'formulario'; }));
+  if (!$claves) icc_json(['error' => 'Grupo no válido.'], 422);
+  [$creados, $activos] = fl_instalar($claves, $uid, true);
+  icc_json(['ok' => true, 'creados' => $creados, 'activos' => $activos]);
 }
 
 if ($accion === 'estado' && $metodo === 'POST') {

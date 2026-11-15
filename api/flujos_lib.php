@@ -27,8 +27,19 @@ const FL_DISPARADORES = [
   'cita_no_asistida' => 'Cita no asistida',
   'llamada_resultado' => 'Llamada con un resultado',
   'dias_sin_actividad' => 'Días sin actividad',
+  'contrato_registrado' => 'Contrato registrado (alta en trámite)',
+  'contrato_activado' => 'Contrato activado',
+  'contrato_incidencia' => 'Contrato con incidencia o KO',
+  'aniversario_contrato' => 'Aniversario del contrato (renovación)',
   'inscripcion_manual' => 'Inscripción manual',
 ];
+
+/** Servicios de ICC (sector de contratos y presupuestos). */
+const FL_SERVICIOS = ['energia' => 'Energía', 'telecomunicaciones' => 'Telefonía', 'alarmas' => 'Alarmas', 'seguros' => 'Seguros'];
+/** Disparadores que se pueden filtrar por servicio. */
+const FL_DISP_SERVICIO = ['presupuesto_registrado', 'presupuesto_aceptado', 'contrato_registrado', 'contrato_activado', 'contrato_incidencia', 'aniversario_contrato'];
+/** Pie de los correos de las automatizaciones. */
+const FL_FIRMA_ICC = "ICC Consultoría · Integral Connection Consulting\n100 % servicios · 100 % compañías · Reducción de costes garantizada\nintegralconnectionconsulting.es";
 
 const FL_PASOS = [
   'correo' => ['✉️', 'Correo'],
@@ -50,87 +61,223 @@ const FL_PASOS = [
 const FL_FASES = ['lead_captado' => 'Lead', 'estudio_backoffice' => 'Auditoría', 'oferta_presentada' => 'Propuesta', 'en_cierre' => 'Negociación', 'cliente_activo' => 'Ganado', 'perdido' => 'Perdido'];
 
 /* ===========================================================================
-   PLANTILLAS (11)
+   PLANTILLAS: automatizaciones básicas, embudos lineales y embudos avanzados
+   [nombre, grupo, disparador, cfg del disparador, pasos, objetivo, descripcion]
    ========================================================================= */
 function fl_plantillas(): array {
   $c = function (string $a, string $t) { return ['tipo' => 'correo', 'cfg' => ['asunto' => $a, 'cuerpo' => $t]]; };
   $e = function (int $n, string $u) { return ['tipo' => 'esperar', 'cfg' => ['cantidad' => $n, 'unidad' => $u]]; };
+  $w = function (string $m) { return ['tipo' => 'whatsapp', 'cfg' => ['mensaje' => $m]]; };
+  $ll = function (int $min, string $m) { return ['tipo' => 'llamada', 'cfg' => ['en_minutos' => $min, 'motivo' => $m]]; };
+  $ta = function (string $t, int $h = 24) { return ['tipo' => 'tarea', 'cfg' => ['titulo' => $t, 'en_horas' => $h]]; };
+  $et = function (string $t) { return ['tipo' => 'etiqueta', 'cfg' => ['etiqueta' => $t]]; };
   // Cadena lineal: lista de pasos -> arbol.
   $lineal = function (array $pasos) {
     $nodos = [];
     foreach ($pasos as $i => $p) $nodos['p' . ($i + 1)] = $p + ['sig' => isset($pasos[$i + 1]) ? 'p' . ($i + 2) : null];
     return ['inicio' => 'p1', 'nodos' => $nodos];
   };
+  $n = function (array $paso, array $salidas) { return $paso + $salidas; };
   return [
+    /* ---------------- AUTOMATIZACIONES BÁSICAS DE LA OFICINA ---------------- */
     'lead_reparto' => ['Lead nuevo: reparto, bienvenida y llamada en 5 minutos', 'basica', 'lead_nuevo', [], $lineal([
       ['tipo' => 'reparto', 'cfg' => []],
-      $c('Gracias por contactar con ICC', "Hola {{nombre}}:\n\nGracias por su interés. Soy {{gestor}}, de Integral Connection Consulting, y voy a ser su persona de contacto.\n\nEn breve le llamo para conocer su caso. Si lo prefiere, puede responder a este correo con una factura reciente de luz, gas o teléfono y empezamos a revisarla.\n\nUn saludo."),
-      ['tipo' => 'llamada', 'cfg' => ['en_minutos' => 5, 'motivo' => 'Lead nuevo: llamar en 5 minutos']],
-    ]), ['cita' => true]],
+      $c('Gracias por contactar con ICC', "Hola {{nombre}}:\n\nGracias por su interés. Soy {{gestor}}, de ICC Consultoría, y voy a ser su persona de contacto para todos sus servicios: luz, gas, telefonía, alarmas y seguros.\n\nEn breve le llamo para conocer su caso. Si lo prefiere, responda a este correo con una factura reciente o su póliza y empezamos a revisarla. Trabajamos con todas las compañías: si no encontramos una mejora real, se lo decimos y no cambia nada.\n\nUn saludo."),
+      $ll(5, 'Lead nuevo: llamar en 5 minutos'),
+    ]), ['cita' => true], 'Asigna un gestor por turnos, envía la bienvenida y le pone una llamada a los 5 minutos.'],
     'recordatorio_cita' => ['Recordatorio de cita 24 h y 2 h antes', 'basica', 'cita_agendada', [], $lineal([
       ['tipo' => 'esperar_cita', 'cfg' => ['horas' => 24]],
-      $c('Le recordamos nuestra cita', "Hola {{nombre}}:\n\nLe recuerdo que tenemos una cita el {{fecha_cita}}. Si necesita cambiarla, responda a este correo.\n\nUn saludo,\n{{gestor}}"),
+      $c('Le recordamos nuestra cita', "Hola {{nombre}}:\n\nLe recuerdo que tenemos una cita el {{fecha_cita}}. Si puede, tenga a mano sus últimas facturas (luz, gas, teléfono) y las pólizas que quiera revisar: así le damos respuesta en la misma reunión.\n\nSi necesita cambiarla, responda a este correo.\n\nUn saludo,\n{{gestor}}"),
       ['tipo' => 'esperar_cita', 'cfg' => ['horas' => 2]],
-      ['tipo' => 'whatsapp', 'cfg' => ['mensaje' => 'Hola {{nombre}}, le recuerdo nuestra cita de hoy ({{fecha_cita}}). ¡Hasta ahora! {{gestor}}']],
-    ]), []],
+      $w('Hola {{nombre}}, le recuerdo nuestra cita de hoy ({{fecha_cita}}). ¡Hasta ahora! {{gestor}}, de ICC'),
+    ]), [], 'Reduce las citas fallidas: correo el día antes y WhatsApp dos horas antes.'],
     'no_asistio' => ['No asistió: reprogramar', 'basica', 'cita_no_asistida', [], $lineal([
       $c('¿Buscamos otro momento?', "Hola {{nombre}}:\n\nNo pudimos vernos en la cita prevista. ¿Le viene bien que busquemos otro hueco esta semana? Responda con el día y la hora que mejor le encajen.\n\nUn saludo,\n{{gestor}}"),
-      ['tipo' => 'tarea', 'cfg' => ['titulo' => 'Reprogramar la cita no asistida', 'en_horas' => 24]],
-    ]), ['cita' => true]],
-    'seguimiento_presupuesto' => ['Seguimiento de presupuesto', 'basica', 'presupuesto_registrado', [], $lineal([
-      $e(2, 'dias'),
-      $c('¿Ha podido revisar nuestra propuesta?', "Hola {{nombre}}:\n\n¿Ha podido revisar la propuesta que le enviamos? Si tiene cualquier duda, se la resuelvo en una llamada corta.\n\nUn saludo,\n{{gestor}}"),
+      $ta('Reprogramar la cita no asistida', 24),
+    ]), ['cita' => true], 'Correo para reprogramar y tarea para el gestor al día siguiente.'],
+    'acuse_estudio' => ['Documentación recibida: estudio en 48 horas', 'basica', 'presupuesto_registrado', [], $lineal([
+      $c('Hemos recibido su documentación', "Hola {{nombre}}:\n\nHemos recibido su documentación de {{servicio}}. Nuestro equipo la compara con todas las compañías del mercado y en 48 horas laborables le presentamos el estudio.\n\nSi no encontramos una mejora real, se lo diremos igual y no cambia nada.\n\nUn saludo,\n{{gestor}}"),
+      $ta('Revisar que el estudio de {{servicio}} de {{empresa}} sale en 48 h', 24),
+    ]), ['presupuesto_aceptado' => true], 'Confirma al cliente que tenemos su factura o póliza y recuerda al gestor el plazo de 48 horas.'],
+    'seguimiento_presupuesto' => ['Seguimiento del estudio o propuesta', 'basica', 'presupuesto_registrado', [], $lineal([
       $e(3, 'dias'),
-      ['tipo' => 'llamada', 'cfg' => ['en_minutos' => 0, 'motivo' => 'Seguimiento del presupuesto']],
-    ]), ['presupuesto_aceptado' => true]],
-    'presupuesto_aceptado' => ['Presupuesto aceptado: bienvenida y arranque', 'basica', 'presupuesto_aceptado', [], $lineal([
-      $c('¡Bienvenido a Integral Connection Consulting!', "Hola {{nombre}}:\n\nGracias por confiar en nosotros. A partir de ahora nos encargamos de todo el cambio, sin cortes de suministro.\n\nEn los próximos días nuestro equipo de tramitación le pedirá la documentación necesaria. Cualquier duda, aquí estoy.\n\nUn saludo,\n{{gestor}}"),
+      $c('¿Ha podido revisar nuestra propuesta?', "Hola {{nombre}}:\n\n¿Ha podido revisar la propuesta de {{servicio}} que le enviamos? Si tiene cualquier duda, se la resuelvo en una llamada corta.\n\nUn saludo,\n{{gestor}}"),
+      $e(3, 'dias'),
+      $ll(0, 'Seguimiento de la propuesta de {{servicio}}'),
+    ]), ['presupuesto_aceptado' => true], 'Correo a los 3 días y llamada a los 6 si no ha aceptado.'],
+    'presupuesto_aceptado' => ['Propuesta aceptada: bienvenida y arranque', 'basica', 'presupuesto_aceptado', [], $lineal([
+      $c('¡Bienvenido a ICC Consultoría!', "Hola {{nombre}}:\n\nGracias por confiar en nosotros. A partir de ahora nos encargamos de todo el cambio de {{servicio}}, sin cortes ni gestiones por su parte.\n\nEn los próximos días nuestro equipo de tramitación le pedirá la documentación necesaria. Cualquier duda, aquí estoy.\n\nUn saludo,\n{{gestor}}"),
       ['tipo' => 'fase', 'cfg' => ['estado' => 'cliente_activo']],
-      ['tipo' => 'tarea', 'cfg' => ['titulo' => 'Arranque: pedir documentación y tramitar', 'en_horas' => 24]],
-    ]), []],
+      $ta('Arranque de {{servicio}}: pedir documentación y tramitar', 24),
+    ]), [], 'Bienvenida, pasa a «Ganado» y crea la tarea de tramitación.'],
+    'contrato_tramite' => ['Contrato registrado: aviso de alta en trámite', 'basica', 'contrato_registrado', [], $lineal([
+      $c('Su alta de {{servicio}} está en marcha', "Hola {{nombre}}:\n\nYa hemos tramitado su alta de {{servicio}}. No tiene que hacer nada más: nosotros hablamos con la compañía y le avisamos en cuanto esté activa.\n\nSi la compañía le llama para verificar los datos, puede confirmarlos con tranquilidad.\n\nUn saludo,\n{{gestor}}"),
+      ['tipo' => 'aviso', 'cfg' => ['a' => 'gestor', 'mensaje' => 'Contrato de {{servicio}} registrado para {{empresa}}: vigila la activación.']],
+    ]), [], 'Tranquiliza al cliente mientras la compañía activa el contrato.'],
+    'contrato_activo' => ['Contrato activado: bienvenida y revisión de la primera factura', 'basica', 'contrato_activado', [], $lineal([
+      $c('Su contrato de {{servicio}} ya está activo', "Hola {{nombre}}:\n\nSu contrato de {{servicio}} ya está activo. Cuando le llegue la primera factura, envíenosla respondiendo a este correo y comprobamos que todo está como acordamos.\n\nUn saludo,\n{{gestor}}"),
+      $e(35, 'dias'),
+      $c('¿Le ha llegado la primera factura?', "Hola {{nombre}}:\n\n¿Le ha llegado ya la primera factura de {{servicio}}? Envíenosla y la revisamos para confirmar que se aplica todo lo acordado.\n\nUn saludo,\n{{gestor}}"),
+      $ta('Revisar la primera factura de {{servicio}} de {{empresa}}', 72),
+    ]), [], 'Al activarse el contrato, bienvenida; a los 35 días pide la primera factura para comprobarla.'],
+    'contrato_incidencia' => ['Contrato con incidencia: aviso inmediato', 'basica', 'contrato_incidencia', [], $lineal([
+      ['tipo' => 'aviso', 'cfg' => ['a' => 'gestor', 'mensaje' => 'Incidencia en el contrato de {{servicio}} de {{empresa}}: revísala hoy.']],
+      ['tipo' => 'aviso', 'cfg' => ['a' => 'direccion', 'mensaje' => 'Incidencia en un contrato de {{servicio}} ({{empresa}}).']],
+      $ta('Resolver la incidencia del contrato de {{servicio}} y llamar al cliente', 2),
+    ]), [], 'Avisa al gestor y a dirección y crea una tarea en 2 horas. No escribe al cliente: eso lo decide una persona.'],
+    'renovacion_anual' => ['Renovación anual: revisar antes de que se renueve', 'basica', 'aniversario_contrato', ['dias' => 330], $lineal([
+      $ta('Revisar la tarifa de {{servicio}} de {{empresa}} antes de la renovación', 24),
+      $c('Revisamos su contrato de {{servicio}} antes de que se renueve', "Hola {{nombre}}:\n\nSe acerca el año de su contrato de {{servicio}}. Antes de que se renueve, volvemos a compararlo con todas las compañías para que siga pagando lo justo.\n\nSi quiere, envíenos su última factura y se lo confirmamos.\n\nUn saludo,\n{{gestor}}"),
+      $e(5, 'dias'),
+      $ll(0, 'Renovación anual de {{servicio}}: confirmar la revisión'),
+    ]), [], 'Un mes antes del aniversario: tarea, correo y llamada para revisar la tarifa.'],
     'perdido_recuperar' => ['Perdido: recuperar a los 90 días', 'basica', 'fase_cambiada', ['fase' => 'perdido'], $lineal([
       $e(90, 'dias'),
-      $c('¿Revisamos de nuevo sus facturas?', "Hola {{nombre}}:\n\nHace unos meses hablamos sobre sus contratos de energía y telecomunicaciones. Los precios del mercado han cambiado: ¿le parece que revisemos de nuevo sus facturas, sin compromiso?\n\nUn saludo,\n{{gestor}}"),
-      ['tipo' => 'tarea', 'cfg' => ['titulo' => 'Recontactar cliente perdido (90 días)', 'en_horas' => 48]],
-    ]), ['fase' => 'oferta_presentada']],
-    'resena_referidos' => ['Cliente activo: reseña y referidos', 'basica', 'fase_cambiada', ['fase' => 'cliente_activo'], $lineal([
+      $c('¿Revisamos de nuevo sus costes?', "Hola {{nombre}}:\n\nHace unos meses hablamos sobre sus servicios. Los precios del mercado han cambiado: ¿le parece que revisemos de nuevo su luz, telefonía, alarma o seguros, sin compromiso?\n\nUn saludo,\n{{gestor}}"),
+      $ta('Recontactar cliente perdido (90 días)', 48),
+    ]), ['fase' => 'oferta_presentada'], 'A los 90 días vuelve a ofrecer el estudio.'],
+    'resena_referidos' => ['Cliente activo: satisfacción y referidos', 'basica', 'fase_cambiada', ['fase' => 'cliente_activo'], $lineal([
       $e(30, 'dias'),
-      $c('¿Qué tal todo?', "Hola {{nombre}}:\n\nYa llevamos un mes trabajando juntos. ¿Cómo lo está viendo? Si está contento, nos ayudaría mucho una recomendación: ¿conoce a otra empresa que pueda estar pagando de más en energía o teléfono?\n\nGracias,\n{{gestor}}"),
-    ]), []],
-    'lead_magnet' => ['Embudo Lead Magnet → diagnóstico gratuito', 'profesional', 'formulario', [], $lineal([
+      $c('¿Qué tal todo?', "Hola {{nombre}}:\n\nYa llevamos un mes trabajando juntos. ¿Cómo lo está viendo? Si está contento, nos ayudaría mucho una recomendación: ¿conoce a otra empresa que pueda estar pagando de más en luz, teléfono, alarma o seguros?\n\nGracias,\n{{gestor}}"),
+    ]), [], 'Al mes de ser cliente pide opinión y referidos.'],
+
+    /* ---------------- EMBUDOS PROFESIONALES LINEALES (por servicio) ---------------- */
+    'embudo_energia' => ['Embudo Energía: estudio de la factura de luz y gas', 'lineal', 'etiqueta_anadida', ['etiqueta' => ICC_INTERESES['energia']], $lineal([
+      $e(1, 'dias'), // primero la bienvenida y la llamada del gestor
+      $c('Su estudio de luz y gas', "Hola {{nombre}}:\n\nGracias por su interés. Para preparar el estudio de {{empresa}} solo necesitamos su última factura de luz (y de gas, si tiene). Puede enviarla respondiendo a este correo.\n\nRevisamos la potencia contratada, los excesos, la energía reactiva y la tarifa, y la comparamos con todas las compañías. Si no hay mejora real, se lo decimos y no cambia nada.\n\nUn saludo,\n{{gestor}}"),
+      $e(2, 'dias'),
+      $c('Lo que miramos en su factura de luz', "Hola {{nombre}}:\n\nPara que sepa qué revisamos: si la potencia contratada encaja con su consumo real, si paga recargos por excesos o por energía reactiva y si su tarifa sigue siendo la adecuada.\n\n¿Me envía su factura y se lo confirmo en 48 horas?\n\nUn saludo,\n{{gestor}}"),
+      $e(2, 'dias'),
+      $w('Hola {{nombre}}, soy {{gestor}} de ICC. ¿Me puede enviar por aquí una foto de su última factura de luz? En 48 h le digo si se puede mejorar.'),
+      $e(1, 'dias'),
+      $ll(0, 'Embudo Energía: pedir la factura por teléfono'),
+      $e(5, 'dias'),
+      $c('¿Cierro su estudio de energía?', "Hola {{nombre}}:\n\nNo quiero insistir más. Si ahora no es buen momento, lo dejamos aquí. Cuando quiera el estudio, responda a este correo con su factura.\n\nUn saludo,\n{{gestor}}"),
+    ]), ['fase' => 'estudio_backoffice', 'cita' => true], 'Se activa con la etiqueta «Interés: Energía». Empieza al día siguiente de la bienvenida: correo, explicación, WhatsApp, llamada y cierre en 11 días. Termina al pasar a Auditoría o al agendar una reunión.'],
+    'embudo_telefonia' => ['Embudo Telefonía: auditoría de líneas, fibra y centralita', 'lineal', 'etiqueta_anadida', ['etiqueta' => ICC_INTERESES['telecomunicaciones']], $lineal([
+      $e(1, 'dias'), // primero la bienvenida y la llamada del gestor
+      $c('Revisión de su telefonía', "Hola {{nombre}}:\n\nGracias por su interés. Para revisar la telefonía de {{empresa}} necesitamos su última factura de teléfono e internet. Puede enviarla respondiendo a este correo.\n\nMiramos líneas y servicios que ya no se usan, permanencias, y si conviene unificar fibra, móviles y centralita. Comparamos con todas las compañías.\n\nUn saludo,\n{{gestor}}"),
+      $e(2, 'dias'),
+      $c('Cuántas líneas usa de verdad', "Hola {{nombre}}:\n\nUna pregunta: ¿cuántas líneas móviles y fijas usan hoy en {{empresa}}? Es habitual pagar alguna que ya nadie usa.\n\nCon su factura se lo confirmo en 48 horas.\n\nUn saludo,\n{{gestor}}"),
+      $e(2, 'dias'),
+      $w('Hola {{nombre}}, soy {{gestor}} de ICC. ¿Me envía por aquí una foto de su factura de teléfono? Le digo en 48 h si se puede mejorar.'),
+      $e(1, 'dias'),
+      $ll(0, 'Embudo Telefonía: pedir la factura y número de líneas'),
+      $e(5, 'dias'),
+      $c('¿Cierro su revisión de telefonía?', "Hola {{nombre}}:\n\nSi ahora no es buen momento, lo dejamos aquí. Cuando quiera la revisión, responda a este correo con su factura.\n\nUn saludo,\n{{gestor}}"),
+    ]), ['fase' => 'estudio_backoffice', 'cita' => true], 'Se activa con «Interés: Telefonía». Misma cadencia de 10 días, centrada en líneas, permanencias y centralita.'],
+    'embudo_alarmas' => ['Embudo Alarmas: visita de seguridad', 'lineal', 'etiqueta_anadida', ['etiqueta' => ICC_INTERESES['alarmas']], $lineal([
+      $e(1, 'dias'), // primero la bienvenida y la llamada del gestor
+      $c('La seguridad de {{empresa}}', "Hola {{nombre}}:\n\nGracias por su interés. Revisamos la alarma de {{empresa}}: cuota, mantenimiento, conexión a central receptora y estado de los equipos, comparando con todas las compañías de seguridad.\n\n¿Le parece que pasemos a verla? Son 20 minutos y sin compromiso.\n\nUn saludo,\n{{gestor}}"),
+      $e(2, 'dias'),
+      $w('Hola {{nombre}}, soy {{gestor}} de ICC. ¿Qué día le viene bien que pasemos a revisar la alarma? Son 20 minutos.'),
+      $e(2, 'dias'),
+      $ll(0, 'Embudo Alarmas: agendar la visita de seguridad'),
+      $e(5, 'dias'),
+      $c('¿Dejamos la visita para más adelante?', "Hola {{nombre}}:\n\nSi ahora no es buen momento para la visita, lo dejamos aquí. Cuando quiera, responda a este correo y la agendamos.\n\nUn saludo,\n{{gestor}}"),
+    ]), ['cita' => true], 'Se activa con «Interés: Alarmas». Objetivo: agendar la visita técnica.'],
+    'embudo_seguros' => ['Embudo Seguros: revisión de pólizas antes del vencimiento', 'lineal', 'etiqueta_anadida', ['etiqueta' => ICC_INTERESES['seguros']], $lineal([
+      $e(1, 'dias'), // primero la bienvenida y la llamada del gestor
+      $c('Revisión de sus seguros', "Hola {{nombre}}:\n\nGracias por su interés. Para revisar los seguros de {{empresa}} necesitamos las pólizas que quiera comparar (responsabilidad civil, multirriesgo, vehículos…) y su fecha de vencimiento.\n\nComparamos coberturas y precio con todas las compañías. Si no hay mejora real, se lo decimos.\n\nUn saludo,\n{{gestor}}"),
+      $e(3, 'dias'),
+      $c('¿Cuándo vence su póliza?', "Hola {{nombre}}:\n\nLo más importante es la fecha de vencimiento: hay que revisar la póliza antes de que se renueve sola. ¿Me la indica?\n\nUn saludo,\n{{gestor}}"),
+      $e(2, 'dias'),
+      $ll(0, 'Embudo Seguros: pedir pólizas y fechas de vencimiento'),
+      $e(5, 'dias'),
+      $c('¿Lo vemos antes del vencimiento?', "Hola {{nombre}}:\n\nSi ahora no es el momento, lo dejamos aquí. Le recomendamos revisar sus pólizas un mes antes de que venzan: responda a este correo y lo hacemos.\n\nUn saludo,\n{{gestor}}"),
+    ]), ['fase' => 'estudio_backoffice', 'cita' => true], 'Se activa con «Interés: Seguros». Pide pólizas y vencimientos para revisarlas a tiempo.'],
+    'lead_magnet' => ['Embudo Lead Magnet → diagnóstico gratuito', 'lineal', 'formulario', [], $lineal([
       ['tipo' => 'reparto', 'cfg' => []],
-      $c('Su guía para pagar menos luz', "Hola {{nombre}}:\n\nGracias por descargar la guía. El siguiente paso más útil es un diagnóstico gratuito de sus facturas: en 48 horas le decimos cuánto está pagando de más y por qué.\n\n¿Me envía una factura reciente respondiendo a este correo?\n\nUn saludo,\n{{gestor}}"),
+      $c('Su diagnóstico de costes', "Hola {{nombre}}:\n\nGracias por descargar la guía. El siguiente paso más útil es un diagnóstico gratuito: en 48 horas le decimos si está pagando de más en luz, gas, teléfono, alarma o seguros.\n\n¿Me envía una factura reciente respondiendo a este correo?\n\nUn saludo,\n{{gestor}}"),
       $e(2, 'dias'),
       $c('¿Le preparo el diagnóstico?', "Hola {{nombre}}:\n\n¿Le preparo el diagnóstico gratuito de {{empresa}}? Solo necesito una factura.\n\nUn saludo,\n{{gestor}}"),
       $e(3, 'dias'),
-      ['tipo' => 'llamada', 'cfg' => ['en_minutos' => 0, 'motivo' => 'Lead magnet: ofrecer el diagnóstico gratuito por teléfono']],
-    ]), ['fase' => 'estudio_backoffice']],
-    'setter_bant' => ['Setter BANT (urgencia, A/B y espera a la respuesta)', 'profesional', 'formulario', [], ['inicio' => 'p1', 'nodos' => [
-      'p1' => ['tipo' => 'reparto', 'cfg' => [], 'sig' => 'p2'],
-      'p2' => ['tipo' => 'condicion', 'cfg' => ['tipo' => 'etiqueta', 'valor' => 'Urgente'], 'si' => 'p3', 'no' => 'p4'],
-      'p3' => ['tipo' => 'llamada', 'cfg' => ['en_minutos' => 5, 'motivo' => 'Urgente: llamar ya y cualificar (presupuesto, decisor, necesidad, plazo)'], 'sig' => null],
-      'p4' => ['tipo' => 'ab', 'cfg' => [], 'a' => 'p5', 'b' => 'p6'],
-      'p5' => ['tipo' => 'correo', 'cfg' => ['asunto' => 'Cuatro preguntas rápidas', 'cuerpo' => "Hola {{nombre}}:\n\nPara preparar su estudio, ¿me responde a cuatro preguntas?\n1. ¿Cuánto paga al mes entre luz, gas y teléfono?\n2. ¿Quién decide estos contratos?\n3. ¿Qué es lo que más le preocupa?\n4. ¿Para cuándo le gustaría tenerlo resuelto?\n\nGracias,\n{{gestor}}"], 'sig' => 'p7'],
-      'p6' => ['tipo' => 'whatsapp', 'cfg' => ['mensaje' => 'Hola {{nombre}}, soy {{gestor}} de ICC. ¿Te va bien una llamada de 5 minutos para ver tus facturas?'], 'sig' => 'p7'],
-      'p7' => ['tipo' => 'esperar_condicion', 'cfg' => ['tipo' => 'cita_futura', 'valor' => '', 'max_horas' => 48], 'si' => null, 'no' => 'p8'],
-      'p8' => ['tipo' => 'llamada', 'cfg' => ['en_minutos' => 0, 'motivo' => 'Setter: no ha respondido en 48 h'], 'sig' => null],
-    ]], ['cita' => true]],
-    'rescate_omnicanal' => ['Rescate omnicanal 2-24-48 h', 'profesional', 'llamada_resultado', ['resultado' => 'no_contesta'], $lineal([
+      $ll(0, 'Lead magnet: ofrecer el diagnóstico gratuito por teléfono'),
+    ]), ['fase' => 'estudio_backoffice'], 'Para el formulario de tu web: reparto, diagnóstico, recordatorio y llamada.'],
+    'rescate_omnicanal' => ['Rescate omnicanal 2-24-48 h', 'lineal', 'llamada_resultado', ['resultado' => 'no_contesta'], $lineal([
       $e(2, 'horas'),
-      ['tipo' => 'whatsapp', 'cfg' => ['mensaje' => 'Hola {{nombre}}, te he llamado hace un rato de ICC por lo de tus facturas. ¿Cuándo te viene bien que te llame?']],
+      $w('Hola {{nombre}}, le he llamado hace un rato de ICC Consultoría por la revisión de sus facturas. ¿Cuándo le viene bien que le llame?'),
       $e(22, 'horas'),
       $c('Intenté localizarle', "Hola {{nombre}}:\n\nIntenté llamarle ayer. ¿Me dice qué día y hora le viene mejor?\n\nUn saludo,\n{{gestor}}"),
       $e(24, 'horas'),
-      ['tipo' => 'llamada', 'cfg' => ['en_minutos' => 0, 'motivo' => 'Rescate 48 h: último intento por teléfono']],
-    ]), ['cita' => true]],
-    'reactivacion' => ['Reactivación de la base dormida con A/B', 'profesional', 'dias_sin_actividad', ['dias' => 120], ['inicio' => 'p1', 'nodos' => [
+      $ll(0, 'Rescate 48 h: último intento por teléfono'),
+    ]), ['cita' => true], 'Cuando una llamada no contesta: WhatsApp a las 2 h, correo a las 24 h y llamada a las 48 h.'],
+
+    /* ---------------- EMBUDOS PROFESIONALES AVANZADOS (ramas, A/B, esperas) ---------------- */
+    'auditoria_integral' => ['Auditoría integral 100 % servicios (ramas y A/B)', 'avanzado', 'etiqueta_anadida', ['etiqueta' => ICC_INTERESES['integral']], ['inicio' => 'p1', 'nodos' => [
+      'p1' => $n(['tipo' => 'reparto', 'cfg' => []], ['sig' => 'p0']),
+      'p0' => $n($e(1, 'dias'), ['sig' => 'p2']),
+      'p2' => $n(['tipo' => 'condicion', 'cfg' => ['tipo' => 'tiene_email', 'valor' => '']], ['si' => 'p3', 'no' => 'p10']),
+      'p3' => $n($c('Auditoría de costes de {{empresa}}', "Hola {{nombre}}:\n\nGracias por su interés. En una sola revisión miramos luz, gas, telefonía, alarma y seguros de {{empresa}}, comparando con todas las compañías del mercado.\n\nSi no encontramos una mejora real, se lo decimos y no cambia nada. Si la hay, nos encargamos de todos los trámites con un único interlocutor.\n\n¿Le encaja una reunión de 15 minutos esta semana? Responda con el día y la hora que mejor le vengan.\n\nUn saludo,\n{{gestor}}"), ['sig' => 'p4']),
+      'p4' => $n(['tipo' => 'esperar_condicion', 'cfg' => ['tipo' => 'cita_futura', 'valor' => '', 'max_horas' => 72]], ['si' => 'p5', 'no' => 'p6']),
+      'p5' => $n($et('Auditoría agendada'), ['sig' => null]),
+      'p6' => $n(['tipo' => 'ab', 'cfg' => []], ['a' => 'p7', 'b' => 'p8']),
+      'p7' => $n($w('Hola {{nombre}}, soy {{gestor}} de ICC. ¿Le va bien una reunión de 15 minutos para revisar luz, teléfono, alarma y seguros de {{empresa}}?'), ['sig' => 'p9']),
+      'p8' => $n($ll(0, 'Auditoría integral: agendar la reunión de 15 minutos'), ['sig' => 'p9']),
+      'p9' => $n($e(4, 'dias'), ['sig' => 'p11']),
+      'p10' => $n($ll(0, 'Auditoría integral (sin correo): llamar y pedir un correo de contacto'), ['sig' => null]),
+      'p11' => $n(['tipo' => 'condicion', 'cfg' => ['tipo' => 'fase', 'valor' => 'lead_captado']], ['si' => 'p12', 'no' => null]),
+      'p12' => $n($c('¿Lo dejamos para más adelante?', "Hola {{nombre}}:\n\nNo quiero insistir. Si ahora no es buen momento para la auditoría, lo dejamos aquí. Cuando quiera, responda a este correo con cualquier factura y empezamos por ahí.\n\nUn saludo,\n{{gestor}}"), ['sig' => 'p13']),
+      'p13' => $n($ta('Auditoría integral sin respuesta: decidir si seguir o pasar a perdido', 24), ['sig' => null]),
+    ]], ['cita' => true], 'Se activa con «Interés: Auditoría integral» (lo pone el Motor cuando alguien responde con interés). Al día siguiente: si no tiene correo, llamada; si lo tiene, propuesta de reunión y espera 72 h a que agende; si no, A/B entre WhatsApp y llamada; a los 4 días, último correo y decisión del gestor.'],
+    'venta_cruzada' => ['Venta cruzada: completar el 100 % de servicios', 'avanzado', 'fase_cambiada', ['fase' => 'cliente_activo'], ['inicio' => 'p1', 'nodos' => [
+      'p1' => $n($e(45, 'dias'), ['sig' => 'p2']),
+      'p2' => $n(['tipo' => 'condicion', 'cfg' => ['tipo' => 'tiene_servicio', 'valor' => 'energia']], ['si' => 'p4', 'no' => 'p3']),
+      'p3' => $n($c('¿Revisamos también su luz?', "Hola {{nombre}}:\n\nYa nos encargamos de parte de sus servicios. ¿Le gustaría que revisáramos también su factura de luz y gas? Comparamos con todas las compañías y, si no hay mejora, se lo decimos.\n\nUn saludo,\n{{gestor}}"), ['sig' => 'p20']),
+      'p4' => $n(['tipo' => 'condicion', 'cfg' => ['tipo' => 'tiene_servicio', 'valor' => 'telecomunicaciones']], ['si' => 'p6', 'no' => 'p5']),
+      'p5' => $n($c('¿Y su telefonía?', "Hola {{nombre}}:\n\nYa revisamos su energía. ¿Le gustaría que hiciéramos lo mismo con la telefonía e internet de {{empresa}}? Con una factura le decimos si se puede mejorar.\n\nUn saludo,\n{{gestor}}"), ['sig' => 'p20']),
+      'p6' => $n(['tipo' => 'condicion', 'cfg' => ['tipo' => 'tiene_servicio', 'valor' => 'alarmas']], ['si' => 'p8', 'no' => 'p7']),
+      'p7' => $n($c('La seguridad de {{empresa}}', "Hola {{nombre}}:\n\nYa llevamos su energía y su telefonía. ¿Revisamos también la alarma? Comparamos cuota, mantenimiento y conexión a central receptora con todas las compañías.\n\nUn saludo,\n{{gestor}}"), ['sig' => 'p20']),
+      'p8' => $n(['tipo' => 'condicion', 'cfg' => ['tipo' => 'tiene_servicio', 'valor' => 'seguros']], ['si' => 'p10', 'no' => 'p9']),
+      'p9' => $n($c('¿Cuándo vence su seguro?', "Hola {{nombre}}:\n\nNos falta un servicio para completar su revisión: los seguros. ¿Me indica cuándo vence su póliza principal y la revisamos antes de que se renueve?\n\nUn saludo,\n{{gestor}}"), ['sig' => 'p20']),
+      'p10' => $n($c('Gracias por confiar en ICC', "Hola {{nombre}}:\n\nYa nos encargamos de todos sus servicios. Gracias por su confianza. Si conoce a otra empresa a la que podamos ayudar, nos encantará atenderla igual de bien.\n\nUn saludo,\n{{gestor}}"), ['sig' => null]),
+      'p20' => $n($e(5, 'dias'), ['sig' => 'p21']),
+      'p21' => $n(['tipo' => 'condicion', 'cfg' => ['tipo' => 'cita_futura', 'valor' => '']], ['si' => null, 'no' => 'p22']),
+      'p22' => $n($ll(0, 'Venta cruzada: ofrecer el siguiente servicio'), ['sig' => null]),
+    ]], ['cita' => true], 'A los 45 días de ser cliente, mira qué servicios le faltan (energía → telefonía → alarmas → seguros) y ofrece el siguiente; si los tiene todos, pide referidos. Llamada a los 5 días si no ha agendado.'],
+    'setter_bant' => ['Setter BANT (urgencia, A/B y espera a la respuesta)', 'avanzado', 'formulario', [], ['inicio' => 'p1', 'nodos' => [
+      'p1' => ['tipo' => 'reparto', 'cfg' => [], 'sig' => 'p2'],
+      'p2' => ['tipo' => 'condicion', 'cfg' => ['tipo' => 'etiqueta', 'valor' => 'Urgente'], 'si' => 'p3', 'no' => 'p4'],
+      'p3' => ['tipo' => 'llamada', 'cfg' => ['en_minutos' => 5, 'motivo' => 'Urgente: llamar ya y cualificar (gasto, decisor, necesidad, plazo)'], 'sig' => null],
+      'p4' => ['tipo' => 'ab', 'cfg' => [], 'a' => 'p5', 'b' => 'p6'],
+      'p5' => ['tipo' => 'correo', 'cfg' => ['asunto' => 'Cuatro preguntas rápidas', 'cuerpo' => "Hola {{nombre}}:\n\nPara preparar su estudio, ¿me responde a cuatro preguntas?\n1. ¿Cuánto pagan al mes entre luz, gas, teléfono, alarma y seguros?\n2. ¿Quién decide estos contratos?\n3. ¿Qué es lo que más le preocupa?\n4. ¿Para cuándo le gustaría tenerlo resuelto?\n\nGracias,\n{{gestor}}"], 'sig' => 'p7'],
+      'p6' => ['tipo' => 'whatsapp', 'cfg' => ['mensaje' => 'Hola {{nombre}}, soy {{gestor}} de ICC Consultoría. ¿Le va bien una llamada de 5 minutos para ver sus facturas?'], 'sig' => 'p7'],
+      'p7' => ['tipo' => 'esperar_condicion', 'cfg' => ['tipo' => 'cita_futura', 'valor' => '', 'max_horas' => 48], 'si' => null, 'no' => 'p8'],
+      'p8' => ['tipo' => 'llamada', 'cfg' => ['en_minutos' => 0, 'motivo' => 'Setter: no ha respondido en 48 h'], 'sig' => null],
+    ]], ['cita' => true], 'Formulario web: si está etiquetado «Urgente», llamada en 5 min; si no, A/B correo o WhatsApp y espera 48 h a que agende.'],
+    'reactivacion' => ['Reactivación de la base dormida con A/B', 'avanzado', 'dias_sin_actividad', ['dias' => 120], ['inicio' => 'p1', 'nodos' => [
       'p1' => ['tipo' => 'ab', 'cfg' => [], 'a' => 'p2', 'b' => 'p3'],
-      'p2' => ['tipo' => 'correo', 'cfg' => ['asunto' => '¿Sigue pagando lo mismo?', 'cuerpo' => "Hola {{nombre}}:\n\nHace tiempo que no hablamos. ¿Sigue pagando lo mismo de luz y teléfono? Le revisamos las facturas gratis.\n\nUn saludo,\n{{gestor}}"], 'sig' => 'p4'],
-      'p3' => ['tipo' => 'correo', 'cfg' => ['asunto' => 'Una pregunta, {{nombre}}', 'cuerpo' => "Hola {{nombre}}:\n\n¿Le interesaría saber si {{empresa}} puede pagar menos en energía este año? Responda «sí» y le preparo el estudio.\n\nUn saludo,\n{{gestor}}"], 'sig' => 'p4'],
+      'p2' => ['tipo' => 'correo', 'cfg' => ['asunto' => '¿Sigue pagando lo mismo?', 'cuerpo' => "Hola {{nombre}}:\n\nHace tiempo que no hablamos. ¿Sigue pagando lo mismo de luz, teléfono, alarma y seguros? Le revisamos las facturas gratis, con todas las compañías.\n\nUn saludo,\n{{gestor}}"], 'sig' => 'p4'],
+      'p3' => ['tipo' => 'correo', 'cfg' => ['asunto' => 'Una pregunta, {{nombre}}', 'cuerpo' => "Hola {{nombre}}:\n\n¿Le interesaría saber si {{empresa}} puede pagar menos en sus servicios este año? Responda «sí» y le preparo el estudio.\n\nUn saludo,\n{{gestor}}"], 'sig' => 'p4'],
       'p4' => ['tipo' => 'esperar', 'cfg' => ['cantidad' => 5, 'unidad' => 'dias'], 'sig' => 'p5'],
       'p5' => ['tipo' => 'tarea', 'cfg' => ['titulo' => 'Reactivación: llamar si no ha respondido', 'en_horas' => 24], 'sig' => null],
-    ]], ['cita' => true]],
+    ]], ['cita' => true], 'Contactos sin actividad en 120 días: A/B de dos correos y tarea de llamada.'],
   ];
+}
+
+/** Crea (si no existen) los flujos de esas plantillas y, si se pide, los activa. Devuelve [creados, activos]. */
+function fl_instalar(array $claves, ?int $uid, bool $activar = true): array {
+  $db = icc_db();
+  $pl = fl_plantillas();
+  $creados = 0; $activos = 0;
+  foreach ($claves as $clave) {
+    if (!isset($pl[$clave])) continue;
+    $st = $db->prepare('SELECT id, estado FROM flujos WHERE plantilla = ? ORDER BY id LIMIT 1');
+    $st->execute([$clave]);
+    $f = $st->fetch();
+    if (!$f) {
+      [$nombre, , $disp, $cfg, $pasos, $obj] = $pl[$clave];
+      $db->prepare("INSERT INTO flujos (nombre, descripcion, disparador, disparador_cfg, filtro, pasos, objetivo, plantilla, token_entrada, creado_por, estado) VALUES (?, ?, ?, ?, '{}', ?, ?, ?, ?, ?, ?)")
+        ->execute([$nombre, mb_substr((string)($pl[$clave][6] ?? ''), 0, 500), $disp, json_encode($cfg ?: new stdClass(), JSON_UNESCAPED_UNICODE), json_encode($pasos, JSON_UNESCAPED_UNICODE),
+          json_encode($obj ?: new stdClass()), $clave, $disp === 'formulario' ? bin2hex(random_bytes(16)) : null, $uid, $activar ? 'activo' : 'borrador']);
+      $creados++;
+      if ($activar) $activos++;
+    } elseif ($activar) {
+      if ($f['estado'] !== 'activo') $db->prepare("UPDATE flujos SET estado = 'activo' WHERE id = ?")->execute([$f['id']]);
+      $activos++;
+    }
+  }
+  return [$creados, $activos];
 }
 
 /* ===========================================================================
@@ -217,18 +364,25 @@ function fl_proxima_cita(int $clienteId): ?array {
   return $st->fetch() ?: null;
 }
 
-function fl_variables(array $c, string $texto): string {
+function fl_variables(array $c, string $texto, array $ctx = []): string {
   $db = icc_db();
   $gestor = $c['comercial_id'] ? trim((string)$db->query('SELECT CONCAT(nombre, " ", COALESCE(apellidos, "")) FROM usuarios WHERE id = ' . (int)$c['comercial_id'])->fetchColumn()) : 'el equipo de ICC';
   $cita = fl_proxima_cita((int)$c['id']);
   $st = $db->prepare('SELECT id, sector FROM presupuestos WHERE cliente_id = ? ORDER BY id DESC LIMIT 1');
   $st->execute([$c['id']]);
   $p = $st->fetch();
+  $serv = (string)($ctx['servicio'] ?? '');
+  if ($serv === '') {
+    $st = $db->prepare('SELECT sector FROM contratos WHERE cliente_id = ? ORDER BY id DESC LIMIT 1');
+    $st->execute([$c['id']]);
+    $serv = (string)($st->fetchColumn() ?: ($p['sector'] ?? ''));
+  }
   $nombre = trim((string)$c['contacto_nombre']) !== '' ? strtok(trim((string)$c['contacto_nombre']), ' ') : trim((string)$c['razon_social']);
   return strtr($texto, [
     '{{nombre}}' => $nombre ?: 'buenos días', '{{empresa}}' => (string)$c['razon_social'], '{{gestor}}' => $gestor,
     '{{fecha_cita}}' => $cita ? date('d/m/Y', strtotime($cita['fecha'])) . ' a las ' . substr($cita['hora_inicio'], 0, 5) : 'la fecha acordada',
     '{{presupuesto}}' => $p ? 'presupuesto #' . $p['id'] . ' (' . $p['sector'] . ')' : 'nuestra propuesta',
+    '{{servicio}}' => mb_strtolower(FL_SERVICIOS[$serv] ?? 'sus servicios'), '{{web}}' => 'integralconnectionconsulting.es',
     '{{importe}}' => (float)$c['valor_estimado'] > 0 ? number_format((float)$c['valor_estimado'], 0, ',', '.') . ' €' : 'el importe acordado',
   ]);
 }
@@ -245,6 +399,17 @@ function fl_siguiente_horario(): string {
   return $d->setTimezone(new DateTimeZone(date_default_timezone_get()))->format('Y-m-d H:i:s');
 }
 
+/** El cliente ya tiene contratado ese servicio con ICC (contrato vigente o presupuesto cerrado). */
+function fl_tiene_servicio(int $clienteId, string $sector): bool {
+  $db = icc_db();
+  $st = $db->prepare("SELECT 1 FROM contratos WHERE cliente_id = ? AND sector = ? AND estado NOT IN ('ko','decomisionado') LIMIT 1");
+  $st->execute([$clienteId, $sector]);
+  if ($st->fetchColumn()) return true;
+  $st = $db->prepare("SELECT 1 FROM presupuestos WHERE cliente_id = ? AND sector = ? AND estado = 'cerrado' LIMIT 1");
+  $st->execute([$clienteId, $sector]);
+  return (bool)$st->fetchColumn();
+}
+
 function fl_condicion(array $c, array $cfg): bool {
   $db = icc_db();
   $v = (string)($cfg['valor'] ?? '');
@@ -259,6 +424,8 @@ function fl_condicion(array $c, array $cfg): bool {
     case 'tiene_telefono': return (string)($c['contacto_telefono'] ?: $c['telefono']) !== '';
     case 'tiene_email': return fl_email_cliente($c) !== '';
     case 'origen': return $c['origen'] === $v;
+    case 'tiene_servicio': return fl_tiene_servicio((int)$c['id'], $v);
+    case 'interes_servicio': return fl_tiene_etiqueta((int)$c['id'], ICC_INTERESES[$v] ?? ('Interés: ' . $v));
   }
   return false;
 }
@@ -333,19 +500,19 @@ function fl_avanzar(array $insc, array $flujo): int {
           if (!$cuenta) { fl_registro($fid, $iid, $cid, $paso, 'error', 'Sin buzón de salida configurado'); break; }
           $gestor = $c['comercial_id'] ? $db->query('SELECT CONCAT(nombre, " ", COALESCE(apellidos, "")) n, email FROM usuarios WHERE id = ' . (int)$c['comercial_id'])->fetch() : null;
           $baja = motor_enlace_baja(['id' => 'c' . $cid, 'email' => $email]);
-          $texto = fl_variables($c, (string)$cfg['cuerpo']) . "\n\n--\n" . trim(($gestor ? $gestor['n'] . "\n" : '') . 'Integral Connection Consulting')
+          $texto = fl_variables($c, (string)$cfg['cuerpo'], $datos) . "\n\n--\n" . trim(($gestor ? trim($gestor['n']) . "\n" : '') . FL_FIRMA_ICC)
             . "\n\nSi no quiere recibir más correos nuestros: " . $baja;
           $r = icc_smtp_enviar($cuenta + ['nombre' => $gestor ? trim($gestor['n']) . ' · ICC' : ($cuenta['nombre'] ?? 'ICC')], [
-            'para' => $email, 'asunto' => fl_variables($c, (string)$cfg['asunto']), 'texto' => $texto, 'responder_a' => $gestor['email'] ?? null,
+            'para' => $email, 'asunto' => fl_variables($c, (string)$cfg['asunto'], $datos), 'texto' => $texto, 'responder_a' => $gestor['email'] ?? null,
             'cabeceras' => ['List-Unsubscribe: <' . $baja . '>', 'List-Unsubscribe-Post: List-Unsubscribe=One-Click'],
           ]);
-          fl_registro($fid, $iid, $cid, $paso, $r['ok'] ? 'correo' : 'error', $r['ok'] ? fl_variables($c, (string)$cfg['asunto']) : $r['error']);
-          if ($r['ok']) { icc_nota_cliente($cid, 'Automatización «' . $flujo['nombre'] . '» · correo: ' . fl_variables($c, (string)$cfg['asunto']), 'flujo'); $db->prepare('UPDATE clientes SET ultima_actividad = NOW() WHERE id = ?')->execute([$cid]); }
+          fl_registro($fid, $iid, $cid, $paso, $r['ok'] ? 'correo' : 'error', $r['ok'] ? fl_variables($c, (string)$cfg['asunto'], $datos) : $r['error']);
+          if ($r['ok']) { icc_nota_cliente($cid, 'Automatización «' . $flujo['nombre'] . '» · correo: ' . fl_variables($c, (string)$cfg['asunto'], $datos), 'flujo'); $db->prepare('UPDATE clientes SET ultima_actividad = NOW() WHERE id = ?')->execute([$cid]); }
         } else {
           $tel = preg_replace('/\D/', '', (string)($c['contacto_telefono'] ?: $c['telefono']));
           if ($tel === '' || !$c['comercial_id']) { fl_registro($fid, $iid, $cid, $paso, 'omitido', 'Sin teléfono o sin gestor'); break; }
           if (strlen($tel) === 9) $tel = '34' . $tel;
-          $msg = fl_variables($c, (string)$cfg['mensaje']);
+          $msg = fl_variables($c, (string)$cfg['mensaje'], $datos);
           $h = eq_primer_hueco_fl((int)$c['comercial_id']);
           eq_crear_cita_fl((int)$c['comercial_id'], $cid, 'seguimiento', $h[0], $h[1], 10, $c['razon_social'], "Automatización: WhatsApp listo para enviar\n\n$msg\n\nAbrir: https://wa.me/$tel?text=" . rawurlencode($msg));
           fl_registro($fid, $iid, $cid, $paso, 'whatsapp', 'Tarea con el mensaje listo para ' . $tel);
@@ -394,15 +561,15 @@ function fl_avanzar(array $insc, array $flujo): int {
           $cuando = icc_madrid('+' . max(0, $min) . ' minutes');
           $libre = $min <= 15 && icc_es_laborable($cuando) && $cuando->format('H:i') >= '09:00' && $cuando->format('H:i') < '19:00';
           $h = $libre ? [$cuando->format('Y-m-d'), $cuando->format('H:i')] : eq_primer_hueco_fl($g);
-          eq_crear_cita_fl($g, $cid, 'llamada', $h[0], $h[1], 15, $c['razon_social'], 'Automatización: ' . fl_variables($c, (string)($cfg['motivo'] ?? 'Llamada')), (string)($c['contacto_telefono'] ?: $c['telefono']), fl_email_cliente($c));
+          eq_crear_cita_fl($g, $cid, 'llamada', $h[0], $h[1], 15, $c['razon_social'], 'Automatización: ' . fl_variables($c, (string)($cfg['motivo'] ?? 'Llamada'), $datos), (string)($c['contacto_telefono'] ?: $c['telefono']), fl_email_cliente($c));
           icc_notificar($g, 'cuenta', 'flujo_llamada', 'Llamada a ' . $c['razon_social'] . ' el ' . $h[0] . ' a las ' . $h[1] . ' (' . $flujo['nombre'] . ').', $cid);
           fl_registro($fid, $iid, $cid, $paso, 'llamada', $h[0] . ' ' . $h[1]);
         } else {
           $d = icc_madrid('+' . max(0, (int)($cfg['en_horas'] ?? 24)) . ' hours');
           while (!icc_es_laborable($d)) $d = $d->modify('+1 day');
           $h = eq_huecos_fl($g, $d->format('Y-m-d'));
-          eq_crear_cita_fl($g, $cid, 'seguimiento', $d->format('Y-m-d'), $h ?: '10:00', 15, $c['razon_social'], 'Automatización: ' . fl_variables($c, (string)($cfg['titulo'] ?? 'Tarea')));
-          fl_registro($fid, $iid, $cid, $paso, 'tarea', (string)($cfg['titulo'] ?? ''));
+          eq_crear_cita_fl($g, $cid, 'seguimiento', $d->format('Y-m-d'), $h ?: '10:00', 15, $c['razon_social'], 'Automatización: ' . fl_variables($c, (string)($cfg['titulo'] ?? 'Tarea'), $datos));
+          fl_registro($fid, $iid, $cid, $paso, 'tarea', fl_variables($c, (string)($cfg['titulo'] ?? ''), $datos));
         }
         break;
       case 'fase':
@@ -429,7 +596,7 @@ function fl_avanzar(array $insc, array $flujo): int {
         $a = ($cfg['a'] ?? 'gestor') === 'direccion'
           ? array_map('intval', $db->query("SELECT id FROM usuarios WHERE rol IN ('coordinador','admin','super_admin') AND bloqueado = 0")->fetchAll(PDO::FETCH_COLUMN))
           : ($c['comercial_id'] ? [(int)$c['comercial_id']] : []);
-        foreach ($a as $u) icc_notificar($u, 'cuenta', 'flujo_aviso', mb_substr(fl_variables($c, (string)($cfg['mensaje'] ?? 'Aviso de una automatización')), 0, 480), $cid);
+        foreach ($a as $u) icc_notificar($u, 'cuenta', 'flujo_aviso', mb_substr(fl_variables($c, (string)($cfg['mensaje'] ?? 'Aviso de una automatización'), $datos), 0, 480), $cid);
         fl_registro($fid, $iid, $cid, $paso, 'aviso', count($a) . ' personas');
         break;
       case 'webhook':
@@ -485,7 +652,7 @@ function eq_crear_cita_fl(int $gestor, ?int $clienteId, string $tipo, string $fe
 /* ===========================================================================
    INSCRIPCIONES Y EVENTOS
    ========================================================================= */
-function fl_inscribir(array $flujo, int $clienteId, string $origen = 'disparador'): ?int {
+function fl_inscribir(array $flujo, int $clienteId, string $origen = 'disparador', array $datos = []): ?int {
   $db = icc_db();
   $c = eq_cliente_fl($clienteId);
   if (!$c || (int)$c['no_contactar'] === 1) return null;
@@ -496,7 +663,7 @@ function fl_inscribir(array $flujo, int $clienteId, string $origen = 'disparador
   if (!empty($f['origen']) && $c['origen'] !== $f['origen']) return null;
   if (!empty($f['sector']) && mb_stripos((string)$c['sector'], (string)$f['sector']) === false) return null;
   $pasos = json_decode((string)$flujo['pasos'], true);
-  $db->prepare('INSERT INTO flujo_inscripciones (flujo_id, cliente_id, paso_id, proximo) VALUES (?, ?, ?, NOW())')->execute([$flujo['id'], $clienteId, $pasos['inicio'] ?? '']);
+  $db->prepare('INSERT INTO flujo_inscripciones (flujo_id, cliente_id, paso_id, proximo, datos) VALUES (?, ?, ?, NOW(), ?)')->execute([$flujo['id'], $clienteId, $pasos['inicio'] ?? '', json_encode($datos ?: new stdClass(), JSON_UNESCAPED_UNICODE)]);
   $id = (int)$db->lastInsertId();
   fl_registro((int)$flujo['id'], $id, $clienteId, '', 'inscrito', $origen);
   return $id;
@@ -534,7 +701,7 @@ function fl_detectar_cambios(): int {
     icc_ajuste_guardar('flujo_wm_clientes', (string)max($wmc, (int)$db->query('SELECT COALESCE(MAX(id), 0) FROM clientes')->fetchColumn()));
   }
   // Presupuestos y citas: altas y cambios de estado.
-  foreach (['presupuestos' => 'presupuesto', 'citas' => 'cita'] as $tabla => $ent) {
+  foreach (['presupuestos' => 'presupuesto', 'citas' => 'cita', 'contratos' => 'contrato'] as $tabla => $ent) {
     $clave = 'flujo_wm_' . $tabla;
     $desde = (string)icc_ajuste($clave, '');
     $ahora = (string)$db->query('SELECT NOW()')->fetchColumn();
@@ -550,8 +717,15 @@ function fl_detectar_cambios(): int {
       $db->prepare('INSERT INTO flujo_vistos (entidad, entidad_id, estado) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE estado = VALUES(estado)')->execute([$ent, $r['id'], $r['estado']]);
       $cid = (int)$r['cliente_id'];
       if ($ent === 'presupuesto') {
-        if ($antes === false && $r['created_at'] >= $desde) fl_evento('presupuesto_registrado', $cid, ['presupuesto_id' => (int)$r['id']]);
-        if ($r['estado'] === 'cerrado') fl_evento('presupuesto_aceptado', $cid, ['presupuesto_id' => (int)$r['id']]);
+        if ($antes === false && $r['created_at'] >= $desde) fl_evento('presupuesto_registrado', $cid, ['presupuesto_id' => (int)$r['id'], 'sector' => $r['sector']]);
+        if ($r['estado'] === 'cerrado') fl_evento('presupuesto_aceptado', $cid, ['presupuesto_id' => (int)$r['id'], 'sector' => $r['sector']]);
+      } elseif ($ent === 'contrato') {
+        $d = ['contrato_id' => (int)$r['id'], 'sector' => $r['sector']];
+        // Un contrato cargado ya activo (p. ej. importado) no es un alta en tramite ni una activacion de hoy.
+        $reciente = empty($r['fecha_activacion']) || $r['fecha_activacion'] >= date('Y-m-d', strtotime('-30 days'));
+        if ($antes === false && $r['created_at'] >= $desde && in_array($r['estado'], ['tramitado', 'en_distribuidora'], true)) fl_evento('contrato_registrado', $cid, $d);
+        if (in_array($r['estado'], ['ok', 'verificado'], true) && !in_array($antes, ['ok', 'verificado'], true) && $reciente) fl_evento('contrato_activado', $cid, $d);
+        if (in_array($r['estado'], ['ko', 'incidencias'], true)) fl_evento('contrato_incidencia', $cid, $d + ['estado' => $r['estado']]);
       } else {
         if ($antes === false && $r['created_at'] >= $desde && strpos((string)$r['notas'], 'Automatización:') !== 0) fl_evento('cita_agendada', $cid, ['cita_id' => (int)$r['id'], 'tipo' => $r['tipo']]);
         if ($r['estado'] === 'realizada') fl_evento('cita_realizada', $cid, ['cita_id' => (int)$r['id'], 'tipo' => $r['tipo']]);
@@ -578,7 +752,8 @@ function fl_procesar_eventos(): int {
       if ($e['tipo'] === 'etiqueta_anadida' && !empty($cfg['etiqueta']) && mb_strtolower($datos['etiqueta'] ?? '') !== mb_strtolower($cfg['etiqueta'])) continue;
       if (in_array($e['tipo'], ['cita_agendada', 'cita_realizada'], true) && !empty($cfg['tipo_cita']) && ($datos['tipo'] ?? '') !== $cfg['tipo_cita']) continue;
       if ($e['tipo'] === 'formulario' && (int)($datos['flujo_id'] ?? 0) !== (int)$f['id']) continue;
-      if (fl_inscribir($f, (int)$e['cliente_id'], $e['tipo'])) $n++;
+      if (in_array($e['tipo'], FL_DISP_SERVICIO, true) && !empty($cfg['sector']) && ($datos['sector'] ?? '') !== $cfg['sector']) continue;
+      if (fl_inscribir($f, (int)$e['cliente_id'], $e['tipo'], isset($datos['sector']) ? ['servicio' => (string)$datos['sector']] : [])) $n++;
     }
     $db->prepare('UPDATE flujo_eventos SET procesado = 1 WHERE id = ?')->execute([$e['id']]);
   }
@@ -595,6 +770,18 @@ function fl_dias_sin_actividad(): int {
                         AND NOT EXISTS (SELECT 1 FROM flujo_inscripciones i WHERE i.flujo_id = ? AND i.cliente_id = c.id AND i.created_at >= NOW() - INTERVAL $dias DAY) LIMIT 200");
     $st->execute([$f['id']]);
     foreach ($st->fetchAll(PDO::FETCH_COLUMN) as $cid) if (fl_inscribir($f, (int)$cid, 'dias_sin_actividad')) $n++;
+  }
+  // Aniversario del contrato: N dias desde la activacion (por defecto 330, un mes antes de renovar).
+  foreach ($db->query("SELECT * FROM flujos WHERE estado = 'activo' AND disparador = 'aniversario_contrato'")->fetchAll() as $f) {
+    $cfg = json_decode((string)$f['disparador_cfg'], true) ?: [];
+    $dias = max(1, (int)($cfg['dias'] ?? 330));
+    $sector = isset(FL_SERVICIOS[$cfg['sector'] ?? '']) ? $cfg['sector'] : '';
+    $st = $db->prepare("SELECT ct.cliente_id, ct.sector FROM contratos ct JOIN clientes c ON c.id = ct.cliente_id
+                        WHERE c.no_contactar = 0 AND ct.estado IN ('ok','verificado','en_distribuidora') AND (? = '' OR ct.sector = ?)
+                          AND COALESCE(ct.fecha_activacion, ct.fecha_alta) BETWEEN CURDATE() - INTERVAL " . ($dias + 30) . " DAY AND CURDATE() - INTERVAL $dias DAY
+                          AND NOT EXISTS (SELECT 1 FROM flujo_inscripciones i WHERE i.flujo_id = ? AND i.cliente_id = ct.cliente_id AND i.created_at >= NOW() - INTERVAL 300 DAY) LIMIT 200");
+    $st->execute([$sector, $sector, $f['id']]);
+    foreach ($st->fetchAll() as $r) if (fl_inscribir($f, (int)$r['cliente_id'], 'aniversario_contrato', ['servicio' => (string)$r['sector']])) $n++;
   }
   return $n;
 }

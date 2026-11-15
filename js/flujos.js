@@ -1,6 +1,6 @@
 /* =============================================================================
    ICC CRM · Automatizaciones y Embudos (#/automatizaciones)
-   Lista de flujos con estadísticas, 11 plantillas, editor visual del árbol
+   Lista de flujos con estadísticas, 22 plantillas (básicas, embudos lineales y avanzados), editor visual del árbol
    (inspector para editar, añadir o quitar pasos), formulario web y registro.
    Dirección y jefes de equipo. API: api/flujos.php
    ============================================================================= */
@@ -9,8 +9,12 @@
   var API = window.icc.api;
   var esc = function (v) { return U.escapeHtml(v == null ? "" : String(v)); };
   var S = { d: null, ed: null, sel: null, det: null };
-  var COND = { etiqueta: "Tiene la etiqueta", fase: "Está en la fase", cita_futura: "Tiene una cita futura", presupuesto_aceptado: "Presupuesto aceptado", tiene_telefono: "Tiene teléfono", tiene_email: "Tiene correo", origen: "Origen es" };
-  var VARS = "{{nombre}} {{empresa}} {{gestor}} {{fecha_cita}} {{presupuesto}} {{importe}}";
+  var COND = { etiqueta: "Tiene la etiqueta", fase: "Está en la fase", cita_futura: "Tiene una cita futura", presupuesto_aceptado: "Presupuesto aceptado", tiene_telefono: "Tiene teléfono", tiene_email: "Tiene correo", origen: "Origen es", tiene_servicio: "Ya tiene contratado el servicio", interes_servicio: "Ha mostrado interés en el servicio" };
+  var DISP_SERV = ["presupuesto_registrado", "presupuesto_aceptado", "contrato_registrado", "contrato_activado", "contrato_incidencia", "aniversario_contrato"];
+  var GRUPOS = [["basica", "📦 Automatizaciones básicas de la oficina", "Lo que una oficina de ICC repite cada día: reparto y bienvenida, recordatorios, estudio en 48 h, propuestas, altas, incidencias, renovaciones y referidos."],
+    ["lineal", "➡️ Embudos profesionales lineales", "Secuencias paso a paso por servicio (energía, telefonía, alarmas y seguros): correo, WhatsApp y llamada con su cadencia. Se activan con la etiqueta «Interés: …»."],
+    ["avanzado", "🔀 Embudos profesionales avanzados", "Con ramas sí/no, división A/B y esperas a que el cliente actúe: auditoría integral 100 % servicios, venta cruzada, setter y reactivación."]];
+  var VARS = "{{nombre}} {{empresa}} {{gestor}} {{servicio}} {{fecha_cita}} {{presupuesto}} {{importe}} {{web}}";
 
   function main() { return document.getElementById("icc-main"); }
   function fecha(f) { if (!f) return "—"; return new Date(String(f).replace(" ", "T")).toLocaleString("es-ES", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }); }
@@ -33,7 +37,8 @@
       '<section class="icc-ia-hero icc-mo-hero"><div><span class="icc-ia-eyebrow">IA · Embudos sin n8n ni Make</span><h1>⚡ Automatizaciones y Embudos</h1>' +
       "<p>Un flujo es un <b>disparador</b>, un <b>árbol de pasos</b> y un <b>objetivo</b>. Quien llega al objetivo (una fase, una reunión real, un presupuesto aceptado o una etiqueta) sale del embudo. Nunca se escribe a quien tiene «No contactar» o pidió la baja.</p>" +
       '<div class="icc-ia-estado">' + pill(d.flujos.filter(function (f) { return f.estado === "activo"; }).length + " activos", "ok") + (d.buzon ? "" : pill("Sin buzón de salida: configúralo en el Motor", "aviso")) + "</div></div>" +
-      '<button class="icc-btn icc-btn-primary" id="fl-nuevo">＋ Flujo en blanco</button></section>';
+      '<div class="icc-fl-heroacc"><button class="icc-btn icc-btn-primary" id="fl-oficina">🏢 Instalar la oficina virtual de ICC</button><button class="icc-btn icc-btn-secondary" id="fl-nuevo">＋ Flujo en blanco</button>' +
+      '<small>Crea y activa las ' + (d.oficina || 19) + ' automatizaciones y embudos que hacen trabajar sola a la oficina. El formulario web, el setter y la reactivación de la base dormida se activan a mano.</small></div></section>';
     html += '<section class="icc-ia-bloque"><h2 class="icc-fl-h2">Tus flujos</h2>' + (d.flujos.length ? '<div class="icc-mo-camps">' + d.flujos.map(function (f) {
       var s = f.stats;
       return '<article class="icc-card icc-mo-camp"><header><div><strong>' + esc(f.nombre) + "</strong><small>⚡ " + esc(d.disparadores[f.disparador]) + " · " + Object.keys(f.pasos.nodos || {}).length + " pasos</small></div>" +
@@ -43,10 +48,17 @@
         '<div class="icc-ia-fila"><button class="icc-btn icc-btn-primary icc-mo-mini" data-abrir="' + f.id + '">Abrir editor</button>' +
         '<button class="icc-btn icc-btn-secondary icc-mo-mini" data-estado="' + (f.estado === "activo" ? "pausado" : "activo") + '" data-id="' + f.id + '">' + (f.estado === "activo" ? "⏸ Pausar" : "▶ Activar") + "</button></div></article>";
     }).join("") + "</div>" : '<p class="icc-muted">Todavía no hay flujos. Empieza por una plantilla: se activan en dos clics y se pueden editar.</p>') + "</section>";
-    ["basica", "profesional"].forEach(function (g) {
-      html += '<section class="icc-ia-bloque"><h2 class="icc-fl-h2">' + (g === "basica" ? "📦 Automáticas básicas" : "🚀 Embudos profesionales") + '</h2><div class="icc-fl-plantillas">' +
-        d.plantillas.filter(function (p) { return p.grupo === g; }).map(function (p) {
-          return '<article class="icc-card icc-fl-plantilla"><strong>' + esc(p.nombre) + "</strong><small>⚡ " + esc(d.disparadores[p.disparador]) + " · " + p.pasos + ' pasos</small><button class="icc-btn icc-btn-secondary icc-mo-mini" data-plantilla="' + p.clave + '">Usar plantilla</button></article>';
+    var usadas = {}; d.flujos.forEach(function (f) { if (f.plantilla) usadas[f.plantilla] = f.estado; });
+    GRUPOS.forEach(function (g) {
+      var lista = d.plantillas.filter(function (p) { return p.grupo === g[0]; });
+      html += '<section class="icc-ia-bloque"><div class="icc-mo-cab"><div><h2 class="icc-fl-h2">' + g[1] + '</h2><p class="icc-ia-nota">' + esc(g[2]) + '</p></div>' +
+        '<button class="icc-btn icc-btn-secondary icc-mo-mini" data-grupo="' + g[0] + '">▶ Instalar y activar este grupo</button></div><div class="icc-fl-plantillas">' +
+        lista.map(function (p) {
+          var u = usadas[p.clave];
+          return '<article class="icc-card icc-fl-plantilla"><strong>' + esc(p.nombre) + "</strong><small>⚡ " + esc(d.disparadores[p.disparador]) + " · " + p.pasos + " pasos" + (p.ramas ? " · 🔀 " + p.ramas + " ramas" : "") + "</small>" +
+            (p.descripcion ? '<p class="icc-fl-desc">' + esc(p.descripcion) + "</p>" : "") +
+            '<div class="icc-ia-fila">' + (u ? pill(u === "activo" ? "Activo" : u === "pausado" ? "En pausa" : "Borrador", u === "activo" ? "ok" : "aviso") : "") +
+            '<button class="icc-btn icc-btn-secondary icc-mo-mini" data-plantilla="' + p.clave + '">' + (u ? "Crear otra copia" : "Usar plantilla") + "</button></div></article>";
         }).join("") + "</div></section>";
     });
     main().innerHTML = html + "</div>";
@@ -55,6 +67,9 @@
       S.ed = { id: 0, nombre: "Nuevo flujo", descripcion: "", disparador: "lead_nuevo", disparador_cfg: {}, filtro: {}, objetivo: {}, solo_horario: true, estado: "borrador", gracias_url: "", pasos: { inicio: "p1", nodos: { p1: { tipo: "aviso", cfg: { mensaje: "Nuevo contacto: {{empresa}}", a: "gestor" }, sig: null } } } };
       S.det = { stats: { por_paso: {} }, registro: [] }; S.sel = "p1"; pintarEditor();
     });
+    var inst = function (b, grupo) { hacer(b, async function () { var x = await API.post("api/flujos.php?action=instalar", { grupo: grupo }); U.toast("✓ " + x.activos + " automatizaciones activas" + (x.creados ? " (" + x.creados + " nuevas)" : ""), "success"); view(); }); };
+    document.getElementById("fl-oficina").addEventListener("click", function () { if (confirm("Se crearán y activarán las automatizaciones y embudos de la oficina virtual de ICC. Los correos salen del buzón del Motor y nunca a quien pidió la baja. ¿Continuar?")) inst(this, "oficina"); });
+    r.querySelectorAll("[data-grupo]").forEach(function (b) { b.addEventListener("click", function () { inst(b, b.dataset.grupo); }); });
     r.querySelectorAll("[data-abrir]").forEach(function (b) { b.addEventListener("click", function () { location.hash = "#/automatizaciones?id=" + b.dataset.abrir; }); });
     r.querySelectorAll("[data-plantilla]").forEach(function (b) {
       b.addEventListener("click", function () { hacer(b, async function () { var x = await API.post("api/flujos.php?action=plantilla", { clave: b.dataset.plantilla }); U.toast("✓ Flujo creado en borrador: revísalo y actívalo", "success"); location.hash = "#/automatizaciones?id=" + x.id; }); });
@@ -133,7 +148,7 @@
       case "esperar": f = '<div class="icc-mo-2">' + campo("Cantidad", inp("cantidad", c.cantidad, ' type="number" min="0"')) + campo("Unidad", sel("unidad", c.unidad || "dias", { minutos: "Minutos", horas: "Horas", dias: "Días" })) + "</div>"; break;
       case "esperar_cita": f = campo("Horas antes de la cita", inp("horas", c.horas || 24, ' type="number" min="1"')); break;
       case "esperar_condicion": case "condicion":
-        f = campo("Condición", sel("tipo", c.tipo || "etiqueta", COND)) + campo("Valor (etiqueta, fase u origen)", inp("valor", c.valor)) + (x.tipo === "esperar_condicion" ? campo("Esperar como máximo (horas)", inp("max_horas", c.max_horas || 48, ' type="number" min="1"')) : ""); break;
+        f = campo("Condición", sel("tipo", c.tipo || "etiqueta", COND)) + campo(c.tipo === "tiene_servicio" || c.tipo === "interes_servicio" ? "Servicio (energia, telecomunicaciones, alarmas o seguros)" : "Valor (etiqueta, fase u origen)", inp("valor", c.valor, c.tipo === "tiene_servicio" || c.tipo === "interes_servicio" ? ' list="fl-serv"' : ' list="fl-etq"')) + (x.tipo === "esperar_condicion" ? campo("Esperar como máximo (horas)", inp("max_horas", c.max_horas || 48, ' type="number" min="1"')) : ""); break;
       case "tarea": f = campo("Tarea", inp("titulo", c.titulo)) + campo("Dentro de (horas)", inp("en_horas", c.en_horas || 24, ' type="number" min="0"')); break;
       case "llamada": f = campo("Motivo", inp("motivo", c.motivo)) + campo("Dentro de (minutos)", inp("en_minutos", c.en_minutos || 0, ' type="number" min="0"')); break;
       case "whatsapp": f = campo("Mensaje", '<textarea class="icc-input" rows="4" data-cfg="mensaje">' + esc(c.mensaje) + "</textarea>") + '<p class="icc-ia-nota">Crea una tarea al gestor con el mensaje listo y el enlace wa.me.</p>'; break;
@@ -160,6 +175,8 @@
     if (e.disparador === "fase_cambiada") cfgDisp = '<select class="icc-select" id="fl-d-fase"><option value="">Cualquier fase</option>' + Object.keys(d.fases).map(function (k) { return '<option value="' + k + '"' + (dc.fase === k ? " selected" : "") + ">" + d.fases[k] + "</option>"; }).join("") + "</select>";
     if (e.disparador === "etiqueta_anadida") cfgDisp = '<input class="icc-input" id="fl-d-etq" list="fl-etq" placeholder="Etiqueta" value="' + esc(dc.etiqueta || "") + '">';
     if (e.disparador === "dias_sin_actividad") cfgDisp = '<input class="icc-input" id="fl-d-dias" type="number" min="1" value="' + esc(dc.dias || 30) + '" aria-label="Días">';
+    if (e.disparador === "aniversario_contrato") cfgDisp = '<input class="icc-input" id="fl-d-dias" type="number" min="1" value="' + esc(dc.dias || 330) + '" aria-label="Días desde la activación" title="Días desde la activación del contrato">';
+    if (DISP_SERV.indexOf(e.disparador) >= 0) cfgDisp += '<select class="icc-select" id="fl-d-sector"><option value="">Cualquier servicio</option>' + Object.keys(d.servicios || {}).map(function (k) { return '<option value="' + k + '"' + (dc.sector === k ? " selected" : "") + ">" + esc(d.servicios[k]) + "</option>"; }).join("") + "</select>";
     if (e.disparador === "cita_agendada" || e.disparador === "cita_realizada") cfgDisp = '<select class="icc-select" id="fl-d-cita"><option value="">Cualquier tipo</option>' + ["visita", "reunion", "llamada", "firma", "seguimiento"].map(function (t) { return '<option value="' + t + '"' + (dc.tipo_cita === t ? " selected" : "") + ">" + t + "</option>"; }).join("") + "</select>";
     var html = '<div class="icc-ia icc-mo icc-fl">' +
       '<div class="icc-fl-cab"><a href="#/automatizaciones" class="icc-btn icc-btn-ghost icc-mo-mini">← Flujos</a>' +
@@ -167,7 +184,8 @@
       pill(e.estado === "activo" ? "Activo" : e.estado === "pausado" ? "En pausa" : "Borrador", e.estado === "activo" ? "ok" : "aviso") +
       '<button class="icc-btn icc-btn-primary" id="fl-guardar">💾 Guardar</button>' +
       (e.id ? '<button class="icc-btn icc-btn-secondary" id="fl-activar">' + (e.estado === "activo" ? "⏸ Pausar" : "▶ Activar") + "</button>" : "") + "</div>" +
-      '<datalist id="fl-etq">' + (d.etiquetas || []).map(function (t) { return '<option value="' + esc(t.etiqueta) + '">'; }).join("") + '<option value="Urgente"></datalist>' +
+      '<datalist id="fl-etq">' + (d.etiquetas || []).map(function (t) { return '<option value="' + esc(t.etiqueta) + '">'; }).join("") + '<option value="Urgente">' + (d.intereses || []).map(function (t) { return '<option value="' + esc(t) + '">'; }).join("") + '</datalist>' +
+      '<datalist id="fl-serv">' + Object.keys(d.servicios || {}).map(function (k) { return '<option value="' + k + '">' + esc(d.servicios[k]) + "</option>"; }).join("") + "</datalist>" +
       '<section class="icc-card icc-ia-bloque"><div class="icc-fl-config">' +
       '<label><span>Disparador</span><select class="icc-select" id="fl-disp">' + Object.keys(d.disparadores).map(function (k) { return '<option value="' + k + '"' + (e.disparador === k ? " selected" : "") + ">" + esc(d.disparadores[k]) + "</option>"; }).join("") + "</select>" + cfgDisp + "</label>" +
       '<label><span>Solo si el origen es</span><select class="icc-select" id="fl-f-origen"><option value="">Cualquiera</option>' + ["motor", "formulario", "manual"].map(function (o) { return '<option value="' + o + '"' + (fi.origen === o ? " selected" : "") + ">" + o + "</option>"; }).join("") + "</select></label>" +
@@ -209,7 +227,8 @@
     var dc = {};
     if (g("fl-d-fase") && g("fl-d-fase").value) dc.fase = g("fl-d-fase").value;
     if (g("fl-d-etq") && g("fl-d-etq").value) dc.etiqueta = g("fl-d-etq").value;
-    if (g("fl-d-dias")) dc.dias = Number(g("fl-d-dias").value) || 30;
+    if (g("fl-d-dias")) dc.dias = Number(g("fl-d-dias").value) || (e.disparador === "aniversario_contrato" ? 330 : 30);
+    if (g("fl-d-sector") && g("fl-d-sector").value) dc.sector = g("fl-d-sector").value;
     if (g("fl-d-cita") && g("fl-d-cita").value) dc.tipo_cita = g("fl-d-cita").value;
     if (e.disparador === "llamada_resultado") dc.resultado = "no_contesta";
     e.disparador_cfg = dc;
@@ -246,7 +265,9 @@
     r.querySelectorAll("[data-nodo]").forEach(function (b) { b.addEventListener("click", function () { leerCabecera(); leerInspector(); S.sel = b.dataset.nodo; pintarEditor(); }); });
     ["fl-disp", "fl-d-fase"].forEach(function (id) { var x = document.getElementById(id); if (x) x.addEventListener("change", repintar); });
     r.querySelectorAll("#fl-cfg [data-cfg]").forEach(function (el) {
-      el.addEventListener("change", function () { leerInspector(); var b = r.querySelector('.icc-fl-nodo[data-nodo="' + S.sel + '"] small'); if (b) b.textContent = resumen(S.ed.pasos.nodos[S.sel]); });
+      el.addEventListener("change", function () {
+        if (el.dataset.cfg === "tipo" && el.tagName === "SELECT") return repintar(); // cambia el campo «Valor»
+        leerInspector(); var b = r.querySelector('.icc-fl-nodo[data-nodo="' + S.sel + '"] small'); if (b) b.textContent = resumen(S.ed.pasos.nodos[S.sel]); });
     });
     var add = document.getElementById("fl-add");
     if (add) add.addEventListener("click", function () {

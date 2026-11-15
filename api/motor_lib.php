@@ -40,28 +40,39 @@ const MOTOR_SECTORES = [
 
 /** Angulos del mensaje (los prueba el Laboratorio). */
 const MOTOR_ANGULOS = [
+  'auditoria_integral' => 'Auditoría de costes 100 % servicios',
   'ahorro_factura' => 'Ahorro en la factura de luz y gas',
   'potencia' => 'Potencia contratada, excesos y reactiva',
+  'telefonia' => 'Telefonía, fibra, móviles y centralita',
+  'alarmas' => 'Alarmas y seguridad',
+  'seguros' => 'Seguros de empresa',
   'caso_sector' => 'Caso de su sector',
   'pregunta_corta' => 'Pregunta corta',
   'estudio_gratuito' => 'Estudio gratuito de facturas',
-  'ia_transparencia' => 'Transparencia de la IA (AI Act, art. 50)',
-  'ia_alfabetizacion' => 'Formación y protocolo de uso de IA (AI Act, art. 4)',
-  'ia_fundae' => 'Formación en IA bonificable (FUNDAE)',
-  'ia_captacion' => 'Automatizar captación y atención con IA legal',
-  'ia_pregunta' => 'Una duda sobre su web',
 ];
+
+/** Servicio (sector del CRM) de cada angulo: etiqueta de interes al pasar al CRM. */
+const MOTOR_ANGULO_SERVICIO = ['ahorro_factura' => 'energia', 'potencia' => 'energia', 'estudio_gratuito' => 'energia', 'telefonia' => 'telecomunicaciones', 'alarmas' => 'alarmas', 'seguros' => 'seguros'];
+
+/** Etiqueta de interes por servicio (disparan los embudos de Automatizaciones). */
+const ICC_INTERESES = ['energia' => 'Interés: Energía', 'telecomunicaciones' => 'Interés: Telefonía', 'alarmas' => 'Interés: Alarmas', 'seguros' => 'Interés: Seguros', 'integral' => 'Interés: Auditoría integral'];
+
+/** Pone una etiqueta a un cliente y avisa a las automatizaciones si es nueva. */
+function icc_etiquetar_cliente(int $clienteId, string $etiqueta): void {
+  try {
+    $st = icc_db()->prepare('INSERT IGNORE INTO cliente_etiquetas (cliente_id, etiqueta) VALUES (?, ?)');
+    $st->execute([$clienteId, mb_substr($etiqueta, 0, 60)]);
+    if ($st->rowCount()) icc_db()->prepare("INSERT INTO flujo_eventos (tipo, cliente_id, datos) VALUES ('etiqueta_anadida', ?, ?)")->execute([$clienteId, json_encode(['etiqueta' => $etiqueta], JSON_UNESCAPED_UNICODE)]);
+  } catch (Throwable $e) { /* sin tablas de automatizaciones */ }
+}
 
 /** Identidades del agente de Outreach. Cada campaña usa una. */
 const MOTOR_PERFILES = [
-  'icc' => ['nombre' => 'ICC · Energía y telecomunicaciones', 'empresa' => 'Integral Connection Consulting', 'firma' => "Equipo comercial\nIntegral Connection Consulting",
-    'responsable' => 'Integral Connection Consulting', 'tono' => 'cercano y profesional', 'palabras' => 110, 'asunto_palabras' => 8,
-    'angulos' => ['ahorro_factura', 'potencia', 'caso_sector', 'pregunta_corta', 'estudio_gratuito'],
-    'pasos' => [1 => 'primer contacto', 2 => 'seguimiento corto (no respondió)', 3 => 'último correo: preguntar si cerramos el expediente']],
-  'labs24k' => ['nombre' => 'Labs24k · IA para empresas (Grupo Evolvix Global)', 'empresa' => 'Labs24k', 'firma' => "Desarrollo de negocio\nLabs24k · Grupo Evolvix Global S.L.\nMadrid · Gijón · Oviedo",
-    'responsable' => 'Grupo Evolvix Global S.L.', 'tono' => 'directo y consultivo, de tú si el sector lo permite', 'palabras' => 130, 'asunto_palabras' => 5,
-    'angulos' => ['ia_transparencia', 'ia_alfabetizacion', 'ia_fundae', 'ia_captacion', 'ia_pregunta'],
-    'pasos' => [1 => 'día 1: correo inicial informativo', 2 => 'día 3: seguimiento con un caso de uso de su sector', 3 => 'día 7: último toque ofreciendo un diagnóstico de 15 minutos']],
+  'icc' => ['nombre' => 'ICC Consultoría · 100 % servicios · 100 % compañías', 'empresa' => 'Integral Connection Consulting',
+    'firma' => "Equipo comercial\nICC Consultoría · Integral Connection Consulting\n100 % servicios · 100 % compañías · Reducción de costes garantizada\nintegralconnectionconsulting.es",
+    'responsable' => 'Integral Connection Consulting', 'tono' => 'cercano y profesional, de usted', 'palabras' => 120, 'asunto_palabras' => 6,
+    'angulos' => ['auditoria_integral', 'ahorro_factura', 'potencia', 'telefonia', 'alarmas', 'seguros', 'caso_sector', 'pregunta_corta', 'estudio_gratuito'],
+    'pasos' => [1 => 'día 1: correo inicial', 2 => 'día 3: seguimiento corto con un caso de su sector o con otro de nuestros servicios', 3 => 'día 7: último toque ofreciendo el estudio gratuito; si no es el momento, no escribimos más']],
 ];
 
 /** Zonas de Asturias de uso comun (atajos del Radar). */
@@ -100,42 +111,37 @@ const MOTOR_VILLAS = ['Castrillón', 'San Martín del Rey Aurelio', 'Corvera de 
 const MOTOR_CADENCIA = [1 => 0, 2 => 2, 3 => 6];
 
 const MOTOR_PROMPT = <<<TXT
-Eres el agente de prospección de Integral Connection Consulting (ICC), consultoría de energía y telecomunicaciones para empresas.
-Escribes el PRIMER contacto (o un seguimiento) por correo a una empresa que no nos conoce.
-
-Cómo escribes:
-- Español de España, de usted, cercano y profesional. Texto plano, sin negritas ni emojis ni enlaces.
-- Máximo 110 palabras en el primer correo y 70 en los seguimientos. Asunto de menos de 8 palabras, sin mayúsculas gritonas.
-- Cita UN detalle real de su web o de su negocio (de los datos que te pasamos) para que se note que no es un correo masivo.
-- Un solo objetivo: que acepte que revisemos sus facturas de luz, gas o teléfono, sin compromiso.
-- Nunca prometas un ahorro concreto, cifras, descuentos, regalos ni condiciones. No inventes datos.
-- No pongas firma, ni aviso legal, ni enlace de baja: los añade el sistema.
-TXT;
-
-const MOTOR_PROMPT_LABS = <<<TXT
 # ROL
-Eres consultor senior de desarrollo de negocio en Labs24k, la división de inteligencia artificial de Grupo Evolvix Global S.L. (sedes en Madrid, Gijón y Oviedo). Escribes correos B2B a gerentes y responsables de empresas en España.
-
-# OBJETIVO
-Conseguir una llamada o reunión de diagnóstico de 15 minutos (presencial en Asturias o por videollamada) para revisar cómo usan la IA y si cumplen el Reglamento Europeo de IA, y mostrar cómo automatizar su atención y captación sin riesgos legales.
+Eres consultor senior de ICC Consultoría (Integral Connection Consulting, integralconnectionconsulting.es), consultoría B2B multiservicio con oficina en Asturias. Lema: «100 % servicios, 100 % compañías, reducción de costes garantizada». Escribes correos a gerentes, administradores y responsables de compras de empresas en España que todavía no nos conocen.
 
 # QUIÉNES SOMOS
-Agencia de arquitectura de IA para empresas: agentes de voz, automatización de WhatsApp y CRM, prospección autónoma y consultoría de implantación, cumpliendo el Reglamento Europeo de IA (AI Act) y el RGPD.
+- 100 % servicios: energía (luz y gas: potencia contratada, excesos, energía reactiva, tarifas, autoconsumo), telefonía e internet (fibra, móviles, centralita, líneas de empresa), alarmas y seguridad (alarmas conectadas a central receptora, videovigilancia) y seguros de empresa (responsabilidad civil, multirriesgo, flotas, colectivos).
+- 100 % compañías: trabajamos con todas las compañías del mercado, no con una sola, así que comparamos de verdad y recomendamos lo que conviene al cliente.
+- Reducción de costes garantizada: si en el estudio no encontramos una mejora real, se lo decimos y no cambia nada. Un único interlocutor para todos sus servicios y nos encargamos de los trámites del cambio.
 
-# GANCHO NORMATIVO (úsalo con rigor)
-- Desde el 2 de agosto de 2026 se aplica la obligación de transparencia del artículo 50 del AI Act: quien usa chatbots o sistemas que hablan con clientes debe avisar de forma clara de que es una IA, y etiquetar el contenido sintético.
-- Desde el 2 de febrero de 2025 se aplica el artículo 4 (alfabetización en IA): las empresas que usan herramientas de IA deben procurar que su plantilla tenga la formación adecuada; conviene documentarlo en un protocolo interno.
-- La formación de la plantilla puede bonificarse a través de FUNDAE según el crédito de cada empresa.
-- No cites cuantías de multas ni digas que algo es «100 % gratis» o «obligatorio» si no lo es exactamente: rigor antes que miedo.
+# OBJETIVO
+Conseguir que nos envíe una factura (luz, gas o teléfono) o su póliza para un estudio gratuito, o una llamada o visita de 15 minutos (presencial en Asturias o por videollamada) para una auditoría de costes de sus servicios.
 
-# REGLAS DE REDACCIÓN
-- Asunto: máximo 5 palabras, frase natural en minúsculas, sin palabras de spam (gratis, oferta, urgente). Ejemplos: «consulta sobre [empresa] / normativa IA», «adaptación IA en [empresa]», «una duda sobre vuestra web».
-- Cuerpo de 130 palabras como máximo, en párrafos cortos:
-  1) Primera línea: un detalle REAL de su empresa, sector o comarca, sacado de los datos que te pasamos (nunca inventado).
-  2) Conecta su actividad con las obligaciones de transparencia y de uso de IA de este año.
-  3) Cómo Labs24k ayuda a empresas de su sector a automatizar atención y captación con IA cumpliendo la ley.
-  4) Cierre con una pregunta fácil de contestar, por ejemplo: «¿Te encaja verlo en 10 minutos este jueves por la mañana o prefieres que te pase un breve informe por aquí?».
-- Sin saludos robóticos («Estimado/a señor/a»), sin emojis, sin enlaces.
+# GANCHOS POR SERVICIO (úsalos con rigor; el ángulo de la campaña dice cuál toca)
+- Energía: potencia sobredimensionada, recargos por excesos de potencia o energía reactiva, tarifas que ya no encajan con su consumo, permanencias.
+- Telefonía: líneas y servicios que ya no se usan, permanencias, unificar fibra, móviles y centralita en una sola factura.
+- Alarmas: cuotas y mantenimiento, conexión a central receptora, equipos antiguos.
+- Seguros: pólizas que se renuevan solas cada año sin revisar coberturas ni precio, coberturas duplicadas o que faltan.
+- Auditoría integral: revisar de una vez energía, telefonía, alarmas y seguros con un solo interlocutor.
+
+# LÍMITES
+- Nunca inventes datos. No des cifras de ahorro, porcentajes, precios, descuentos ni regalos. No nombres compañías concretas ni hables mal de su proveedor actual.
+- «Reducción de costes garantizada» solo con el sentido de arriba (si no hay mejora real, se lo decimos y no cambia nada).
+
+# REDACCIÓN
+- Español de España, de usted, cercano y profesional. Texto plano: sin negritas, emojis ni enlaces. Sin «Estimado/a señor/a».
+- Asunto: como máximo el número de palabras que te pasamos, frase natural en minúsculas, sin palabras de spam (gratis, oferta, urgente). Ejemplos: «facturas de [empresa]», «una duda sobre su factura de luz», «revisión de costes en [empresa]».
+- Cuerpo: como máximo el límite de palabras que te pasamos, en párrafos cortos:
+  1) Primera línea: un detalle REAL de su empresa, sector o localidad, sacado de los datos que te pasamos.
+  2) Conecta su actividad con un coste concreto del servicio del ángulo.
+  3) Qué hace ICC: 100 % servicios, 100 % compañías, y que si no hay mejora real se lo decimos.
+  4) Cierre con una pregunta fácil de contestar, por ejemplo: «¿Me envía su última factura y en 48 horas le digo si se puede mejorar?» o «¿Le encaja una llamada de 10 minutos el jueves por la mañana?».
+- Seguimiento (día 3): más corto, con un caso de su sector o mencionando otro de nuestros servicios. Último (día 7): ofrece el estudio gratuito y di que, si no es el momento, no le escribiremos más.
 - No pongas firma ni aviso de baja: los añade el sistema.
 TXT;
 
@@ -184,12 +190,13 @@ function motor_cuenta(): ?array {
    ========================================================================= */
 function motor_perfil(string $id): array {
   $id = isset(MOTOR_PERFILES[$id]) ? $id : 'icc';
-  $base = MOTOR_PERFILES[$id] + ['id' => $id, 'prompt' => $id === 'labs24k' ? MOTOR_PROMPT_LABS : MOTOR_PROMPT, 'modelo' => '', 'activo' => true];
+  $base = MOTOR_PERFILES[$id] + ['id' => $id, 'prompt' => MOTOR_PROMPT, 'modelo' => '', 'activo' => true];
   $g = json_decode((string)icc_ajuste('motor_perfil_' . $id, ''), true);
   if (!is_array($g) && $id === 'icc') {
     // Compatibilidad con la configuracion anterior (un solo agente).
     $ag = json_decode((string)icc_ajuste('motor_agente', ''), true) ?: [];
-    $g = array_filter(['firma' => $ag['firma'] ?? null, 'tono' => $ag['tono'] ?? null, 'prompt' => $ag['prompt'] ?? null, 'modelo' => $ag['modelo'] ?? null, 'responsable' => icc_ajuste('motor_responsable', null)], function ($v) { return $v !== null && $v !== ''; });
+    // Solo tono y modelo: la firma y el prompt antiguos se sustituyen por los de ICC Consultoria.
+    $g = array_filter(['tono' => $ag['tono'] ?? null, 'modelo' => $ag['modelo'] ?? null, 'responsable' => icc_ajuste('motor_responsable', null)], function ($v) { return $v !== null && $v !== ''; });
   }
   foreach (['firma', 'responsable', 'tono', 'prompt', 'modelo'] as $k) if (isset($g[$k]) && trim((string)$g[$k]) !== '') $base[$k] = (string)$g[$k];
   if (isset($g['palabras'])) $base['palabras'] = max(40, min(250, (int)$g['palabras']));
@@ -210,7 +217,10 @@ function motor_buzones(): array {
       $l[] = $s + $i + ['id' => 'principal', 'limite' => (int)icc_ajuste('motor_limite_dia', '35'), 'calentamiento' => false, 'alta' => date('Y-m-d'), 'activo' => true, 'perfil' => ''];
     }
   }
-  return array_values(array_filter($l, 'is_array'));
+  $l = array_values(array_filter($l, 'is_array'));
+  foreach ($l as &$b) if (!isset(MOTOR_PERFILES[$b['perfil'] ?? ''])) $b['perfil'] = '';
+  unset($b);
+  return $l;
 }
 
 function motor_buzon_clave(string $id): string {
@@ -391,27 +401,31 @@ function motor_plantilla(array $lead, string $angulo, int $paso): array {
   $lugar = $lead['concejo'] ?: ($lead['localidad'] ?: 'Asturias');
   if ($paso === 2) {
     return ['asunto' => 'Re: ' . motor_plantilla($lead, $angulo, 1)['asunto'],
-      'cuerpo' => "Buenos días:\n\nLe escribí hace unos días por si les interesaba que revisáramos sus facturas de energía y teléfono de $empresa, sin compromiso.\n\n¿Le viene bien que le llame cinco minutos esta semana, o prefiere que le envíe la información por aquí?\n\nUn saludo."];
+      'cuerpo' => "Buenos días:\n\nLe escribí hace unos días por si les interesaba que revisáramos los costes de $empresa. Además de luz y gas, revisamos telefonía, alarmas y seguros, y trabajamos con todas las compañías.\n\n¿Le viene bien que le llame diez minutos esta semana, o prefiere que le envíe la información por aquí?\n\nUn saludo."];
   }
   if ($paso >= 3) {
     return ['asunto' => '¿Cierro su expediente?',
-      'cuerpo' => "Buenos días:\n\nNo quiero insistir más de la cuenta. Si ahora no es buen momento para revisar sus facturas, lo dejamos aquí.\n\nSi en algún momento quiere una segunda opinión sobre su contrato de luz, gas o teléfono, respóndame a este correo y lo vemos.\n\nUn saludo."];
+      'cuerpo' => "Buenos días:\n\nNo quiero insistir más de la cuenta. Si ahora no es buen momento, no le escribiré más.\n\nSi en algún momento quiere el estudio gratuito de sus facturas de luz, gas, teléfono, alarma o seguros, respóndame a este correo. Si no encontramos una mejora real, se lo decimos y no cambia nada.\n\nUn saludo."];
   }
   $t = [
+    'auditoria_integral' => ['Revisión de costes en ' . $empresa, "Buenos días:\n\nEn ICC revisamos de una vez la luz, el gas, la telefonía, la alarma y los seguros de negocios de $sector en $lugar, comparando con todas las compañías del mercado.\n\nSi no encontramos una mejora real, se lo decimos y no cambia nada. Si la hay, nos encargamos de todos los trámites.\n\n¿Le encaja una llamada de diez minutos esta semana para ver el caso de $empresa?\n\nUn saludo."],
+    'telefonia' => ['Telefonía de ' . $empresa, "Buenos días:\n\nEn muchos negocios de $sector se siguen pagando líneas, permanencias o servicios que ya no se usan, repartidos en varias facturas.\n\nRevisamos la fibra, los móviles y la centralita de $empresa con todas las compañías y le decimos si se puede mejorar. Si no, no cambia nada.\n\n¿Me envía su última factura de teléfono?\n\nUn saludo."],
+    'alarmas' => ['La alarma de ' . $empresa, "Buenos días:\n\n¿Cuándo revisaron por última vez el contrato de la alarma de $empresa? Las cuotas y el mantenimiento suelen quedarse igual años aunque cambien las necesidades del negocio.\n\nComparamos con todas las compañías de seguridad y le decimos si hay una opción mejor conectada a central receptora. Sin compromiso.\n\n¿Lo vemos en diez minutos?\n\nUn saludo."],
+    'seguros' => ['Seguros de ' . $empresa, "Buenos días:\n\nLas pólizas de empresa se renuevan solas cada año y pocas veces se revisan sus coberturas o su precio.\n\nRevisamos los seguros de negocios de $sector en $lugar (responsabilidad civil, multirriesgo, vehículos) con todas las compañías. Si no hay una mejora real, se lo decimos.\n\n¿Me indica cuándo vence su póliza principal?\n\nUn saludo."],
     'ahorro_factura' => ['Factura de luz de ' . $empresa, "Buenos días:\n\nTrabajamos con negocios de $sector en $lugar revisando sus facturas de luz y gas. En muchos casos encontramos términos de potencia o precios de energía que ya no encajan con su consumo real.\n\n¿Le parece que revisemos su última factura? Es gratuito y sin compromiso: si no podemos mejorarla, se lo diremos igual.\n\nUn saludo."],
     'potencia' => ['Potencia contratada en ' . $empresa, "Buenos días:\n\nEn negocios de $sector es habitual pagar más potencia de la que se usa, o tener recargos por excesos o energía reactiva que pasan desapercibidos en la factura.\n\nSi nos envía una factura reciente, le decimos en dos días si su contrato está bien ajustado. Sin compromiso.\n\nUn saludo."],
-    'caso_sector' => ['Otros negocios de ' . $sector . ' en Asturias', "Buenos días:\n\nAsesoramos a varios negocios de $sector en Asturias con sus contratos de luz, gas y telefonía, y casi todos tenían algo que ajustar: potencia, tarifa o servicios que ya no usaban.\n\n¿Le interesa que miremos el caso de $empresa? Solo necesitamos una factura.\n\nUn saludo."],
+    'caso_sector' => ['Otros negocios de ' . $sector . ' en Asturias', "Buenos días:\n\nAsesoramos a varios negocios de $sector en Asturias con sus contratos de luz, gas, telefonía, alarmas y seguros, y casi todos tenían algo que ajustar: potencia, tarifa, pólizas sin revisar o servicios que ya no usaban.\n\n¿Le interesa que miremos el caso de $empresa? Solo necesitamos una factura.\n\nUn saludo."],
     'pregunta_corta' => ['Una pregunta rápida', "Buenos días:\n\n¿Quién se encarga en $empresa de revisar los contratos de luz y teléfono?\n\nSi es usted, me gustaría proponerle una revisión gratuita de sus facturas.\n\nGracias."],
-    'estudio_gratuito' => ['Estudio gratuito de sus facturas', "Buenos días:\n\nOfrecemos a negocios de $lugar un estudio gratuito de sus facturas de luz, gas y telefonía: comparamos su contrato con el mercado y le explicamos qué se puede mejorar.\n\n¿Le gustaría que preparásemos el de $empresa?\n\nUn saludo."],
+    'estudio_gratuito' => ['Estudio gratuito de sus facturas', "Buenos días:\n\nOfrecemos a negocios de $lugar un estudio gratuito de sus facturas de luz, gas y telefonía: comparamos su contrato con todas las compañías del mercado y le explicamos qué se puede mejorar.\n\n¿Le gustaría que preparásemos el de $empresa?\n\nUn saludo."],
   ];
-  [$asunto, $cuerpo] = $t[$angulo] ?? $t['ahorro_factura'];
+  [$asunto, $cuerpo] = $t[$angulo] ?? $t['auditoria_integral'];
   return ['asunto' => $asunto, 'cuerpo' => $cuerpo];
 }
 
 /** Redacta el correo de un paso. Con IA si esta disponible; si no, plantilla del angulo. */
 function motor_redactar(array $lead, array $campana, int $paso, ?int $usuarioId = null): array {
   $perfil = motor_perfil((string)($campana['perfil'] ?? 'icc'));
-  $angulo = $campana['angulo'] ?: $perfil['angulos'][0];
+  $angulo = in_array($campana['angulo'] ?? '', $perfil['angulos'], true) ? $campana['angulo'] : $perfil['angulos'][0];
   if (icc_ia_disponible()) {
     $datos = [
       'empresa' => $lead['nombre'], 'razon_social' => $lead['razon_social'], 'sector' => MOTOR_SECTORES[$lead['sector']][0] ?? $lead['sector'],
@@ -431,7 +445,7 @@ function motor_redactar(array $lead, array $campana, int $paso, ?int $usuarioId 
       return ['asunto' => mb_substr(trim($r['json']['asunto']), 0, 200), 'cuerpo' => trim($r['json']['cuerpo']), 'ia' => true];
     }
   }
-  return ($perfil['id'] === 'labs24k' ? motor_plantilla_labs($lead, $angulo, $paso) : motor_plantilla($lead, $angulo, $paso)) + ['ia' => false];
+  return motor_plantilla($lead, $angulo, $paso) + ['ia' => false];
 }
 
 function motor_enlace_baja(array $lead): string {
@@ -628,7 +642,7 @@ function motor_clasificar(string $texto, ?int $usuarioId = null): array {
  */
 function motor_procesar_respuesta(int $leadId, string $asunto, string $texto, string $origen, ?int $usuarioId = null): array {
   $db = icc_db();
-  $st = $db->prepare('SELECT l.*, c.gestor_id, c.creado_por camp_autor FROM motor_leads l LEFT JOIN motor_campanas c ON c.id = l.campana_id WHERE l.id = ?');
+  $st = $db->prepare('SELECT l.*, c.gestor_id, c.creado_por camp_autor, c.angulo camp_angulo FROM motor_leads l LEFT JOIN motor_campanas c ON c.id = l.campana_id WHERE l.id = ?');
   $st->execute([$leadId]);
   $l = $st->fetch();
   if (!$l) return ['ok' => false, 'error' => 'Empresa no encontrada'];
@@ -650,6 +664,8 @@ function motor_procesar_respuesta(int $leadId, string $asunto, string $texto, st
     $gestor = $l['gestor_id'] ? (int)$l['gestor_id'] : (motor_config()['gestor_defecto'] ?: ($l['camp_autor'] ? (int)$l['camp_autor'] : null));
     $conv = motor_conversacion($leadId);
     $out['cliente_id'] = motor_a_crm($l, $gestor, $conv, $usuarioId, MOTOR_CLASES[$cl['clase']]);
+    // Ha mostrado interes: etiqueta del servicio de la campana (arranca su embudo en Automatizaciones).
+    icc_etiquetar_cliente((int)$out['cliente_id'], ICC_INTERESES[MOTOR_ANGULO_SERVICIO[$l['camp_angulo'] ?? ''] ?? 'integral']);
     $nuevoEstado = 'en_crm';
   }
   $db->prepare('UPDATE motor_leads SET estado = ?, proximo_envio = NULL WHERE id = ?')->execute([$nuevoEstado, $leadId]);
@@ -756,22 +772,4 @@ function motor_procesar_entrantes(array $mensajes): array {
     if ($res['ok']) $n++;
   }
   return [$n, $reb];
-}
-
-/** Plantillas sin IA del perfil Labs24k. */
-function motor_plantilla_labs(array $lead, string $angulo, int $paso): array {
-  $empresa = $lead['nombre'];
-  $sector = mb_strtolower(MOTOR_SECTORES[$lead['sector']][0] ?? 'vuestro sector');
-  $lugar = $lead['concejo'] ?: ($lead['localidad'] ?: 'Asturias');
-  if ($paso === 2) return ['asunto' => 'ia en ' . $sector, 'cuerpo' => "Hola de nuevo:\n\nOs comparto un caso de $sector: automatizamos la primera respuesta a clientes por web y WhatsApp, con el aviso de IA que pide la normativa, y el equipo dejó de perder consultas fuera de horario.\n\n¿Os encaja que lo veamos 10 minutos esta semana?\n\nUn saludo."];
-  if ($paso >= 3) return ['asunto' => 'diagnóstico de 15 minutos', 'cuerpo' => "Hola:\n\nÚltimo mensaje, prometido. Si os sirve, hacemos un diagnóstico de 15 minutos sobre cómo usáis la IA en $empresa y qué os pide la normativa este año, sin compromiso.\n\nSi no es el momento, no os escribo más.\n\nUn saludo."];
-  $t = [
-    'ia_transparencia' => ['adaptación ia en ' . mb_strtolower($empresa), "Hola:\n\nHe visto la web de $empresa, en $lugar. Desde el 2 de agosto de 2026, quien atiende a clientes con chatbots o sistemas automáticos debe avisar claramente de que es una IA.\n\nEn Labs24k ayudamos a empresas de $sector a automatizar su atención y captación con IA cumpliendo la ley.\n\n¿Te encaja verlo en 10 minutos esta semana o prefieres que te pase un breve informe por aquí?"],
-    'ia_alfabetizacion' => ['protocolo de ia en ' . mb_strtolower($empresa), "Hola:\n\nSi en $empresa usáis herramientas como ChatGPT o Copilot, el Reglamento Europeo de IA pide que la plantilla tenga la formación adecuada, y conviene tenerlo documentado en un protocolo interno.\n\nLo dejamos resuelto y, de paso, automatizamos tareas que hoy os quitan tiempo.\n\n¿Lo vemos en 10 minutos?"],
-    'ia_fundae' => ['formación en ia', "Hola:\n\nLa formación en IA que pide el Reglamento Europeo para quien usa estas herramientas puede bonificarse a través de FUNDAE, según el crédito de cada empresa.\n\nEn Labs24k la organizamos para equipos de $sector y la conectamos con casos reales de vuestro día a día.\n\n¿Te paso un breve informe?"],
-    'ia_captacion' => ['consultas fuera de horario', "Hola:\n\nMuchas empresas de $sector pierden consultas que llegan fuera de horario. Implantamos asistentes de IA que responden al momento, con el aviso de IA que exige la normativa y pasando a una persona lo importante.\n\n¿Te encaja verlo 10 minutos este jueves?"],
-    'ia_pregunta' => ['una duda sobre vuestra web', "Hola:\n\nUna pregunta rápida sobre la web de $empresa: ¿quién se encarga de cómo atendéis a los clientes por web y WhatsApp?\n\nQuería comentarte una mejora con IA que además os deja al día con la normativa de este año.\n\nGracias."],
-  ];
-  [$a, $c] = $t[$angulo] ?? $t['ia_transparencia'];
-  return ['asunto' => $a, 'cuerpo' => $c];
 }

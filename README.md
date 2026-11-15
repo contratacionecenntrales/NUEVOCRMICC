@@ -218,7 +218,7 @@ propio CRM — ya no hace falta volver a tocar la base de datos a mano.
 
 ## Base de datos en un solo paso
 
-`sql/base-de-datos-completa-v90.sql` deja cualquier base de datos al día para la v90 importándolo una sola vez en phpMyAdmin:
+`sql/base-de-datos-completa-v91.sql` deja cualquier base de datos al día para la v91 importándolo una sola vez en phpMyAdmin:
 - Con datos (v55 en adelante): no borra nada; crea solo las tablas, columnas, índices y relaciones que falten y amplía los roles. Deja a Daniela con todo el equipo de María y las agendas de Juan y María.
 - Vacía: crea el CRM completo y un Super Administrador inicial (info@integralconnectionconsulting.es, contraseña provisional `CambiaEsta-2026`, que el CRM obliga a cambiar).
 - Se puede ejecutar varias veces sin errores ni duplicados. Los datos de ejemplo de los comparadores solo se cargan si esas tablas están vacías.
@@ -500,7 +500,7 @@ Montarla (por ejemplo en `demo.crm.tudominio.es`):
 1. Crea el subdominio en Hostalia apuntando a una carpeta nueva y sube ahí el
    mismo zip del CRM.
 2. Crea una base de datos **nueva y vacía** e importa
-   `sql/base-de-datos-completa-v90.sql` (más las migraciones nuevas si las hay).
+   `sql/base-de-datos-completa-v91.sql` (más las migraciones nuevas si las hay).
 3. Crea `api/config.local.php` de esa carpeta con los datos de la BD nueva y
    añade `define('ICC_MODO_DEMO', true);`.
 4. Rellena la demo por SSH (el generador no se puede abrir desde el navegador):
@@ -614,12 +614,8 @@ Todo funciona sin IA (plantillas y reglas) y nunca se inventa nada. Tablas: `sql
 - **🏭 Fábrica de agentes**:
   - *Scraper*: prefijos de correo genéricos (info, contacto, gerencia…), cualificación con IA (resumen,
     carencias y encaje) y encaje mínimo para entrar en campaña.
-  - *Outreach*: perfiles de identidad `icc` (Integral Connection Consulting) y `labs24k` (Labs24k, división
-    de IA de Grupo Evolvix Global S.L., que figura como responsable del envío): prompt maestro, tono, firma,
-    límite de palabras, cadencia día 1 → 3 → 7 y ángulos del AI Act (art. 50 transparencia desde el
-    2/8/2026, art. 4 alfabetización desde el 2/2/2025, formación bonificable por FUNDAE según el crédito de
-    cada empresa, captación y pregunta abierta). Las correcciones aprobadas se guardan como ejemplos de
-    estilo de ese perfil.
+  - *Outreach*: identidad ICC Consultoría (ver v91): prompt maestro, tono, firma, límite de palabras, cadencia
+    día 1 → 3 → 7 y ángulos por servicio. Las correcciones aprobadas se guardan como ejemplos de estilo.
   - *Buzones de envío*: varios buzones (mejor en un subdominio con SPF, DKIM y DMARC), límite diario por
     buzón (30–40), calentamiento (10 el primer día y +5 cada día), pausa aleatoria propia de 4 a 9 min y
     buzón reservado a un perfil. Los seguimientos salen del mismo buzón y en el mismo hilo. Las contraseñas
@@ -630,3 +626,33 @@ Todo funciona sin IA (plantillas y reglas) y nunca se inventa nada. Tablas: `sql
 - Sin píxel de seguimiento (la apertura no se mide: es poco fiable y añade un tratamiento de datos). El correo
   se verifica por MX + rebotes, no sondeando el SMTP ajeno. Páginas Amarillas, registros mercantiles y
   directorios entran por CSV: no se extraen automáticamente de sus webs.
+
+## Oficina virtual de ICC Consultoría (v91)
+
+Identidad única: **ICC Consultoría · 100 % servicios · 100 % compañías · Reducción de costes garantizada**
+(integralconnectionconsulting.es). El perfil Labs24k desaparece; `sql/migracion_icc_oficina.sql` (incluida en
+la base de datos completa v91) pasa sus campañas a ICC.
+
+- **Motor**: prompt maestro de ICC para B2B de energía (potencia, excesos, reactiva, tarifas), telefonía (líneas,
+  permanencias, fibra, móviles, centralita), alarmas (cuota, mantenimiento, central receptora) y seguros
+  (renovaciones sin revisar, coberturas). «Garantizada» solo con este sentido: si el estudio no encuentra una
+  mejora real, se le dice al cliente y no cambia nada. Sin cifras, porcentajes, precios ni compañías concretas.
+  Ángulos: auditoría integral, luz y gas, potencia, telefonía, alarmas, seguros, caso del sector, pregunta corta
+  y estudio gratuito. Cuando una empresa responde con interés, pasa al CRM con la etiqueta «Interés: <servicio>»
+  del ángulo de su campaña, que arranca el embudo de ese servicio.
+- **Automatizaciones** (`#/automatizaciones`): 22 plantillas en tres grupos y botón **🏢 Instalar la oficina
+  virtual de ICC** (crea y activa 19; también lo hace el piloto automático). Cada grupo se instala con un clic.
+  - *Básicas*: lead nuevo (reparto, bienvenida y llamada en 5 min), recordatorio de cita, no asistió,
+    documentación recibida (estudio en 48 h), seguimiento de la propuesta, propuesta aceptada, contrato en
+    trámite, contrato activado (y revisión de la primera factura), contrato con incidencia (avisos y tarea en
+    2 h, sin escribir al cliente), renovación anual (330 días), perdido a los 90 días, satisfacción y referidos.
+  - *Embudos lineales*: Energía, Telefonía, Alarmas y Seguros (empiezan al día siguiente de la bienvenida:
+    correo, WhatsApp, llamada y cierre), lead magnet y rescate omnicanal 2-24-48 h.
+  - *Embudos avanzados*: auditoría integral 100 % servicios (ramas, espera a que agende y A/B), venta cruzada
+    (mira qué servicios le faltan y ofrece el siguiente; con todos, pide referidos), setter BANT y
+    reactivación de la base dormida.
+- Disparadores nuevos: contrato registrado, activado, con incidencia y aniversario del contrato (filtrables por
+  servicio). Un contrato cargado ya activo (importado) no dispara la bienvenida. Condiciones nuevas: «ya tiene
+  contratado el servicio» y «ha mostrado interés en el servicio». Variables `{{servicio}}` y `{{web}}`. Pie de
+  los correos con la firma de ICC Consultoría.
+- Agentes, Jarvis y el agente de correo se presentan con la misma identidad y los cuatro servicios.

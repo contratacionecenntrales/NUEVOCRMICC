@@ -130,7 +130,11 @@ function apr_ciclo(): string {
 /* ===========================================================================
    PILOTO AUTOMATICO
    ========================================================================= */
-const APR_FLUJOS_PILOTO = ['lead_reparto', 'recordatorio_cita', 'no_asistio', 'seguimiento_presupuesto', 'presupuesto_aceptado', 'perdido_recuperar', 'resena_referidos', 'rescate_omnicanal'];
+/** Oficina virtual de ICC: automatizaciones basicas y embudos que se encienden con el piloto automatico.
+ *  (El formulario web, el setter y la reactivacion de la base dormida se activan a mano.) */
+const APR_FLUJOS_PILOTO = ['lead_reparto', 'recordatorio_cita', 'no_asistio', 'acuse_estudio', 'seguimiento_presupuesto', 'presupuesto_aceptado',
+  'contrato_tramite', 'contrato_activo', 'contrato_incidencia', 'renovacion_anual', 'perdido_recuperar', 'resena_referidos', 'rescate_omnicanal',
+  'embudo_energia', 'embudo_telefonia', 'embudo_alarmas', 'embudo_seguros', 'auditoria_integral', 'venta_cruzada'];
 
 function apr_piloto(bool $encender, int $uid): array {
   $db = icc_db();
@@ -155,16 +159,7 @@ function apr_piloto(bool $encender, int $uid): array {
     $db->exec("UPDATE mail_cuentas SET modo = 'automatico' WHERE funcion NOT IN ('personal','solo_envio') AND modo = 'aprobacion'");
     // Flujos recomendados: se crean (si no estan) y se activan.
     if (function_exists('fl_plantillas')) {
-      foreach (APR_FLUJOS_PILOTO as $clave) {
-        $st = $db->prepare('SELECT id FROM flujos WHERE plantilla = ? ORDER BY id LIMIT 1');
-        $st->execute([$clave]);
-        $id = (int)$st->fetchColumn();
-        if (!$id) {
-          [$nombre, , $disp, $cfg, $pasos, $obj] = fl_plantillas()[$clave];
-          $db->prepare("INSERT INTO flujos (nombre, disparador, disparador_cfg, filtro, pasos, objetivo, plantilla, creado_por, estado) VALUES (?, ?, ?, '{}', ?, ?, ?, ?, 'activo')")
-            ->execute([$nombre, $disp, json_encode($cfg ?: new stdClass()), json_encode($pasos, JSON_UNESCAPED_UNICODE), json_encode($obj ?: new stdClass()), $clave, $uid]);
-        } else $db->prepare("UPDATE flujos SET estado = 'activo' WHERE id = ?")->execute([$id]);
-      }
+      fl_instalar(APR_FLUJOS_PILOTO, $uid, true);
       $hecho[] = count(APR_FLUJOS_PILOTO) . ' automatizaciones activas';
     }
     $hecho[] = '15 agentes con autonomía «actúa»';

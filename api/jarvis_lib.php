@@ -308,7 +308,7 @@ function jv_chat(array $u, array $historial, string $msg, string $pantalla = '',
     'parameters' => ['type' => 'object', 'properties' => $h[2] ?: new stdClass(), 'required' => $h[3], 'additionalProperties' => false]]];
   $ahora = icc_madrid();
   $dias = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
-  $sistema = '[jarvis:asistente] Eres ' . $cfg['nombre'] . ', el asistente de voz y texto del CRM de Integral Connection Consulting (energía y telecomunicaciones para empresas). Hablas con ' . $u['nombre'] . ' (' . $u['rol'] . ').'
+  $sistema = '[jarvis:asistente] Eres ' . $cfg['nombre'] . ', el asistente de voz y texto del CRM de ICC Consultoría · Integral Connection Consulting (energía, telefonía, alarmas y seguros para empresas; 100 % servicios, 100 % compañías). Hablas con ' . $u['nombre'] . ' (' . $u['rol'] . ').'
     . "\nHoy es " . $dias[(int)$ahora->format('w')] . ' ' . $ahora->format('d/m/Y') . ' y son las ' . $ahora->format('H:i') . ' en Madrid: calcula «mañana», «el jueves»… con esa fecha.'
     . "\nReglas: respondes en español de España, breve (máximo 4 frases, se lee en voz alta). Solo usas datos de las herramientas: si no lo sabes, lo dices. Solo ves lo que ve esta persona."
     . "\nLos cambios (citas, notas, fases, contactos) NUNCA se aplican: los preparas con la herramienta y la persona los confirma en una tarjeta. A «perdido» solo con motivo. No envías correos ni WhatsApp."

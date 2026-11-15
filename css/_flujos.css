@@ -56,3 +56,13 @@
   .icc-fl-linea { margin: 0 0 0 20px; height: 12px; }
   .icc-fl-obj .icc-select, .icc-fl-obj .icc-input { width: 100%; }
 }
+/* v91: oficina virtual, grupos y descripcion de plantillas */
+.icc-fl-heroacc { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; max-width: 360px; }
+.icc-fl-heroacc small { color: var(--txt-3); font-size: 12px; line-height: 1.45; }
+.icc-fl-desc { margin: 2px 0 6px; color: var(--txt-2); font-size: 12.5px; line-height: 1.45; }
+.icc-fl-plantilla .icc-ia-fila { margin-top: auto; align-items: center; }
+.icc-fl-plantilla .icc-ia-fila .icc-btn { margin-top: 0; }
+@media (max-width: 560px) { .icc-fl-heroacc, .icc-fl-heroacc .icc-btn { width: 100%; max-width: none; } }
+/* Diagramas anchos: centrado «seguro» (si no cabe, se desplaza en vez de cortarse por la izquierda) */
+.icc-fl-arbol { align-items: flex-start; }
+.icc-fl-arbol > * { margin-left: auto; margin-right: auto; flex-shrink: 0; }
