@@ -9,6 +9,7 @@
  * POST ?action=tarea {id, estado}                 POST ?action=experimento {...} · experimento_accion {id, accion}
  * POST ?action=memoria {tipo, texto, evidencia} · memoria_quitar {id}
  * POST ?action=hallazgo {id, accion} · auditar    POST ?action=cobro {id, accion: pagado|anular}
+ * GET  ?action=sala · voz · autofix   POST ?action=autofix (pasada ahora)   PUT ?action=autofix {activo, perdidos, interruptores}
  * GET  ?action=sala · voz        POST ?action=empujar {cliente_id?} · partes · voz_llamar {cliente_id, motivo} · voz_probar
  * PUT  ?action=config {...} · voz {...}
  */
@@ -186,6 +187,27 @@ if ($accion === 'cierre' && $metodo === 'GET') {
                    WHERE e.estado <> 'cerrado' ORDER BY e.temperatura DESC")->fetchAll();
   if ($visibles !== null) $f = array_values(array_filter($f, function ($x) use ($visibles) { return $x['comercial_id'] !== null && in_array((int)$x['comercial_id'], $visibles, true); }));
   icc_json(['cierre' => $f, 'toques' => array_values(array_map(function ($t) { return ['dia' => $t[0], 'tipo' => $t[1]]; }, EQ_TOQUES))]);
+}
+
+/* ---------------------------------------------------------------- AUTOCORRECTOR */
+if ($accion === 'autofix' && $metodo === 'GET') {
+  require_once __DIR__ . '/autofix_lib.php';
+  $mem = af_memoria(120);
+  $cont = ['abierta' => 0, 'persona' => 0, 'arreglada' => 0];
+  foreach ($mem as $m) $cont[$m['estado']]++;
+  $aprendido = $db->query("SELECT texto, evidencia, created_at FROM equipo_memoria WHERE activo = 1 AND agente = 'autocorrector' ORDER BY id DESC LIMIT 10")->fetchAll();
+  icc_json(['memoria' => $mem, 'contadores' => $cont, 'config' => af_config(), 'ultimo' => (string)icc_ajuste('autofix_ultimo', ''), 'aprendido' => $aprendido, 'es_dir' => $esDir, 'es_config' => $esConfig]);
+}
+if ($accion === 'autofix' && $metodo === 'POST') {
+  eq_solo_dir($esDir);
+  require_once __DIR__ . '/autofix_lib.php';
+  @set_time_limit(200);
+  icc_json(['ok' => true, 'texto' => af_tick(true)]);
+}
+if ($accion === 'autofix' && $metodo === 'PUT') {
+  if (!$esConfig) icc_json(['error' => 'Solo la administración cambia el Autocorrector.'], 403);
+  foreach (['activo', 'perdidos', 'interruptores'] as $k) icc_ajuste_guardar('autofix_' . $k, !empty($body[$k]) ? '1' : '0', false, $uid);
+  icc_json(['ok' => true]);
 }
 
 /* ---------------------------------------------------------------- SALA DE CIERRE */

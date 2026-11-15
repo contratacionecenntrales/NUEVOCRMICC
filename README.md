@@ -218,7 +218,7 @@ propio CRM — ya no hace falta volver a tocar la base de datos a mano.
 
 ## Base de datos en un solo paso
 
-`sql/base-de-datos-completa-v93.sql` deja cualquier base de datos al día para la v93 importándolo una sola vez en phpMyAdmin:
+`sql/base-de-datos-completa-v94.sql` deja cualquier base de datos al día para la v94 importándolo una sola vez en phpMyAdmin:
 - Con datos (v55 en adelante): no borra nada; crea solo las tablas, columnas, índices y relaciones que falten y amplía los roles. Deja a Daniela con todo el equipo de María y las agendas de Juan y María.
 - Vacía: crea el CRM completo y un Super Administrador inicial (info@integralconnectionconsulting.es, contraseña provisional `CambiaEsta-2026`, que el CRM obliga a cambiar).
 - Se puede ejecutar varias veces sin errores ni duplicados. Los datos de ejemplo de los comparadores solo se cargan si esas tablas están vacías.
@@ -500,7 +500,7 @@ Montarla (por ejemplo en `demo.crm.tudominio.es`):
 1. Crea el subdominio en Hostalia apuntando a una carpeta nueva y sube ahí el
    mismo zip del CRM.
 2. Crea una base de datos **nueva y vacía** e importa
-   `sql/base-de-datos-completa-v93.sql` (más las migraciones nuevas si las hay).
+   `sql/base-de-datos-completa-v94.sql` (más las migraciones nuevas si las hay).
 3. Crea `api/config.local.php` de esa carpeta con los datos de la BD nueva y
    añade `define('ICC_MODO_DEMO', true);`.
 4. Rellena la demo por SSH (el generador no se puede abrir desde el navegador):
@@ -714,4 +714,31 @@ su agente configurado, se respeta. Sin cambios en la base de datos.
 - **Agentes de correo**: dos buzones más en la oficina de ICC, facturacion@ (Irene · facturas para auditoría:
   guarda la factura, confirma el plazo de 48 h y crea la tarea del estudio) y activaciones@ (Álvaro ·
   activaciones y cierres).
+
+## Autocorrector: mantenimiento automático con memoria (v94)
+
+Agente nuevo (**🧠 Zona de agentes → 🛠️ Autocorrector**, `api/autofix_lib.php`; 18 agentes) y bloque del cron
+`autofix` cada 10 minutos, también de noche y sin depender de la IA. Migración: `sql/migracion_autofix.sql`
+(incluida en la base de datos completa v94).
+
+Revisa todos los procesos y arregla solo lo que «requiere acción»:
+
+| Proceso | Qué detecta | Qué hace solo |
+|---|---|---|
+| Puesta en marcha | Interruptores apagados | Enciende la Zona de agentes, las automatizaciones de la oficina, el mantenimiento y el aprendizaje |
+| Pipeline | Sin próximo paso, sin valor o sin gestor | Pasa el mantenimiento al momento, con llamadas en la agenda |
+| Pipeline | Estancadas sin plan | Empujón de la Jefatura de ventas o llamada de rescate |
+| Pipeline | Oportunidades sin vida | Llamada de rescate; a los 14 días sin cambios, Perdido con recontacto a 90 días (desactivable) |
+| Correo | Buzón con error / correo atascado 30 min | Vuelve a probar la conexión / reprocesa el correo |
+| Motor | Envío con error temporal | Lo devuelve a la cola |
+| Agente de voz | Sin informe en 2 h o con error | Llamada del gestor |
+| Cron | Proceso que falló | Lo vuelve a ejecutar |
+
+Lo que necesita a una persona (clave de OpenAI, cron del hosting, contraseñas, objetivo del mes, la IA fallando,
+decisiones esperando más de 48 h) se avisa a dirección con instrucciones, una vez al día. Nunca aprueba lo que por
+diseño decide una persona.
+
+**Memoria** (`autofix_memoria`): cada incidencia con sus intentos (como mucho 3 por episodio, con pausas de 10 y
+60 minutos) y las veces que se repite; si algo vuelve 3 veces, lo anota en el Cerebro de la empresa para buscar
+la causa. **Jarvis**: «¿Qué requiere acción?» y «Arregla lo que requiere acción» (dirección, con confirmación).
 

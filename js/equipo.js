@@ -32,7 +32,7 @@
     pintar();
   }
   async function cargar() {
-    var mapa = { sala: "sala", voz: "voz", aprobar: "aprobar", tareas: "tareas", lab: "lab", cerebro: "cerebro", calidad: "calidad", cierre: "cierre", cobros: "cobros", registro: "registro", ajustes: "config" };
+    var mapa = { autofix: "autofix", sala: "sala", voz: "voz", aprobar: "aprobar", tareas: "tareas", lab: "lab", cerebro: "cerebro", calidad: "calidad", cierre: "cierre", cobros: "cobros", registro: "registro", ajustes: "config" };
     S.x = null;
     if (mapa[S.tab]) { try { S.x = await API.get("api/equipo.php?action=" + mapa[S.tab]); } catch (e) { U.toast(e.message, "error"); } }
   }
@@ -41,12 +41,12 @@
     var d = S.d;
     var html = '<div class="icc-ia icc-mo icc-eq">' +
       '<section class="icc-ia-hero icc-mo-hero"><div><span class="icc-ia-eyebrow">IA · Empresa autónoma</span><h1>🧠 Zona de agentes</h1>' +
-      "<p>17 agentes de IA en 7 departamentos trabajan por turnos sobre el CRM. Hacen lo de riesgo bajo; <b>presupuestos, contratos, cobros, correos a clientes y perdidos siempre esperan a una persona</b>. Marcar un cobro como pagado o un cliente como firmado solo lo hacen personas.</p>" +
+      "<p>18 agentes de IA en 7 departamentos trabajan por turnos sobre el CRM. Hacen lo de riesgo bajo; <b>presupuestos, contratos, cobros, correos a clientes y perdidos siempre esperan a una persona</b>. Marcar un cobro como pagado o un cliente como firmado solo lo hacen personas.</p>" +
       '<div class="icc-ia-estado">' + pill(d.activo ? "● Trabajando" : "⏸ Apagada", d.activo ? "ok" : "aviso") + pill(d.ia ? "Con IA" : "Sin IA: manual de reglas", d.ia ? "ok" : "aviso") +
       "<span>Turnos hoy " + d.turnos_hoy + " de " + d.turnos_dia + "</span>" + (d.pendientes ? pill("✍️ " + d.pendientes + " para aprobar", "aviso") : "") + "</div></div></section>" +
       '<nav class="icc-tabs icc-mo-tabs" role="tablist">' +
       [["equipo", "👥 Equipo"], ["aprobar", "✍️ Para aprobar" + (d.pendientes ? " <b>" + d.pendientes + "</b>" : "")], ["tareas", "📋 Tareas"], ["ritmo", "🎯 Ritmo"], ["lab", "🧪 Laboratorio"],
-        ["cerebro", "🧠 Cerebro"], ["calidad", "🔍 Calidad"], ["sala", "🔥 Sala de cierre"], ["cierre", "🤝 Cadencia"]].concat(d.es_config ? [["voz", "📞 Agente de voz"]] : []).concat(d.es_dir ? [["cobros", "💶 Cobros"]] : []).concat([["registro", "🧾 Registro"], ["ajustes", "⚙️ Ajustes"]])
+        ["cerebro", "🧠 Cerebro"], ["calidad", "🔍 Calidad"], ["sala", "🔥 Sala de cierre"], ["cierre", "🤝 Cadencia"], ["autofix", "🛠️ Autocorrector"]].concat(d.es_config ? [["voz", "📞 Agente de voz"]] : []).concat(d.es_dir ? [["cobros", "💶 Cobros"]] : []).concat([["registro", "🧾 Registro"], ["ajustes", "⚙️ Ajustes"]])
         .map(function (t) { return '<button type="button" role="tab" class="icc-tab' + (S.tab === t[0] ? " is-active" : "") + '" data-tab="' + t[0] + '">' + t[1] + "</button>"; }).join("") +
       '</nav><div id="eq-cuerpo">' + cuerpo() + "</div></div>";
     main().innerHTML = html;
@@ -54,7 +54,7 @@
   }
 
   function cuerpo() {
-    var f = { sala: sala, voz: voz, equipo: equipo, aprobar: aprobar, tareas: tareas, ritmo: ritmo, lab: lab, cerebro: cerebro, calidad: calidad, cierre: cierre, cobros: cobros, registro: registro, ajustes: ajustes }[S.tab];
+    var f = { autofix: autofix, sala: sala, voz: voz, equipo: equipo, aprobar: aprobar, tareas: tareas, ritmo: ritmo, lab: lab, cerebro: cerebro, calidad: calidad, cierre: cierre, cobros: cobros, registro: registro, ajustes: ajustes }[S.tab];
     if (S.tab !== "equipo" && S.tab !== "ritmo" && !S.x) return '<p class="icc-empty">No se pudo cargar.</p>';
     return f();
   }
@@ -251,6 +251,31 @@
     return html;
   }
 
+  /* ------------------------------------------------------- AUTOCORRECTOR */
+  function autofix() {
+    var x = S.x, c = x.config;
+    var EST = { persona: ["Necesita a una persona", "aviso"], abierta: ["Arreglándose", ""], arreglada: ["Arreglado", "ok"] };
+    var item = function (m) {
+      return '<li><div><strong>' + esc(m.titulo) + "</strong><small>" + esc(m.proceso) + " · " + esc(fecha(m.ultima)) + (Number(m.veces) > 1 ? " · se ha repetido " + m.veces + " veces" : "") + (Number(m.intentos) ? " · " + m.intentos + " intentos" : "") + "</small>" +
+        (m.detalle ? "<small>" + esc(m.detalle) + "</small>" : "") + (m.accion ? "<small>✓ " + esc(m.accion) + "</small>" : "") + "</div>" +
+        '<div class="icc-ia-fila">' + pill(EST[m.estado][0], EST[m.estado][1]) + (m.enlace && m.estado !== "arreglada" ? '<a class="icc-btn icc-btn-ghost icc-mo-mini" href="' + esc(m.enlace) + '">Ir</a>' : "") + "</div></li>";
+    };
+    var grupo = function (est, titulo) { var l = x.memoria.filter(function (m) { return m.estado === est; }); return l.length ? '<h3 class="icc-eq-h3">' + titulo + " (" + l.length + ')</h3><ul class="icc-ia-lista">' + l.map(item).join("") + "</ul>" : ""; };
+    var dis = x.es_config ? "" : " disabled";
+    return '<section class="icc-card icc-ia-bloque"><div class="icc-mo-cab"><div><h2>🛠️ Autocorrector</h2><p class="icc-muted">Cada 10 minutos, también de noche, revisa todos los procesos y <b>arregla solo lo que requiere acción</b>: enciende lo que estaba apagado, pasa el mantenimiento del pipeline con llamadas, vuelve a conectar buzones, reprocesa correos atascados, reintenta envíos, pasa al gestor las llamadas de IA sin resultado y vuelve a lanzar los procesos que fallaron. Recuerda cada incidencia: como mucho 3 intentos y, si no se arregla, avisa a dirección con instrucciones. Nunca aprueba lo que por diseño decide una persona.</p>' +
+      "<small>" + (x.ultimo ? "Última revisión: " + esc(fecha(x.ultimo)) : "Todavía no ha revisado") + "</small></div>" +
+      (x.es_dir ? '<button class="icc-btn icc-btn-primary" id="eq-autofix">🛠️ Revisar y arreglar ahora</button>' : "") + "</div>" +
+      '<div class="icc-mo-kpis icc-eq-salakpi">' + [["🧑‍💼", x.contadores.persona, "Necesitan a una persona"], ["🔧", x.contadores.abierta, "Arreglándose"], ["✅", x.contadores.arreglada, "Arreglados"]]
+        .map(function (k) { return '<div class="icc-card icc-mo-kpi"><span>' + k[0] + "</span><b>" + k[1] + "</b><small>" + k[2] + "</small></div>"; }).join("") + "</div>" +
+      (x.memoria.length ? grupo("persona", "🧑‍💼 Necesita a una persona") + grupo("abierta", "🔧 Arreglándose") + grupo("arreglada", "✅ Arreglado") : '<p class="icc-muted">Nada requiere acción.</p>') + "</section>" +
+      '<div class="icc-ia-dos"><section class="icc-card icc-ia-bloque"><h2>🧠 Memoria y aprendizajes</h2>' + (x.aprendido.length ? '<ul class="icc-ia-lista">' + x.aprendido.map(function (a) { return "<li><div><strong>" + esc(a.texto) + "</strong><small>" + esc(a.evidencia) + " · " + esc(fecha(a.created_at)) + "</small></div></li>"; }).join("") + "</ul>" : '<p class="icc-muted">Cuando un problema se repite 3 veces, lo anota aquí y en el Cerebro de la empresa para buscar la causa.</p>') + "</section>" +
+      '<section class="icc-card icc-ia-bloque"><h2>Ajustes</h2><form id="eq-autofix-cfg" class="icc-ia-form">' +
+      '<label class="icc-ia-switch"><input type="checkbox" name="activo"' + (c.activo ? " checked" : "") + dis + "><span><b>Autocorrector encendido</b><small>Cada 10 minutos.</small></span></label>" +
+      '<label class="icc-ia-switch"><input type="checkbox" name="interruptores"' + (c.interruptores ? " checked" : "") + dis + "><span><b>Encender lo que esté apagado</b><small>Zona de agentes, automatizaciones de la oficina, mantenimiento del pipeline y aprendizaje.</small></span></label>" +
+      '<label class="icc-ia-switch"><input type="checkbox" name="perdidos"' + (c.perdidos ? " checked" : "") + dis + "><span><b>Cerrar oportunidades sin vida</b><small>Primero una llamada de rescate; si a los 14 días sigue igual, pasa a Perdido y se vuelve a contactar a los 90 días.</small></span></label>" +
+      (x.es_config ? '<button class="icc-btn icc-btn-primary icc-mo-mini" type="submit">Guardar</button>' : "") + '</form><p class="icc-ia-nota">También puedes pedírselo a Jarvis: «¿Qué requiere acción?» o «Arregla lo que requiere acción».</p></section></div>';
+  }
+
   /* -------------------------------------------------------- AGENTE DE VOZ */
   function voz() {
     var c = S.x;
@@ -353,6 +378,10 @@
     var mem = document.getElementById("eq-mem");
     if (mem) mem.addEventListener("submit", function (ev) { ev.preventDefault(); hacer(ev.submitter, async function () { await API.post("api/equipo.php?action=memoria", Object.fromEntries(new FormData(mem))); U.toast("✓ Guardado en el cerebro", "success"); await recargar(); }); });
     r.querySelectorAll("[data-olvidar]").forEach(function (b) { b.addEventListener("click", function () { hacer(b, async function () { await API.post("api/equipo.php?action=memoria_quitar", { id: Number(b.dataset.olvidar) }); await recargar(); }); }); });
+    var afx = document.getElementById("eq-autofix");
+    if (afx) afx.addEventListener("click", function () { afx.textContent = "Revisando…"; hacer(afx, async function () { var x = await API.post("api/equipo.php?action=autofix", {}); U.toast("✓ " + x.texto, "success"); await recargar(); }); });
+    var afc = document.getElementById("eq-autofix-cfg");
+    if (afc) afc.addEventListener("submit", function (ev) { ev.preventDefault(); hacer(ev.submitter, async function () { await API.put("api/equipo.php?action=autofix", { activo: afc.activo.checked, interruptores: afc.interruptores.checked, perdidos: afc.perdidos.checked }); U.toast("✓ Guardado", "success"); await recargar(); }); });
     var emp = document.getElementById("eq-empujar");
     if (emp) emp.addEventListener("click", function () { hacer(emp, async function () { var x = await API.post("api/equipo.php?action=empujar", {}); U.toast(String(x.texto).slice(0, 220), "success"); await recargar(); }); });
     var par = document.getElementById("eq-partes");

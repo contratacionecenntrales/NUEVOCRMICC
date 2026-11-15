@@ -80,3 +80,5 @@
 .icc-eq-pasos textarea, .icc-eq-pasos input { margin: 6px 0; font-family: inherit; }
 .icc-eq-pasos code { overflow-wrap: anywhere; }
 @media (max-width: 560px) { .icc-eq-sala, .icc-eq-tecnicas { grid-template-columns: minmax(0, 1fr); } }
+/* v94: listas con estado a la derecha (Autocorrector y llamadas) */
+.icc-eq .icc-ia-lista li > div.icc-ia-fila { flex: 0 0 auto; min-width: 0; flex-direction: row; align-items: center; gap: 6px; }

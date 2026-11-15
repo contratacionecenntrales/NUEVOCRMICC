@@ -204,6 +204,8 @@ function voz_llamar(array $c, string $motivo, string $detalle = '', string $orig
 function voz_o_persona(array $c, string $motivo, string $detalle, string $origen): string {
   $r = voz_config()['activo'] ? voz_llamar($c, $motivo, $detalle, $origen) : ['ok' => false, 'error' => 'Agente de voz apagado'];
   if ($r['ok']) return 'Llamada del agente de voz en curso';
+  // La llamada la hace una persona: queda anotado para no repetirla.
+  if (!empty($r['id'])) icc_db()->prepare("UPDATE voz_llamadas SET error = CONCAT(COALESCE(error, ''), ' · pasa al gestor') WHERE id = ?")->execute([$r['id']]);
   $g = !empty($c['comercial_id']) ? (int)$c['comercial_id'] : eq_gestor_menos_cargado();
   if (!$g) return 'Sin gestor para llamar (' . $r['error'] . ')';
   $h = eq_primer_hueco($g, 15);

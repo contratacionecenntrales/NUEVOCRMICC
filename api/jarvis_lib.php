@@ -30,6 +30,8 @@ const JV_HERRAMIENTAS = [
   'mover_fase' => ['cambio', 'Prepara el cambio de fase de un cliente (a perdido solo con motivo).', ['cliente_id' => ['type' => 'integer'], 'fase' => ['type' => 'string', 'enum' => ['lead_captado', 'estudio_backoffice', 'oferta_presentada', 'en_cierre', 'cliente_activo', 'perdido']], 'motivo' => ['type' => 'string']], ['cliente_id', 'fase', 'motivo'], false],
   'crear_contacto' => ['cambio', 'Prepara un cliente nuevo en la cartera de la persona.', ['razon_social' => ['type' => 'string'], 'contacto_nombre' => ['type' => 'string'], 'telefono' => ['type' => 'string'], 'email' => ['type' => 'string'], 'sector' => ['type' => 'string']], ['razon_social', 'contacto_nombre', 'telefono', 'email', 'sector'], false],
   'arreglar_pipeline' => ['cambio', 'Prepara una pasada del agente de mantenimiento del pipeline.', [], [], true],
+  'incidencias' => ['lectura', 'Qué requiere acción en todos los procesos (memoria del Autocorrector): abierto, para una persona y arreglado.', [], [], true],
+  'arreglar_todo' => ['cambio', 'Prepara una pasada del Autocorrector: revisa todos los procesos y arregla lo que requiere acción.', [], [], true],
 ];
 
 const JV_PANTALLAS = [
@@ -145,6 +147,9 @@ function jv_leer(array $u, string $t, array $a): array {
       return ['datos' => $st->fetchAll()];
     case 'zona_agentes':
       return ['datos' => $db->query("SELECT agente, herramienta, COUNT(*) n FROM equipo_acciones WHERE estado = 'pendiente' GROUP BY agente, herramienta")->fetchAll()];
+    case 'incidencias':
+      require_once __DIR__ . '/autofix_lib.php';
+      return ['datos' => array_map(function ($m) { return ['proceso' => $m['proceso'], 'titulo' => $m['titulo'], 'estado' => ['abierta' => 'arreglándose', 'persona' => 'necesita a una persona', 'arreglada' => 'arreglado'][$m['estado']], 'detalle' => $m['detalle'], 'hecho' => $m['accion'], 'veces' => (int)$m['veces']]; }, array_slice(af_memoria(30), 0, 30))];
     case 'estado_pipeline':
       $p = []; $w = jv_where($u, $p);
       $st = $db->prepare("SELECT SUM(c.proximo_contacto IS NULL OR c.proximo_contacto < NOW()) sin_proximo_paso, SUM(COALESCE(c.valor_estimado, 0) = 0) sin_valor, SUM(c.comercial_id IS NULL) sin_gestor
@@ -215,6 +220,8 @@ function jv_preparar(array $u, string $t, array $a): array {
       return ['resumen' => 'Nuevo cliente: ' . $a['razon_social'] . ($a['contacto_nombre'] ? ' (' . $a['contacto_nombre'] . ')' : '') . ($a['telefono'] ? ' · ' . $a['telefono'] : '') . ($a['email'] ? ' · ' . $a['email'] : '')];
     case 'arreglar_pipeline':
       return ['resumen' => 'Pasada del agente de mantenimiento del pipeline (se puede deshacer)'];
+    case 'arreglar_todo':
+      return ['resumen' => 'Pasada del Autocorrector: arregla lo que requiere acción en todos los procesos y avisa de lo que necesita a una persona'];
   }
   throw new RuntimeException('Herramienta no válida.');
 }
@@ -267,6 +274,9 @@ function jv_aplicar(array $u, string $t, array $a): array {
     case 'arreglar_pipeline':
       $r = sn_pasada('jarvis', $uid);
       return ['texto' => $r['texto']];
+    case 'arreglar_todo':
+      require_once __DIR__ . '/autofix_lib.php';
+      return ['texto' => af_tick(true)];
   }
   throw new RuntimeException('Herramienta no válida.');
 }

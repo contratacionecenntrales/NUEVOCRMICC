@@ -1,11 +1,11 @@
 -- =============================================================================
--- ICC CRM v93 · BASE DE DATOS COMPLETA (instalar o actualizar en un solo paso)
+-- ICC CRM v94 · BASE DE DATOS COMPLETA (instalar o actualizar en un solo paso)
 --
 -- Cómo usarlo: phpMyAdmin > tu base de datos > Importar > este archivo > Continuar.
 --
 -- - Si la base de datos YA TIENE datos (tu CRM actual): NO borra nada.
 --   Solo crea las tablas, columnas e índices que falten y amplía lo necesario
---   para la versión v93. Sirve vengas de la versión que vengas (v55 en adelante).
+--   para la versión v94. Sirve vengas de la versión que vengas (v55 en adelante).
 -- - Si la base de datos está VACÍA: crea el CRM completo y un usuario
 --   Super Administrador inicial (ver el final del archivo).
 -- - Se puede ejecutar MÁS DE UNA VEZ sin errores ni duplicados.
@@ -89,6 +89,26 @@ CREATE TABLE IF NOT EXISTS `anuncios` (
   KEY `fk_anuncio_usuario` (`usuario_id`),
   CONSTRAINT `fk_anuncio_autor` FOREIGN KEY (`autor_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_anuncio_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `autofix_memoria` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `clave` varchar(120) NOT NULL,
+  `proceso` varchar(40) NOT NULL,
+  `titulo` varchar(200) NOT NULL,
+  `detalle` varchar(1000) NOT NULL DEFAULT '',
+  `estado` enum('abierta','arreglada','persona') NOT NULL DEFAULT 'abierta',
+  `accion` varchar(500) NOT NULL DEFAULT '',
+  `enlace` varchar(120) NOT NULL DEFAULT '',
+  `intentos` smallint(5) unsigned NOT NULL DEFAULT 0,
+  `veces` smallint(5) unsigned NOT NULL DEFAULT 1,
+  `primera` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `ultima` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `arreglada_en` datetime DEFAULT NULL,
+  `aviso_en` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_autofix_clave` (`clave`),
+  KEY `idx_autofix_estado` (`estado`,`ultima`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `backoffice_agendas` (
@@ -1622,6 +1642,35 @@ PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'anuncios' AND column_name = 'usuario_id'), 'ALTER TABLE `anuncios` ADD COLUMN `usuario_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'anuncios' AND column_name = 'foto_ruta'), 'ALTER TABLE `anuncios` ADD COLUMN `foto_ruta` varchar(255) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'autofix_memoria' AND column_name = 'id'), 'ALTER TABLE `autofix_memoria` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'autofix_memoria' AND column_name = 'clave'), 'ALTER TABLE `autofix_memoria` ADD COLUMN `clave` varchar(120) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'autofix_memoria' AND column_name = 'proceso'), 'ALTER TABLE `autofix_memoria` ADD COLUMN `proceso` varchar(40) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'autofix_memoria' AND column_name = 'titulo'), 'ALTER TABLE `autofix_memoria` ADD COLUMN `titulo` varchar(200) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'autofix_memoria' AND column_name = 'detalle'), 'ALTER TABLE `autofix_memoria` ADD COLUMN `detalle` varchar(1000) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'autofix_memoria' AND column_name = 'estado'), 'ALTER TABLE `autofix_memoria` ADD COLUMN `estado` enum(''abierta'',''arreglada'',''persona'') NOT NULL DEFAULT ''abierta''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'autofix_memoria' AND column_name = 'accion'), 'ALTER TABLE `autofix_memoria` ADD COLUMN `accion` varchar(500) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'autofix_memoria' AND column_name = 'enlace'), 'ALTER TABLE `autofix_memoria` ADD COLUMN `enlace` varchar(120) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'autofix_memoria' AND column_name = 'intentos'), 'ALTER TABLE `autofix_memoria` ADD COLUMN `intentos` smallint(5) unsigned NOT NULL DEFAULT 0', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'autofix_memoria' AND column_name = 'veces'), 'ALTER TABLE `autofix_memoria` ADD COLUMN `veces` smallint(5) unsigned NOT NULL DEFAULT 1', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'autofix_memoria' AND column_name = 'primera'), 'ALTER TABLE `autofix_memoria` ADD COLUMN `primera` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'autofix_memoria' AND column_name = 'ultima'), 'ALTER TABLE `autofix_memoria` ADD COLUMN `ultima` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'autofix_memoria' AND column_name = 'arreglada_en'), 'ALTER TABLE `autofix_memoria` ADD COLUMN `arreglada_en` datetime DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'autofix_memoria' AND column_name = 'aviso_en'), 'ALTER TABLE `autofix_memoria` ADD COLUMN `aviso_en` datetime DEFAULT NULL', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'backoffice_agendas' AND column_name = 'backoffice_id'), 'ALTER TABLE `backoffice_agendas` ADD COLUMN `backoffice_id` int(10) unsigned NOT NULL', 'DO 0'));
@@ -3488,6 +3537,10 @@ SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHER
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'anuncios' AND index_name = 'idx_anuncios_vigencia'), 'CREATE INDEX `idx_anuncios_vigencia` ON `anuncios` (`inicio`, `expira`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'autofix_memoria' AND index_name = 'idx_autofix_estado'), 'CREATE INDEX `idx_autofix_estado` ON `autofix_memoria` (`estado`, `ultima`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'autofix_memoria' AND index_name = 'uq_autofix_clave'), 'CREATE UNIQUE INDEX `uq_autofix_clave` ON `autofix_memoria` (`clave`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'backoffice_agendas' AND index_name = 'fk_bo_ag_asignado_por'), 'CREATE INDEX `fk_bo_ag_asignado_por` ON `backoffice_agendas` (`asignado_por`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'backoffice_agendas' AND index_name = 'idx_bo_ag_usuario'), 'CREATE INDEX `idx_bo_ag_usuario` ON `backoffice_agendas` (`usuario_id`)', 'DO 0'));
@@ -3993,7 +4046,7 @@ PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 -- Numero de relacion de cada usuario (solo a quien no lo tenga).
 UPDATE usuarios SET numero_relacion = CONCAT('ICC-', LPAD(id, 5, '0')) WHERE numero_relacion IS NULL;
 
--- v93: la identidad Labs24k del Motor pasa a ICC Consultoria (100 % servicios, 100 % companias).
+-- v94: la identidad Labs24k del Motor pasa a ICC Consultoria (100 % servicios, 100 % companias).
 UPDATE motor_campanas SET perfil = 'icc' WHERE perfil = 'labs24k';
 UPDATE motor_campanas SET angulo = 'auditoria_integral' WHERE angulo IN ('ia_transparencia', 'ia_alfabetizacion', 'ia_fundae', 'ia_captacion', 'ia_pregunta');
 DELETE FROM ajustes WHERE clave = 'motor_perfil_labs24k';
@@ -4210,4 +4263,4 @@ UPDATE usuarios SET numero_relacion = CONCAT('ICC-', LPAD(id, 5, '0')) WHERE num
 SET FOREIGN_KEY_CHECKS = 1;
 SET SESSION sql_mode = @icc_modo_anterior;
 
--- Listo. Base de datos al dia para ICC CRM v93.
+-- Listo. Base de datos al dia para ICC CRM v94.
