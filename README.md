@@ -580,3 +580,21 @@ Todo funciona sin IA (plantillas y reglas) y nunca se inventa nada. Tablas: `sql
 - El **cron único** (`api/cron.php`, cada 5 minutos) mueve, en este orden: copias, limpieza, Motor, buzones,
   mantenimiento del pipeline (cada hora), automatizaciones y turnos de los agentes.
 - Conservación (RGPD): correos 1 año, registros de IA y Jarvis 90 días, registros de flujos y del Motor 180 días.
+
+## Puesta en marcha, piloto automático y aprendizaje (v89)
+
+- **🤖 IA → 🚀 Puesta en marcha** (`#/puesta-en-marcha`, `api/puesta.php`, `aprendizaje_lib.php`; coordinación,
+  admin y super admin): lista de comprobación en directo (clave de OpenAI, cron, https, buzón y respuestas del
+  Motor, Google Places, aviso legal, gestores, objetivo, dosieres, buzones, base de conocimiento, agentes,
+  automatizaciones, mantenimiento, aprendizaje) con enlace a donde se resuelve cada punto.
+- **Piloto automático**: un botón que deja los 15 agentes en «actúa», el barrido de todos los sectores (envío
+  autónomo solo si se aceptó el aviso legal del Motor), 8 automatizaciones recomendadas, el mantenimiento con
+  llamadas, los agentes de correo en automático, Jarvis y el aprendizaje diario. «Volver a modo prudente» lo
+  deja todo con aprobación. Presupuestos, contratos, cobros, correos con importes o descuentos, quejas, perdidos
+  y cambios de instrucciones esperan siempre a una persona.
+- **Independencia**: si en un turno la IA no hace nada de su puesto, el manual de reglas del agente hace lo
+  esencial (nunca queda sin hacer).
+- **Aprendizaje diario** (cron, bloque `aprendizaje`): ángulo ganador por sector (dos proporciones, p < 0,10)
+  como estándar, prioridad del barrido por conversión, zonas que responden, avisos por lo que dirección
+  rechaza, instrucciones nuevas propuestas por el jefe de un agente con nota baja (las aprueba dirección) y
+  ejemplos de estilo con los correos que una persona corrige (Motor y cada buzón).

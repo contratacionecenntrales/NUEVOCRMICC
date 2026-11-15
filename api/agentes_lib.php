@@ -1208,6 +1208,12 @@ function eq_turno(string $agente, string $origen = 'cron', ?int $usuarioId = nul
         // Si la IA falla, el manual de reglas hace el turno.
         $resumen = 'IA no disponible (' . $error . '); turno con el manual: ' . implode(' · ', eq_manual($agente, $turno));
         $error = null;
+      } else {
+        // Independencia: si la IA no ha hecho nada de su puesto en este turno,
+        // el manual de reglas garantiza lo esencial (nunca queda sin hacer).
+        $st = $db->prepare("SELECT COUNT(*) FROM equipo_acciones WHERE turno_id = ? AND riesgo <> 'lectura'");
+        $st->execute([$turno]);
+        if (!(int)$st->fetchColumn()) $resumen = trim($resumen . ' · Lo esencial del puesto: ' . implode(' · ', eq_manual($agente, $turno)), ' ·');
       }
     } else {
       $resumen = implode(' · ', eq_manual($agente, $turno));
