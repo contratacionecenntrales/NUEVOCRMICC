@@ -1,11 +1,11 @@
 -- =============================================================================
--- ICC CRM v82 · BASE DE DATOS COMPLETA (instalar o actualizar en un solo paso)
+-- ICC CRM v87 · BASE DE DATOS COMPLETA (instalar o actualizar en un solo paso)
 --
 -- Cómo usarlo: phpMyAdmin > tu base de datos > Importar > este archivo > Continuar.
 --
 -- - Si la base de datos YA TIENE datos (tu CRM actual): NO borra nada.
 --   Solo crea las tablas, columnas e índices que falten y amplía lo necesario
---   para la versión v82. Sirve vengas de la versión que vengas (v55 en adelante).
+--   para la versión v87. Sirve vengas de la versión que vengas (v55 en adelante).
 -- - Si la base de datos está VACÍA: crea el CRM completo y un usuario
 --   Super Administrador inicial (ver el final del archivo).
 -- - Se puede ejecutar MÁS DE UNA VEZ sin errores ni duplicados.
@@ -60,6 +60,15 @@ CREATE TABLE IF NOT EXISTS `agentes_seguimiento` (
   KEY `idx_agente_seg_usuario_fecha` (`usuario_id`,`fecha`),
   CONSTRAINT `fk_agente_seg_autor` FOREIGN KEY (`autor_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_agente_seg_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `ajustes` (
+  `clave` varchar(80) NOT NULL,
+  `valor` mediumtext DEFAULT NULL,
+  `cifrado` tinyint(1) NOT NULL DEFAULT 0,
+  `actualizado` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `actualizado_por` int(10) unsigned DEFAULT NULL,
+  PRIMARY KEY (`clave`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `anuncios` (
@@ -188,6 +197,20 @@ CREATE TABLE IF NOT EXISTS `clientes` (
   KEY `idx_clientes_estado` (`estado`),
   KEY `idx_clientes_comercial` (`comercial_id`),
   CONSTRAINT `fk_clientes_comercial` FOREIGN KEY (`comercial_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `cliente_notas` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `cliente_id` int(10) unsigned NOT NULL,
+  `autor_id` int(10) unsigned DEFAULT NULL,
+  `origen` varchar(40) NOT NULL DEFAULT 'persona',
+  `texto` text NOT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `fk_cliente_notas_autor` (`autor_id`),
+  KEY `idx_cliente_notas` (`cliente_id`,`created_at`),
+  CONSTRAINT `fk_cliente_notas_autor` FOREIGN KEY (`autor_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `fk_cliente_notas_cliente` FOREIGN KEY (`cliente_id`) REFERENCES `clientes` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `cliente_servicios` (
@@ -383,6 +406,19 @@ CREATE TABLE IF NOT EXISTS `contratos` (
   CONSTRAINT `fk_contrato_comercial` FOREIGN KEY (`comercial_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS `cron_registro` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `ts` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `origen` varchar(20) NOT NULL DEFAULT 'cron',
+  `bloque` varchar(40) NOT NULL,
+  `ok` tinyint(1) NOT NULL DEFAULT 1,
+  `ms` int(10) unsigned NOT NULL DEFAULT 0,
+  `mensaje` varchar(500) NOT NULL DEFAULT '',
+  PRIMARY KEY (`id`),
+  KEY `idx_cron_registro_ts` (`ts`),
+  KEY `idx_cron_registro_bloque` (`bloque`,`ts`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS `documentos` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `cliente_id` int(10) unsigned NOT NULL,
@@ -504,6 +540,42 @@ CREATE TABLE IF NOT EXISTS `historial_estado` (
   KEY `idx_historial_cliente_estado` (`cliente_id`,`estado_nuevo`,`created_at`),
   CONSTRAINT `fk_hist_cliente` FOREIGN KEY (`cliente_id`) REFERENCES `clientes` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_hist_usuario` FOREIGN KEY (`cambiado_por`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `ia_acciones` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `ts` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `origen` varchar(40) NOT NULL,
+  `agente` varchar(80) NOT NULL DEFAULT '',
+  `usuario_id` int(10) unsigned DEFAULT NULL,
+  `lote` varchar(40) DEFAULT NULL,
+  `entidad` varchar(40) NOT NULL,
+  `entidad_id` int(10) unsigned DEFAULT NULL,
+  `accion` varchar(80) NOT NULL,
+  `detalle` varchar(500) NOT NULL DEFAULT '',
+  `antes` mediumtext DEFAULT NULL,
+  `despues` mediumtext DEFAULT NULL,
+  `deshecha_en` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_ia_acciones_ts` (`ts`),
+  KEY `idx_ia_acciones_lote` (`lote`),
+  KEY `idx_ia_acciones_entidad` (`entidad`,`entidad_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `ia_registro` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `ts` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `usuario_id` int(10) unsigned DEFAULT NULL,
+  `tipo` varchar(40) NOT NULL,
+  `modelo` varchar(60) NOT NULL DEFAULT '',
+  `tokens_entrada` int(10) unsigned NOT NULL DEFAULT 0,
+  `tokens_salida` int(10) unsigned NOT NULL DEFAULT 0,
+  `ms` int(10) unsigned NOT NULL DEFAULT 0,
+  `ok` tinyint(1) NOT NULL DEFAULT 1,
+  `error` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_ia_registro_ts` (`ts`),
+  KEY `idx_ia_registro_usuario` (`usuario_id`,`ts`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `logs_impersonacion` (
@@ -965,6 +1037,17 @@ PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'agentes_seguimiento' AND column_name = 'created_at'), 'ALTER TABLE `agentes_seguimiento` ADD COLUMN `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'ajustes' AND column_name = 'clave'), 'ALTER TABLE `ajustes` ADD COLUMN `clave` varchar(80) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'ajustes' AND column_name = 'valor'), 'ALTER TABLE `ajustes` ADD COLUMN `valor` mediumtext DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'ajustes' AND column_name = 'cifrado'), 'ALTER TABLE `ajustes` ADD COLUMN `cifrado` tinyint(1) NOT NULL DEFAULT 0', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'ajustes' AND column_name = 'actualizado'), 'ALTER TABLE `ajustes` ADD COLUMN `actualizado` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'ajustes' AND column_name = 'actualizado_por'), 'ALTER TABLE `ajustes` ADD COLUMN `actualizado_por` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'anuncios' AND column_name = 'id'), 'ALTER TABLE `anuncios` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'anuncios' AND column_name = 'texto'), 'ALTER TABLE `anuncios` ADD COLUMN `texto` varchar(280) NOT NULL', 'DO 0'));
@@ -1103,6 +1186,19 @@ PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'clientes' AND column_name = 'created_at'), 'ALTER TABLE `clientes` ADD COLUMN `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'clientes' AND column_name = 'updated_at'), 'ALTER TABLE `clientes` ADD COLUMN `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'cliente_notas' AND column_name = 'id'), 'ALTER TABLE `cliente_notas` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'cliente_notas' AND column_name = 'cliente_id'), 'ALTER TABLE `cliente_notas` ADD COLUMN `cliente_id` int(10) unsigned NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'cliente_notas' AND column_name = 'autor_id'), 'ALTER TABLE `cliente_notas` ADD COLUMN `autor_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'cliente_notas' AND column_name = 'origen'), 'ALTER TABLE `cliente_notas` ADD COLUMN `origen` varchar(40) NOT NULL DEFAULT ''persona''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'cliente_notas' AND column_name = 'texto'), 'ALTER TABLE `cliente_notas` ADD COLUMN `texto` text NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'cliente_notas' AND column_name = 'created_at'), 'ALTER TABLE `cliente_notas` ADD COLUMN `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'cliente_servicios' AND column_name = 'id'), 'ALTER TABLE `cliente_servicios` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
@@ -1349,6 +1445,21 @@ PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'contratos' AND column_name = 'updated_at'), 'ALTER TABLE `contratos` ADD COLUMN `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'cron_registro' AND column_name = 'id'), 'ALTER TABLE `cron_registro` ADD COLUMN `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'cron_registro' AND column_name = 'ts'), 'ALTER TABLE `cron_registro` ADD COLUMN `ts` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'cron_registro' AND column_name = 'origen'), 'ALTER TABLE `cron_registro` ADD COLUMN `origen` varchar(20) NOT NULL DEFAULT ''cron''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'cron_registro' AND column_name = 'bloque'), 'ALTER TABLE `cron_registro` ADD COLUMN `bloque` varchar(40) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'cron_registro' AND column_name = 'ok'), 'ALTER TABLE `cron_registro` ADD COLUMN `ok` tinyint(1) NOT NULL DEFAULT 1', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'cron_registro' AND column_name = 'ms'), 'ALTER TABLE `cron_registro` ADD COLUMN `ms` int(10) unsigned NOT NULL DEFAULT 0', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'cron_registro' AND column_name = 'mensaje'), 'ALTER TABLE `cron_registro` ADD COLUMN `mensaje` varchar(500) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'documentos' AND column_name = 'id'), 'ALTER TABLE `documentos` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'documentos' AND column_name = 'cliente_id'), 'ALTER TABLE `documentos` ADD COLUMN `cliente_id` int(10) unsigned NOT NULL', 'DO 0'));
@@ -1472,6 +1583,54 @@ PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'historial_estado' AND column_name = 'cambiado_por'), 'ALTER TABLE `historial_estado` ADD COLUMN `cambiado_por` int(10) unsigned DEFAULT NULL', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'historial_estado' AND column_name = 'created_at'), 'ALTER TABLE `historial_estado` ADD COLUMN `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'ia_acciones' AND column_name = 'id'), 'ALTER TABLE `ia_acciones` ADD COLUMN `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'ia_acciones' AND column_name = 'ts'), 'ALTER TABLE `ia_acciones` ADD COLUMN `ts` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'ia_acciones' AND column_name = 'origen'), 'ALTER TABLE `ia_acciones` ADD COLUMN `origen` varchar(40) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'ia_acciones' AND column_name = 'agente'), 'ALTER TABLE `ia_acciones` ADD COLUMN `agente` varchar(80) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'ia_acciones' AND column_name = 'usuario_id'), 'ALTER TABLE `ia_acciones` ADD COLUMN `usuario_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'ia_acciones' AND column_name = 'lote'), 'ALTER TABLE `ia_acciones` ADD COLUMN `lote` varchar(40) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'ia_acciones' AND column_name = 'entidad'), 'ALTER TABLE `ia_acciones` ADD COLUMN `entidad` varchar(40) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'ia_acciones' AND column_name = 'entidad_id'), 'ALTER TABLE `ia_acciones` ADD COLUMN `entidad_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'ia_acciones' AND column_name = 'accion'), 'ALTER TABLE `ia_acciones` ADD COLUMN `accion` varchar(80) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'ia_acciones' AND column_name = 'detalle'), 'ALTER TABLE `ia_acciones` ADD COLUMN `detalle` varchar(500) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'ia_acciones' AND column_name = 'antes'), 'ALTER TABLE `ia_acciones` ADD COLUMN `antes` mediumtext DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'ia_acciones' AND column_name = 'despues'), 'ALTER TABLE `ia_acciones` ADD COLUMN `despues` mediumtext DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'ia_acciones' AND column_name = 'deshecha_en'), 'ALTER TABLE `ia_acciones` ADD COLUMN `deshecha_en` datetime DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'ia_registro' AND column_name = 'id'), 'ALTER TABLE `ia_registro` ADD COLUMN `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'ia_registro' AND column_name = 'ts'), 'ALTER TABLE `ia_registro` ADD COLUMN `ts` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'ia_registro' AND column_name = 'usuario_id'), 'ALTER TABLE `ia_registro` ADD COLUMN `usuario_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'ia_registro' AND column_name = 'tipo'), 'ALTER TABLE `ia_registro` ADD COLUMN `tipo` varchar(40) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'ia_registro' AND column_name = 'modelo'), 'ALTER TABLE `ia_registro` ADD COLUMN `modelo` varchar(60) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'ia_registro' AND column_name = 'tokens_entrada'), 'ALTER TABLE `ia_registro` ADD COLUMN `tokens_entrada` int(10) unsigned NOT NULL DEFAULT 0', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'ia_registro' AND column_name = 'tokens_salida'), 'ALTER TABLE `ia_registro` ADD COLUMN `tokens_salida` int(10) unsigned NOT NULL DEFAULT 0', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'ia_registro' AND column_name = 'ms'), 'ALTER TABLE `ia_registro` ADD COLUMN `ms` int(10) unsigned NOT NULL DEFAULT 0', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'ia_registro' AND column_name = 'ok'), 'ALTER TABLE `ia_registro` ADD COLUMN `ok` tinyint(1) NOT NULL DEFAULT 1', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'ia_registro' AND column_name = 'error'), 'ALTER TABLE `ia_registro` ADD COLUMN `error` varchar(255) DEFAULT NULL', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'logs_impersonacion' AND column_name = 'id'), 'ALTER TABLE `logs_impersonacion` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
@@ -2028,6 +2187,10 @@ SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHER
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'clientes' AND index_name = 'upload_token'), 'CREATE UNIQUE INDEX `upload_token` ON `clientes` (`upload_token`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'cliente_notas' AND index_name = 'fk_cliente_notas_autor'), 'CREATE INDEX `fk_cliente_notas_autor` ON `cliente_notas` (`autor_id`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'cliente_notas' AND index_name = 'idx_cliente_notas'), 'CREATE INDEX `idx_cliente_notas` ON `cliente_notas` (`cliente_id`, `created_at`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'cliente_servicios' AND index_name = 'uq_cliente_servicio'), 'CREATE UNIQUE INDEX `uq_cliente_servicio` ON `cliente_servicios` (`cliente_id`, `servicio`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'cmp_ene_informes' AND index_name = 'idx_cmp_ene_informes_cliente'), 'CREATE INDEX `idx_cmp_ene_informes_cliente` ON `cmp_ene_informes` (`cliente_id`)', 'DO 0'));
@@ -2076,6 +2239,10 @@ SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHER
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'contratos' AND index_name = 'idx_contratos_tarifa'), 'CREATE INDEX `idx_contratos_tarifa` ON `contratos` (`tarifa`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'cron_registro' AND index_name = 'idx_cron_registro_bloque'), 'CREATE INDEX `idx_cron_registro_bloque` ON `cron_registro` (`bloque`, `ts`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'cron_registro' AND index_name = 'idx_cron_registro_ts'), 'CREATE INDEX `idx_cron_registro_ts` ON `cron_registro` (`ts`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'documentos' AND index_name = 'fk_doc_usuario'), 'CREATE INDEX `fk_doc_usuario` ON `documentos` (`subido_por`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'documentos' AND index_name = 'idx_documentos_cliente'), 'CREATE INDEX `idx_documentos_cliente` ON `documentos` (`cliente_id`)', 'DO 0'));
@@ -2111,6 +2278,16 @@ PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'historial_estado' AND index_name = 'fk_hist_usuario'), 'CREATE INDEX `fk_hist_usuario` ON `historial_estado` (`cambiado_por`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'historial_estado' AND index_name = 'idx_historial_cliente_estado'), 'CREATE INDEX `idx_historial_cliente_estado` ON `historial_estado` (`cliente_id`, `estado_nuevo`, `created_at`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'ia_acciones' AND index_name = 'idx_ia_acciones_entidad'), 'CREATE INDEX `idx_ia_acciones_entidad` ON `ia_acciones` (`entidad`, `entidad_id`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'ia_acciones' AND index_name = 'idx_ia_acciones_lote'), 'CREATE INDEX `idx_ia_acciones_lote` ON `ia_acciones` (`lote`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'ia_acciones' AND index_name = 'idx_ia_acciones_ts'), 'CREATE INDEX `idx_ia_acciones_ts` ON `ia_acciones` (`ts`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'ia_registro' AND index_name = 'idx_ia_registro_ts'), 'CREATE INDEX `idx_ia_registro_ts` ON `ia_registro` (`ts`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'ia_registro' AND index_name = 'idx_ia_registro_usuario'), 'CREATE INDEX `idx_ia_registro_usuario` ON `ia_registro` (`usuario_id`, `ts`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'logs_impersonacion' AND index_name = 'fk_impersonacion_objetivo'), 'CREATE INDEX `fk_impersonacion_objetivo` ON `logs_impersonacion` (`usuario_objetivo_id`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
@@ -2251,6 +2428,10 @@ PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'citas' AND constraint_name = 'fk_cita_presupuesto' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `citas` ADD CONSTRAINT `fk_cita_presupuesto` FOREIGN KEY (`presupuesto_id`) REFERENCES `presupuestos` (`id`) ON DELETE SET NULL', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'clientes' AND constraint_name = 'fk_clientes_comercial' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `clientes` ADD CONSTRAINT `fk_clientes_comercial` FOREIGN KEY (`comercial_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'cliente_notas' AND constraint_name = 'fk_cliente_notas_autor' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `cliente_notas` ADD CONSTRAINT `fk_cliente_notas_autor` FOREIGN KEY (`autor_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'cliente_notas' AND constraint_name = 'fk_cliente_notas_cliente' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `cliente_notas` ADD CONSTRAINT `fk_cliente_notas_cliente` FOREIGN KEY (`cliente_id`) REFERENCES `clientes` (`id`) ON DELETE CASCADE', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'cliente_servicios' AND constraint_name = 'fk_cs_cliente' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `cliente_servicios` ADD CONSTRAINT `fk_cs_cliente` FOREIGN KEY (`cliente_id`) REFERENCES `clientes` (`id`) ON DELETE CASCADE', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
@@ -2574,4 +2755,4 @@ UPDATE usuarios SET numero_relacion = CONCAT('ICC-', LPAD(id, 5, '0')) WHERE num
 SET FOREIGN_KEY_CHECKS = 1;
 SET SESSION sql_mode = @icc_modo_anterior;
 
--- Listo. Base de datos al dia para ICC CRM v82.
+-- Listo. Base de datos al dia para ICC CRM v87.
