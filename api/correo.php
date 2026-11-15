@@ -747,6 +747,13 @@ function labs_correo_lee($c, $max = 25)
         $i = labs_correo_conecta($c);
         $val = $i->select($c['carpeta'] ?: 'INBOX');
         $desde = (int) $c['ultimo_uid'];
+        if ($desde < 0) {
+            // Recién conectado: lo que ya había en el buzón no se contesta; se empieza a leer desde ahora.
+            $todos = $i->buscar('ALL');
+            $i->cierra();
+            labs_q("UPDATE mail_cuentas SET ultimo_uid = ?, uidvalidity = ?, ultima_lectura = ?, ultimo_error = '' WHERE id = ?", array($todos ? max($todos) : 0, $val, labs_ahora(), $c['id']));
+            return array('nuevos' => 0, 'error' => '', 'inicio' => true);
+        }
         if ((int) $c['uidvalidity'] !== $val) {
             $desde = 0;
         }
@@ -796,11 +803,49 @@ function labs_correo_lee($c, $max = 25)
     return $res;
 }
 
+/**
+ * Buzones incluidos en el paquete privado: LABS_CORREO_BUZONES (lista separada por comas) y
+ * LABS_CORREO_CLAVE en config.local.php. Se dan de alta una vez, con los datos de Hostalia, su
+ * agente por el nombre y la contraseña cifrada; empiezan a leer desde ese momento.
+ */
+function labs_correo_provisiona()
+{
+    if (!defined('LABS_CORREO_BUZONES') || !defined('LABS_CORREO_CLAVE') || LABS_CORREO_CLAVE === '' || !labs_tabla_existe('mail_cuentas')) {
+        return 0;
+    }
+    $huella = hash('sha256', LABS_CORREO_BUZONES);
+    if (labs_ajuste('correo.provisionado', '') === $huella) {
+        return 0;
+    }
+    $n = 0;
+    foreach (preg_split('/[\s,;]+/', strtolower((string) LABS_CORREO_BUZONES)) as $em) {
+        if (!filter_var($em, FILTER_VALIDATE_EMAIL) || labs_fila('SELECT 1 FROM mail_cuentas WHERE email = ?', array($em))) {
+            continue;
+        }
+        $fu = labs_correo_funcion_de($em);
+        $du = $fu === 'personal' ? labs_fila("SELECT id FROM perfiles WHERE LOWER(email) = ? AND estado = 'Activo'", array($em)) : null;
+        labs_q('INSERT INTO mail_cuentas (nombre, email, imap_host, imap_puerto, imap_seguridad, imap_usuario, smtp_host, smtp_puerto, smtp_seguridad, smtp_usuario, clave, smtp_clave, carpeta, firma,
+                modo, activa, ultimo_uid, funcion, adjuntos, adjuntar, acuse, responsable_id, creado) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+            array('Labs24k · ' . labs_correo_funciones()[$fu][0], $em, defined('LABS_CORREO_IMAP') ? LABS_CORREO_IMAP : 'imap.servidor-correo.net', defined('LABS_CORREO_IMAP_PUERTO') ? (int) LABS_CORREO_IMAP_PUERTO : 993,
+                defined('LABS_CORREO_IMAP_SEG') ? LABS_CORREO_IMAP_SEG : 'ssl', $em, defined('LABS_CORREO_SMTP') ? LABS_CORREO_SMTP : 'smtp.servidor-correo.net',
+                defined('LABS_CORREO_SMTP_PUERTO') ? (int) LABS_CORREO_SMTP_PUERTO : 587, defined('LABS_CORREO_SMTP_SEG') ? LABS_CORREO_SMTP_SEG : 'tls', $em,
+                labs_ia_cifra(LABS_CORREO_CLAVE), '', 'INBOX', '', $fu === 'personal' ? 'aprobacion' : 'auto_seguro', $fu === 'envio' ? 0 : 1, -1, $fu, '[]', 'siempre', 1,
+                $du ? $du['id'] : null, labs_ahora()));
+        $n++;
+    }
+    labs_pon_ajuste('correo.provisionado', $huella);
+    if ($n) {
+        labs_anota('Buzones de correo conectados desde la instalación', $n . ' buzones');
+    }
+    return $n;
+}
+
 function labs_correo_tick()
 {
     if (!labs_tabla_existe('mail_cuentas')) {
         return null;
     }
+    labs_correo_provisiona();
     $r = array();
     foreach (labs_q('SELECT * FROM mail_cuentas WHERE activa = 1')->fetchAll() as $c) {
         $r[$c['email']] = labs_correo_lee($c);
@@ -817,6 +862,7 @@ function labs_correo($metodo, $sub, $b)
     }
     $admin = labs_soy_admin();
     if ($sub === '/estado' && $metodo === 'GET') {
+        labs_correo_provisiona();
         $cuentas = array_map('labs_correo_cuenta_publica', labs_q('SELECT * FROM mail_cuentas ORDER BY id')->fetchAll());
         $cnt = array();
         foreach (labs_q("SELECT estado, COUNT(*) n FROM mail_mensajes WHERE sentido = 'entrada' GROUP BY estado")->fetchAll() as $x) {
@@ -1002,6 +1048,8 @@ function labs_correo($metodo, $sub, $b)
             labs_q('UPDATE mail_cuentas SET ' . $sets . ' WHERE id = ?', array_merge(array_values($f), array($id)));
         } else {
             $f += array('smtp_clave' => '', 'creado' => labs_ahora());
+            // Por defecto empieza a leer desde ahora; «leer_anteriores» procesa también los de los últimos 7 días.
+            $f['ultimo_uid'] = empty($b['leer_anteriores']) ? -1 : 0;
             labs_q('INSERT INTO mail_cuentas (`' . implode('`, `', array_keys($f)) . '`) VALUES (' . rtrim(str_repeat('?,', count($f)), ',') . ')', array_values($f));
             $id = (int) labs_db()->lastInsertId();
         }

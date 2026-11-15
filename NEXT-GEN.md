@@ -842,3 +842,15 @@ conectan con los datos de Hostalia y cada fila dice si ha conectado.
 **Archivos recibidos**: los adjuntos de los correos se guardan (5 como máximo,
 de 10 MB cada uno) y se descargan desde el detalle del correo.
 
+**Al conectar un buzón empieza desde ahora**: lo que ya había no se contesta,
+porque quizá ya lo contestó una persona. Al conectarlo uno a uno se puede
+marcar «Gestionar también los correos de los últimos 7 días».
+
+**Buzones desde la instalación**: con `LABS_CORREO_BUZONES` (lista separada
+por comas) y `LABS_CORREO_CLAVE` en `api/config.local.php`, el CRM conecta solo
+los buzones que falten al abrir el panel o con el cron. Usa los datos de
+Hostalia (se pueden cambiar con `LABS_CORREO_IMAP`, `LABS_CORREO_SMTP` y sus
+puertos), pone a cada buzón su agente por el nombre, deja los personales con
+aprobación y los de solo envío apagados, y guarda la contraseña cifrada. Solo
+lo hace una vez por lista.
+

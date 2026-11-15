@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-ZjDUwg0eefkaTQDuS0qA5fH8L91vdZWKO3NDI6DnODg='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-uh8494py+dxepLeBa+WxjfKNkEBPcvstoFYuE4g25kw='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Labs Command Center 360 - Oficina virtual SaaS de la red comercial de Labs24k.">
 <meta name="theme-color" content="#0B0F19">
@@ -11432,6 +11432,7 @@ function coCuentas(){
           '<div><label class="f">Siempre estos (máximo 3; además la IA añade el de su sector si lo hay)</label><div class="co-dos">'+(D.dosieres.length ? D.dosieres.map(function(x){
             return '<label class="tiny"><input type="checkbox" data-co-dosf="'+x.id+'"'+((F.adjuntos || []).indexOf(Number(x.id)) > -1 ? ' checked' : '')+'> '+esc(x.nombre)+'</label>'; }).join('') : '<span class="tiny muted">Sube los dosieres al Centro de Recursos (sección Dosieres).</span>')+'</div></div></div>'+
         '<label class="tiny" style="display:flex;gap:6px;margin:8px 0"><input type="checkbox" data-co-chk="acuse"'+(Number(F.acuse) !== 0 ? ' checked' : '')+'> Acuse de recibo automático cuando la respuesta la tiene que dar una persona (quejas, facturas…)</label>'+
+        (F.id ? '' : '<label class="tiny" style="display:flex;gap:6px;margin:0 0 8px"><input type="checkbox" data-co-chk="leer_anteriores"'+(F.leer_anteriores ? ' checked' : '')+'> Gestionar también los correos de los últimos 7 días (si no, empieza desde que lo conectas)</label>')+
         '<label class="f">Firma</label><textarea class="inp" rows="3" data-co-c="firma" placeholder="Equipo Labs24k&#10;984 000 000 · labs24k.com">'+esc(F.firma || '')+'</textarea>'+
         '<div class="grid g-2" style="margin-top:8px"><div><label class="f">Cómo responde</label><select class="inp" data-co-c="modo">'+modos.map(function(x){ return '<option value="'+x[0]+'"'+(F.modo === x[0] ? ' selected' : '')+'>'+x[1]+'</option>'; }).join('')+'</select></div>'+
           '<p class="tiny muted" style="align-self:end">Seguro: contesta solo a clientes potenciales, presupuestos, citas, bajas y consultas generales con confianza alta. Amplio: también soporte y proveedores. Nunca contesta solo a quejas, facturas o importes que no estén en la base.</p></div>'+
@@ -11521,7 +11522,7 @@ function coEventos(){
     if(k === 'funcion') renderApp(); }; });
   if(q('#co-guardar')) q('#co-guardar').onclick = function(){ var b = this, F = CO.form; b.disabled = true;
     var cuerpo = {}; ['nombre','email','imap_host','imap_puerto','imap_seguridad','imap_usuario','smtp_host','smtp_puerto','smtp_seguridad','firma','modo','clave','funcion','adjuntar','responsable_id'].forEach(function(k){ if(F[k] != null && (F[k] !== '' || k === 'responsable_id')) cuerpo[k] = F[k]; });
-    cuerpo.adjuntos = F.adjuntos || []; cuerpo.acuse = Number(F.acuse) !== 0;
+    cuerpo.adjuntos = F.adjuntos || []; cuerpo.acuse = Number(F.acuse) !== 0; if(!F.id && F.leer_anteriores) cuerpo.leer_anteriores = true;
     ngApi('/correo/cuentas' + (F.id ? '/' + F.id : ''), 'POST', cuerpo).then(function(d){
       CO.form = null; toast('Buzón guardado. Probando la conexión…');
       return ngApi('/correo/cuentas/' + d.cuenta.id + '/probar', 'POST', {}).then(function(p){ toast(p.imap === 'ok' && p.smtp === 'ok' ? 'Conectado: recibir y enviar funcionan.' : 'Guardado, pero: ' + (p.imap !== 'ok' ? 'IMAP: ' + p.imap + ' ' : '') + (p.smtp !== 'ok' ? 'SMTP: ' + p.smtp : '')); coCarga(); });
