@@ -7,7 +7,7 @@
  *
  * GET  ?action=estado | bandeja | mensaje&id= | adjunto&id=&n= | aprobar | cuentas | config | dosieres
  * POST ?action=enviar {id, asunto, cuerpo, dosieres[]}  · archivar {id} · accion {id, aprobar}
- * POST ?action=cuenta {...} · cuenta_probar {id} · cuenta_borrar {id} · cuenta_agente {...} · cuentas_lote {filas[]}
+ * POST ?action=cuenta {...} · cuenta_probar {id} · cuenta_borrar {id} · cuenta_agente {...} · cuentas_lote {filas[]} · oficina_icc {claves{email: clave}}
  * POST ?action=revisar     PUT ?action=config
  */
 require __DIR__ . '/config.php';
@@ -56,7 +56,7 @@ if ($accion === 'estado' && $metodo === 'GET') {
   $acc = (int)$db->query("SELECT COUNT(*) FROM mail_acciones x JOIN mail_mensajes m ON m.id = x.mensaje_id JOIN mail_cuentas a ON a.id = m.cuenta_id WHERE x.estado = 'pendiente' AND $w")->fetchColumn();
   icc_json(['contadores' => $cont, 'acciones_pendientes' => $acc, 'cuentas' => (int)$db->query('SELECT COUNT(*) FROM mail_cuentas WHERE activo = 1')->fetchColumn(),
     'ia' => icc_ia_disponible(), 'es_config' => $esConfig, 'categorias' => CA_CATEGORIAS, 'funciones' => array_map(function ($f) { return $f[0] . ' · ' . $f[1]; }, CA_FUNCIONES),
-    'herramientas' => array_map(function ($h) { return ['tipo' => $h[0], 'descripcion' => $h[1]]; }, CA_HERRAMIENTAS), 'siempre_aprobacion' => CA_SIEMPRE_APROBACION]);
+    'oficina_icc' => array_map(function ($x) { return $x[2] . ' · ' . $x[3]; }, CA_OFICINA_ICC), 'herramientas' => array_map(function ($h) { return ['tipo' => $h[0], 'descripcion' => $h[1]]; }, CA_HERRAMIENTAS), 'siempre_aprobacion' => CA_SIEMPRE_APROBACION]);
 }
 
 if ($accion === 'bandeja' && $metodo === 'GET') {
@@ -208,6 +208,15 @@ if ($accion === 'cuenta_agente' && $metodo === 'POST') {
     ->execute([$funcion, in_array($body['modo'] ?? '', ['aprobacion', 'automatico', 'amplio'], true) ? $body['modo'] : $c['modo'], json_encode($agente, JSON_UNESCAPED_UNICODE), $adj, !empty($body['adjuntar']) ? 1 : 0,
       !empty($body['acuse']) ? 1 : 0, $resp, !empty($body['activo']) ? 1 : 0, mb_substr((string)($body['firma'] ?? $c['firma']), 0, 1000), mb_substr((string)($body['nombre'] ?? $c['nombre']), 0, 120), $c['id']]);
   icc_json(['ok' => true]);
+}
+if ($accion === 'oficina_icc' && $metodo === 'POST') {
+  // Los 5 buzones de ICC, cada uno con su agente independiente. Las contrasenas se cifran y no vuelven.
+  ca_solo_config($esConfig);
+  $claves = [];
+  foreach ((array)($body['claves'] ?? []) as $e => $v) if (isset(CA_OFICINA_ICC[strtolower((string)$e)]) && is_string($v)) $claves[strtolower((string)$e)] = $v;
+  $r = ca_oficina_icc($claves, $uid);
+  icc_seg_anota('Buzones de ICC', count($r) . ' agentes de correo (oficina de ICC)', $uid);
+  icc_json(['resultado' => $r]);
 }
 if ($accion === 'cuentas_lote' && $metodo === 'POST') {
   ca_solo_config($esConfig);

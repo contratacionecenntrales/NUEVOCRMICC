@@ -160,7 +160,16 @@
         (x.es_config ? '<div class="icc-ia-fila"><button class="icc-btn icc-btn-secondary icc-mo-mini" data-probar="' + c.id + '">Probar</button><button class="icc-btn icc-btn-ghost icc-mo-mini" data-borrar="' + c.id + '">Desconectar</button></div>' : "") + "</li>";
     }).join("") + "</ul>" : '<p class="icc-muted">Ninguno.</p>') + "</section>";
     if (!x.es_config) return lista + '<p class="icc-ia-nota">Los buzones los conecta la administración.</p>';
-    return lista + '<div class="icc-ia-dos"><section class="icc-card icc-ia-bloque"><h2>Conectar un buzón</h2><form id="ca-cuenta" class="icc-ia-form" autocomplete="off">' +
+    var tiene = {}; x.cuentas.forEach(function (c) { tiene[c.email] = c; });
+    var ofi = S.d.oficina_icc || {};
+    var oficina = '<section class="icc-card icc-ia-bloque icc-ca-oficina"><h2>📮 Agentes de la oficina de ICC</h2>' +
+      '<p class="icc-muted">Un agente independiente por buzón, con sus propias instrucciones, que responde y gestiona solo lo que es de su departamento y deja a una persona lo delicado (dinero, contratos, quejas). Se usan los datos de Hostalia. Escribe la contraseña de cada buzón: se guarda cifrada y nunca vuelve al navegador. Si un buzón ya está conectado, deja su contraseña en blanco.</p>' +
+      '<form id="ca-oficina" autocomplete="off"><ul class="icc-ia-lista">' + Object.keys(ofi).map(function (e) {
+        var c = tiene[e];
+        return '<li><div><strong>' + esc(e) + "</strong><small>" + esc(c ? c.agente.nombre : ofi[e]) + (c ? (c.tiene_clave ? " · 🔒 conectado" : " · falta la contraseña") : " · sin crear") + '</small><small data-ofi-res="' + esc(e) + '"></small></div>' +
+          '<input class="icc-input icc-ca-clave" type="password" data-ofi="' + esc(e) + '" placeholder="' + (c && c.tiene_clave ? "•••• guardada" : "Contraseña") + '" autocomplete="new-password" aria-label="Contraseña de ' + esc(e) + '"></li>';
+      }).join("") + '</ul><button class="icc-btn icc-btn-primary" type="submit">Crear y conectar los ' + Object.keys(ofi).length + " agentes</button></form></section>";
+    return lista + oficina + '<div class="icc-ia-dos"><section class="icc-card icc-ia-bloque"><h2>Conectar un buzón</h2><form id="ca-cuenta" class="icc-ia-form" autocomplete="off">' +
       '<div class="icc-mo-2"><label><span>Correo</span><input class="icc-input" name="email" required></label><label><span>Nombre visible</span><input class="icc-input" name="nombre"></label></div>' +
       '<div class="icc-mo-2"><label><span>IMAP</span><input class="icc-input" name="host_imap"></label><label><span>Puerto</span><input class="icc-input" type="number" name="puerto_imap" value="993"></label></div>' +
       '<div class="icc-mo-2"><label><span>SMTP</span><input class="icc-input" name="host_smtp"></label><label><span>Puerto</span><input class="icc-input" type="number" name="puerto_smtp" value="587"></label></div>' +
@@ -221,6 +230,19 @@
     });
     r.querySelectorAll("[data-borrar]").forEach(function (b) {
       b.addEventListener("click", function () { if (!confirm("¿Desconectar este buzón? Se borran también sus correos del CRM.")) return; hacer(b, async function () { await API.post("api/correo.php?action=cuenta_borrar", { id: Number(b.dataset.borrar) }); await recargar(); }); });
+    });
+    var fo = document.getElementById("ca-oficina");
+    if (fo) fo.addEventListener("submit", function (ev) {
+      ev.preventDefault();
+      var claves = {}; fo.querySelectorAll("[data-ofi]").forEach(function (i) { if (i.value) claves[i.dataset.ofi] = i.value; });
+      hacer(ev.submitter, async function () {
+        var x = await API.post("api/correo.php?action=oficina_icc", { claves: claves });
+        fo.querySelectorAll("[data-ofi]").forEach(function (i) { i.value = ""; });
+        x.resultado.forEach(function (f) { var s = fo.querySelector('[data-ofi-res="' + f.email + '"]'); if (s) s.textContent = f.conexion ? (f.conexion.ok ? "✓ Conectado · " + f.agente : "✕ " + (f.conexion.error || "No conectó")) : (f.tiene_clave ? "✓ " + f.agente : "Creado · falta la contraseña"); });
+        var ok = x.resultado.filter(function (f) { return f.tiene_clave && (!f.conexion || f.conexion.ok); }).length;
+        U.toast("✓ " + x.resultado.length + " agentes creados · " + ok + " conectados", "success");
+        setTimeout(recargar, 2500);
+      });
     });
     var fc = document.getElementById("ca-cuenta");
     if (fc) {

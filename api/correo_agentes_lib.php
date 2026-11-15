@@ -39,12 +39,59 @@ const CA_FUNCIONES = [
     'Guarda al candidato a distribuidor, lo cualifica (zona, experiencia, dedicación) y propone una videollamada; no da cifras de comisiones ni de rentabilidad.'],
   'talento' => ['Nuria', 'Talento', ['candidatura', 'cita'], ['guardar_candidato', 'huecos_agenda', 'reservar_cita', 'derivar'],
     'Registra la candidatura con el CV, propone una llamada y da el aviso de protección de datos.'],
+  'produccion' => ['Pablo', 'Producción', ['tramite', 'soporte', 'consulta'], ['estado_servicio', 'documentos_cliente', 'tickets_cliente', 'guardar_adjuntos', 'abrir_ticket', 'actualizar_ticket', 'crear_tarea', 'anotar_en_ficha', 'derivar'],
+    'Seguimiento de la producción: estado de las altas y contratos en las compañías (tramitado, en distribuidora, activado, KO), incidencias de activación y comunicaciones de comercializadoras, aseguradoras y de la red comercial. Mira el estado real del contrato, guarda la documentación en la ficha, abre o actualiza la incidencia con su prioridad, avisa al gestor con una tarea y responde con el estado real (nunca inventa fechas de activación).'],
+  'direccion' => ['Asistente de dirección', 'Dirección', ['cita', 'consulta', 'lead', 'franquicia'], ['huecos_agenda', 'reservar_cita', 'guardar_lead', 'crear_tarea', 'anotar_en_ficha', 'derivar'],
+    'Buzón de dirección: agenda reuniones en la agenda de su responsable, responde lo sencillo en nombre de dirección, guarda los contactos comerciales y deriva cada asunto a su departamento (ventas a info@, facturas a admin@, documentación a tramitacion@, altas a produccion@). Acuerdos, socios, bancos, prensa, dinero y todo lo estratégico lo deja para la persona.'],
   'personal' => ['Asistente', 'Asistente personal', [], ['huecos_agenda', 'reservar_cita', 'crear_tarea', 'anotar_en_ficha'],
     'Agenda en la agenda de su dueño, le crea tareas y prepara la respuesta en primera persona.'],
   'solo_envio' => ['Solo envío', 'Buzón de solo envío', [], [], 'No se lee ni se responde.'],
   'general' => ['Álex', 'General', ['lead', 'cita', 'consulta'], ['guardar_lead', 'huecos_agenda', 'reservar_cita', 'crear_tarea', 'anotar_en_ficha', 'derivar'],
     'Gestiona lo que puede y deriva el resto al departamento que toca.'],
 ];
+
+/**
+ * Oficina de ICC: un agente independiente por buzon corporativo (Hostalia).
+ * email => [funcion, nombre visible del buzon, nombre del agente, cargo, instrucciones propias]
+ */
+const CA_OFICINA_ICC = [
+  'info@integralconnectionconsulting.es' => ['ventas', 'ICC Consultoría', 'Lucía', 'Ventas y atención', "Eres la puerta de entrada de ICC. Atiende a empresas que preguntan por energía, telefonía, alarmas o seguros: explica que hacemos un estudio gratuito con todas las compañías y que, si no encontramos una mejora real, se lo decimos y no cambia nada. Pide una factura reciente (o la póliza) y propone dos huecos reales para una llamada de 15 minutos. Guarda siempre el lead con lo que necesita. Clientes con documentación para un alta: deriva a tramitación; facturas o cobros: a administración; estado de un alta: a producción."],
+  'admin@integralconnectionconsulting.es' => ['administracion', 'ICC Consultoría · Administración', 'Marta', 'Administración', "Gestiona facturas de proveedores, proformas, cobros y certificados. Consulta los presupuestos y cobros del cliente antes de responder. Nunca confirmes un pago ni prometas un abono: propón marcar el cobro como pagado (queda para aprobar) y crea una tarea. Lo comercial, a ventas (info@)."],
+  'juan.a@integralconnectionconsulting.es' => ['direccion', 'Juan · ICC Consultoría', 'Asistente de Juan', 'Dirección', "Escribes en nombre de la dirección de ICC con un tono cercano y ejecutivo. Agenda reuniones en la agenda de Juan con dos huecos reales. Responde lo sencillo y deriva cada asunto a su departamento. Acuerdos con socios o distribuidores, bancos, prensa, condiciones económicas y todo lo estratégico: déjalo para Juan con un borrador."],
+  'produccion@integralconnectionconsulting.es' => ['produccion', 'ICC Consultoría · Producción', 'Pablo', 'Producción', "Llevas el seguimiento de las altas: mira el estado real del contrato en el CRM (tramitado, en distribuidora, activado, KO), guarda en la ficha la documentación que llegue de comercializadoras, aseguradoras o comerciales, abre o actualiza la incidencia si hay un KO o un rechazo y crea una tarea al gestor. Responde con el estado real; nunca inventes fechas de activación. Si falta documentación del cliente, deriva a tramitación."],
+  'tramitacion@integralconnectionconsulting.es' => ['tramitacion', 'ICC Consultoría · Tramitación', 'Carmen', 'Tramitación', "Recibes la documentación para las altas: DNI o CIF, CUPS de luz y gas, IBAN, última factura, póliza actual y contrato firmado. Guarda los adjuntos en la ficha, revisa los documentos que ya tiene el cliente, pide con claridad lo que falta (en una lista) y crea la tarea de revisión. El estado de un alta ya tramitada lo lleva producción."],
+];
+
+/** Crea (o completa) los 5 buzones de ICC con su agente. $claves: email => contrasena (opcional). */
+function ca_oficina_icc(array $claves, ?int $autor = null): array {
+  $db = icc_db();
+  $out = [];
+  foreach (CA_OFICINA_ICC as $email => [$funcion, $visible, $nombre, $cargo, $instr]) {
+    $st = $db->prepare('SELECT id, agente FROM mail_cuentas WHERE email = ?');
+    $st->execute([$email]);
+    $prev = $st->fetch();
+    $clave = trim((string)($claves[$email] ?? ''));
+    $id = ca_crear_cuenta(['email' => $email, 'nombre' => $visible, 'funcion' => $funcion, 'modo' => 'automatico', 'host_imap' => 'imap.servidor-correo.net', 'puerto_imap' => 993, 'seguridad_imap' => 'ssl',
+      'host_smtp' => 'smtp.servidor-correo.net', 'puerto_smtp' => 587, 'seguridad_smtp' => 'starttls', 'usuario' => $email,
+      'firma' => ($funcion === 'direccion' ? "Juan\nDirección · " : $cargo . "\n") . "ICC Consultoría · Integral Connection Consulting\n100 % servicios · 100 % compañías\n" . $email], $clave, $autor);
+    // Si ya existia y tenia su agente configurado, se respeta.
+    if (!$prev || trim((string)$prev['agente']) === '') {
+      $resp = null;
+      if ($funcion === 'direccion') {
+        $u = $db->prepare("SELECT id FROM usuarios WHERE bloqueado = 0 AND (LOWER(email) = ? OR rol = 'super_admin') ORDER BY LOWER(email) = ? DESC, id LIMIT 1");
+        $u->execute([$email, $email]);
+        $resp = $u->fetchColumn() ?: null;
+      }
+      $db->prepare('UPDATE mail_cuentas SET funcion = ?, modo = ?, agente = ?, nombre = ?, responsable_id = ?, activo = 1 WHERE id = ?')
+        ->execute([$funcion, 'automatico', json_encode(['nombre' => $nombre . ' · ' . $cargo, 'cargo' => $cargo, 'instrucciones' => $instr, 'conocimiento' => '', 'activo' => true, 'permisos' => []], JSON_UNESCAPED_UNICODE), $visible, $resp, $id]);
+    }
+    $c = ca_cuenta($id, true);
+    $prueba = $clave !== '' ? icc_imap_probar($c) : null;
+    $out[] = ['email' => $email, 'id' => $id, 'agente' => ca_agente($c)['nombre'], 'nuevo' => !$prev, 'tiene_clave' => $c['clave'] !== '',
+      'conexion' => $prueba === null ? null : ['ok' => (bool)$prueba['ok'], 'error' => $prueba['error'] ?? null]];
+  }
+  return $out;
+}
 
 /** Herramientas: nombre => [tipo (lectura|accion|final), descripcion, propiedades, obligatorias] */
 const CA_HERRAMIENTAS = [
@@ -58,7 +105,7 @@ const CA_HERRAMIENTAS = [
   'presupuestos_cobros' => ['lectura', 'Presupuestos, proformas y cobros del cliente.', [], []],
   'anotar_en_ficha' => ['accion', 'Deja una nota en la ficha del cliente.', ['texto' => ['type' => 'string']], ['texto']],
   'crear_tarea' => ['accion', 'Crea una tarea para el gestor o el responsable del buzón.', ['titulo' => ['type' => 'string'], 'detalle' => ['type' => 'string']], ['titulo', 'detalle']],
-  'derivar' => ['accion', 'Deriva el correo al buzón de otro departamento (solo un salto).', ['departamento' => ['type' => 'string', 'enum' => ['ventas', 'clientes', 'soporte', 'tramitacion', 'administracion', 'franquicia', 'talento', 'general']], 'motivo' => ['type' => 'string']], ['departamento', 'motivo']],
+  'derivar' => ['accion', 'Deriva el correo al buzón de otro departamento (solo un salto).', ['departamento' => ['type' => 'string', 'enum' => ['ventas', 'clientes', 'soporte', 'tramitacion', 'produccion', 'administracion', 'direccion', 'franquicia', 'talento', 'general']], 'motivo' => ['type' => 'string']], ['departamento', 'motivo']],
   'guardar_lead' => ['accion', 'Guarda o actualiza el lead en el CRM.', ['empresa' => ['type' => 'string'], 'contacto' => ['type' => 'string'], 'telefono' => ['type' => 'string'], 'sector' => ['type' => 'string'], 'que_necesita' => ['type' => 'string'], 'decisor' => ['type' => 'string']], ['empresa', 'contacto', 'telefono', 'sector', 'que_necesita', 'decisor']],
   'reservar_cita' => ['accion', 'Reserva la cita en el hueco que ha elegido el cliente.', ['fecha' => ['type' => 'string', 'description' => 'AAAA-MM-DD'], 'hora' => ['type' => 'string', 'description' => 'HH:MM'], 'tipo' => ['type' => 'string', 'enum' => ['llamada', 'reunion', 'visita']]], ['fecha', 'hora', 'tipo']],
   'mover_fase' => ['accion', 'Mueve al cliente de fase (nunca a perdido ni a ganado).', ['fase' => ['type' => 'string', 'enum' => ['lead_captado', 'estudio_backoffice', 'oferta_presentada', 'en_cierre']]], ['fase']],
@@ -90,7 +137,7 @@ function ca_config(): array {
 function ca_funcion_por_email(string $email): string {
   $local = strtolower(strtok($email, '@') ?: '');
   $mapa = ['ventas' => ['info', 'comercial', 'ventas', 'contacto'], 'clientes' => ['clientes', 'atencion', 'atencioncliente'], 'soporte' => ['soporte', 'incidencias', 'averias'],
-    'tramitacion' => ['tramitacion', 'gestiones', 'contratos', 'documentacion'], 'administracion' => ['admin', 'administracion', 'facturacion', 'facturas', 'cobros'],
+    'tramitacion' => ['tramitacion', 'gestiones', 'contratos', 'documentacion'], 'produccion' => ['produccion', 'operaciones', 'altas'], 'direccion' => ['direccion', 'gerencia'], 'administracion' => ['admin', 'administracion', 'facturacion', 'facturas', 'cobros'],
     'franquicia' => ['franquicia', 'franquicias', 'distribuidores', 'partners'], 'talento' => ['talento', 'empleo', 'rrhh', 'trabajo'], 'solo_envio' => ['no-response', 'noresponse', 'noreply', 'no-reply']];
   foreach ($mapa as $f => $l) if (in_array($local, $l, true)) return $f;
   $st = icc_db()->prepare('SELECT 1 FROM usuarios WHERE LOWER(email) = ? AND bloqueado = 0');
@@ -171,7 +218,7 @@ function ca_controles(array $cuenta, array $agente, string $categoria, int $conf
     foreach ($x[1] as $num) if (mb_strpos($kb, rtrim($num, '.,')) === false) { $m[] = 'Menciona un importe que no está en la base de conocimiento (' . $num . ').'; break; }
   }
   $prohibidas = 'descuento|rebaja|gratis|garant[ií]a|penalizaci|reembolso|devoluci';
-  if ($cuenta['funcion'] !== 'tramitacion') $prohibidas .= '|contrato';
+  if (!in_array($cuenta['funcion'], ['tramitacion', 'produccion'], true)) $prohibidas .= '|contrato';
   if (preg_match('/\b(' . $prohibidas . ')/iu', $texto, $p)) $m[] = 'Habla de «' . mb_strtolower($p[1]) . '», que necesita una persona.';
   $db = icc_db();
   $st = $db->prepare("SELECT SUM(m.updated_at >= NOW() - INTERVAL 1 HOUR) h, COUNT(*) d FROM mail_mensajes m WHERE m.de = ? AND m.estado = 'respondido' AND m.respondido_por IS NULL AND m.updated_at >= NOW() - INTERVAL 1 DAY");
@@ -215,7 +262,7 @@ function ca_acuse(array $cuentaClave, array $msg, ?string $referencia): ?string 
    HERRAMIENTAS
    ========================================================================= */
 function ca_gestor(array $cuenta, ?array $cliente): ?int {
-  if ($cuenta['funcion'] === 'personal' && $cuenta['responsable_id']) return (int)$cuenta['responsable_id'];
+  if (in_array($cuenta['funcion'], ['personal', 'direccion'], true) && $cuenta['responsable_id']) return (int)$cuenta['responsable_id'];
   if ($cliente && $cliente['comercial_id']) return (int)$cliente['comercial_id'];
   if ($cuenta['responsable_id']) return (int)$cuenta['responsable_id'];
   return function_exists('eq_gestor_menos_cargado') ? eq_gestor_menos_cargado() : null;
@@ -589,7 +636,7 @@ function ca_tick(): string {
   $db = icc_db();
   $leidos = 0; $proc = 0; $err = 0;
   $t0 = time();
-  foreach ($db->query("SELECT id FROM mail_cuentas WHERE activo = 1 AND host_imap <> '' AND funcion <> 'solo_envio' ORDER BY ultima_lectura IS NOT NULL, ultima_lectura LIMIT 20")->fetchAll(PDO::FETCH_COLUMN) as $id) {
+  foreach ($db->query("SELECT id FROM mail_cuentas WHERE activo = 1 AND host_imap <> '' AND clave IS NOT NULL AND funcion <> 'solo_envio' ORDER BY ultima_lectura IS NOT NULL, ultima_lectura LIMIT 20")->fetchAll(PDO::FETCH_COLUMN) as $id) {
     if (time() - $t0 > 120) break;
     $r = ca_leer_cuenta(ca_cuenta((int)$id, true));
     if (!empty($r['error'])) $err++;

@@ -656,3 +656,23 @@ la base de datos completa v91) pasa sus campañas a ICC.
   contratado el servicio» y «ha mostrado interés en el servicio». Variables `{{servicio}}` y `{{web}}`. Pie de
   los correos con la firma de ICC Consultoría.
 - Agentes, Jarvis y el agente de correo se presentan con la misma identidad y los cuatro servicios.
+
+## Agentes de correo de la oficina de ICC (v92)
+
+En **🤖 IA → Agente de correo → Buzones**, el panel **📮 Agentes de la oficina de ICC** crea y conecta en un paso
+los 5 buzones de Hostalia, cada uno con su agente independiente (instrucciones, firma y permisos propios, modo
+automático): responde y gestiona solo lo de su departamento y deja a una persona dinero, contratos y quejas
+(con acuse de recibo).
+
+| Buzón | Agente | Qué gestiona |
+|---|---|---|
+| info@ | Lucía · Ventas y atención | Leads, estudio gratuito, pide la factura y reserva llamada en la agenda del gestor |
+| admin@ | Marta · Administración | Facturas, proformas y cobros (marcar un pago siempre se aprueba) |
+| juan.a@ | Asistente de Juan · Dirección | Reuniones en la agenda de Juan; lo estratégico (socios, bancos, prensa, dinero) para Juan |
+| produccion@ | Pablo · Producción | Estado real de las altas, documentación de compañías, incidencias y KO |
+| tramitacion@ | Carmen · Tramitación | Documentación de las altas: guarda adjuntos y pide lo que falta |
+
+Funciones nuevas: `produccion` y `direccion` (deriva entre buzones). Las contraseñas se escriben en el panel, se
+guardan cifradas y nunca vuelven al navegador; un buzón sin contraseña no se lee. Si un buzón ya existía con
+su agente configurado, se respeta. Sin cambios en la base de datos (vale la completa v91).
+
