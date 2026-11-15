@@ -45,7 +45,37 @@ const MOTOR_ANGULOS = [
   'caso_sector' => 'Caso de su sector',
   'pregunta_corta' => 'Pregunta corta',
   'estudio_gratuito' => 'Estudio gratuito de facturas',
+  'ia_transparencia' => 'Transparencia de la IA (AI Act, art. 50)',
+  'ia_alfabetizacion' => 'Formación y protocolo de uso de IA (AI Act, art. 4)',
+  'ia_fundae' => 'Formación en IA bonificable (FUNDAE)',
+  'ia_captacion' => 'Automatizar captación y atención con IA legal',
+  'ia_pregunta' => 'Una duda sobre su web',
 ];
+
+/** Identidades del agente de Outreach. Cada campaña usa una. */
+const MOTOR_PERFILES = [
+  'icc' => ['nombre' => 'ICC · Energía y telecomunicaciones', 'empresa' => 'Integral Connection Consulting', 'firma' => "Equipo comercial\nIntegral Connection Consulting",
+    'responsable' => 'Integral Connection Consulting', 'tono' => 'cercano y profesional', 'palabras' => 110, 'asunto_palabras' => 8,
+    'angulos' => ['ahorro_factura', 'potencia', 'caso_sector', 'pregunta_corta', 'estudio_gratuito'],
+    'pasos' => [1 => 'primer contacto', 2 => 'seguimiento corto (no respondió)', 3 => 'último correo: preguntar si cerramos el expediente']],
+  'labs24k' => ['nombre' => 'Labs24k · IA para empresas (Grupo Evolvix Global)', 'empresa' => 'Labs24k', 'firma' => "Desarrollo de negocio\nLabs24k · Grupo Evolvix Global S.L.\nMadrid · Gijón · Oviedo",
+    'responsable' => 'Grupo Evolvix Global S.L.', 'tono' => 'directo y consultivo, de tú si el sector lo permite', 'palabras' => 130, 'asunto_palabras' => 5,
+    'angulos' => ['ia_transparencia', 'ia_alfabetizacion', 'ia_fundae', 'ia_captacion', 'ia_pregunta'],
+    'pasos' => [1 => 'día 1: correo inicial informativo', 2 => 'día 3: seguimiento con un caso de uso de su sector', 3 => 'día 7: último toque ofreciendo un diagnóstico de 15 minutos']],
+];
+
+/** Zonas de Asturias de uso comun (atajos del Radar). */
+const MOTOR_ZONAS = [
+  'Área metropolitana de Oviedo' => ['Oviedo', 'Siero', 'Llanera', 'Noreña', 'Ribera de Arriba', 'Las Regueras'],
+  'Comarca de Gijón' => ['Gijón', 'Carreño', 'Villaviciosa'],
+  'Comarca de Avilés' => ['Avilés', 'Castrillón', 'Corvera de Asturias', 'Gozón', 'Illas', 'Soto del Barco', 'Muros de Nalón', 'Pravia', 'Cudillero'],
+  'Cuencas Mineras' => ['Mieres', 'Lena', 'Aller', 'Langreo', 'San Martín del Rey Aurelio', 'Laviana', 'Caso', 'Sobrescobio'],
+  'Oriente' => ['Llanes', 'Ribadesella', 'Cangas de Onís', 'Parres', 'Piloña', 'Colunga', 'Cabrales'],
+  'Occidente' => ['Navia', 'Valdés', 'Tapia de Casariego', 'Vegadeo', 'Castropol', 'Cangas del Narcea', 'Tineo'],
+];
+
+/** Prefijos de correo generico de empresa (B2B, RGPD). */
+const MOTOR_PREFIJOS = 'info, informacion, contacto, contact, hola, comercial, ventas, administracion, admin, oficina, gerencia, empresa, atencion, clientes, reservas, pedidos, central, general, recepcion';
 
 const MOTOR_MADUREZ = [
   'sin_chatbot' => 'Sin chatbot', 'sin_whatsapp' => 'Sin WhatsApp', 'chat_sin_aviso_ia' => 'Chat sin aviso de IA',
@@ -82,6 +112,33 @@ Cómo escribes:
 - No pongas firma, ni aviso legal, ni enlace de baja: los añade el sistema.
 TXT;
 
+const MOTOR_PROMPT_LABS = <<<TXT
+# ROL
+Eres consultor senior de desarrollo de negocio en Labs24k, la división de inteligencia artificial de Grupo Evolvix Global S.L. (sedes en Madrid, Gijón y Oviedo). Escribes correos B2B a gerentes y responsables de empresas en España.
+
+# OBJETIVO
+Conseguir una llamada o reunión de diagnóstico de 15 minutos (presencial en Asturias o por videollamada) para revisar cómo usan la IA y si cumplen el Reglamento Europeo de IA, y mostrar cómo automatizar su atención y captación sin riesgos legales.
+
+# QUIÉNES SOMOS
+Agencia de arquitectura de IA para empresas: agentes de voz, automatización de WhatsApp y CRM, prospección autónoma y consultoría de implantación, cumpliendo el Reglamento Europeo de IA (AI Act) y el RGPD.
+
+# GANCHO NORMATIVO (úsalo con rigor)
+- Desde el 2 de agosto de 2026 se aplica la obligación de transparencia del artículo 50 del AI Act: quien usa chatbots o sistemas que hablan con clientes debe avisar de forma clara de que es una IA, y etiquetar el contenido sintético.
+- Desde el 2 de febrero de 2025 se aplica el artículo 4 (alfabetización en IA): las empresas que usan herramientas de IA deben procurar que su plantilla tenga la formación adecuada; conviene documentarlo en un protocolo interno.
+- La formación de la plantilla puede bonificarse a través de FUNDAE según el crédito de cada empresa.
+- No cites cuantías de multas ni digas que algo es «100 % gratis» o «obligatorio» si no lo es exactamente: rigor antes que miedo.
+
+# REGLAS DE REDACCIÓN
+- Asunto: máximo 5 palabras, frase natural en minúsculas, sin palabras de spam (gratis, oferta, urgente). Ejemplos: «consulta sobre [empresa] / normativa IA», «adaptación IA en [empresa]», «una duda sobre vuestra web».
+- Cuerpo de 130 palabras como máximo, en párrafos cortos:
+  1) Primera línea: un detalle REAL de su empresa, sector o comarca, sacado de los datos que te pasamos (nunca inventado).
+  2) Conecta su actividad con las obligaciones de transparencia y de uso de IA de este año.
+  3) Cómo Labs24k ayuda a empresas de su sector a automatizar atención y captación con IA cumpliendo la ley.
+  4) Cierre con una pregunta fácil de contestar, por ejemplo: «¿Te encaja verlo en 10 minutos este jueves por la mañana o prefieres que te pase un breve informe por aquí?».
+- Sin saludos robóticos («Estimado/a señor/a»), sin emojis, sin enlaces.
+- No pongas firma ni aviso de baja: los añade el sistema.
+TXT;
+
 function motor_config(): array {
   $ag = json_decode((string)icc_ajuste('motor_agente', ''), true);
   $smtp = json_decode((string)icc_ajuste('motor_smtp', ''), true);
@@ -116,11 +173,67 @@ function motor_log(string $tipo, string $mensaje, ?int $leadId = null, ?int $cam
 
 /** Cuenta SMTP/IMAP del Motor con su contrasena descifrada (solo en memoria). */
 function motor_cuenta(): ?array {
-  $cfg = motor_config();
-  $s = $cfg['smtp'];
-  if (empty($s['host_smtp']) || empty($s['email'])) return null;
-  $s['clave'] = (string)icc_ajuste('motor_smtp_clave', '');
-  return $s;
+  foreach (motor_buzones() as $b) {
+    if (!empty($b['activo']) && !empty($b['host_smtp']) && motor_buzon_clave((string)$b['id']) !== '') return motor_buzon_cuenta($b);
+  }
+  return null;
+}
+
+/* ===========================================================================
+   PERFILES DEL AGENTE DE OUTREACH
+   ========================================================================= */
+function motor_perfil(string $id): array {
+  $id = isset(MOTOR_PERFILES[$id]) ? $id : 'icc';
+  $base = MOTOR_PERFILES[$id] + ['id' => $id, 'prompt' => $id === 'labs24k' ? MOTOR_PROMPT_LABS : MOTOR_PROMPT, 'modelo' => '', 'activo' => true];
+  $g = json_decode((string)icc_ajuste('motor_perfil_' . $id, ''), true);
+  if (!is_array($g) && $id === 'icc') {
+    // Compatibilidad con la configuracion anterior (un solo agente).
+    $ag = json_decode((string)icc_ajuste('motor_agente', ''), true) ?: [];
+    $g = array_filter(['firma' => $ag['firma'] ?? null, 'tono' => $ag['tono'] ?? null, 'prompt' => $ag['prompt'] ?? null, 'modelo' => $ag['modelo'] ?? null, 'responsable' => icc_ajuste('motor_responsable', null)], function ($v) { return $v !== null && $v !== ''; });
+  }
+  foreach (['firma', 'responsable', 'tono', 'prompt', 'modelo'] as $k) if (isset($g[$k]) && trim((string)$g[$k]) !== '') $base[$k] = (string)$g[$k];
+  if (isset($g['palabras'])) $base['palabras'] = max(40, min(250, (int)$g['palabras']));
+  if (isset($g['activo'])) $base['activo'] = (bool)$g['activo'];
+  return $base;
+}
+
+/* ===========================================================================
+   BUZONES DE ENVIO (rotacion, limite por buzon y calentamiento)
+   ========================================================================= */
+function motor_buzones(): array {
+  $l = json_decode((string)icc_ajuste('motor_buzones', ''), true);
+  if (!is_array($l)) {
+    $l = [];
+    $s = json_decode((string)icc_ajuste('motor_smtp', ''), true) ?: [];
+    $i = json_decode((string)icc_ajuste('motor_imap', ''), true) ?: [];
+    if (!empty($s['host_smtp']) && !empty($s['email'])) {
+      $l[] = $s + $i + ['id' => 'principal', 'limite' => (int)icc_ajuste('motor_limite_dia', '35'), 'calentamiento' => false, 'alta' => date('Y-m-d'), 'activo' => true, 'perfil' => ''];
+    }
+  }
+  return array_values(array_filter($l, 'is_array'));
+}
+
+function motor_buzon_clave(string $id): string {
+  $c = (string)icc_ajuste('motor_buzon_clave_' . $id, '');
+  return $c !== '' ? $c : ($id === 'principal' ? (string)icc_ajuste('motor_smtp_clave', '') : '');
+}
+
+/** Envios permitidos hoy: con calentamiento, 10 el primer dia y +5 cada dia hasta su limite. */
+function motor_buzon_limite_hoy(array $b): int {
+  $lim = max(1, (int)($b['limite'] ?? 35));
+  if (empty($b['calentamiento'])) return $lim;
+  $dias = max(0, (int)floor((time() - strtotime((string)($b['alta'] ?? date('Y-m-d')))) / 86400));
+  return min($lim, 10 + 5 * $dias);
+}
+
+function motor_buzon_enviados_hoy(string $email): int {
+  $st = icc_db()->prepare("SELECT COUNT(*) FROM motor_mensajes WHERE buzon = ? AND estado = 'enviado' AND enviado_en >= CURDATE()");
+  $st->execute([$email]);
+  return (int)$st->fetchColumn();
+}
+
+function motor_buzon_cuenta(array $b): array {
+  return $b + ['clave' => motor_buzon_clave((string)$b['id']), 'usuario' => ($b['usuario'] ?? '') ?: $b['email']];
 }
 
 /* ===========================================================================
@@ -185,7 +298,8 @@ function motor_analizar(int $leadId): array {
     $db->prepare('UPDATE motor_leads SET analizado_en = NOW(), analisis_error = ? WHERE id = ?')->execute(['Sin web', $leadId]);
     return ['ok' => false, 'error' => 'Sin web'];
   }
-  $r = icc_web_analizar($l['web']);
+  $sc = motor_scraper();
+  $r = icc_web_analizar($l['web'], $sc['prefijos']);
   if (!$r['ok']) {
     $db->prepare('UPDATE motor_leads SET analizado_en = NOW(), analisis_error = ? WHERE id = ?')->execute([mb_substr($r['error'], 0, 255), $leadId]);
     return $r;
@@ -194,7 +308,52 @@ function motor_analizar(int $leadId): array {
   $db->prepare('UPDATE motor_leads SET email = ?, mx_ok = ?, telefono = IF(telefono = "", ?, telefono), cif = IF(cif = "", ?, cif), razon_social = IF(razon_social = "", ?, razon_social),
                 madurez = ?, extracto = ?, analizado_en = NOW(), analisis_error = NULL WHERE id = ?')
     ->execute([$email, $email !== '' && icc_web_mx_ok($email) ? 1 : 0, $r['telefono'], $r['cif'], mb_substr($r['razon_social'], 0, 190), implode(',', $r['madurez']), $r['extracto'], $leadId]);
+  // Filtro de cualificacion IA: carencias reales, detalle para personalizar y encaje.
+  if ($sc['cualificar_ia'] && icc_ia_disponible() && $r['extracto'] !== '') {
+    $q = icc_ia_chat([
+      ['role' => 'system', 'content' => 'Analizas la web de una empresa para un equipo comercial B2B. Devuelve: un detalle real y concreto de su negocio que sirva para personalizar un correo (una frase, sin inventar), sus carencias digitales y un encaje de 0 a 100 como cliente de servicios de ahorro energético, telecomunicaciones o implantación de IA.'],
+      ['role' => 'user', 'content' => 'Señales técnicas detectadas: ' . implode(', ', $r['madurez']) . "\n\n" . icc_ia_datos('TEXTO DE SU WEB', $r['extracto'], 2500)],
+    ], ['tipo' => 'motor_cualificar', 'max_tokens' => 1200, 'esfuerzo' => 'minimal', 'sin_limite' => true,
+        'esquema' => ['nombre' => 'cualificacion', 'schema' => ['type' => 'object', 'additionalProperties' => false, 'required' => ['detalle', 'carencias', 'encaje'], 'properties' => [
+          'detalle' => ['type' => 'string'], 'encaje' => ['type' => 'integer'],
+          'carencias' => ['type' => 'array', 'items' => ['type' => 'string', 'enum' => ['sin_chatbot', 'sin_whatsapp', 'chat_sin_aviso_ia', 'sin_politica_ia', 'web_anticuada', 'sin_movil', 'sin_https', 'sin_captacion']]]]]]]);
+    if ($q['ok']) {
+      $mad = array_values(array_unique(array_merge($r['madurez'], (array)$q['json']['carencias'])));
+      $db->prepare('UPDATE motor_leads SET madurez = ?, resumen = ?, puntuacion = ? WHERE id = ?')
+        ->execute([implode(',', $mad), mb_substr(trim((string)$q['json']['detalle']), 0, 500), max(0, min(100, (int)$q['json']['encaje'])), $leadId]);
+    }
+  }
   return $r;
+}
+
+function motor_scraper(): array {
+  $c = json_decode((string)icc_ajuste('motor_scraper', ''), true) ?: [];
+  $pref = array_values(array_filter(array_map(function ($x) { return strtolower(trim($x)); }, explode(',', (string)($c['prefijos'] ?? MOTOR_PREFIJOS))), function ($x) { return preg_match('/^[a-z0-9._-]{2,30}$/', $x); }));
+  return ['prefijos' => $pref ?: array_map('trim', explode(',', MOTOR_PREFIJOS)), 'cualificar_ia' => !isset($c['cualificar_ia']) || !empty($c['cualificar_ia']),
+    'puntuacion_min' => max(0, min(100, (int)($c['puntuacion_min'] ?? 0)))];
+}
+
+/** Rastreo directo de webs corporativas (lista pegada). */
+function motor_alta_webs(array $urls, string $sector, ?int $autor): array {
+  $nuevos = []; $repetidos = 0;
+  foreach (array_slice($urls, 0, 100) as $u) {
+    $u = trim((string)$u);
+    if ($u === '' || !preg_match('#^(https?://)?[a-z0-9\-]+(\.[a-z0-9\-]+)+(:\d{2,5})?(/\S*)?$#i', $u)) continue;
+    $host = preg_replace('/^www\./', '', strtolower((string)parse_url((preg_match('#^https?://#', $u) ? '' : 'https://') . $u, PHP_URL_HOST)));
+    $nombre = ucfirst(explode('.', $host)[0]);
+    $id = motor_alta_lead(['nombre' => $nombre, 'web' => (preg_match('#^https?://#', $u) ? '' : 'https://') . $u, 'sector' => $sector], 'manual', $autor);
+    $id ? $nuevos[] = $id : $repetidos++;
+  }
+  if ($nuevos) motor_log('radar', count($nuevos) . ' webs corporativas añadidas para rastrear');
+  return ['nuevos' => $nuevos, 'repetidos' => $repetidos];
+}
+
+/** Rebote: ese correo no vuelve a usarse y la empresa sale de su secuencia. */
+function motor_rebote(int $leadId, string $email, string $motivo = 'Rebote del servidor'): void {
+  $db = icc_db();
+  $db->prepare("UPDATE motor_leads SET rebotado = 1, mx_ok = 0, estado = 'descartado', proximo_envio = NULL WHERE id = ?")->execute([$leadId]);
+  $db->prepare("UPDATE motor_mensajes SET estado = 'descartado', error = 'Rebote' WHERE lead_id = ? AND estado IN ('pendiente','aprobado','borrador')")->execute([$leadId]);
+  motor_log('rebote', $email . ': ' . $motivo . ' (no se volverá a usar)', $leadId);
 }
 
 /** Radar: busca en Google Places "sector en ubicacion" (hasta $paginas paginas) y da de alta lo nuevo. */
@@ -251,26 +410,28 @@ function motor_plantilla(array $lead, string $angulo, int $paso): array {
 
 /** Redacta el correo de un paso. Con IA si esta disponible; si no, plantilla del angulo. */
 function motor_redactar(array $lead, array $campana, int $paso, ?int $usuarioId = null): array {
-  $angulo = $campana['angulo'] ?: 'ahorro_factura';
+  $perfil = motor_perfil((string)($campana['perfil'] ?? 'icc'));
+  $angulo = $campana['angulo'] ?: $perfil['angulos'][0];
   if (icc_ia_disponible()) {
-    $cfg = motor_config();
     $datos = [
       'empresa' => $lead['nombre'], 'razon_social' => $lead['razon_social'], 'sector' => MOTOR_SECTORES[$lead['sector']][0] ?? $lead['sector'],
-      'localidad' => $lead['concejo'] ?: $lead['localidad'], 'angulo' => MOTOR_ANGULOS[$angulo] ?? $angulo, 'paso' => $paso,
-      'tipo' => $paso === 1 ? 'primer contacto' : ($paso === 2 ? 'seguimiento corto (no respondió)' : 'último correo: preguntar si cerramos el expediente'),
+      'localidad' => $lead['concejo'] ?: $lead['localidad'], 'comarca' => $lead['comarca'] ?? '', 'angulo' => MOTOR_ANGULOS[$angulo] ?? $angulo, 'paso' => $paso,
+      'tipo' => $perfil['pasos'][$paso] ?? 'seguimiento', 'detalle_de_su_negocio' => $lead['resumen'] ?? '',
+      'carencias_digitales' => array_values(array_map(function ($m) { return MOTOR_MADUREZ[$m] ?? $m; }, array_filter(explode(',', (string)($lead['madurez'] ?? ''))))),
+      'limite_palabras' => $paso === 1 ? $perfil['palabras'] : (int)round($perfil['palabras'] * 0.7), 'limite_palabras_asunto' => $perfil['asunto_palabras'],
     ];
     $r = icc_ia_chat([
-      ['role' => 'system', 'content' => $cfg['agente']['prompt'] . "\nTono: " . $cfg['agente']['tono'] . '.'
-        . (function_exists('apr_ejemplos_texto') ? apr_ejemplos_texto('motor', 'Correos que dirección corrigió y aprobó') : '')],
+      ['role' => 'system', 'content' => $perfil['prompt'] . "\nTono: " . $perfil['tono'] . '.'
+        . (function_exists('apr_ejemplos_texto') ? apr_ejemplos_texto('motor_' . $perfil['id'], 'Correos que dirección corrigió y aprobó') . apr_ejemplos_texto('motor', 'Otros correos corregidos y aprobados') : '')],
       ['role' => 'user', 'content' => "Datos de la empresa (JSON):\n" . json_encode($datos, JSON_UNESCAPED_UNICODE) . "\n\n" . icc_ia_datos('TEXTO DE SU WEB', (string)$lead['extracto'], 1800)],
-    ], ['tipo' => 'motor_correo', 'usuario_id' => $usuarioId, 'modelo' => $cfg['agente']['modelo'] ?: null, 'max_tokens' => 2500,
+    ], ['tipo' => 'motor_correo', 'usuario_id' => $usuarioId, 'modelo' => $perfil['modelo'] ?: null, 'max_tokens' => 2500,
         'esquema' => ['nombre' => 'correo', 'schema' => ['type' => 'object', 'additionalProperties' => false, 'required' => ['asunto', 'cuerpo'],
           'properties' => ['asunto' => ['type' => 'string'], 'cuerpo' => ['type' => 'string']]]]]);
     if ($r['ok'] && trim((string)$r['json']['cuerpo']) !== '' && !preg_match('/\d+\s?(%|€|euros)/iu', $r['json']['cuerpo'] . $r['json']['asunto'])) {
       return ['asunto' => mb_substr(trim($r['json']['asunto']), 0, 200), 'cuerpo' => trim($r['json']['cuerpo']), 'ia' => true];
     }
   }
-  return motor_plantilla($lead, $angulo, $paso) + ['ia' => false];
+  return ($perfil['id'] === 'labs24k' ? motor_plantilla_labs($lead, $angulo, $paso) : motor_plantilla($lead, $angulo, $paso)) + ['ia' => false];
 }
 
 function motor_enlace_baja(array $lead): string {
@@ -279,11 +440,11 @@ function motor_enlace_baja(array $lead): string {
 }
 
 /** Firma, motivo del contacto, responsable y baja: siempre los pone el sistema. */
-function motor_pie(array $lead): string {
-  $cfg = motor_config();
-  return "\n\n--\n" . trim($cfg['agente']['firma']) . "\n\n"
+function motor_pie(array $lead, string $perfilId = 'icc'): string {
+  $p = motor_perfil($perfilId);
+  return "\n\n--\n" . trim($p['firma']) . "\n\n"
     . 'Le escribimos porque ' . $lead['nombre'] . ' figura públicamente como empresa de ' . mb_strtolower(MOTOR_SECTORES[$lead['sector']][0] ?? 'su sector')
-    . ' y creemos que esta revisión puede interesarle. Responsable del tratamiento: ' . $cfg['responsable'] . '. '
+    . ' y creemos que puede interesarle. Responsable del tratamiento: ' . $p['responsable'] . '. '
     . "Si no quiere recibir más correos nuestros, pulse aquí y no volveremos a escribirle: " . motor_enlace_baja($lead) . ' (o responda «BAJA»).';
 }
 
@@ -308,13 +469,14 @@ function motor_meter_en_campana(array $leadIds, int $campanaId): int {
   $db = icc_db();
   $n = 0;
   $st = $db->prepare("UPDATE motor_leads SET campana_id = ?, estado = 'en_campana', paso = 0, proximo_envio = NOW()
-                      WHERE id = ? AND email <> '' AND mx_ok = 1 AND estado IN ('nuevo','en_campana','contactado')");
+                      WHERE id = ? AND email <> '' AND mx_ok = 1 AND rebotado = 0 AND estado IN ('nuevo','en_campana','contactado')
+                        AND (puntuacion IS NULL OR puntuacion >= ?)");
   foreach ($leadIds as $id) {
     $l = $db->prepare('SELECT email FROM motor_leads WHERE id = ?');
     $l->execute([(int)$id]);
     $email = (string)$l->fetchColumn();
     if ($email === '' || icc_excluido($email)) continue;
-    $st->execute([$campanaId, (int)$id]);
+    $st->execute([$campanaId, (int)$id, motor_scraper()['puntuacion_min']]);
     $n += $st->rowCount();
   }
   return $n;
@@ -329,16 +491,13 @@ function motor_puede_enviar_ahora(array $cfg): string {
   if ($cfg['solo_laborables'] && !icc_es_laborable($ahora)) return 'Fin de semana';
   $h = $ahora->format('H:i');
   if ($h < $cfg['hora_desde'] || $h >= $cfg['hora_hasta']) return 'Fuera de horario';
-  $hoy = (int)icc_db()->query("SELECT COUNT(*) FROM motor_mensajes WHERE direccion = 'salida' AND estado = 'enviado' AND enviado_en >= CURDATE()")->fetchColumn();
-  if ($hoy >= $cfg['limite_dia']) return 'Límite diario alcanzado';
-  $prox = (string)icc_ajuste('motor_proximo_hueco', '');
-  if ($prox !== '' && strtotime($prox) > time()) return 'Esperando la pausa entre envíos';
+  if (!motor_buzones()) return 'Sin buzón de envío';
   return '';
 }
 
-function motor_enviar_mensaje(int $msgId, ?int $usuarioId = null): array {
+function motor_enviar_mensaje(int $msgId, ?int $usuarioId = null, ?array $buzon = null): array {
   $db = icc_db();
-  $st = $db->prepare('SELECT m.*, l.email, l.nombre, l.sector, l.id lead, l.paso lead_paso FROM motor_mensajes m JOIN motor_leads l ON l.id = m.lead_id WHERE m.id = ?');
+  $st = $db->prepare('SELECT m.*, l.email, l.nombre, l.sector, l.id lead, l.paso lead_paso, COALESCE(c.perfil, "icc") perfil FROM motor_mensajes m JOIN motor_leads l ON l.id = m.lead_id LEFT JOIN motor_campanas c ON c.id = m.campana_id WHERE m.id = ?');
   $st->execute([$msgId]);
   $m = $st->fetch();
   if (!$m || !in_array($m['estado'], ['aprobado', 'pendiente'], true)) return ['ok' => false, 'error' => 'Este correo ya no se puede enviar.'];
@@ -346,12 +505,17 @@ function motor_enviar_mensaje(int $msgId, ?int $usuarioId = null): array {
     $db->prepare("UPDATE motor_mensajes SET estado = 'descartado', error = 'En la lista de exclusión' WHERE id = ?")->execute([$msgId]);
     return ['ok' => false, 'error' => 'La empresa está en la lista de exclusión.'];
   }
-  $cuenta = motor_cuenta();
+  $cuenta = $buzon ? motor_buzon_cuenta($buzon) : motor_cuenta();
   if (!$cuenta) return ['ok' => false, 'error' => 'Falta configurar el buzón de envío del Motor.'];
   $lead = ['id' => $m['lead'], 'email' => $m['email'], 'nombre' => $m['nombre'], 'sector' => $m['sector']];
   $baja = motor_enlace_baja($lead);
+  // Seguimientos en el mismo hilo.
+  $prev = $db->prepare("SELECT message_id FROM motor_mensajes WHERE lead_id = ? AND direccion = 'salida' AND estado = 'enviado' AND message_id IS NOT NULL ORDER BY id DESC LIMIT 1");
+  $prev->execute([$m['lead']]);
+  $hilo = (string)$prev->fetchColumn();
   $r = icc_smtp_enviar($cuenta, [
-    'para' => $m['email'], 'asunto' => $m['asunto'], 'texto' => $m['cuerpo'] . motor_pie($lead),
+    'para' => $m['email'], 'asunto' => $m['asunto'], 'texto' => $m['cuerpo'] . motor_pie($lead, (string)$m['perfil']),
+    'in_reply_to' => $hilo ?: null, 'references' => $hilo ?: null,
     'cabeceras' => ['List-Unsubscribe: <' . $baja . '>, <mailto:' . $cuenta['email'] . '?subject=BAJA>', 'List-Unsubscribe-Post: List-Unsubscribe=One-Click'],
   ]);
   if (!$r['ok']) {
@@ -359,7 +523,7 @@ function motor_enviar_mensaje(int $msgId, ?int $usuarioId = null): array {
     motor_log('error', 'No se pudo enviar a ' . $m['nombre'] . ': ' . $r['error'], (int)$m['lead'], (int)$m['campana_id']);
     return $r;
   }
-  $db->prepare("UPDATE motor_mensajes SET estado = 'enviado', enviado_en = NOW(), message_id = ?, aprobado_por = COALESCE(aprobado_por, ?) WHERE id = ?")->execute([$r['message_id'], $usuarioId, $msgId]);
+  $db->prepare("UPDATE motor_mensajes SET estado = 'enviado', enviado_en = NOW(), message_id = ?, buzon = ?, aprobado_por = COALESCE(aprobado_por, ?) WHERE id = ?")->execute([$r['message_id'], $cuenta['email'], $usuarioId, $msgId]);
   $paso = (int)$m['paso'];
   $sig = MOTOR_CADENCIA[$paso + 1] ?? null;
   $db->prepare("UPDATE motor_leads SET paso = ?, ultimo_envio = NOW(), estado = 'contactado', proximo_envio = " . ($sig === null ? 'NULL' : 'NOW() + INTERVAL ' . ($sig - MOTOR_CADENCIA[$paso]) . ' DAY') . ' WHERE id = ?')
@@ -375,24 +539,45 @@ function motor_tick(): string {
   $cfg = motor_config();
   $preparados = 0;
   if (!$cfg['pausado']) {
-    $leads = $db->query("SELECT l.*, c.id camp_id, c.modo, c.angulo, c.nombre camp_nombre FROM motor_leads l JOIN motor_campanas c ON c.id = l.campana_id
+    $leads = $db->query("SELECT l.*, c.id camp_id, c.modo, c.angulo, c.perfil, c.nombre camp_nombre FROM motor_leads l JOIN motor_campanas c ON c.id = l.campana_id
                          WHERE c.estado = 'activa' AND l.estado IN ('en_campana','contactado') AND l.paso < 3 AND l.proximo_envio <= NOW() AND l.canal = 'correo'
                            AND NOT EXISTS (SELECT 1 FROM motor_mensajes m WHERE m.lead_id = l.id AND m.direccion = 'salida' AND m.estado IN ('pendiente','aprobado','borrador'))
                          ORDER BY l.proximo_envio LIMIT 8")->fetchAll();
     foreach ($leads as $l) {
-      if (motor_preparar_paso($l, ['id' => $l['camp_id'], 'modo' => $l['modo'], 'angulo' => $l['angulo']])) $preparados++;
+      if (motor_preparar_paso($l, ['id' => $l['camp_id'], 'modo' => $l['modo'], 'angulo' => $l['angulo'], 'perfil' => $l['perfil']])) $preparados++;
     }
   }
   $motivo = motor_puede_enviar_ahora($cfg);
   $enviado = '';
   if ($motivo === '') {
-    $m = $db->query("SELECT m.id FROM motor_mensajes m JOIN motor_campanas c ON c.id = m.campana_id
-                     WHERE m.direccion = 'salida' AND m.estado = 'aprobado' AND c.estado = 'activa' ORDER BY m.paso, m.id LIMIT 1")->fetchColumn();
-    if ($m) {
-      $r = motor_enviar_mensaje((int)$m);
-      $enviado = $r['ok'] ? '1 enviado' : 'Error al enviar: ' . $r['error'];
-      icc_ajuste_guardar('motor_proximo_hueco', date('Y-m-d H:i:s', time() + random_int($cfg['pausa_min'] * 60, max($cfg['pausa_min'], $cfg['pausa_max']) * 60)));
+    // Cada buzon envia como mucho uno por pasada, con su limite diario, su
+    // calentamiento y su pausa aleatoria; los seguimientos salen del mismo buzon.
+    $libres = [];
+    foreach (motor_buzones() as $b) {
+      if (empty($b['activo']) || motor_buzon_clave((string)$b['id']) === '') continue;
+      $h = (string)icc_ajuste('motor_hueco_' . $b['id'], '');
+      if ($h !== '' && strtotime($h) > time()) continue;
+      if (motor_buzon_enviados_hoy((string)$b['email']) >= motor_buzon_limite_hoy($b)) continue;
+      $libres[$b['email']] = $b;
     }
+    $n = 0; $err = 0;
+    if ($libres) {
+      $todos = array_column(motor_buzones(), 'email');
+      $cola = $db->query("SELECT m.id, c.perfil, (SELECT m2.buzon FROM motor_mensajes m2 WHERE m2.lead_id = m.lead_id AND m2.estado = 'enviado' AND m2.buzon IS NOT NULL ORDER BY m2.id DESC LIMIT 1) buzon_previo
+                          FROM motor_mensajes m JOIN motor_campanas c ON c.id = m.campana_id WHERE m.direccion = 'salida' AND m.estado = 'aprobado' AND c.estado = 'activa' ORDER BY m.paso DESC, m.id LIMIT 50")->fetchAll();
+      foreach ($cola as $c) {
+        if (!$libres) break;
+        $elegido = null;
+        if ($c['buzon_previo'] && in_array($c['buzon_previo'], $todos, true)) $elegido = $libres[$c['buzon_previo']] ?? null;
+        else foreach ($libres as $b) if (($b['perfil'] ?? '') === '' || $b['perfil'] === $c['perfil']) { $elegido = $b; break; }
+        if (!$elegido) continue;
+        $r = motor_enviar_mensaje((int)$c['id'], null, $elegido);
+        $r['ok'] ? $n++ : $err++;
+        icc_ajuste_guardar('motor_hueco_' . $elegido['id'], date('Y-m-d H:i:s', time() + random_int($cfg['pausa_min'] * 60, max($cfg['pausa_min'], $cfg['pausa_max']) * 60)));
+        unset($libres[$elegido['email']]);
+      }
+    }
+    $enviado = $n || $err ? $n . ' enviados' . ($err ? ' · ' . $err . ' con error' : '') : ($libres ? '' : 'Buzones en pausa o en su límite de hoy');
   }
   $leidas = motor_leer_respuestas();
   return trim($preparados . ' preparados · ' . ($enviado ?: ($motivo ?: 'nada que enviar')) . ($leidas !== '' ? ' · ' . $leidas : ''));
@@ -512,21 +697,42 @@ function motor_a_crm(array $l, ?int $gestorId, string $conversacion, ?int $autor
 
 /** Lee el buzon del Motor por IMAP (si esta configurado) y procesa las respuestas. */
 function motor_leer_respuestas(): string {
-  $cfg = motor_config();
-  $im = $cfg['imap'];
-  if (empty($im['host_imap'])) return '';
-  $cuenta = $im + ['usuario' => $im['usuario'] ?? ($cfg['smtp']['usuario'] ?? ''), 'clave' => (string)icc_ajuste('motor_smtp_clave', '')];
-  $ultimo = icc_ajuste('motor_imap_uid', null);
-  $validity = icc_ajuste('motor_imap_validity', null);
-  $r = icc_imap_nuevos($cuenta, $ultimo === null ? null : (int)$ultimo, $validity === null ? null : (int)$validity, 20);
-  if (!$r['ok']) { motor_log('error', 'Buzón de respuestas: ' . $r['error']); return 'IMAP: error'; }
-  icc_ajuste_guardar('motor_imap_uid', (string)$r['ultimo_uid']);
-  icc_ajuste_guardar('motor_imap_validity', (string)$r['uidvalidity']);
-  $n = 0;
+  $n = 0; $reb = 0; $err = 0;
+  foreach (motor_buzones() as $b) {
+    if (empty($b['activo']) || empty($b['host_imap'])) continue;
+    $sufijo = $b['id'] === 'principal' ? '' : '_' . $b['id'];
+    $cuenta = motor_buzon_cuenta($b);
+    $ultimo = icc_ajuste('motor_imap_uid' . $sufijo, null);
+    $validity = icc_ajuste('motor_imap_validity' . $sufijo, null);
+    $r = icc_imap_nuevos($cuenta, $ultimo === null ? null : (int)$ultimo, $validity === null ? null : (int)$validity, 20);
+    if (!$r['ok']) { motor_log('error', 'Respuestas de ' . $b['email'] . ': ' . $r['error']); $err++; continue; }
+    icc_ajuste_guardar('motor_imap_uid' . $sufijo, (string)$r['ultimo_uid']);
+    icc_ajuste_guardar('motor_imap_validity' . $sufijo, (string)$r['uidvalidity']);
+    [$a, $c] = motor_procesar_entrantes($r['mensajes']);
+    $n += $a; $reb += $c;
+  }
+  return trim(($n ? $n . ' respuestas leídas' : '') . ($reb ? ' · ' . $reb . ' rebotes' : '') . ($err ? ' · ' . $err . ' buzones con error' : ''), ' ·');
+}
+
+/** Procesa correos entrantes del Motor. Devuelve [respuestas, rebotes]. */
+function motor_procesar_entrantes(array $mensajes): array {
+  $n = 0; $reb = 0;
   $db = icc_db();
-  foreach ($r['mensajes'] as $msg) {
+  foreach ($mensajes as $msg) {
     $p = icc_mime_leer($msg['crudo']);
     if ($p['de'] === '') continue;
+    // Rebotes: el correo no existe -> ese lead no vuelve a usarse (protege la reputacion del dominio).
+    $local = strtolower(strtok($p['de'], '@') ?: '');
+    if ($p['automatico'] === 'rebote' || in_array($local, ['mailer-daemon', 'postmaster'], true) || preg_match('/(undeliverable|delivery status|no se puede entregar|mail delivery failed|returned mail)/i', $p['asunto'])) {
+      $texto = $p['texto'] . ' ' . ($p['cabeceras']['x-failed-recipients'] ?? '');
+      preg_match_all('/[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}/', $texto, $mm);
+      foreach (array_unique(array_map('strtolower', $mm[0])) as $e) {
+        $st = $db->prepare("SELECT id FROM motor_leads WHERE email = ? AND rebotado = 0 LIMIT 1");
+        $st->execute([$e]);
+        if ($lid = $st->fetchColumn()) { motor_rebote((int)$lid, $e); $reb++; }
+      }
+      continue;
+    }
     if ($p['message_id'] !== '') {
       $st = $db->prepare("SELECT 1 FROM motor_mensajes WHERE message_id = ? AND direccion = 'entrada'");
       $st->execute([$p['message_id']]);
@@ -549,5 +755,23 @@ function motor_leer_respuestas(): string {
     if ($p['message_id'] !== '') $db->prepare("UPDATE motor_mensajes SET message_id = ? WHERE lead_id = ? AND direccion = 'entrada' ORDER BY id DESC LIMIT 1")->execute([$p['message_id'], $lead]);
     if ($res['ok']) $n++;
   }
-  return $n ? $n . ' respuestas leídas' : '';
+  return [$n, $reb];
+}
+
+/** Plantillas sin IA del perfil Labs24k. */
+function motor_plantilla_labs(array $lead, string $angulo, int $paso): array {
+  $empresa = $lead['nombre'];
+  $sector = mb_strtolower(MOTOR_SECTORES[$lead['sector']][0] ?? 'vuestro sector');
+  $lugar = $lead['concejo'] ?: ($lead['localidad'] ?: 'Asturias');
+  if ($paso === 2) return ['asunto' => 'ia en ' . $sector, 'cuerpo' => "Hola de nuevo:\n\nOs comparto un caso de $sector: automatizamos la primera respuesta a clientes por web y WhatsApp, con el aviso de IA que pide la normativa, y el equipo dejó de perder consultas fuera de horario.\n\n¿Os encaja que lo veamos 10 minutos esta semana?\n\nUn saludo."];
+  if ($paso >= 3) return ['asunto' => 'diagnóstico de 15 minutos', 'cuerpo' => "Hola:\n\nÚltimo mensaje, prometido. Si os sirve, hacemos un diagnóstico de 15 minutos sobre cómo usáis la IA en $empresa y qué os pide la normativa este año, sin compromiso.\n\nSi no es el momento, no os escribo más.\n\nUn saludo."];
+  $t = [
+    'ia_transparencia' => ['adaptación ia en ' . mb_strtolower($empresa), "Hola:\n\nHe visto la web de $empresa, en $lugar. Desde el 2 de agosto de 2026, quien atiende a clientes con chatbots o sistemas automáticos debe avisar claramente de que es una IA.\n\nEn Labs24k ayudamos a empresas de $sector a automatizar su atención y captación con IA cumpliendo la ley.\n\n¿Te encaja verlo en 10 minutos esta semana o prefieres que te pase un breve informe por aquí?"],
+    'ia_alfabetizacion' => ['protocolo de ia en ' . mb_strtolower($empresa), "Hola:\n\nSi en $empresa usáis herramientas como ChatGPT o Copilot, el Reglamento Europeo de IA pide que la plantilla tenga la formación adecuada, y conviene tenerlo documentado en un protocolo interno.\n\nLo dejamos resuelto y, de paso, automatizamos tareas que hoy os quitan tiempo.\n\n¿Lo vemos en 10 minutos?"],
+    'ia_fundae' => ['formación en ia', "Hola:\n\nLa formación en IA que pide el Reglamento Europeo para quien usa estas herramientas puede bonificarse a través de FUNDAE, según el crédito de cada empresa.\n\nEn Labs24k la organizamos para equipos de $sector y la conectamos con casos reales de vuestro día a día.\n\n¿Te paso un breve informe?"],
+    'ia_captacion' => ['consultas fuera de horario', "Hola:\n\nMuchas empresas de $sector pierden consultas que llegan fuera de horario. Implantamos asistentes de IA que responden al momento, con el aviso de IA que exige la normativa y pasando a una persona lo importante.\n\n¿Te encaja verlo 10 minutos este jueves?"],
+    'ia_pregunta' => ['una duda sobre vuestra web', "Hola:\n\nUna pregunta rápida sobre la web de $empresa: ¿quién se encarga de cómo atendéis a los clientes por web y WhatsApp?\n\nQuería comentarte una mejora con IA que además os deja al día con la normativa de este año.\n\nGracias."],
+  ];
+  [$a, $c] = $t[$angulo] ?? $t['ia_transparencia'];
+  return ['asunto' => $a, 'cuerpo' => $c];
 }

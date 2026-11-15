@@ -276,7 +276,7 @@
       label: "🤖 IA",
       href: "#/motor",
       submenu: [].concat(window.icc.auth.puedeVerCopias() ? [{ href: "#/puesta-en-marcha", label: "🚀 Puesta en marcha" }] : []).concat([
-        { href: "#/motor", label: "🛰️ Motor de prospección" },
+        { href: "#/motor", label: "🛰️ Motor de Scraping IA" },
         { href: "#/zona-agentes", label: "🧠 Zona de agentes" },
         { href: "#/automatizaciones", label: "⚡ Automatizaciones" },
         { href: "#/agente-correo", label: "📬 Agente de correo" },

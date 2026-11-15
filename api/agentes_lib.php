@@ -296,8 +296,11 @@ function eq_campana_siempre(string $sector): int {
     $db->prepare("UPDATE motor_campanas SET estado = 'activa', angulo = ?, modo = ? WHERE id = ?")->execute([$angulo, $modo, $id]);
     return $id;
   }
-  $db->prepare("INSERT INTO motor_campanas (nombre, sector, angulo, modo, siempre_activa) VALUES (?, ?, ?, ?, 1)")
-    ->execute(['Siempre activa · ' . (MOTOR_SECTORES[$sector][0] ?? $sector), $sector, $angulo, $modo]);
+  $perfil = (string)icc_ajuste('barrido_perfil', 'icc');
+  if (!isset(MOTOR_PERFILES[$perfil])) $perfil = 'icc';
+  if (!in_array($angulo, MOTOR_PERFILES[$perfil]['angulos'], true)) $angulo = MOTOR_PERFILES[$perfil]['angulos'][0];
+  $db->prepare("INSERT INTO motor_campanas (nombre, sector, perfil, angulo, modo, siempre_activa) VALUES (?, ?, ?, ?, ?, 1)")
+    ->execute(['Siempre activa · ' . (MOTOR_SECTORES[$sector][0] ?? $sector) . ($perfil !== 'icc' ? ' · ' . MOTOR_PERFILES[$perfil]['empresa'] : ''), $sector, $perfil, $angulo, $modo]);
   return (int)$db->lastInsertId();
 }
 

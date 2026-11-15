@@ -218,7 +218,7 @@ propio CRM — ya no hace falta volver a tocar la base de datos a mano.
 
 ## Base de datos en un solo paso
 
-`sql/base-de-datos-completa-v88.sql` deja cualquier base de datos al día para la v88 importándolo una sola vez en phpMyAdmin:
+`sql/base-de-datos-completa-v90.sql` deja cualquier base de datos al día para la v90 importándolo una sola vez en phpMyAdmin:
 - Con datos (v55 en adelante): no borra nada; crea solo las tablas, columnas, índices y relaciones que falten y amplía los roles. Deja a Daniela con todo el equipo de María y las agendas de Juan y María.
 - Vacía: crea el CRM completo y un Super Administrador inicial (info@integralconnectionconsulting.es, contraseña provisional `CambiaEsta-2026`, que el CRM obliga a cambiar).
 - Se puede ejecutar varias veces sin errores ni duplicados. Los datos de ejemplo de los comparadores solo se cargan si esas tablas están vacías.
@@ -500,7 +500,7 @@ Montarla (por ejemplo en `demo.crm.tudominio.es`):
 1. Crea el subdominio en Hostalia apuntando a una carpeta nueva y sube ahí el
    mismo zip del CRM.
 2. Crea una base de datos **nueva y vacía** e importa
-   `sql/base-de-datos-completa-v88.sql` (más las migraciones nuevas si las hay).
+   `sql/base-de-datos-completa-v90.sql` (más las migraciones nuevas si las hay).
 3. Crea `api/config.local.php` de esa carpeta con los datos de la BD nueva y
    añade `define('ICC_MODO_DEMO', true);`.
 4. Rellena la demo por SSH (el generador no se puede abrir desde el navegador):
@@ -598,3 +598,35 @@ Todo funciona sin IA (plantillas y reglas) y nunca se inventa nada. Tablas: `sql
   como estándar, prioridad del barrido por conversión, zonas que responden, avisos por lo que dirección
   rechaza, instrucciones nuevas propuestas por el jefe de un agente con nota baja (las aprueba dirección) y
   ejemplos de estilo con los correos que una persona corrige (Motor y cada buzón).
+
+## Motor de Scraping IA (v90)
+
+`#/motor` es ahora un módulo aparte con cuatro zonas. Migración: `sql/migracion_motor_v2.sql` (incluida en la base de datos completa v90).
+
+- **🛰️ Radar**: tres fuentes (Google Maps / Places, webs corporativas pegadas y CSV de directorios o registros
+  mercantiles), varios sectores a la vez (con CNAE) o palabra clave, ubicación Asturias → comarca (Área
+  metropolitana de Oviedo, Gijón, Avilés, Cuencas Mineras, Oriente, Occidente y las 8 comarcas oficiales) →
+  concejo o código postal. Tabla en directo: empresa, sector, zona, web, correo corporativo, teléfono, madurez
+  digital, resumen del negocio, encaje 0–100 y estado del agente.
+- **Campañas**: una tarjeta por nicho (filtro por sector) con leads, verificados, enviados, respuestas,
+  positivas y reuniones; identidad (perfil) y ángulo por campaña; feed en directo cada 8 s con pausar,
+  intervenir (corregir el borrador) y aprobar.
+- **🏭 Fábrica de agentes**:
+  - *Scraper*: prefijos de correo genéricos (info, contacto, gerencia…), cualificación con IA (resumen,
+    carencias y encaje) y encaje mínimo para entrar en campaña.
+  - *Outreach*: perfiles de identidad `icc` (Integral Connection Consulting) y `labs24k` (Labs24k, división
+    de IA de Grupo Evolvix Global S.L., que figura como responsable del envío): prompt maestro, tono, firma,
+    límite de palabras, cadencia día 1 → 3 → 7 y ángulos del AI Act (art. 50 transparencia desde el
+    2/8/2026, art. 4 alfabetización desde el 2/2/2025, formación bonificable por FUNDAE según el crédito de
+    cada empresa, captación y pregunta abierta). Las correcciones aprobadas se guardan como ejemplos de
+    estilo de ese perfil.
+  - *Buzones de envío*: varios buzones (mejor en un subdominio con SPF, DKIM y DMARC), límite diario por
+    buzón (30–40), calentamiento (10 el primer día y +5 cada día), pausa aleatoria propia de 4 a 9 min y
+    buzón reservado a un perfil. Los seguimientos salen del mismo buzón y en el mismo hilo. Las contraseñas
+    se guardan cifradas y nunca vuelven al navegador.
+  - *Envío y normativa*: horario, días laborables, aviso legal y modo de envío.
+- **Respuestas**: se leen de todos los buzones, se clasifican, paran la secuencia y los interesados pasan al
+  CRM con llamada. Los rebotes retiran el correo para siempre.
+- Sin píxel de seguimiento (la apertura no se mide: es poco fiable y añade un tratamiento de datos). El correo
+  se verifica por MX + rebotes, no sondeando el SMTP ajeno. Páginas Amarillas, registros mercantiles y
+  directorios entran por CSV: no se extraen automáticamente de sus webs.

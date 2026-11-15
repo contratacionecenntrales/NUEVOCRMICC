@@ -83,3 +83,21 @@
 }
 .icc-mo-fila > div.icc-mo-chips { flex-direction: row; flex-wrap: wrap; align-items: flex-start; }
 .icc-mo-fila .icc-ia-pill { align-self: flex-start; }
+/* v90: fuentes, varios sectores, zonas, cualificación, perfiles y buzones */
+.icc-mo-fuentes, .icc-mo-sectores { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
+.icc-mo-fuente, .icc-mo-sectores .icc-mo-chip { cursor: pointer; font: inherit; font-size: 12.5px; padding: 6px 11px; }
+.icc-mo-sectores label.icc-mo-chip small { color: var(--txt-3); font-size: 10.5px; }
+.icc-mo-etq { display: block; font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--txt-3); margin-bottom: 6px; }
+.icc-mo-resumen { color: #A5B4FC !important; }
+.icc-mo-cadencia { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.icc-mo-cadencia div { padding: 10px; border-radius: 10px; background: var(--card-2); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 2px; }
+.icc-mo-cadencia b { color: var(--cian); font-size: 13px; }
+.icc-mo-cadencia span { color: var(--txt-2); font-size: 12.5px; }
+.icc-mo-buzon { padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--card-2); display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+.icc-mo-buzon strong { color: var(--txt); }
+.icc-mo-buzon small { color: var(--txt-3); font-size: 12px; }
+.icc-mo-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.icc-mo-3 > label { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.icc-mo-3 > label > span { font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--txt-3); }
+.icc-mo-buzon .icc-ia-switch { padding: 6px 10px; }
+@media (max-width: 760px) { .icc-mo-3, .icc-mo-cadencia { grid-template-columns: minmax(0, 1fr); } }

@@ -49,6 +49,7 @@ function motor_lead_publico(array $l): array {
     'id' => (int)$l['id'], 'nombre' => $l['nombre'], 'razon_social' => $l['razon_social'], 'cif' => $l['cif'], 'sector' => $l['sector'],
     'localidad' => $l['concejo'] ?: $l['localidad'], 'comarca' => $l['comarca'], 'telefono' => $l['telefono'], 'web' => $l['web'], 'email' => $l['email'] !== '' && function_exists('idn_to_utf8') && strpos($l['email'], 'xn--') !== false
       ? substr($l['email'], 0, strpos($l['email'], '@') + 1) . (idn_to_utf8(substr($l['email'], strpos($l['email'], '@') + 1), IDNA_DEFAULT, INTL_IDNA_VARIANT_UTS46) ?: substr($l['email'], strpos($l['email'], '@') + 1)) : $l['email'],
+    'resumen' => $l['resumen'] ?? '', 'puntuacion' => isset($l['puntuacion']) && $l['puntuacion'] !== null ? (int)$l['puntuacion'] : null, 'rebotado' => !empty($l['rebotado']),
     'mx_ok' => (bool)$l['mx_ok'], 'madurez' => $l['madurez'] === '' ? [] : explode(',', $l['madurez']), 'estado' => $l['estado'], 'canal' => $l['canal'],
     'paso' => (int)$l['paso'], 'campana_id' => $l['campana_id'] ? (int)$l['campana_id'] : null, 'cliente_id' => $l['cliente_id'] ? (int)$l['cliente_id'] : null,
     'analizado' => $l['analizado_en'] !== null, 'analisis_error' => $l['analisis_error'], 'excluido' => $l['email'] !== '' && icc_excluido($l['email']),
@@ -76,10 +77,16 @@ if ($accion === 'estado' && $metodo === 'GET') {
       (SELECT COUNT(*) FROM motor_mensajes WHERE estado = 'enviado' AND enviado_en >= CURDATE()) enviados_hoy,
       (SELECT COUNT(*) FROM motor_mensajes WHERE direccion = 'entrada' AND created_at >= NOW() - INTERVAL 7 DAY) respuestas_7d,
       (SELECT COUNT(*) FROM motor_bajas) bajas")->fetch();
-  $feed = $db->query('SELECT ts, tipo, mensaje FROM motor_log ORDER BY id DESC LIMIT 40')->fetchAll();
+  $feed = $db->query("SELECT g.ts, g.tipo, g.mensaje, g.lead_id, g.campana_id,
+      (SELECT m.id FROM motor_mensajes m WHERE m.lead_id = g.lead_id AND m.direccion = 'salida' AND m.estado IN ('pendiente','aprobado','borrador') ORDER BY m.id DESC LIMIT 1) msg_pendiente
+    FROM motor_log g ORDER BY g.id DESC LIMIT 40")->fetchAll();
+  $buz = array_map(function ($b) { return ['id' => $b['id'], 'email' => $b['email'], 'activo' => !empty($b['activo']), 'perfil' => $b['perfil'] ?? '', 'calentamiento' => !empty($b['calentamiento']),
+    'limite' => (int)($b['limite'] ?? 35), 'limite_hoy' => motor_buzon_limite_hoy($b), 'enviados_hoy' => motor_buzon_enviados_hoy((string)$b['email']), 'tiene_clave' => motor_buzon_clave((string)$b['id']) !== '']; }, motor_buzones());
   icc_json([
     'campanas' => $camps, 'contadores' => $cont, 'feed' => $feed,
-    'pausado' => $cfg['pausado'], 'limite_dia' => $cfg['limite_dia'], 'motivo_espera' => motor_puede_enviar_ahora($cfg),
+    'pausado' => $cfg['pausado'], 'limite_dia' => array_sum(array_column(array_filter($buz, function ($b) { return $b['activo']; }), 'limite_hoy')), 'motivo_espera' => motor_puede_enviar_ahora($cfg),
+    'buzones' => $buz, 'zonas' => MOTOR_ZONAS,
+    'perfiles' => array_map(function ($p) { return ['nombre' => $p['nombre'], 'empresa' => $p['empresa'], 'angulos' => $p['angulos']]; }, MOTOR_PERFILES),
     'buzon' => motor_cuenta() !== null, 'places' => icc_places_clave() !== '', 'ia' => icc_ia_disponible(),
     'aviso_legal' => $cfg['aviso_legal'] !== '', 'es_config' => $esConfig,
     'sectores' => array_map(function ($k, $v) { return ['id' => $k, 'nombre' => $v[0], 'cnae' => $v[1]]; }, array_keys(MOTOR_SECTORES), MOTOR_SECTORES),
@@ -100,13 +107,31 @@ if ($accion === 'leads' && $metodo === 'GET') {
 }
 
 if ($accion === 'extraer' && $metodo === 'POST') {
-  $sector = (string)($body['sector'] ?? '');
-  if (!isset(MOTOR_SECTORES[$sector]) && trim((string)($body['palabra'] ?? '')) === '') icc_json(['error' => 'Elige un sector o escribe una palabra clave.'], 422);
-  $ubic = array_values(array_filter(array_map('trim', (array)($body['ubicaciones'] ?? []))));
+  $sectores = array_values(array_filter((array)($body['sectores'] ?? [$body['sector'] ?? '']), function ($s) { return isset(MOTOR_SECTORES[$s]); }));
+  $palabra = trim((string)($body['palabra'] ?? ''));
+  if (!$sectores && $palabra === '') icc_json(['error' => 'Elige al menos un sector o escribe una palabra clave.'], 422);
+  $ubic = array_values(array_unique(array_filter(array_map('trim', (array)($body['ubicaciones'] ?? [])))));
   if (!$ubic) icc_json(['error' => 'Elige al menos una ubicación.'], 422);
-  if (count($ubic) > 15) icc_json(['error' => 'Como mucho 15 ubicaciones por búsqueda.'], 422);
+  $pag = max(1, min(3, (int)($body['paginas'] ?? 2)));
+  $busquedas = max(1, count($sectores)) * count($ubic);
+  if ($busquedas > 40) icc_json(['error' => 'Son ' . $busquedas . ' búsquedas: como mucho 40 a la vez (sectores × ubicaciones). Usa el barrido automático para cubrir más.'], 422);
+  @set_time_limit(280);
+  $tot = ['consultas' => 0, 'vistos' => 0, 'nuevos' => [], 'errores' => []];
+  foreach ($sectores ?: [''] as $s) {
+    $r = motor_extraer($s, $palabra, $ubic, $uid, $pag);
+    $tot['consultas'] += $r['consultas']; $tot['vistos'] += $r['vistos']; $tot['nuevos'] = array_merge($tot['nuevos'], $r['nuevos']); $tot['errores'] = array_merge($tot['errores'], $r['errores']);
+    if ($r['errores']) break;
+  }
+  foreach (array_slice($tot['nuevos'], 0, 5) as $id) motor_analizar($id);
+  $tot['errores'] = array_values(array_unique($tot['errores']));
+  icc_json($tot + ['analizados_ya' => min(5, count($tot['nuevos']))]);
+}
+
+if ($accion === 'webs' && $metodo === 'POST') {
+  $lineas = preg_split('/[\s,;]+/', trim((string)($body['lista'] ?? '')));
+  $sector = isset(MOTOR_SECTORES[$body['sector'] ?? '']) ? (string)$body['sector'] : '';
+  $r = motor_alta_webs($lineas, $sector, $uid);
   @set_time_limit(180);
-  $r = motor_extraer($sector, (string)($body['palabra'] ?? ''), $ubic, $uid, max(1, min(3, (int)($body['paginas'] ?? 2))));
   foreach (array_slice($r['nuevos'], 0, 5) as $id) motor_analizar($id);
   icc_json($r + ['analizados_ya' => min(5, count($r['nuevos']))]);
 }
@@ -180,7 +205,9 @@ if ($accion === 'leads_accion' && $metodo === 'POST') {
 if ($accion === 'campana' && $metodo === 'POST') {
   $nombre = trim((string)($body['nombre'] ?? ''));
   $modo = (string)($body['modo'] ?? 'aprobacion');
-  $angulo = (string)($body['angulo'] ?? 'ahorro_factura');
+  $perfil = isset(MOTOR_PERFILES[$body['perfil'] ?? '']) ? (string)$body['perfil'] : 'icc';
+  $angulo = (string)($body['angulo'] ?? MOTOR_PERFILES[$perfil]['angulos'][0]);
+  if (!in_array($angulo, MOTOR_PERFILES[$perfil]['angulos'], true)) $angulo = MOTOR_PERFILES[$perfil]['angulos'][0];
   if ($nombre === '') icc_json(['error' => 'Ponle un nombre a la campaña.'], 422);
   if (!in_array($modo, ['aprobacion', 'borradores', 'autonomo'], true)) icc_json(['error' => 'Modo no válido.'], 422);
   if ($modo === 'autonomo' && (!$esConfig || motor_config()['aviso_legal'] === '')) icc_json(['error' => 'El modo autónomo solo lo activa la administración después de aceptar el aviso legal (LSSI art. 21).'], 403);
@@ -188,10 +215,10 @@ if ($accion === 'campana' && $metodo === 'POST') {
   $sector = isset(MOTOR_SECTORES[$body['sector'] ?? '']) ? (string)$body['sector'] : '';
   $gestor = motor_gestor_valido($user, $body['gestor_id'] ?? null);
   if (!empty($body['id'])) {
-    $db->prepare('UPDATE motor_campanas SET nombre = ?, sector = ?, angulo = ?, modo = ?, gestor_id = ? WHERE id = ?')->execute([mb_substr($nombre, 0, 160), $sector, $angulo, $modo, $gestor, (int)$body['id']]);
+    $db->prepare('UPDATE motor_campanas SET nombre = ?, sector = ?, perfil = ?, angulo = ?, modo = ?, gestor_id = ? WHERE id = ?')->execute([mb_substr($nombre, 0, 160), $sector, $perfil, $angulo, $modo, $gestor, (int)$body['id']]);
     icc_json(['ok' => true, 'id' => (int)$body['id']]);
   }
-  $db->prepare('INSERT INTO motor_campanas (nombre, sector, angulo, modo, gestor_id, creado_por) VALUES (?, ?, ?, ?, ?, ?)')->execute([mb_substr($nombre, 0, 160), $sector, $angulo, $modo, $gestor, $uid]);
+  $db->prepare('INSERT INTO motor_campanas (nombre, sector, perfil, angulo, modo, gestor_id, creado_por) VALUES (?, ?, ?, ?, ?, ?, ?)')->execute([mb_substr($nombre, 0, 160), $sector, $perfil, $angulo, $modo, $gestor, $uid]);
   $id = (int)$db->lastInsertId();
   motor_log('campana', 'Campaña creada: ' . $nombre, null, $id);
   icc_json(['ok' => true, 'id' => $id]);
@@ -209,12 +236,12 @@ if ($accion === 'campana_estado' && $metodo === 'POST') {
 // ================================================================ MENSAJES
 if ($accion === 'mensajes' && $metodo === 'GET') {
   $estado = in_array($_GET['estado'] ?? '', ['pendiente', 'borrador', 'aprobado', 'enviado', 'error'], true) ? $_GET['estado'] : 'pendiente';
-  $st = $db->prepare('SELECT m.id, m.paso, m.asunto, m.cuerpo, m.estado, m.angulo, m.ia, m.error, m.created_at, m.enviado_en, l.id lead_id, l.nombre, l.email, l.sector, l.concejo, l.localidad, l.web, c.nombre campana
+  $st = $db->prepare('SELECT m.id, m.paso, m.asunto, m.cuerpo, m.estado, m.angulo, m.ia, m.error, m.created_at, m.enviado_en, l.id lead_id, l.nombre, l.email, l.sector, l.concejo, l.localidad, l.web, l.resumen, c.nombre campana, COALESCE(c.perfil, "icc") perfil, m.buzon
                       FROM motor_mensajes m JOIN motor_leads l ON l.id = m.lead_id LEFT JOIN motor_campanas c ON c.id = m.campana_id
                       WHERE m.direccion = "salida" AND m.estado = ? ORDER BY m.id ' . ($estado === 'enviado' ? 'DESC' : 'ASC') . ' LIMIT 100');
   $st->execute([$estado]);
   $out = $st->fetchAll();
-  foreach ($out as &$m) $m['pie'] = motor_pie(['id' => $m['lead_id'], 'email' => $m['email'], 'nombre' => $m['nombre'], 'sector' => $m['sector']]);
+  foreach ($out as &$m) $m['pie'] = motor_pie(['id' => $m['lead_id'], 'email' => $m['email'], 'nombre' => $m['nombre'], 'sector' => $m['sector']], (string)$m['perfil']);
   icc_json(['mensajes' => $out]);
 }
 
@@ -233,7 +260,8 @@ if ($accion === 'mensaje' && $metodo === 'POST') {
       if ($asunto === '' || $cuerpo === '') icc_json(['error' => 'Asunto y texto no pueden quedar vacíos.'], 422);
       $db->prepare('UPDATE motor_mensajes SET asunto = ?, cuerpo = ? WHERE id = ?')->execute([mb_substr($asunto, 0, 255), mb_substr($cuerpo, 0, 8000), $id]);
       // Aprende de la correccion: el agente imitara este estilo.
-      if (trim((string)$m['cuerpo']) !== $cuerpo) apr_ejemplo_guardar('motor', 'Borrador del agente: ' . $m['asunto'] . "\n" . $m['cuerpo'], $asunto . "\n" . $cuerpo);
+      $pf = (string)$db->query('SELECT COALESCE(perfil, "icc") FROM motor_campanas WHERE id = ' . (int)$m['campana_id'])->fetchColumn() ?: 'icc';
+      if (trim((string)$m['cuerpo']) !== $cuerpo) apr_ejemplo_guardar('motor_' . $pf, 'Borrador del agente: ' . $m['asunto'] . "\n" . $m['cuerpo'], $asunto . "\n" . $cuerpo);
     }
     if ($acc === 'aprobar') {
       if (icc_excluido($m['email'])) icc_json(['error' => 'Esta empresa está en la lista de exclusión.'], 409);
@@ -294,45 +322,83 @@ if ($accion === 'baja_quitar' && $metodo === 'POST') {
 // ================================================================== CONFIG
 if ($accion === 'config' && $metodo === 'GET') {
   $cfg = motor_config();
-  unset($cfg['smtp']['clave']);
-  icc_json($cfg + ['smtp_clave' => (string)icc_ajuste('motor_smtp_clave', '') !== '', 'places_clave' => icc_places_clave() !== '', 'prompt_defecto' => MOTOR_PROMPT, 'es_config' => $esConfig]);
+  $perfiles = [];
+  foreach (array_keys(MOTOR_PERFILES) as $k) {
+    $p = motor_perfil($k);
+    $perfiles[$k] = ['nombre' => $p['nombre'], 'empresa' => $p['empresa'], 'firma' => $p['firma'], 'responsable' => $p['responsable'], 'tono' => $p['tono'], 'prompt' => $p['prompt'],
+      'palabras' => $p['palabras'], 'modelo' => $p['modelo'], 'angulos' => $p['angulos'], 'pasos' => $p['pasos'], 'prompt_defecto' => $k === 'labs24k' ? MOTOR_PROMPT_LABS : MOTOR_PROMPT,
+      'ejemplos' => count(function_exists('apr_ejemplos') ? apr_ejemplos('motor_' . $k) : [])];
+  }
+  $buz = array_map(function ($b) { $b['tiene_clave'] = motor_buzon_clave((string)$b['id']) !== ''; $b['limite_hoy'] = motor_buzon_limite_hoy($b); unset($b['clave']); return $b; }, motor_buzones());
+  icc_json(['perfiles' => $perfiles, 'buzones' => $buz, 'scraper' => motor_scraper() + ['prefijos_texto' => implode(', ', motor_scraper()['prefijos'])],
+    'pausa_min' => $cfg['pausa_min'], 'pausa_max' => $cfg['pausa_max'], 'hora_desde' => $cfg['hora_desde'], 'hora_hasta' => $cfg['hora_hasta'], 'solo_laborables' => $cfg['solo_laborables'],
+    'gestor_defecto' => $cfg['gestor_defecto'], 'aviso_legal' => $cfg['aviso_legal'], 'barrido_perfil' => (string)icc_ajuste('barrido_perfil', 'icc'),
+    'places_clave' => icc_places_clave() !== '', 'modelos' => ICC_IA_MODELOS, 'es_config' => $esConfig]);
 }
 if ($accion === 'config' && $metodo === 'PUT') {
   if (!$esConfig) icc_json(['error' => 'Solo la administración cambia los ajustes del Motor.'], 403);
-  $ag = (array)($body['agente'] ?? []);
-  $prompt = trim((string)($ag['prompt'] ?? ''));
-  icc_ajuste_guardar('motor_agente', json_encode(['firma' => mb_substr((string)($ag['firma'] ?? ''), 0, 600), 'tono' => mb_substr((string)($ag['tono'] ?? ''), 0, 120),
-    'modelo' => in_array($ag['modelo'] ?? '', ICC_IA_MODELOS, true) ? $ag['modelo'] : '', 'prompt' => $prompt === '' ? MOTOR_PROMPT : mb_substr($prompt, 0, 6000)], JSON_UNESCAPED_UNICODE), false, $uid);
-  $seg = function ($v) { return in_array($v, ['ssl', 'starttls', 'ninguna'], true) ? $v : 'starttls'; };
-  $s = (array)($body['smtp'] ?? []);
-  $email = icc_email_normal((string)($s['email'] ?? '')) ?: '';
-  icc_ajuste_guardar('motor_smtp', json_encode(['email' => $email, 'nombre' => mb_substr((string)($s['nombre'] ?? ''), 0, 120), 'host_smtp' => trim((string)($s['host_smtp'] ?? '')),
-    'puerto_smtp' => (int)($s['puerto_smtp'] ?? 587) ?: 587, 'seguridad_smtp' => $seg($s['seguridad_smtp'] ?? ''), 'usuario' => trim((string)($s['usuario'] ?? $email))]), false, $uid);
-  $i = (array)($body['imap'] ?? []);
-  icc_ajuste_guardar('motor_imap', json_encode(['host_imap' => trim((string)($i['host_imap'] ?? '')), 'puerto_imap' => (int)($i['puerto_imap'] ?? 993) ?: 993, 'seguridad_imap' => $seg($i['seguridad_imap'] ?? 'ssl'), 'usuario' => trim((string)($i['usuario'] ?? $email))]), false, $uid);
-  if (!empty($body['smtp_clave'])) icc_ajuste_guardar('motor_smtp_clave', (string)$body['smtp_clave'], true, $uid);
-  if (!empty($body['places_clave'])) icc_ajuste_guardar('places_clave', trim((string)$body['places_clave']), true, $uid);
-  icc_ajuste_guardar('motor_responsable', mb_substr(trim((string)($body['responsable'] ?? '')), 0, 200) ?: 'Integral Connection Consulting', false, $uid);
-  icc_ajuste_guardar('motor_limite_dia', (string)max(1, min(500, (int)($body['limite_dia'] ?? 35))), false, $uid);
-  $pmin = max(1, min(60, (int)($body['pausa_min'] ?? 4)));
-  icc_ajuste_guardar('motor_pausa_min', (string)$pmin, false, $uid);
-  icc_ajuste_guardar('motor_pausa_max', (string)max($pmin, min(120, (int)($body['pausa_max'] ?? 9))), false, $uid);
-  foreach (['hora_desde' => '09:00', 'hora_hasta' => '19:00'] as $k => $d) {
-    $v = (string)($body[$k] ?? $d);
-    icc_ajuste_guardar('motor_' . $k, preg_match('/^([01]\d|2[0-3]):[0-5]\d$/', $v) ? $v : $d, false, $uid);
+  // Perfiles del agente de Outreach.
+  foreach ((array)($body['perfiles'] ?? []) as $k => $p) {
+    if (!isset(MOTOR_PERFILES[$k]) || !is_array($p)) continue;
+    $prompt = trim((string)($p['prompt'] ?? ''));
+    icc_ajuste_guardar('motor_perfil_' . $k, json_encode(['firma' => mb_substr((string)($p['firma'] ?? ''), 0, 600), 'responsable' => mb_substr(trim((string)($p['responsable'] ?? '')), 0, 200),
+      'tono' => mb_substr((string)($p['tono'] ?? ''), 0, 160), 'prompt' => $prompt === '' ? '' : mb_substr($prompt, 0, 8000), 'palabras' => max(40, min(250, (int)($p['palabras'] ?? MOTOR_PERFILES[$k]['palabras']))),
+      'modelo' => in_array($p['modelo'] ?? '', ICC_IA_MODELOS, true) ? $p['modelo'] : ''], JSON_UNESCAPED_UNICODE), false, $uid);
   }
-  icc_ajuste_guardar('motor_solo_laborables', array_key_exists('solo_laborables', $body) && !$body['solo_laborables'] ? '0' : '1', false, $uid);
-  icc_ajuste_guardar('motor_gestor_defecto', (string)(motor_gestor_valido($user, $body['gestor_defecto'] ?? null) ?? ''), false, $uid);
+  // Buzones de envio (las contrasenas, cifradas y aparte).
+  if (isset($body['buzones']) && is_array($body['buzones'])) {
+    $seg = function ($v, $d) { return in_array($v, ['ssl', 'starttls', 'ninguna'], true) ? $v : $d; };
+    $lista = []; $vistos = [];
+    $antes = []; foreach (motor_buzones() as $b) $antes[$b['id']] = $b;
+    foreach (array_slice($body['buzones'], 0, 20) as $b) {
+      $email = icc_email_normal((string)($b['email'] ?? ''));
+      if (!$email || isset($vistos[$email])) continue;
+      $vistos[$email] = 1;
+      $id = preg_match('/^[a-z0-9_]{1,30}$/', (string)($b['id'] ?? '')) ? (string)$b['id'] : substr(preg_replace('/[^a-z0-9]+/', '_', $email), 0, 30);
+      $lista[] = ['id' => $id, 'email' => $email, 'nombre' => mb_substr((string)($b['nombre'] ?? ''), 0, 120), 'host_smtp' => trim((string)($b['host_smtp'] ?? '')), 'puerto_smtp' => (int)($b['puerto_smtp'] ?? 587) ?: 587,
+        'seguridad_smtp' => $seg($b['seguridad_smtp'] ?? '', 'starttls'), 'usuario' => trim((string)($b['usuario'] ?? '')) ?: $email, 'host_imap' => trim((string)($b['host_imap'] ?? '')),
+        'puerto_imap' => (int)($b['puerto_imap'] ?? 993) ?: 993, 'seguridad_imap' => $seg($b['seguridad_imap'] ?? '', 'ssl'), 'limite' => max(1, min(200, (int)($b['limite'] ?? 35))),
+        'calentamiento' => !empty($b['calentamiento']), 'alta' => $antes[$id]['alta'] ?? date('Y-m-d'), 'activo' => !empty($b['activo']),
+        'perfil' => isset(MOTOR_PERFILES[$b['perfil'] ?? '']) ? $b['perfil'] : ''];
+      if (!empty($b['clave'])) icc_ajuste_guardar('motor_buzon_clave_' . $id, (string)$b['clave'], true, $uid);
+      elseif ($id === 'principal' && !isset($antes['principal']['migrado']) && (string)icc_ajuste('motor_buzon_clave_principal', '') === '' && (string)icc_ajuste('motor_smtp_clave', '') !== '')
+        icc_ajuste_guardar('motor_buzon_clave_principal', (string)icc_ajuste('motor_smtp_clave', ''), true, $uid);
+    }
+    icc_ajuste_guardar('motor_buzones', json_encode($lista, JSON_UNESCAPED_UNICODE), false, $uid);
+    foreach (array_diff(array_keys($antes), array_column($lista, 'id')) as $quitado) icc_db()->prepare('DELETE FROM ajustes WHERE clave = ?')->execute(['motor_buzon_clave_' . $quitado]);
+  }
+  // Agente scraper.
+  if (isset($body['scraper'])) {
+    $sc = (array)$body['scraper'];
+    icc_ajuste_guardar('motor_scraper', json_encode(['prefijos' => mb_substr((string)($sc['prefijos'] ?? MOTOR_PREFIJOS), 0, 600), 'cualificar_ia' => !empty($sc['cualificar_ia']), 'puntuacion_min' => max(0, min(100, (int)($sc['puntuacion_min'] ?? 0)))]), false, $uid);
+  }
+  if (!empty($body['places_clave'])) icc_ajuste_guardar('places_clave', trim((string)$body['places_clave']), true, $uid);
+  if (isset($body['pausa_min'])) {
+    $pmin = max(1, min(60, (int)$body['pausa_min']));
+    icc_ajuste_guardar('motor_pausa_min', (string)$pmin, false, $uid);
+    icc_ajuste_guardar('motor_pausa_max', (string)max($pmin, min(120, (int)($body['pausa_max'] ?? 9))), false, $uid);
+    foreach (['hora_desde' => '09:00', 'hora_hasta' => '19:00'] as $k => $d) {
+      $v = (string)($body[$k] ?? $d);
+      icc_ajuste_guardar('motor_' . $k, preg_match('/^([01]\d|2[0-3]):[0-5]\d$/', $v) ? $v : $d, false, $uid);
+    }
+    icc_ajuste_guardar('motor_solo_laborables', !empty($body['solo_laborables']) ? '1' : '0', false, $uid);
+    icc_ajuste_guardar('motor_gestor_defecto', (string)(motor_gestor_valido($user, $body['gestor_defecto'] ?? null) ?? ''), false, $uid);
+  }
+  if (isset(MOTOR_PERFILES[$body['barrido_perfil'] ?? ''])) icc_ajuste_guardar('barrido_perfil', (string)$body['barrido_perfil'], false, $uid);
   icc_json(['ok' => true]);
 }
 if ($accion === 'probar' && $metodo === 'POST') {
   if (!$esConfig) icc_json(['error' => 'Solo la administración.'], 403);
   $que = (string)($body['que'] ?? 'smtp');
   if ($que === 'places') { $r = icc_places_buscar('panadería en Oviedo, Asturias'); icc_json(['ok' => $r['ok'], 'error' => $r['error'] ?? null, 'resultados' => count($r['lugares'] ?? [])]); }
-  $c = motor_cuenta();
-  if (!$c) icc_json(['ok' => false, 'error' => 'Guarda primero los datos del buzón.']);
-  if ($que === 'imap') { $im = motor_config()['imap']; icc_json(icc_imap_probar($im + ['usuario' => $im['usuario'] ?: $c['usuario'], 'clave' => $c['clave']])); }
-  icc_json(icc_smtp_probar($c));
+  $b = null;
+  foreach (motor_buzones() as $x) if ($x['id'] === (string)($body['buzon'] ?? '')) $b = $x;
+  if (!$b) icc_json(['ok' => false, 'error' => 'Guarda primero el buzón.']);
+  $c = motor_buzon_cuenta($b);
+  if ($c['clave'] === '') icc_json(['ok' => false, 'error' => 'Falta la contraseña de ' . $b['email'] . '.']);
+  $s = icc_smtp_probar($c);
+  $i = !empty($b['host_imap']) ? icc_imap_probar($c) : ['ok' => true, 'omitido' => true];
+  icc_json(['ok' => $s['ok'] && $i['ok'], 'smtp' => $s, 'imap' => $i]);
 }
 if ($accion === 'aviso_legal' && $metodo === 'POST') {
   if (!$esConfig) icc_json(['error' => 'Solo la administración.'], 403);

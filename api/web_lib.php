@@ -73,10 +73,11 @@ function icc_web_robots_ok(string $url): bool {
 }
 
 /** Correos genericos de empresa (info@, contacto@...) que aparecen en el HTML. */
-function icc_web_correos(string $html, string $dominioWeb): array {
+function icc_web_correos(string $html, string $dominioWeb, ?array $prefijos = null): array {
   $html = html_entity_decode(str_replace(['[at]', '(at)', ' arroba '], '@', $html), ENT_QUOTES | ENT_HTML5, 'UTF-8');
   preg_match_all('/(?:mailto:)?([A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-\x{00C0}-\x{024F}]+\.[A-Za-z]{2,})/u', $html, $m);
-  $genericos = '/^(info|informacion|contacto|contact|hola|hello|comercial|ventas|administracion|admin|oficina|gerencia|empresa|atencion|clientes|reservas|pedidos|central|correo|general|recepcion)\b/i';
+  $lista = $prefijos ?: ['info', 'informacion', 'contacto', 'contact', 'hola', 'hello', 'comercial', 'ventas', 'administracion', 'admin', 'oficina', 'gerencia', 'empresa', 'atencion', 'clientes', 'reservas', 'pedidos', 'central', 'correo', 'general', 'recepcion'];
+  $genericos = '/^(' . implode('|', array_map(function ($p) { return preg_quote($p, '/'); }, $lista)) . ')(?=[@._-])/i';
   $out = [];
   foreach (array_unique($m[1]) as $e) {
     $n = icc_email_normal($e);
@@ -100,11 +101,12 @@ function icc_web_mx_ok(string $email): bool {
  * Analiza la web de una empresa: portada, contacto y aviso legal.
  * Devuelve email, telefono, cif, razon_social, madurez[], extracto (texto para la IA).
  */
-function icc_web_analizar(string $web): array {
+function icc_web_analizar(string $web, ?array $prefijos = null): array {
   $out = ['ok' => false, 'email' => '', 'emails' => [], 'telefono' => '', 'cif' => '', 'razon_social' => '', 'madurez' => [], 'extracto' => '', 'error' => ''];
   if (!preg_match('#^https?://#i', $web)) $web = 'https://' . $web;
   if (!icc_web_robots_ok($web)) { $out['error'] = 'robots.txt no permite leer la web'; return $out; }
   [$cod, $html, $final, $err] = icc_web_get($web);
+  if (($cod !== 200 || $html === '') && stripos($web, 'https://') === 0) [$cod, $html, $final, $err] = icc_web_get('http://' . substr($web, 8));
   if ($cod !== 200 || $html === '') { $out['error'] = $err ?: 'La web no responde (' . $cod . ')'; return $out; }
   $host = strtolower((string)parse_url($final, PHP_URL_HOST));
   $dominio = preg_replace('/^www\./', '', $host);
@@ -126,7 +128,7 @@ function icc_web_analizar(string $web): array {
   }
   $todo = implode("\n", $paginas);
   $texto = icc_html_a_texto($todo);
-  $out['emails'] = icc_web_correos($todo, $dominio);
+  $out['emails'] = icc_web_correos($todo, $dominio, $prefijos);
   $out['email'] = $out['emails'][0] ?? '';
   if (preg_match('/(?:tel:|\b)(\+?34[\s.]?)?([6789]\d{2}[\s.]?\d{2,3}[\s.]?\d{2,3}[\s.]?\d{0,3})/', $todo, $t)) $out['telefono'] = preg_replace('/[^\d+]/', '', $t[0]);
   if (preg_match('/\b(CIF|NIF)[:\s]*([A-HJNP-SUVW]-?\d{7}[0-9A-J])\b/i', $texto, $c)) $out['cif'] = strtoupper(str_replace('-', '', $c[2]));
