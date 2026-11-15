@@ -22,7 +22,7 @@ function labs_cag_plantillas()
         'info' => array('nombre' => 'Lucía', 'cargo' => 'Agente de Ventas', 'instrucciones' => $comun .
             "Tu objetivo: convertir cada consulta en una llamada o demo con quien decide, sin presionar.\n" .
             "1. Mira la ficha y el historial de correos (¿es nuevo, es cliente, ya hablamos?).\n" .
-            "2. Si es un posible cliente, guárdalo como lead con lo que sepas (empresa, sector, teléfono, lo que le duele).\n" .
+            "2. Si es un posible cliente, guárdalo como lead con lo que sepas (empresa, sector, teléfono, lo que le duele y quién decide: si escribe el dueño o gerente, es él; sin decisor no se puede presupuestar).\n" .
             "3. Responde a su duda en concreto y propón DOS huecos reales de la agenda (usa huecos_agenda). Si ya eligió uno, resérvalo con reservar_cita y confírmaselo.\n" .
             "4. Adjunta el dosier que encaje con su sector. Si pide precio, da los precios públicos de los packs; nunca descuentos.\n" .
             "5. Si pide presupuesto formal, prepáralo con preparar_presupuesto (lo aprueba una persona) y dile que se lo enviamos en el día.\n" .
@@ -76,7 +76,8 @@ function labs_cag_herramientas()
         'derivar' => array(null, 'bajo', 'Pasa el correo al agente de otro departamento cuando no es tuyo. Él lo gestiona y contesta desde su buzón. Termina tu gestión.',
             array('departamento' => array('type' => 'string', 'enum' => array('info', 'soporte', 'tramitacion', 'administracion')), 'motivo' => $s), array('departamento', 'motivo')),
         'guardar_lead' => array(array('info', 'general'), 'bajo', 'Crea el lead (o completa los datos vacíos del contacto vinculado).',
-            array('nombre' => $s, 'empresa' => $s, 'telefono' => $s, 'sector' => $s, 'cuello' => array('type' => 'string', 'enum' => array('', 'captacion', 'embudo', 'atencion')), 'notas' => $s), array('nombre')),
+            array('nombre' => $s, 'empresa' => $s, 'telefono' => $s, 'sector' => $s, 'cuello' => array('type' => 'string', 'enum' => array('', 'captacion', 'embudo', 'atencion')),
+                'decisor' => array('type' => 'string', 'description' => 'Quién decide la compra (si quien escribe es el dueño o gerente, su nombre).'), 'decisor_cargo' => $s, 'notas' => $s), array('nombre')),
         'huecos_agenda' => array(array('info', 'soporte', 'general'), 'leer', 'Huecos libres reales en la agenda del gestor del cliente (o del encargado) en los próximos días laborables.', array('dias' => $i), array()),
         'reservar_cita' => array(array('info', 'soporte', 'general'), 'bajo', 'Reserva una cita (llamada, demo o visita) en la agenda del gestor. Solo si el cliente ha elegido o aceptado ese día y hora.',
             array('fecha' => $s, 'hora' => $s, 'tipo' => array('type' => 'string', 'enum' => array('llamada', 'demo', 'visita')), 'notas' => $s), array('fecha', 'hora', 'tipo')),
@@ -270,9 +271,9 @@ function labs_cag_ejecuta($n, $e, &$ctx)
             $tel = mb_substr(preg_replace('/[^\d+ ]/', '', (string) ($e['telefono'] ?? '')), 0, 40);
             if ($k) {
                 $set = array();
-                foreach (array('empresa' => 200, 'sector' => 60, 'cuello' => 20) as $col => $l) {
-                    if (trim((string) $k[$col]) === '' && trim((string) ($e[$col] ?? '')) !== '') {
-                        $set[$col] = mb_substr(trim($e[$col]), 0, $l);
+                foreach (array('empresa' => array('empresa', 200), 'sector' => array('sector', 60), 'cuello' => array('cuello', 20), 'decisor' => array('decisor_nombre', 120), 'decisor_cargo' => array('decisor_cargo', 80)) as $in => $cl) {
+                    if (trim((string) $k[$cl[0]]) === '' && trim((string) ($e[$in] ?? '')) !== '') {
+                        $set[$cl[0]] = mb_substr(trim($e[$in]), 0, $cl[1]);
                     }
                 }
                 if (trim((string) $k['telefono']) === '' && $tel !== '') {
@@ -288,9 +289,10 @@ function labs_cag_ejecuta($n, $e, &$ctx)
             }
             $g = labs_fila("SELECT p.id FROM perfiles p WHERE p.estado = 'Activo' AND p.rol = 'commercial' ORDER BY (SELECT COUNT(*) FROM contactos x WHERE x.gestor_id = p.id AND x.activo = 1 AND x.fase NOT IN ('perdido', 'produccion')) LIMIT 1")
                 ?: labs_fila("SELECT id FROM perfiles WHERE estado = 'Activo' AND rol IN ('manager', 'admin') ORDER BY rol = 'manager' DESC LIMIT 1");
-            labs_q("INSERT INTO contactos (tipo, nombre, empresa, email, telefono, sector, cuello, origen, estado, especificaciones, gestor_id, creado, actualizado, fase, fase_desde, ultima_actividad, proximo_paso, proximo_contacto, activo)
-                    VALUES ('lead', ?, ?, ?, ?, ?, ?, ?, 'Nuevo', ?, ?, ?, ?, 'lead', ?, ?, ?, ?, 1)",
+            labs_q("INSERT INTO contactos (tipo, nombre, empresa, email, telefono, decisor_nombre, decisor_cargo, sector, cuello, origen, estado, especificaciones, gestor_id, creado, actualizado, fase, fase_desde, ultima_actividad, proximo_paso, proximo_contacto, activo)
+                    VALUES ('lead', ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Nuevo', ?, ?, ?, ?, 'lead', ?, ?, ?, ?, 1)",
                 array(mb_substr(trim((string) $e['nombre']) ?: strtok($m['de_email'], '@'), 0, 120), mb_substr(trim((string) ($e['empresa'] ?? '')), 0, 200), $m['de_email'], $tel,
+                    mb_substr(trim((string) ($e['decisor'] ?? '')), 0, 120), mb_substr(trim((string) ($e['decisor_cargo'] ?? '')), 0, 80),
                     mb_substr(trim((string) ($e['sector'] ?? '')), 0, 60), (string) ($e['cuello'] ?? ''), 'Correo · ' . $c['email'],
                     mb_substr('Llegó por correo («' . $m['asunto'] . '»). ' . trim((string) ($e['notas'] ?? '')), 0, 4000), $g ? $g['id'] : null, $ahora, $ahora, $ahora, $ahora,
                     'Llamar: ha escrito por correo', gmdate('Y-m-d H:i:s', time() + 3600)));
@@ -617,7 +619,6 @@ function labs_correo_bloqueo_agente($c, $m, $d, $cfg)
     }
     $c2 = $c;
     $c2['modo'] = 'auto';
-    $c2['funcion'] = 'agente';
     $d2 = $d;
     $d2['categoria'] = 'otro';
     return labs_correo_bloqueo($c2, $m, $d2, $cfg);
@@ -644,7 +645,8 @@ function labs_cag_resuelve_accion($id, $aprobar)
     try {
         $r = labs_cag_ejecuta($a['herramienta'], json_decode((string) $a['datos'], true) ?: array(), $ctx);
     } catch (Exception $x) {
-        labs_q("UPDATE mail_acciones SET estado = 'error', resultado = ?, resuelto_por = ?, resuelto = ? WHERE id = ?", array(mb_substr($x->getMessage(), 0, 300), labs_uid(), labs_ahora(), $id));
+        // Sigue pendiente: se arregla lo que falta (por ejemplo, la ficha) y se vuelve a aprobar.
+        labs_q('UPDATE mail_acciones SET resultado = ? WHERE id = ?', array(mb_substr('No se pudo: ' . $x->getMessage(), 0, 300), $id));
         throw new ErrorApi($x->getMessage(), 400, 'CORREO');
     }
     labs_q("UPDATE mail_acciones SET estado = 'hecha', resultado = ?, resuelto_por = ?, resuelto = ? WHERE id = ?", array(mb_substr((string) ($r['resumen'] ?? 'Hecho'), 0, 300), labs_uid(), labs_ahora(), $id));

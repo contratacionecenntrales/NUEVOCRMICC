@@ -758,3 +758,54 @@ los configura la administración).
 - **Datos personales**: el texto de los correos se envía a OpenAI para
   clasificarlo y redactar la respuesta.
 
+### Agentes por departamento (un agente en cada buzón)
+
+Cada buzón conectado tiene su propio agente, con nombre, cargo, instrucciones,
+lo que sabe su departamento y sus permisos (pestaña «Agentes»). Por defecto,
+según el nombre del buzón:
+
+- **Lucía · Ventas** (info@):
+  - mira la ficha y el historial, guarda el lead (empresa, sector, cuello de
+    botella, teléfono y quién decide);
+  - propone dos huecos reales de la agenda del gestor y reserva la cita cuando
+    el cliente elige;
+  - adjunta el dosier de su sector y prepara el presupuesto (para aprobar).
+- **Leo · Soporte** (soporte@):
+  - mira los tickets del cliente y el estado de su servicio;
+  - actualiza el ticket abierto o abre uno con la prioridad justa;
+  - responde con la referencia, programa una llamada técnica si hace falta y
+    cierra el ticket cuando el cliente confirma.
+- **Carmen · Tramitación** (tramitacion@):
+  - guarda en la ficha del cliente los archivos que llegan;
+  - revisa documentos y contratos, pide lo que falta y crea la tarea de
+    revisión.
+- **Marta · Administración** (admin@):
+  - revisa presupuestos y cobros;
+  - propone marcar un cobro como pagado (para aprobar) y crea tareas.
+
+Cómo trabajan:
+
+- **Herramientas**: cada agente usa las de su departamento con «function
+  calling» de OpenAI y termina siempre respondiendo, dejándolo para una persona
+  o archivándolo.
+- **Derivan entre ellos**: si a Ventas le llega una avería, se la pasa a Leo,
+  que la gestiona y contesta desde soporte@.
+- **Memoria**: cada agente lee el historial de correos con el cliente en todos
+  los buzones, así que sigue la conversación.
+- **Permisos por herramienta**: «Lo hace solo», «Pide aprobación» o «No
+  puede». Dinero y presupuestos vienen en «Pide aprobación».
+- **Para aprobar**: ahí están las acciones pendientes con Aprobar y Rechazar.
+  Si al aprobar falta un dato (por ejemplo, quién decide), sigue pendiente con
+  el motivo.
+- **Traza**: cada correo guarda paso a paso cómo lo ha gestionado el agente.
+- **Controles de la respuesta**: los mismos que el modo sencillo (importes,
+  condiciones, límite diario). Antibucles: como mucho 3 respuestas automáticas
+  por hora y 10 al día al mismo remitente.
+- **Apagar un agente**: el buzón vuelve al modo sencillo (clasificar y
+  responder).
+
+**Hostalia**: IMAP imap.servidor-correo.net (993, SSL) y SMTP
+smtp.servidor-correo.net (587, STARTTLS), con el correo como usuario. El botón
+«Rellenar con los datos de Hostalia» lo pone solo; falta la contraseña de cada
+buzón.
+

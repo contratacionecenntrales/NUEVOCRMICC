@@ -228,6 +228,11 @@ class LabsImap
 /* --- MIME ------------------------------------------------------------------------------------- */
 function labs_correo_cabecera($t)
 {
+    // Cabeceras con tildes sin codificar (8 bits): se dejan tal cual, en UTF-8.
+    if (strpos($t, '=?') === false) {
+        $t = mb_check_encoding($t, 'UTF-8') ? $t : mb_convert_encoding($t, 'UTF-8', 'ISO-8859-1');
+        return trim(preg_replace('/\s+/u', ' ', $t));
+    }
     $r = function_exists('iconv_mime_decode') ? @iconv_mime_decode($t, ICONV_MIME_DECODE_CONTINUE_ON_ERROR, 'UTF-8') : false;
     if ($r === false) {
         $r = mb_decode_mimeheader($t);
@@ -519,16 +524,17 @@ function labs_correo_bloqueo($c, $m, $d, $cfg)
             }
         }
     }
-    if (preg_match('/\b(descuento|rebaja|gratis|garantiz|contrato|penaliz|reembolso|devoluci)/iu', $d['respuesta'])) {
+    // Tramitación habla de contratos (documentación, firma): ahí no es una condición comercial.
+    $cond = ($c['funcion'] ?? '') === 'tramitacion' ? 'descuento|rebaja|gratis|garantiz|penaliz|reembolso|devoluci' : 'descuento|rebaja|gratis|garantiz|contrato|penaliz|reembolso|devoluci';
+    if (preg_match('/\b(' . $cond . ')/iu', $d['respuesta'])) {
         return 'La respuesta toca condiciones (descuentos, contratos, devoluciones)';
     }
     $hoy = (int) labs_q("SELECT COUNT(*) FROM mail_mensajes WHERE sentido = 'salida' AND respondido_por = 'agente' AND creado >= ?", array(labs_hace(86400)))->fetchColumn();
     if ($hoy >= (int) $cfg['max_auto_dia']) {
         return 'Límite diario de respuestas automáticas alcanzado';
     }
-    $al = (int) labs_q("SELECT COUNT(*) FROM mail_mensajes WHERE sentido = 'salida' AND respondido_por = 'agente' AND para = ? AND creado >= ?", array($m['de_email'], labs_hace(86400)))->fetchColumn();
-    if ($al >= 2) {
-        return 'Ya se le han enviado dos respuestas automáticas hoy (antibucles)';
+    if (labs_correo_antibucle($m['de_email'])) {
+        return 'Demasiadas respuestas automáticas seguidas a este remitente (antibucles: 3 por hora, 10 al día)';
     }
     return '';
 }
@@ -537,6 +543,14 @@ function labs_correo_firma($c, $cfg)
 {
     $f = trim((string) $c['firma']) !== '' ? trim($c['firma']) : ($c['nombre'] . "\n" . $c['email']);
     return "\n\n--\n" . $f . ($cfg['aviso_ia'] ? "\n\nRespuesta preparada por el asistente de IA de Labs24k. Si necesitas hablar con una persona, contesta a este correo y te atendemos." : '');
+}
+
+/** Antibucles: como mucho 3 respuestas automáticas por hora y 10 al día al mismo remitente. */
+function labs_correo_antibucle($email)
+{
+    $n = labs_fila("SELECT SUM(creado >= ?) h, COUNT(*) d FROM mail_mensajes WHERE sentido = 'salida' AND respondido_por = 'agente' AND para = ? AND creado >= ?",
+        array(labs_hace(3600), $email, labs_hace(86400)));
+    return (int) $n['h'] >= 3 || (int) $n['d'] >= 10;
 }
 
 /** Envía la respuesta de un correo de entrada y la deja registrada. */
@@ -694,8 +708,7 @@ function labs_correo_acuse($m, $c, $d, $ref, $adj, $cfg)
         return;
     }
     $hoy = (int) labs_q("SELECT COUNT(*) FROM mail_mensajes WHERE sentido = 'salida' AND respondido_por = 'agente' AND creado >= ?", array(labs_hace(86400)))->fetchColumn();
-    $al = (int) labs_q("SELECT COUNT(*) FROM mail_mensajes WHERE sentido = 'salida' AND respondido_por = 'agente' AND para = ? AND creado >= ?", array($m['de_email'], labs_hace(86400)))->fetchColumn();
-    if ($hoy >= (int) $cfg['max_auto_dia'] || $al >= 2) {
+    if ($hoy >= (int) $cfg['max_auto_dia'] || labs_correo_antibucle($m['de_email'])) {
         return;
     }
     $equipo = array('info' => 'nuestro equipo comercial', 'administracion' => 'administración', 'tramitacion' => 'el equipo de tramitación', 'soporte' => 'el equipo de soporte')[$c['funcion']] ?? 'nuestro equipo';

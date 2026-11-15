@@ -23,7 +23,7 @@ DirectoryIndex index.html
 
 # --- Cabeceras de seguridad ------------------------------------------------
 <IfModule mod_headers.c>
-  Header always set Content-Security-Policy "default-src 'none'; script-src 'self' 'sha256-QCEZSt1Pd1l2PW9gLz6ki+Jhj2TgHRyrsIK/4GDHV0Q=' 'sha256-R69CpuYXol6TeBpB/Sxo+oBBVNAjdif60RpvZTVNB9Q='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; frame-ancestors 'none'; base-uri 'none'; object-src 'none'"
+  Header always set Content-Security-Policy "default-src 'none'; script-src 'self' 'sha256-7r630Nf5eTwW+k7ztTZcZi8SG+kZoxiQ+OPSHOc0UCs=' 'sha256-R69CpuYXol6TeBpB/Sxo+oBBVNAjdif60RpvZTVNB9Q='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; frame-ancestors 'none'; base-uri 'none'; object-src 'none'"
   Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
   Header always set X-Content-Type-Options "nosniff"
   Header always set X-Frame-Options "DENY"

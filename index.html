@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-QCEZSt1Pd1l2PW9gLz6ki+Jhj2TgHRyrsIK/4GDHV0Q='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-7r630Nf5eTwW+k7ztTZcZi8SG+kZoxiQ+OPSHOc0UCs='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Labs Command Center 360 - Oficina virtual SaaS de la red comercial de Labs24k.">
 <meta name="theme-color" content="#0B0F19">
@@ -2068,6 +2068,30 @@ a.btn.btn-g:hover{color:#fff}
 .co-txt{white-space:pre-wrap;word-break:break-word;font:inherit;font-size:13px;line-height:1.5;margin:10px 0 0;padding:12px;border-radius:12px;background:var(--card-2);border:1px solid var(--line);max-height:340px;overflow-y:auto}
 .co-resp{border-color:rgba(74,222,128,.35)}
 .co-cuentas{display:flex;flex-direction:column;gap:12px}
+.co-agentes{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:12px}
+.co-agente{margin:0;border-top:3px solid var(--ac)}
+.co-ag-h{display:flex;gap:10px;align-items:center}
+.co-av{width:42px;height:42px;flex:0 0 42px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:18px;color:#0B0F19;background:var(--ac);box-shadow:0 0 18px color-mix(in srgb,var(--ac) 45%,transparent)}
+.co-on{display:flex;gap:5px;align-items:center;white-space:nowrap}
+.co-ag-k{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:12px}
+.co-ag-k div{padding:8px;border-radius:10px;background:var(--card-2);border:1px solid var(--line);display:flex;flex-direction:column}
+.co-ag-k b{font-size:18px}.co-ag-k span{font-size:11px;color:var(--txt-3)}
+.co-sum{cursor:pointer;font-size:13px;font-weight:700;margin:8px 0 6px}
+.co-aut{display:flex;flex-direction:column;gap:6px}
+.co-aut-f{display:flex;gap:8px;align-items:center;justify-content:space-between;font-size:13px}
+.co-aut-f select{max-width:170px}
+.co-aut-f em{font-style:normal;font-size:10.5px;color:#FDE68A;border:1px solid rgba(251,191,36,.4);border-radius:99px;padding:1px 6px;margin-left:4px}
+.co-ag-n{color:#93C5FD;display:flex;gap:4px;align-items:center}
+.co-traza{margin-top:10px;font-size:12.5px}.co-traza summary{cursor:pointer;color:#5EEAD4;display:flex;gap:5px;align-items:center}
+.co-traza ol{margin:8px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:3px}
+.co-accs{margin:0 0 12px;border-color:rgba(251,191,36,.4)}
+.co-accs-m{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+.co-accion{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:8px 10px;border-radius:10px;border:1px solid rgba(251,191,36,.35);background:rgba(251,191,36,.06)}
+@media (max-width:560px){.co-agentes{grid-template-columns:1fr}.co-ag-k{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.co-acc{color:#5EEAD4;margin-top:4px;display:flex;gap:5px;align-items:center}
+.co-acc svg{flex:0 0 auto}
+.co-dos{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;margin:8px 0}
+.co-dos label{display:flex;gap:5px;align-items:center}
 .co-cta{margin:0}
 .co-form{margin:0}
 @media (max-width:1000px){.co-grid{grid-template-columns:1fr}.co-det{position:static}.co-lista{max-height:none}}
@@ -11246,22 +11270,27 @@ function sanEventos(){
 /* ==========================================================================
    AGENTE DE CORREO · buzones corporativos con respuesta automática (OpenAI)
    ========================================================================== */
-var CO = {d:null, tab:'bandeja', sel:null, filtro:'', form:null, ocupado:false};
+var CO = {d:null, tab:'bandeja', sel:null, filtro:'', form:null, ocupado:false, ag:{}};
+var CO_DEP = {info:['#38BDF8','Ventas'], soporte:['#F87171','Soporte'], tramitacion:['#FBBF24','Tramitación'], administracion:['#4ADE80','Administración'], general:['#C084FC','General']};
+var CO_HERR = {anotar_en_ficha:'Anotar en la ficha', crear_tarea:'Crear tareas', derivar:'Derivar a otro departamento', guardar_lead:'Guardar leads', reservar_cita:'Reservar citas',
+  mover_fase:'Mover de fase', preparar_presupuesto:'Preparar presupuestos', abrir_ticket:'Abrir tickets', actualizar_ticket:'Actualizar y cerrar tickets',
+  guardar_adjuntos:'Guardar documentos recibidos', registrar_pago:'Marcar cobros como pagados'};
 var CO_ESTADO = {respondido:['Respondido','#4ADE80'], pendiente:['Para aprobar','#FBBF24'], ignorado:['Archivado','#94A3B8'], nuevo:['Procesando','#38BDF8'], error:['Error','#F87171']};
 function coCarga(){ return ngApi('/correo/estado').then(function(d){ CO.d = d; if(S.view === 'correo') renderApp(); }, function(e){ CO.d = {error:e.message}; if(S.view === 'correo') renderApp(); }); }
 function coChip(t, col){ return '<span class="co-chip" style="--cc:'+col+'">'+esc(t)+'</span>'; }
 function viewCorreo(v){
   if(!CO.d){ v.innerHTML = '<div class="card"><p class="muted">Abriendo los buzones…</p></div>'; coCarga(); return; }
   if(CO.d.error){ v.innerHTML = '<div class="card"><p>'+esc(CO.d.error)+'</p></div>'; return; }
-  var D = CO.d, pend = D.contadores.pendiente || 0, admin = D.admin;
+  var D = CO.d, pend = (D.contadores.pendiente || 0) + (D.acciones || []).length, admin = D.admin;
   var avisos = [];
   if(!D.ia) avisos.push('Falta la clave de OpenAI (Motor de Scraping IA → Fábrica de agentes): sin ella, todos los correos quedan para una persona.');
   if(!D.cuentas.length) avisos.push(admin ? 'Conecta el primer buzón de la agencia en «Buzones».' : 'Todavía no hay buzones conectados: los conecta la administración.');
   D.cuentas.filter(function(c){ return c.ultimo_error; }).forEach(function(c){ avisos.push(c.email + ': ' + c.ultimo_error); });
-  var tabs = [['bandeja','mail','Bandeja'],['aprobar','check','Para aprobar' + (pend ? ' · ' + pend : '')],['cuentas','plug','Buzones']].concat(admin ? [['ajustes','cog','Cómo responde']] : []);
+  if(D.cuentas.length && !D.dosieres.length) avisos.push('Sube los dosieres de la agencia (PDF) al Centro de Recursos, sección Dosieres, para que el agente los adjunte en sus respuestas.');
+  var tabs = [['bandeja','mail','Bandeja'],['agentes','users','Agentes'],['aprobar','check','Para aprobar' + (pend ? ' · ' + pend : '')],['cuentas','plug','Buzones']].concat(admin ? [['ajustes','cog','Cómo responde']] : []);
   v.innerHTML =
     '<div class="mt-hero co-hero"><div><span class="rc-kick">'+ic('mail',13)+' BUZONES DE LA AGENCIA · OPENAI</span><h2>Agente de correo</h2>'+
-      '<p class="muted">Lee los buzones corporativos, ordena cada correo, lo vincula con su cliente o crea el lead, y responde solo cuando es seguro. Lo delicado te lo deja preparado para aprobar.</p>'+
+      '<p class="muted">Un agente por departamento (Ventas, Soporte, Tramitación, Administración) en cada buzón de la agencia: lee cada correo, gestiona en el CRM lo que hace falta (leads, citas, tickets, documentos, cobros), se pasa entre ellos lo que no es suyo y responde con los dosieres. Lo que toca dinero o es delicado, te lo deja para aprobar.</p>'+
       '<div class="mt-hero-st">'+[['Respondidos solos (24 h)', D.auto_24h], ['Para aprobar', pend], ['Respondidos en total', D.contadores.respondido || 0], ['Buzones', D.cuentas.filter(function(c){ return Number(c.activa); }).length]].map(function(x){
         return '<div><b>'+x[1]+'</b><span>'+x[0]+'</span></div>'; }).join('')+'</div></div>'+
       '<div class="row" style="gap:8px;align-self:flex-start"><button class="btn btn-p" id="co-revisar"'+(CO.ocupado || !D.cuentas.length ? ' disabled' : '')+'>'+ic('refresh',15)+(CO.ocupado ? ' Leyendo…' : ' Revisar ahora')+'</button></div></div>'+
@@ -11273,17 +11302,23 @@ function viewCorreo(v){
 function coCuerpo(){
   if(CO.tab === 'cuentas') return coCuentas();
   if(CO.tab === 'ajustes') return coAjustes();
+  if(CO.tab === 'agentes') return coAgentes();
   var D = CO.d, lista = D.mensajes.filter(function(m){ return CO.tab === 'aprobar' ? m.estado === 'pendiente' : (!CO.filtro || m.categoria === CO.filtro || m.estado === CO.filtro); });
   var filtros = CO.tab === 'bandeja' ? '<div class="co-filtros">'+[['', 'Todo'], ['respondido', 'Respondidos'], ['pendiente', 'Para aprobar'], ['lead', 'Clientes potenciales'], ['presupuesto', 'Presupuestos'], ['queja', 'Quejas'], ['spam', 'Spam']].map(function(f){
     return '<button class="mt-loc'+(CO.filtro === f[0] ? ' on' : '')+'" data-co-f="'+f[0]+'">'+esc(f[1])+'</button>'; }).join('')+'</div>' : '';
-  return filtros+'<div class="co-grid"><div class="co-lista">'+(lista.length ? lista.map(function(m){
+  var accs = CO.tab === 'aprobar' && (D.acciones || []).length ? '<div class="card co-accs"><h3 style="margin:0 0 8px;font-size:15px">'+ic('bolt',15)+' Acciones de los agentes para aprobar</h3>'+D.acciones.map(function(a){
+      return '<div class="co-accion"><div style="flex:1;min-width:0"><b>'+esc(a.resumen)+'</b><div class="tiny muted">'+esc(a.buzon)+' · '+esc(a.de_email)+' · «'+esc(a.asunto)+'» · '+ngRel(a.ts)+'</div></div>'+
+        '<button class="btn btn-xs" data-co-ver-acc="'+a.mensaje_id+'">Ver correo</button><button class="btn btn-xs" data-co-acc-no="'+a.id+'">Rechazar</button><button class="btn btn-p btn-xs" data-co-acc-ok="'+a.id+'">'+ic('check',13)+' Aprobar</button></div>'; }).join('')+'</div>' : '';
+  return filtros+accs+'<div class="co-grid"><div class="co-lista">'+(lista.length ? lista.map(function(m){
       var e = CO_ESTADO[m.estado] || [m.estado, '#94A3B8'];
       return '<button class="co-fila'+(CO.sel && CO.sel.id == m.id ? ' sel' : '')+'" data-co-ver="'+m.id+'"><div class="co-fila-t"><b>'+esc(m.de_nombre || m.de_email)+'</b><span class="tiny muted">'+ngRel(m.fecha)+'</span></div>'+
+        (m.agente ? '<div class="tiny co-ag-n">'+ic('users',11)+' '+esc(m.agente)+'</div>' : '')+
         '<div class="co-as">'+esc(m.asunto)+'</div><div class="tiny muted co-res">'+esc(m.resumen || m.motivo || '')+'</div>'+
         '<div class="co-chips">'+coChip(m.estado === 'respondido' ? (m.respondido_por === 'agente' ? 'Respondido por la IA' : 'Respondido por una persona') : e[0], e[1])+
         (m.categoria ? coChip(D.categorias[m.categoria] || m.categoria, '#818CF8') : '')+(m.urgencia === 'alta' ? coChip('Urgente', '#F87171') : '')+
-        (m.contacto ? coChip(m.empresa || m.contacto, '#2DD4BF') : '')+'</div></button>'; }).join('') :
-      '<p class="muted" style="padding:14px">'+(CO.tab === 'aprobar' ? 'No hay nada esperando: el agente se ha encargado de todo.' : 'Todavía no ha llegado ningún correo.')+'</p>')+'</div>'+
+        (m.acuse_id ? coChip('Acuse enviado', '#38BDF8') : '')+(m.contacto ? coChip(m.empresa || m.contacto, '#2DD4BF') : '')+'</div>'+
+        (m.acciones ? '<div class="tiny co-acc">'+ic('bolt',11)+' '+esc(m.acciones)+'</div>' : '')+'</button>'; }).join('') :
+      '<p class="muted" style="padding:14px">'+(CO.tab === 'aprobar' ? 'No hay correos esperando: los agentes se han encargado de todo.' : 'Todavía no ha llegado ningún correo.')+'</p>')+'</div>'+
     '<div class="co-det">'+coDetalle()+'</div></div>';
 }
 function coDetalle(){
@@ -11294,16 +11329,56 @@ function coDetalle(){
   return '<div class="card co-ver"><div class="co-ver-h"><div style="min-width:0"><b>'+esc(m.asunto)+'</b><div class="tiny muted">'+esc(m.de_nombre ? m.de_nombre + ' · ' : '')+esc(m.de_email)+' · '+ngRel(m.fecha)+'</div></div>'+
       (m.contacto_id ? '<button class="btn btn-xs" data-co-ficha="'+m.contacto_id+'">'+ic('user',13)+' Ficha</button>' : '')+'</div>'+
     '<div class="co-chips">'+coChip(e[0], e[1])+(m.categoria ? coChip(CO.d.categorias[m.categoria] || m.categoria, '#818CF8') : '')+(m.confianza ? coChip('Confianza ' + m.confianza + '%', '#94A3B8') : '')+'</div>'+
+    (m.agente ? '<p class="tiny co-ag-n" style="margin:8px 0 0">'+ic('users',12)+' Gestionado por '+esc(m.agente)+'</p>' : '')+
     (m.resumen ? '<p class="co-resumen">'+ic('spark',13)+' '+esc(m.resumen)+'</p>' : '')+
     (m.motivo ? '<p class="tiny" style="color:#FDE68A;margin:6px 0">'+ic('alert',12)+' '+esc(m.motivo)+'</p>' : '')+
+    (m.acciones ? '<p class="tiny co-acc" style="margin:6px 0">'+ic('bolt',12)+' Hecho por el agente: '+esc(m.acciones)+'</p>' : '')+
     '<pre class="co-txt">'+esc(m.cuerpo || '')+'</pre>'+
-    (m.respuesta ? '<h5 class="eq-h5">'+(m.respuesta.respondido_por === 'agente' ? 'Respuesta del agente' : 'Respuesta enviada')+' · '+ngRel(m.respuesta.creado)+'</h5><pre class="co-txt co-resp">'+esc(m.respuesta.cuerpo)+'</pre>' : '')+
+    ((m.adjuntos_entrada || []).length ? '<p class="tiny co-acc">'+ic('file',12)+' Recibido con: '+m.adjuntos_entrada.map(function(a){ return esc(a.nombre) + ' (' + Math.max(1, Math.round(a.bytes / 1024)) + ' KB)'; }).join(', ')+'</p>' : '')+
+    ((m.traza || []).length ? '<details class="co-traza"'+(m.estado === 'pendiente' ? ' open' : '')+'><summary>'+ic('bolt',12)+' Cómo lo ha gestionado ('+m.traza.length+' pasos)</summary><ol>'+m.traza.map(function(t){
+      return '<li><b>'+esc(CO_HERR[t.h] || t.h.replace(/_/g, ' '))+'</b> <span class="muted">'+esc(t.r || '')+'</span></li>'; }).join('')+'</ol></details>' : '')+
+    ((m.acciones_pendientes || []).length ? '<div class="co-accs-m">'+m.acciones_pendientes.map(function(a){
+      return '<div class="co-accion"><div style="flex:1;min-width:0"><b>'+esc(a.resumen)+'</b><div class="tiny muted">'+(a.estado === 'pendiente' ? 'Esperando aprobación' : esc(a.estado + (a.resultado ? ' · ' + a.resultado : '')))+'</div></div>'+
+        (a.estado === 'pendiente' ? '<button class="btn btn-xs" data-co-acc-no="'+a.id+'">Rechazar</button><button class="btn btn-p btn-xs" data-co-acc-ok="'+a.id+'">Aprobar</button>' : '')+'</div>'; }).join('')+'</div>' : '')+
+    (m.respuesta ? '<h5 class="eq-h5">'+(m.respuesta.respondido_por === 'agente' ? 'Respuesta del agente' : 'Respuesta enviada')+' · '+ngRel(m.respuesta.creado)+'</h5><pre class="co-txt co-resp">'+esc(m.respuesta.cuerpo)+'</pre>'+
+      (m.respuesta.adjuntos ? '<p class="tiny co-acc">'+ic('file',12)+' Adjuntos: '+esc(m.respuesta.adjuntos)+'</p>' : '') : '')+
+    (m.acuse ? '<h5 class="eq-h5">Acuse de recibo enviado · '+ngRel(m.acuse.creado)+'</h5><pre class="co-txt">'+esc(m.acuse.cuerpo)+'</pre>'+
+      (m.acuse.adjuntos ? '<p class="tiny co-acc">'+ic('file',12)+' Adjuntos: '+esc(m.acuse.adjuntos)+'</p>' : '') : '')+
     (editable ? '<h5 class="eq-h5">Respuesta (borrador de la IA, edítalo si quieres)</h5>'+
       '<input class="inp" id="co-as" value="'+esc(m.borrador_asunto || ('Re: ' + m.asunto))+'">'+
       '<textarea class="inp" id="co-txt" rows="8" style="margin-top:6px">'+esc(m.borrador || '')+'</textarea>'+
+      coDosieresElegir(m)+
       '<p class="tiny muted">Se envía desde el buzón, en el mismo hilo, con la firma'+(CO.d.config.aviso_ia ? ' y el aviso de IA' : '')+'.</p>'+
       '<div class="row" style="gap:6px"><button class="btn btn-p" id="co-enviar">'+ic('send',14)+' Enviar</button>'+(m.estado === 'pendiente' ? '<button class="btn" id="co-archivar">Archivar</button>' : '')+'</div>' : '')+
   '</div>';
+}
+function coDosieresElegir(m){
+  var D = CO.d; if(!D.dosieres.length) return '';
+  var c = D.cuentas.filter(function(x){ return x.id == m.cuenta_id; })[0] || {}, fijos = [];
+  try { fijos = JSON.parse(c.adjuntos || '[]'); } catch(e){}
+  var marca = c.adjuntar === 'nunca' ? [] : fijos.concat(m.dosieres_ia || []);
+  return '<div class="co-dos"><span class="tiny muted">Adjuntar:</span>'+D.dosieres.map(function(x){
+    return '<label class="tiny"><input type="checkbox" data-co-adj="'+x.id+'"'+(marca.indexOf(Number(x.id)) > -1 ? ' checked' : '')+'> '+esc(x.nombre)+'</label>'; }).join('')+'</div>';
+}
+function coAgentes(){
+  var D = CO.d, admin = D.admin;
+  if(!D.agentes.length) return '<div class="card"><p class="muted">Conecta los buzones de la agencia y cada uno tendrá su agente: Ventas, Soporte, Tramitación y Administración.</p></div>';
+  return '<p class="tiny muted" style="margin:0 0 10px">Cada buzón tiene su agente. No solo contesta: mira la ficha y el historial, usa sus herramientas (agenda, tickets, documentos, cobros…), deriva a sus compañeros lo que no es suyo y deja para aprobar lo que toca dinero o contratos.</p>'+
+    '<div class="co-agentes">'+D.agentes.map(function(a){
+      var col = (CO_DEP[a.funcion] || CO_DEP.general)[0], E = CO.ag[a.cuenta_id] || (CO.ag[a.cuenta_id] = JSON.parse(JSON.stringify(a))), dis = admin ? '' : ' disabled';
+      var herr = Object.keys(a.autonomia).filter(function(k){ return D.herramientas[k]; });
+      return '<div class="card co-agente" style="--ac:'+col+'"><div class="co-ag-h"><div class="co-av">'+esc((a.nombre || '?').charAt(0))+'</div><div style="flex:1;min-width:0"><b>'+esc(a.nombre)+'</b><div class="tiny muted">'+esc(a.cargo)+' · '+esc(a.email)+'</div></div>'+
+          '<label class="tiny co-on"><input type="checkbox" data-co-ag-on="'+a.cuenta_id+'"'+(E.activo ? ' checked' : '')+dis+'> '+(E.activo ? 'Trabajando' : 'Apagado')+'</label></div>'+
+        '<div class="co-ag-k">'+[['Gestionados', a.semana.gestionados], ['Respondidos solos', a.semana.respondidos], ['Para una persona', a.semana.pendientes], ['Acciones', a.semana.acciones]].map(function(k){ return '<div><b>'+k[1]+'</b><span>'+k[0]+'</span></div>'; }).join('')+'</div>'+
+        '<p class="tiny muted" style="margin:2px 0 8px">Últimos 7 días</p>'+
+        (admin ? '<div class="grid g-2"><div><label class="f">Nombre</label><input class="inp" data-co-ag="'+a.cuenta_id+'" data-k="nombre" value="'+esc(E.nombre)+'"></div><div><label class="f">Cargo</label><input class="inp" data-co-ag="'+a.cuenta_id+'" data-k="cargo" value="'+esc(E.cargo)+'"></div></div>' : '')+
+        '<details'+(admin ? '' : ' open')+'><summary class="co-sum">Instrucciones (cómo trabaja)</summary><textarea class="inp" rows="9" data-co-ag="'+a.cuenta_id+'" data-k="instrucciones"'+dis+'>'+esc(E.instrucciones)+'</textarea></details>'+
+        '<details><summary class="co-sum">Lo que sabe su departamento</summary><textarea class="inp" rows="5" data-co-ag="'+a.cuenta_id+'" data-k="conocimiento" placeholder="Precios, plazos, procedimientos, preguntas frecuentes de este departamento…"'+dis+'>'+esc(E.conocimiento)+'</textarea>'+
+          '<p class="tiny muted">Se suma a la base general de «Cómo responde».</p></details>'+
+        '<details><summary class="co-sum">Qué puede hacer solo ('+herr.filter(function(k){ return E.autonomia[k] === 'auto'; }).length+' de '+herr.length+')</summary><div class="co-aut">'+herr.map(function(k){
+          return '<label class="co-aut-f"><span>'+esc(CO_HERR[k] || k)+(D.herramientas[k].riesgo === 'alto' ? ' <em>dinero/contratos</em>' : '')+'</span><select class="inp" data-co-aut="'+a.cuenta_id+'" data-k="'+k+'"'+dis+'>'+
+            [['auto','Lo hace solo'],['aprobar','Pide aprobación'],['no','No puede']].map(function(x){ return '<option value="'+x[0]+'"'+(E.autonomia[k] === x[0] ? ' selected' : '')+'>'+x[1]+'</option>'; }).join('')+'</select></label>'; }).join('')+'</div></details>'+
+        (admin ? '<button class="btn btn-p btn-xs" style="margin-top:10px" data-co-ag-ok="'+a.cuenta_id+'">'+ic('save',13)+' Guardar '+esc(E.nombre)+'</button>' : '')+'</div>'; }).join('')+'</div>';
 }
 function coCuentas(){
   var D = CO.d, admin = D.admin, F = CO.form;
@@ -11313,14 +11388,30 @@ function coCuentas(){
   return '<div class="co-cuentas">'+D.cuentas.map(function(c){
       return '<div class="card co-cta"><div class="co-ver-h"><div style="min-width:0"><b>'+esc(c.email)+'</b><div class="tiny muted">'+esc(c.nombre)+' · '+(Number(c.activa) ? 'activo' : 'pausado')+
         (c.ultima_lectura ? ' · leído '+ngRel(c.ultima_lectura) : ' · aún sin leer')+'</div></div>'+coChip((modos.filter(function(x){ return x[0] === c.modo; })[0] || ['', c.modo])[1], c.modo === 'aprobacion' ? '#FBBF24' : '#4ADE80')+'</div>'+
+        '<div class="co-chips">'+coChip((D.funciones[c.funcion] || ['General'])[0], '#2DD4BF')+
+          (function(){ var ids = []; try { ids = JSON.parse(c.adjuntos || '[]'); } catch(e){} var n = D.dosieres.filter(function(x){ return ids.indexOf(Number(x.id)) > -1; }).map(function(x){ return x.nombre; });
+            return c.adjuntar === 'nunca' ? coChip('Sin dosieres', '#94A3B8') : coChip((c.adjuntar === 'comerciales' ? 'En consultas comerciales: ' : 'Siempre: ') + (n.length ? n.join(', ') : 'los que elija la IA'), '#818CF8'); })()+
+          (Number(c.acuse) ? coChip('Acuse de recibo', '#38BDF8') : '')+
+          (c.responsable_id ? coChip('Encargado: ' + ((D.personas.filter(function(p){ return p.id === c.responsable_id; })[0] || {}).n || '—'), '#FBBF24') : '')+'</div>'+
         (c.ultimo_error ? '<p class="tiny" style="color:#FCA5A5">'+ic('alert',12)+' '+esc(c.ultimo_error)+'</p>' : '')+
         (admin ? '<div class="row" style="gap:6px;margin-top:8px;flex-wrap:wrap"><button class="btn btn-xs" data-co-probar="'+c.id+'">'+ic('plug',13)+' Probar conexión</button><button class="btn btn-xs" data-co-editar="'+c.id+'">'+ic('edit',13)+' Editar</button>'+
           '<button class="btn btn-xs" data-co-pausa="'+c.id+'">'+(Number(c.activa) ? 'Pausar' : 'Reanudar')+'</button><button class="btn btn-xs btn-r" data-co-borrar="'+c.id+'">Desconectar</button></div>' : '')+'</div>'; }).join('')+
     (admin ? (F ? '<div class="card co-form"><h3 style="margin:0 0 10px;font-size:15px">'+(F.id ? 'Editar ' + esc(F.email) : 'Conectar un buzón')+'</h3>'+
         '<div class="grid g-2">'+campo('email', 'Correo', 'email', 'info@labs24k.com')+campo('nombre', 'Nombre que verá el cliente', '', 'Labs24k · Información')+'</div>'+
+        '<div class="row" style="gap:8px;margin:8px 0;flex-wrap:wrap"><button class="btn btn-xs" id="co-hostalia">'+ic('bolt',13)+' Rellenar con los datos de Hostalia</button>'+
+          '<span class="tiny muted">IMAP imap.servidor-correo.net (993, SSL) · SMTP smtp.servidor-correo.net (587, STARTTLS) · usuario: el propio correo</span></div>'+
         '<h5 class="eq-h5">Recibir (IMAP)</h5><div class="grid g-3">'+campo('imap_host', 'Servidor', '', 'imap.tudominio.com')+campo('imap_puerto', 'Puerto', 'number')+seg('imap_seguridad')+'</div>'+
         '<div class="grid g-2">'+campo('imap_usuario', 'Usuario (normalmente el correo)', '', F.email || '')+campo('clave', F.id ? 'Contraseña (déjala vacía para no cambiarla)' : 'Contraseña', 'password')+'</div>'+
         '<h5 class="eq-h5">Enviar (SMTP)</h5><div class="grid g-3">'+campo('smtp_host', 'Servidor', '', 'smtp.tudominio.com')+campo('smtp_puerto', 'Puerto', 'number')+seg('smtp_seguridad')+'</div>'+
+        '<h5 class="eq-h5">Para qué es y quién se encarga</h5><div class="grid g-2">'+
+          '<div><label class="f">Función del buzón</label><select class="inp" data-co-c="funcion">'+Object.keys(D.funciones).map(function(k){ return '<option value="'+k+'"'+(F.funcion === k ? ' selected' : '')+'>'+esc(D.funciones[k][0])+'</option>'; }).join('')+'</select>'+
+            '<p class="tiny muted" style="margin:4px 0 0">'+esc((D.funciones[F.funcion] || D.funciones.general)[1])+'</p></div>'+
+          '<div><label class="f">Encargado (tickets y tareas)</label><select class="inp" data-co-c="responsable_id"><option value="">La administración</option>'+D.personas.map(function(p){ return '<option value="'+esc(p.id)+'"'+(F.responsable_id === p.id ? ' selected' : '')+'>'+esc(p.n)+'</option>'; }).join('')+'</select></div></div>'+
+        '<h5 class="eq-h5">Dosieres informativos</h5><div class="grid g-2"><div><label class="f">Cuándo adjuntarlos</label><select class="inp" data-co-c="adjuntar">'+
+          [['siempre','En todas las respuestas (menos bajas y quejas)'],['comerciales','Solo en consultas comerciales'],['nunca','Nunca']].map(function(x){ return '<option value="'+x[0]+'"'+(F.adjuntar === x[0] ? ' selected' : '')+'>'+x[1]+'</option>'; }).join('')+'</select></div>'+
+          '<div><label class="f">Siempre estos (máximo 3; además la IA añade el de su sector si lo hay)</label><div class="co-dos">'+(D.dosieres.length ? D.dosieres.map(function(x){
+            return '<label class="tiny"><input type="checkbox" data-co-dosf="'+x.id+'"'+((F.adjuntos || []).indexOf(Number(x.id)) > -1 ? ' checked' : '')+'> '+esc(x.nombre)+'</label>'; }).join('') : '<span class="tiny muted">Sube los dosieres al Centro de Recursos (sección Dosieres).</span>')+'</div></div></div>'+
+        '<label class="tiny" style="display:flex;gap:6px;margin:8px 0"><input type="checkbox" data-co-chk="acuse"'+(Number(F.acuse) !== 0 ? ' checked' : '')+'> Acuse de recibo automático cuando la respuesta la tiene que dar una persona (quejas, facturas…)</label>'+
         '<label class="f">Firma</label><textarea class="inp" rows="3" data-co-c="firma" placeholder="Equipo Labs24k&#10;984 000 000 · labs24k.com">'+esc(F.firma || '')+'</textarea>'+
         '<div class="grid g-2" style="margin-top:8px"><div><label class="f">Cómo responde</label><select class="inp" data-co-c="modo">'+modos.map(function(x){ return '<option value="'+x[0]+'"'+(F.modo === x[0] ? ' selected' : '')+'>'+x[1]+'</option>'; }).join('')+'</select></div>'+
           '<p class="tiny muted" style="align-self:end">Seguro: contesta solo a clientes potenciales, presupuestos, citas, bajas y consultas generales con confianza alta. Amplio: también soporte y proveedores. Nunca contesta solo a quejas, facturas o importes que no estén en la base.</p></div>'+
@@ -11342,6 +11433,17 @@ function coAjustes(){
 }
 function coEventos(){
   qa('[data-co-tab]').forEach(function(b){ b.onclick = function(){ CO.tab = b.dataset.coTab; CO.sel = null; renderApp(); }; });
+  qa('[data-co-ag]').forEach(function(el){ el.oninput = function(){ CO.ag[el.dataset.coAg][el.dataset.k] = el.value; }; });
+  qa('[data-co-aut]').forEach(function(el){ el.onchange = function(){ CO.ag[el.dataset.coAut].autonomia[el.dataset.k] = el.value; }; });
+  qa('[data-co-ag-on]').forEach(function(el){ el.onchange = function(){ CO.ag[el.dataset.coAgOn].activo = el.checked; }; });
+  qa('[data-co-ag-ok]').forEach(function(b){ b.onclick = function(){ var E = CO.ag[b.dataset.coAgOk]; b.disabled = true;
+    ngApi('/correo/cuentas/' + b.dataset.coAgOk + '/agente', 'POST', {agente:{nombre:E.nombre, cargo:E.cargo, instrucciones:E.instrucciones, conocimiento:E.conocimiento, activo:E.activo, autonomia:E.autonomia}}).then(function(){
+      toast(E.nombre + ' guardado: trabajará así desde el próximo correo.'); delete CO.ag[b.dataset.coAgOk]; coCarga(); }, function(e){ b.disabled = false; toast(e.message); }); }; });
+  qa('[data-co-acc-ok],[data-co-acc-no]').forEach(function(b){ b.onclick = function(){ var ok = !!b.dataset.coAccOk, id = b.dataset.coAccOk || b.dataset.coAccNo; b.disabled = true;
+    ngApi('/correo/accion/' + id + '/' + (ok ? 'aprobar' : 'rechazar'), 'POST', {}).then(function(r){ toast(ok ? 'Hecho: ' + (r.resumen || 'aprobado') : 'Rechazado: no se hace.');
+      var sel = CO.sel && CO.sel.id; coCarga().then(function(){ if(sel){ ngApi('/correo/mensaje/' + sel).then(function(m){ CO.sel = m; if(q('#co-cuerpo')){ q('#co-cuerpo').innerHTML = coCuerpo(); coEventos(); } }); } });
+    }, function(e){ b.disabled = false; toast(e.message); }); }; });
+  qa('[data-co-ver-acc]').forEach(function(b){ b.onclick = function(){ CO.tab = 'bandeja'; CO.filtro = ''; renderApp(); var f = q('[data-co-ver="' + b.dataset.coVerAcc + '"]'); if(f) f.click(); }; });
   qa('[data-co-f]').forEach(function(b){ b.onclick = function(){ CO.filtro = b.dataset.coF; renderApp(); }; });
   if(q('#co-revisar')) q('#co-revisar').onclick = function(){ CO.ocupado = true; renderApp();
     ngApi('/correo/revisar', 'POST', {}).then(function(d){ CO.ocupado = false; var n = 0, err = [];
@@ -11352,14 +11454,27 @@ function coEventos(){
     ngApi('/correo/mensaje/' + b.dataset.coVer).then(function(m){ CO.sel = m; if(S.view === 'correo' && q('#co-cuerpo')){ q('#co-cuerpo').innerHTML = coCuerpo(); coEventos(); var d = q('.co-det'); if(d && window.innerWidth < 1000) d.scrollIntoView({behavior:'smooth'}); } }, function(e){ toast(e.message); }); }; });
   qa('[data-co-ficha]').forEach(function(b){ b.onclick = function(){ ngAbreFicha(Number(b.dataset.coFicha), 'correo'); }; });
   if(q('#co-enviar')) q('#co-enviar').onclick = function(){ var b = this; b.disabled = true;
-    ngApi('/correo/mensaje/' + CO.sel.id + '/enviar', 'POST', {asunto:q('#co-as').value, cuerpo:q('#co-txt').value}).then(function(){ toast('Respuesta enviada.'); CO.sel = null; coCarga(); }, function(e){ b.disabled = false; toast(e.message); }); };
+    ngApi('/correo/mensaje/' + CO.sel.id + '/enviar', 'POST', {asunto:q('#co-as').value, cuerpo:q('#co-txt').value, dosieres:qa('[data-co-adj]').filter(function(x){ return x.checked; }).map(function(x){ return Number(x.dataset.coAdj); })}).then(function(){ toast('Respuesta enviada.'); CO.sel = null; coCarga(); }, function(e){ b.disabled = false; toast(e.message); }); };
   if(q('#co-archivar')) q('#co-archivar').onclick = function(){ ngApi('/correo/mensaje/' + CO.sel.id + '/ignorar', 'POST', {}).then(function(){ toast('Archivado.'); CO.sel = null; coCarga(); }, function(e){ toast(e.message); }); };
-  if(q('#co-nueva')) q('#co-nueva').onclick = function(){ CO.form = {imap_puerto:993, imap_seguridad:'ssl', smtp_puerto:465, smtp_seguridad:'ssl', modo:'auto_seguro'}; renderApp(); };
-  qa('[data-co-editar]').forEach(function(b){ b.onclick = function(){ CO.form = JSON.parse(JSON.stringify(CO.d.cuentas.filter(function(c){ return c.id == b.dataset.coEditar; })[0])); CO.form.clave = ''; renderApp(); }; });
+  if(q('#co-nueva')) q('#co-nueva').onclick = function(){ CO.form = {imap_host:'imap.servidor-correo.net', imap_puerto:993, imap_seguridad:'ssl', smtp_host:'smtp.servidor-correo.net', smtp_puerto:587, smtp_seguridad:'tls',
+    modo:'auto_seguro', funcion:'info', adjuntar:'siempre', adjuntos:[], acuse:1}; renderApp(); };
+  if(q('#co-hostalia')) q('#co-hostalia').onclick = function(){ var F = CO.form;
+    Object.assign(F, {imap_host:'imap.servidor-correo.net', imap_puerto:993, imap_seguridad:'ssl', smtp_host:'smtp.servidor-correo.net', smtp_puerto:587, smtp_seguridad:'tls'});
+    if(F.email) F.imap_usuario = F.email; renderApp(); toast('Datos de Hostalia puestos: solo falta la contraseña del buzón.'); };
+  qa('[data-co-dosf]').forEach(function(el){ el.onchange = function(){ var id = Number(el.dataset.coDosf), a = CO.form.adjuntos = (CO.form.adjuntos || []).filter(function(x){ return x !== id; });
+    if(el.checked){ if(a.length >= 3){ el.checked = false; return toast('Como mucho 3 dosieres fijos.'); } a.push(id); } }; });
+  qa('[data-co-chk]').forEach(function(el){ el.onchange = function(){ CO.form[el.dataset.coChk] = el.checked ? 1 : 0; }; });
+  qa('[data-co-editar]').forEach(function(b){ b.onclick = function(){ CO.form = JSON.parse(JSON.stringify(CO.d.cuentas.filter(function(c){ return c.id == b.dataset.coEditar; })[0])); CO.form.clave = '';
+    try { CO.form.adjuntos = JSON.parse(CO.form.adjuntos || '[]'); } catch(e){ CO.form.adjuntos = []; } renderApp(); }; });
   if(q('#co-cancelar')) q('#co-cancelar').onclick = function(){ CO.form = null; renderApp(); };
-  qa('[data-co-c]').forEach(function(el){ el.oninput = el.onchange = function(){ CO.form[el.dataset.coC] = el.type === 'number' ? Number(el.value) : el.value; }; });
+  qa('[data-co-c]').forEach(function(el){ el.oninput = el.onchange = function(e){ var k = el.dataset.coC; CO.form[k] = el.type === 'number' ? Number(el.value) : el.value;
+    if(k === 'email' && !CO.form.id && e.type === 'change'){ var l = el.value.split('@')[0].toLowerCase();
+      CO.form.funcion = /^(admin|administracion|factura|contabilidad)/.test(l) ? 'administracion' : /^(tramit|gestion|documenta)/.test(l) ? 'tramitacion' : /^(soporte|support|ayuda|incidencia|tecnico)/.test(l) ? 'soporte' : /^(info|hola|ventas|comercial|contacto)/.test(l) ? 'info' : 'general';
+      if(!CO.form.imap_usuario) CO.form.imap_usuario = el.value; if(!CO.form.nombre) CO.form.nombre = 'Labs24k · ' + CO.d.funciones[CO.form.funcion][0]; renderApp(); }
+    if(k === 'funcion') renderApp(); }; });
   if(q('#co-guardar')) q('#co-guardar').onclick = function(){ var b = this, F = CO.form; b.disabled = true;
-    var cuerpo = {}; ['nombre','email','imap_host','imap_puerto','imap_seguridad','imap_usuario','smtp_host','smtp_puerto','smtp_seguridad','firma','modo','clave'].forEach(function(k){ if(F[k] != null && F[k] !== '') cuerpo[k] = F[k]; });
+    var cuerpo = {}; ['nombre','email','imap_host','imap_puerto','imap_seguridad','imap_usuario','smtp_host','smtp_puerto','smtp_seguridad','firma','modo','clave','funcion','adjuntar','responsable_id'].forEach(function(k){ if(F[k] != null && (F[k] !== '' || k === 'responsable_id')) cuerpo[k] = F[k]; });
+    cuerpo.adjuntos = F.adjuntos || []; cuerpo.acuse = Number(F.acuse) !== 0;
     ngApi('/correo/cuentas' + (F.id ? '/' + F.id : ''), 'POST', cuerpo).then(function(d){
       CO.form = null; toast('Buzón guardado. Probando la conexión…');
       return ngApi('/correo/cuentas/' + d.cuenta.id + '/probar', 'POST', {}).then(function(p){ toast(p.imap === 'ok' && p.smtp === 'ok' ? 'Conectado: recibir y enviar funcionan.' : 'Guardado, pero: ' + (p.imap !== 'ok' ? 'IMAP: ' + p.imap + ' ' : '') + (p.smtp !== 'ok' ? 'SMTP: ' + p.smtp : '')); coCarga(); });
