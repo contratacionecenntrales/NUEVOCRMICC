@@ -26,7 +26,9 @@ function &icc_cron_bloques_ref(): array {
         $n += $db->exec('DELETE FROM cron_registro WHERE ts < NOW() - INTERVAL 30 DAY');
         $n += $db->exec('DELETE FROM ia_acciones WHERE ts < NOW() - INTERVAL 365 DAY');
         // Correos 1 ano y registros del Motor 180 dias.
-        foreach (['DELETE FROM motor_mensajes WHERE created_at < NOW() - INTERVAL 365 DAY', 'DELETE FROM motor_log WHERE ts < NOW() - INTERVAL 180 DAY'] as $sql) {
+        foreach (['DELETE FROM motor_mensajes WHERE created_at < NOW() - INTERVAL 365 DAY', 'DELETE FROM motor_log WHERE ts < NOW() - INTERVAL 180 DAY',
+                  'DELETE FROM flujo_registro WHERE ts < NOW() - INTERVAL 180 DAY', 'DELETE FROM flujo_eventos WHERE procesado = 1 AND ts < NOW() - INTERVAL 30 DAY',
+                  'DELETE FROM equipo_acciones WHERE ts < NOW() - INTERVAL 365 DAY AND estado <> \'pendiente\'', 'DELETE FROM equipo_turnos WHERE inicio < NOW() - INTERVAL 180 DAY'] as $sql) {
           try { $n += $db->exec($sql); } catch (Throwable $e) { /* tabla aun no creada */ }
         }
         return $n . ' registros antiguos borrados.';
@@ -112,4 +114,6 @@ require_once __DIR__ . '/motor_lib.php';
 icc_cron_registrar('motor', 1, function (): string { return motor_tick(); });
 icc_cron_registrar('motor_analisis', 5, function (): string { return motor_analizar_pendientes(); });
 require_once __DIR__ . '/agentes_lib.php';
+require_once __DIR__ . '/flujos_lib.php';
+icc_cron_registrar('flujos', 1, function (): string { return fl_tick(); });
 icc_cron_registrar('agentes', 5, function (): string { return eq_tick(); });

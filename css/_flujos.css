@@ -1,0 +1,58 @@
+/* ICC CRM · Automatizaciones y Embudos (js/flujos.js). Usa css/_ia.css, _motor.css y _equipo.css. */
+.icc-fl-h2 { margin: 6px 0 10px; font-size: 16px; color: var(--txt); text-transform: none; letter-spacing: normal; }
+.icc-fl-plantillas { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.icc-fl-plantilla { margin: 0; display: flex; flex-direction: column; gap: 6px; }
+.icc-fl-plantilla strong { color: var(--txt); }
+.icc-fl-plantilla small { color: var(--txt-3); font-size: 12px; }
+.icc-fl-plantilla .icc-btn { align-self: flex-start; margin-top: auto; }
+.icc-fl-cab { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.icc-fl-nombre { flex: 1; min-width: 200px; font-size: 17px; font-weight: 700; }
+.icc-fl-config { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; align-items: start; }
+.icc-fl-config > label { display: flex; flex-direction: column; gap: 6px; }
+.icc-fl-config > label > span { font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--txt-3); }
+.icc-fl-obj { grid-column: span 2; border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; margin: 0; display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
+.icc-fl-obj legend { font-size: 12px; font-weight: 800; color: var(--txt-3); padding: 0 6px; }
+.icc-fl-obj label { display: flex; gap: 6px; align-items: center; font-size: 13px; color: var(--txt-2); }
+.icc-fl-obj .icc-select, .icc-fl-obj .icc-input { width: auto; min-width: 130px; }
+.icc-fl-editor { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 16px; align-items: start; }
+.icc-fl-lienzo { margin: 0; min-width: 0; }
+.icc-fl-lienzo h2 { margin: 0 0 10px; font-size: 16px; color: var(--txt); text-transform: none; letter-spacing: normal; }
+.icc-fl-arbol { overflow-x: auto; padding: 6px 4px 12px; display: flex; flex-direction: column; align-items: center; }
+.icc-fl-disp, .icc-fl-fin { padding: 8px 14px; border-radius: 99px; font-size: 13px; font-weight: 700; }
+.icc-fl-disp { background: rgba(139, 92, 246, .2); color: #C4B5FD; }
+.icc-fl-fin { background: var(--card-2); color: var(--txt-3); }
+.icc-fl-linea { width: 2px; height: 18px; background: var(--line); margin: 0 auto; }
+.icc-fl-nodo { display: flex; align-items: center; gap: 10px; width: 260px; max-width: 100%; text-align: left; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--card-2); color: var(--txt); cursor: pointer; font: inherit; position: relative; }
+.icc-fl-nodo:hover { border-color: var(--cian); }
+.icc-fl-nodo.is-sel { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(16, 185, 129, .35); }
+.icc-fl-ico { font-size: 20px; }
+.icc-fl-txt { display: flex; flex-direction: column; min-width: 0; }
+.icc-fl-txt b { font-size: 13px; }
+.icc-fl-txt small { color: var(--txt-3); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.icc-fl-cuenta { position: absolute; top: -8px; right: -8px; min-width: 22px; height: 22px; border-radius: 99px; background: #F59E0B; color: #1F1300; font-size: 11px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; padding: 0 6px; }
+.icc-fl-ramas { display: flex; gap: 14px; justify-content: center; border-top: 2px solid var(--line); padding-top: 0; margin-top: 18px; }
+.icc-fl-rama { display: flex; flex-direction: column; align-items: center; }
+.icc-fl-etq { margin-top: -11px; background: var(--card); padding: 0 8px; font-size: 11.5px; font-weight: 800; color: var(--cian); }
+.icc-fl-salto { background: none; border: 1px dashed var(--line); color: var(--txt-3); border-radius: 10px; padding: 6px 10px; font: inherit; font-size: 12px; cursor: pointer; }
+.icc-fl-insp { margin: 0; position: sticky; top: 110px; }
+.icc-fl-insp textarea { font-family: inherit; line-height: 1.45; resize: vertical; }
+.icc-fl-insp .icc-ia-form .icc-input, .icc-fl-insp .icc-ia-form .icc-select { max-width: none; }
+.icc-fl-anadir { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line); }
+.icc-fl-anadir > span { width: 100%; font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--txt-3); }
+.icc-fl-anadir .icc-select { flex: 1; min-width: 0; }
+.icc-fl-code { max-height: 260px; overflow: auto; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; }
+.icc-fl-nums { grid-template-columns: repeat(5, 1fr); }
+.icc-fl-insc .icc-select, .icc-fl-insc .icc-input { flex: 1; min-width: 140px; }
+@media (max-width: 1100px) { .icc-fl-editor { grid-template-columns: minmax(0, 1fr); } .icc-fl-insp { position: static; } }
+@media (max-width: 860px) { .icc-fl-config { grid-template-columns: minmax(0, 1fr); } .icc-fl-obj { grid-column: auto; } }
+@media (max-width: 560px) {
+  .icc-fl-nums { grid-template-columns: repeat(2, 1fr); }
+  .icc-fl-arbol { align-items: stretch; overflow-x: visible; }
+  .icc-fl-ramas { flex-direction: column; gap: 6px; border-top: 0; border-left: 2px solid var(--line); padding-left: 8px; margin-top: 8px; width: 100%; box-sizing: border-box; }
+  .icc-fl-rama { align-items: stretch; width: 100%; min-width: 0; }
+  .icc-fl-etq { margin-top: 0; align-self: flex-start; padding: 0; }
+  .icc-fl-nodo { width: 100%; box-sizing: border-box; }
+  .icc-fl-fin, .icc-fl-salto, .icc-fl-disp { align-self: flex-start; }
+  .icc-fl-linea { margin: 0 0 0 20px; height: 12px; }
+  .icc-fl-obj .icc-select, .icc-fl-obj .icc-input { width: 100%; }
+}
