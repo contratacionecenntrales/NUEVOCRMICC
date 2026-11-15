@@ -81,6 +81,7 @@ window.icc.api = (function () {
 
   return {
     setCsrf: setCsrf,
+    getCsrf: function () { return csrf; },
     get: get,
     post: post,
     put: put,

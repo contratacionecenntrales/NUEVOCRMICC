@@ -28,7 +28,8 @@ function &icc_cron_bloques_ref(): array {
         // Correos 1 ano y registros del Motor 180 dias.
         foreach (['DELETE FROM motor_mensajes WHERE created_at < NOW() - INTERVAL 365 DAY', 'DELETE FROM motor_log WHERE ts < NOW() - INTERVAL 180 DAY',
                   'DELETE FROM flujo_registro WHERE ts < NOW() - INTERVAL 180 DAY', 'DELETE FROM flujo_eventos WHERE procesado = 1 AND ts < NOW() - INTERVAL 30 DAY',
-                  'DELETE FROM equipo_acciones WHERE ts < NOW() - INTERVAL 365 DAY AND estado <> \'pendiente\'', 'DELETE FROM equipo_turnos WHERE inicio < NOW() - INTERVAL 180 DAY'] as $sql) {
+                  'DELETE FROM equipo_acciones WHERE ts < NOW() - INTERVAL 365 DAY AND estado <> \'pendiente\'', 'DELETE FROM equipo_turnos WHERE inicio < NOW() - INTERVAL 180 DAY',
+                  'DELETE FROM jarvis_registro WHERE ts < NOW() - INTERVAL 90 DAY', 'DELETE FROM jarvis_usadas WHERE ts < NOW() - INTERVAL 2 DAY'] as $sql) {
           try { $n += $db->exec($sql); } catch (Throwable $e) { /* tabla aun no creada */ }
         }
         return $n . ' registros antiguos borrados.';

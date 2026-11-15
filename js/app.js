@@ -314,6 +314,7 @@
       "<div><strong>Integral Connection</strong><span>Consulting</span></div></a>" +
       '<nav class="icc-topnav-nav" id="icc-nav"></nav>' +
       '<div class="icc-topnav-right">' +
+      '<button type="button" class="icc-jarvis-btn" id="btn-jarvis" hidden title="Asistente (Alt+J)"><span class="icc-jv-orb"></span><span>Jarvis</span></button>' +
       '<div class="icc-notif-wrap">' +
       '<button class="icc-notif-btn" id="btn-notif">🔔<span class="icc-notif-dot" id="notif-dot" hidden></span></button>' +
       '<div class="icc-notif-panel" id="notif-panel" hidden></div>' +
@@ -370,6 +371,7 @@
     }
     shellPintado = true;
     iniciarLatido();
+    if (window.icc.jarvis) window.icc.jarvis.iniciar();
   }
 
   // Latido: mientras el CRM está abierto, el panel hace de reloj de respaldo

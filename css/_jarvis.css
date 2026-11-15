@@ -1,0 +1,46 @@
+/* ICC CRM · Jarvis (js/jarvis.js) */
+.icc-jv-nucleo { position: fixed; right: 20px; bottom: 20px; z-index: 90; width: 58px; height: 58px; border-radius: 50%; border: 0; padding: 0; cursor: pointer; background: transparent;
+  filter: drop-shadow(0 8px 22px rgba(56, 189, 248, .45)); }
+.icc-jv-orb { display: block; width: 100%; height: 100%; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #E0F2FE 0 8%, #38BDF8 22%, #6366F1 55%, #1E1B4B 100%);
+  box-shadow: inset 0 0 18px rgba(255, 255, 255, .35), 0 0 0 2px rgba(56, 189, 248, .35); animation: icc-jv-latido 3.2s ease-in-out infinite; }
+.icc-jv-orb--mini { width: 30px; height: 30px; flex-shrink: 0; }
+.icc-jv-nucleo.is-escuchando .icc-jv-orb { animation: icc-jv-escucha .9s ease-in-out infinite; background: radial-gradient(circle at 35% 30%, #FEE2E2 0 8%, #F87171 25%, #DC2626 60%, #450A0A 100%); }
+.icc-jv-nucleo.is-hablando .icc-jv-orb { animation: icc-jv-escucha .6s ease-in-out infinite; }
+.icc-jv-nucleo.is-abierto { opacity: .85; }
+@keyframes icc-jv-latido { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+@keyframes icc-jv-escucha { 0%, 100% { transform: scale(.94); } 50% { transform: scale(1.12); } }
+@media (prefers-reduced-motion: reduce) { .icc-jv-orb { animation: none !important; } }
+.icc-jv-panel { position: fixed; right: 20px; bottom: 92px; z-index: 95; width: 380px; max-width: calc(100vw - 32px); height: min(560px, calc(100vh - 140px)); display: flex; flex-direction: column;
+  background: var(--card); border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 24px 60px rgba(0, 0, 0, .5); overflow: hidden; }
+.icc-jv-panel[hidden] { display: none; }
+.icc-jv-panel header { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-bottom: 1px solid var(--line); background: linear-gradient(135deg, rgba(99, 102, 241, .18), transparent); }
+.icc-jv-panel header div { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.icc-jv-panel header strong { color: var(--txt); }
+.icc-jv-panel header small { color: var(--txt-3); font-size: 11.5px; }
+.icc-jv-x { background: none; border: 0; color: var(--txt-2); font-size: 24px; cursor: pointer; line-height: 1; padding: 4px 8px; }
+.icc-jv-msgs { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 8px; }
+.icc-jv-msg { max-width: 86%; padding: 9px 12px; border-radius: 14px; font-size: 14px; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; }
+.icc-jv-msg.is-assistant { align-self: flex-start; background: var(--card-2); color: var(--txt); border-bottom-left-radius: 4px; }
+.icc-jv-msg.is-user { align-self: flex-end; background: rgba(16, 185, 129, .18); color: var(--txt); border-bottom-right-radius: 4px; }
+.icc-jv-msg.is-pensando { color: var(--txt-3); animation: icc-jv-latido 1s infinite; }
+.icc-jv-tarjeta { align-self: stretch; border: 1px solid rgba(251, 191, 36, .45); background: rgba(251, 191, 36, .08); border-radius: 12px; padding: 10px 12px; }
+.icc-jv-tarjeta b { color: #FCD34D; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+.icc-jv-tarjeta p { margin: 6px 0 8px; color: var(--txt); font-size: 14px; }
+.icc-jv-tarjeta div { display: flex; gap: 8px; }
+.icc-jv-tarjeta.is-ok { border-color: rgba(52, 211, 153, .5); background: rgba(52, 211, 153, .08); }
+.icc-jv-tarjeta.is-ok b { color: #6EE7B7; }
+.icc-jv-tarjeta.is-no { opacity: .65; }
+.icc-jv-form { display: flex; gap: 8px; padding: 10px; border-top: 1px solid var(--line); }
+.icc-jv-form .icc-input { flex: 1; min-width: 0; }
+.icc-jv-form .icc-btn { padding: 8px 14px; min-height: 0; }
+.icc-jv-mic { width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--line); background: var(--card-2); cursor: pointer; font-size: 18px; flex-shrink: 0; }
+.icc-jv-mic.is-grabando { background: #DC2626; border-color: #DC2626; animation: icc-jv-escucha .9s infinite; }
+.icc-jv-mic:disabled { opacity: .4; cursor: not-allowed; }
+.icc-jarvis-btn { display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--card-2); color: var(--txt); font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+.icc-jarvis-btn .icc-jv-orb { width: 18px; height: 18px; animation: none; }
+@media (max-width: 860px) { .icc-jarvis-btn span:last-child { display: none; } .icc-jarvis-btn { padding: 0 9px; } }
+@media (max-width: 560px) {
+  .icc-jv-nucleo { right: 14px; bottom: 14px; width: 52px; height: 52px; }
+  .icc-jv-panel { right: 8px; left: 8px; width: auto; max-width: none; bottom: 76px; height: calc(100vh - 150px); }
+}
