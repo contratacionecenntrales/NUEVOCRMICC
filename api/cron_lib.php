@@ -29,7 +29,8 @@ function &icc_cron_bloques_ref(): array {
         foreach (['DELETE FROM motor_mensajes WHERE created_at < NOW() - INTERVAL 365 DAY', 'DELETE FROM motor_log WHERE ts < NOW() - INTERVAL 180 DAY',
                   'DELETE FROM flujo_registro WHERE ts < NOW() - INTERVAL 180 DAY', 'DELETE FROM flujo_eventos WHERE procesado = 1 AND ts < NOW() - INTERVAL 30 DAY',
                   'DELETE FROM equipo_acciones WHERE ts < NOW() - INTERVAL 365 DAY AND estado <> \'pendiente\'', 'DELETE FROM equipo_turnos WHERE inicio < NOW() - INTERVAL 180 DAY',
-                  'DELETE FROM jarvis_registro WHERE ts < NOW() - INTERVAL 90 DAY', 'DELETE FROM jarvis_usadas WHERE ts < NOW() - INTERVAL 2 DAY'] as $sql) {
+                  'DELETE FROM jarvis_registro WHERE ts < NOW() - INTERVAL 90 DAY', 'DELETE FROM jarvis_usadas WHERE ts < NOW() - INTERVAL 2 DAY',
+                  'DELETE FROM mail_mensajes WHERE created_at < NOW() - INTERVAL 365 DAY'] as $sql) {
           try { $n += $db->exec($sql); } catch (Throwable $e) { /* tabla aun no creada */ }
         }
         return $n . ' registros antiguos borrados.';
@@ -115,6 +116,8 @@ require_once __DIR__ . '/motor_lib.php';
 icc_cron_registrar('motor', 1, function (): string { return motor_tick(); });
 icc_cron_registrar('motor_analisis', 5, function (): string { return motor_analizar_pendientes(); });
 require_once __DIR__ . '/agentes_lib.php';
+require_once __DIR__ . '/correo_agentes_lib.php';
+icc_cron_registrar('buzones', 1, function (): string { return ca_tick(); });
 require_once __DIR__ . '/flujos_lib.php';
 require_once __DIR__ . '/saneo_lib.php';
 icc_cron_registrar('saneo', 60, function (): string { return sn_tick(); });

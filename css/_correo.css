@@ -1,0 +1,35 @@
+/* ICC CRM · Agente de correo (js/correo.js). Usa css/_ia.css, _motor.css y _equipo.css. */
+.icc-ca-filtros { margin-bottom: 12px; }
+.icc-ca-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.icc-ca-fila { width: 100%; display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 2fr) minmax(0, .9fr); gap: 12px; align-items: center; text-align: left; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--card); color: var(--txt); font: inherit; cursor: pointer; }
+.icc-ca-fila:hover { border-color: var(--cian); }
+.icc-ca-fila > div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.icc-ca-fila strong, .icc-ca-fila b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; }
+.icc-ca-fila small { color: var(--txt-3); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.icc-ca-estado { align-items: flex-start; }
+.icc-ca-modal { position: fixed; inset: 0; z-index: 120; background: rgba(4, 7, 14, .72); display: flex; align-items: center; justify-content: center; padding: 16px; }
+.icc-ca-modal-caja { width: 100%; max-width: 760px; max-height: 92vh; display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--line); border-radius: 18px; overflow: hidden; }
+.icc-ca-modal-caja header { display: flex; gap: 10px; align-items: flex-start; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.icc-ca-modal-caja header div { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.icc-ca-modal-caja header strong { color: var(--txt); overflow-wrap: anywhere; }
+.icc-ca-modal-caja header small { color: var(--txt-3); font-size: 12px; overflow-wrap: anywhere; }
+.icc-ca-modal-cuerpo { overflow-y: auto; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+.icc-ca-modal-cuerpo textarea { font-family: inherit; line-height: 1.5; resize: vertical; }
+.icc-ca-adj { margin: 0; font-size: 13px; }
+.icc-ca-adj a { color: var(--cian); }
+.icc-ca-traza { margin: 0; padding-left: 18px; font-size: 12.5px; color: var(--txt-2); display: flex; flex-direction: column; gap: 4px; overflow-wrap: anywhere; }
+.icc-ca-traza b { color: var(--txt); }
+.icc-ca-dos { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--txt-2); }
+.icc-ca-dos > span, .icc-ca-perm > span { width: 100%; font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--txt-3); }
+.icc-ca-dos label { display: flex; gap: 6px; align-items: center; }
+.icc-ca-ed summary { cursor: pointer; color: var(--cian); font-size: 13px; font-weight: 700; margin-top: 4px; }
+.icc-ca-ed form { margin-top: 10px; }
+.icc-ca-ed textarea { font-family: inherit; resize: vertical; }
+.icc-ca-perm { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 6px 10px; }
+.icc-ca-perm label { display: flex; flex-direction: column; gap: 3px; font-size: 12.5px; color: var(--txt-2); text-transform: capitalize; }
+.icc-ca-clave { width: 180px; }
+@media (max-width: 760px) {
+  .icc-ca-fila { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .icc-ca-perm { grid-template-columns: minmax(0, 1fr); }
+  .icc-ca-clave { width: 100%; }
+}
