@@ -8,7 +8,7 @@
  */
 defined('LABS') || exit;
 
-define('LABS_VERSION_ESQUEMA', 22);
+define('LABS_VERSION_ESQUEMA', 23);
 
 function labs_columna_existe(PDO $db, $tabla, $col)
 {
@@ -294,6 +294,15 @@ function labs_migra(PDO $db)
         array('recursos', 'ruta_formacion', "ALTER TABLE recursos ADD COLUMN ruta_formacion VARCHAR(60) NOT NULL DEFAULT ''"),
         array('recursos', 'orden', 'ALTER TABLE recursos ADD COLUMN orden INT NOT NULL DEFAULT 0'),
         array('recursos', 'texto', 'ALTER TABLE recursos ADD COLUMN texto MEDIUMTEXT NULL'),
+        // v23 · Agente de correo: función de cada buzón, dosieres adjuntos, acuse y acciones.
+        array('mail_cuentas', 'funcion', "ALTER TABLE mail_cuentas ADD COLUMN funcion VARCHAR(16) NOT NULL DEFAULT 'general'"),
+        array('mail_cuentas', 'adjuntos', 'ALTER TABLE mail_cuentas ADD COLUMN adjuntos TEXT NULL'),
+        array('mail_cuentas', 'adjuntar', "ALTER TABLE mail_cuentas ADD COLUMN adjuntar VARCHAR(12) NOT NULL DEFAULT 'siempre'"),
+        array('mail_cuentas', 'acuse', 'ALTER TABLE mail_cuentas ADD COLUMN acuse TINYINT(1) NOT NULL DEFAULT 1'),
+        array('mail_cuentas', 'responsable_id', 'ALTER TABLE mail_cuentas ADD COLUMN responsable_id CHAR(36) NULL'),
+        array('mail_mensajes', 'adjuntos', "ALTER TABLE mail_mensajes ADD COLUMN adjuntos VARCHAR(600) NOT NULL DEFAULT ''"),
+        array('mail_mensajes', 'acciones', "ALTER TABLE mail_mensajes ADD COLUMN acciones VARCHAR(300) NOT NULL DEFAULT ''"),
+        array('mail_mensajes', 'acuse_id', 'ALTER TABLE mail_mensajes ADD COLUMN acuse_id BIGINT UNSIGNED NULL'),
         // v12 · Sector y persona que decide en cada contacto, y el siguiente paso.
         array('contactos', 'sector', "ALTER TABLE contactos ADD COLUMN sector VARCHAR(60) NOT NULL DEFAULT '', ADD KEY contactos_sector_idx (sector)"),
         array('contactos', 'decisor_nombre', "ALTER TABLE contactos ADD COLUMN decisor_nombre VARCHAR(120) NOT NULL DEFAULT ''"),
