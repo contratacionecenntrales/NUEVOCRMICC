@@ -96,6 +96,7 @@ function labs_jarvis_herramientas()
             'estado' => array('type' => 'string'), 'limite' => array('type' => 'integer')), array(), 'leer'),
         'estado_pipeline' => array('Solo dirección: cuántos deals requieren acción (sin próxima acción, sin valor, SLA vencido, sin gestor) y los candidatos a perdido del agente de mantenimiento.', array(), array(), 'leer'),
         'arreglar_pipeline' => array('Solo dirección: lanza el agente de mantenimiento, que pone próxima acción con fecha, valor estimado y gestor a los deals que lo necesitan y planifica el rescate de los de SLA vencido.', array(), array(), 'cambio'),
+        'correo_pendiente' => array('Solo dirección: correos de los buzones de la agencia que esperan a una persona (y cuántos ha contestado solo el agente de correo).', array(), array(), 'leer'),
         'zona_agentes' => array('Solo dirección: propuestas de los agentes IA esperando aprobación y últimos turnos.', array(), array(), 'leer'),
         'abrir_pantalla' => array('Lleva a la persona a una pantalla del CRM.', array(
             'pantalla' => array('type' => 'string', 'enum' => array_keys(labs_jarvis_pantallas()))), array('pantalla'), 'ui'),
@@ -259,6 +260,13 @@ function labs_jarvis_lee($n, $e)
         }
         return array('diagnostico' => labs_saneo_diagnostico(), 'candidatos_a_perdido' => array_slice(labs_saneo_candidatos(), 0, 8),
             'automatico' => labs_saneo_cfg()['automatico'], 'ultima_pasada' => json_decode((string) labs_ajuste('saneo.ultimo', ''), true));
+    }
+    if ($n === 'correo_pendiente') {
+        if (!in_array(labs_mi_rol(), array('admin', 'manager'), true) || !labs_tabla_existe('mail_mensajes')) {
+            throw new Exception('El correo de la agencia es para dirección y jefes de equipo.');
+        }
+        return array('esperando_a_una_persona' => labs_q("SELECT de_email, asunto, categoria, motivo, fecha FROM mail_mensajes WHERE sentido = 'entrada' AND estado = 'pendiente' ORDER BY fecha DESC LIMIT 10")->fetchAll(),
+            'respondidos_por_el_agente_24h' => (int) labs_q("SELECT COUNT(*) FROM mail_mensajes WHERE sentido = 'salida' AND respondido_por = 'agente' AND creado >= ?", array(labs_hace(86400)))->fetchColumn());
     }
     if ($n === 'zona_agentes') {
         if (!in_array(labs_mi_rol(), array('admin', 'manager'), true) || !labs_tabla_existe('equipo_acciones')) {

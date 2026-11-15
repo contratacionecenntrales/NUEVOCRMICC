@@ -8,7 +8,7 @@
  */
 defined('LABS') || exit;
 
-define('LABS_VERSION_ESQUEMA', 21);
+define('LABS_VERSION_ESQUEMA', 22);
 
 function labs_columna_existe(PDO $db, $tabla, $col)
 {
@@ -208,6 +208,22 @@ function labs_migra(PDO $db)
            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, lote VARCHAR(20) NOT NULL DEFAULT '', contacto_id BIGINT UNSIGNED NOT NULL, campo VARCHAR(24) NOT NULL,
            antes VARCHAR(300) NOT NULL DEFAULT '', despues VARCHAR(300) NOT NULL DEFAULT '', origen VARCHAR(20) NOT NULL DEFAULT '', ts DATETIME(6) NOT NULL,
            deshecho TINYINT(1) NOT NULL DEFAULT 0, PRIMARY KEY (id), KEY saneo_lote_idx (lote), KEY saneo_cont_idx (contacto_id, campo)) $opc",
+        // v22 · Agente de correo: buzones corporativos y correos (entrada y respuestas).
+        "CREATE TABLE IF NOT EXISTS mail_cuentas (
+           id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, nombre VARCHAR(120) NOT NULL DEFAULT '', email VARCHAR(190) NOT NULL,
+           imap_host VARCHAR(190) NOT NULL, imap_puerto INT NOT NULL DEFAULT 993, imap_seguridad VARCHAR(8) NOT NULL DEFAULT 'ssl', imap_usuario VARCHAR(190) NOT NULL DEFAULT '',
+           smtp_host VARCHAR(190) NOT NULL, smtp_puerto INT NOT NULL DEFAULT 465, smtp_seguridad VARCHAR(8) NOT NULL DEFAULT 'ssl', smtp_usuario VARCHAR(190) NOT NULL DEFAULT '',
+           clave TEXT NOT NULL, smtp_clave TEXT NOT NULL, carpeta VARCHAR(120) NOT NULL DEFAULT 'INBOX', firma TEXT NULL, modo VARCHAR(12) NOT NULL DEFAULT 'auto_seguro',
+           activa TINYINT(1) NOT NULL DEFAULT 1, ultimo_uid BIGINT NOT NULL DEFAULT 0, uidvalidity BIGINT NOT NULL DEFAULT 0, ultima_lectura DATETIME(6) NULL,
+           ultimo_error VARCHAR(300) NOT NULL DEFAULT '', creado DATETIME(6) NOT NULL, PRIMARY KEY (id), UNIQUE KEY mail_cuentas_email_uq (email)) $opc",
+        "CREATE TABLE IF NOT EXISTS mail_mensajes (
+           id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, cuenta_id BIGINT UNSIGNED NOT NULL, uid BIGINT NULL, message_id VARCHAR(250) NOT NULL, en_respuesta VARCHAR(250) NOT NULL DEFAULT '',
+           referencias VARCHAR(1000) NOT NULL DEFAULT '', sentido VARCHAR(8) NOT NULL, de_email VARCHAR(190) NOT NULL DEFAULT '', de_nombre VARCHAR(120) NOT NULL DEFAULT '',
+           para VARCHAR(190) NOT NULL DEFAULT '', asunto VARCHAR(250) NOT NULL DEFAULT '', cuerpo MEDIUMTEXT NULL, fecha DATETIME(6) NOT NULL, contacto_id BIGINT UNSIGNED NULL,
+           categoria VARCHAR(20) NOT NULL DEFAULT '', urgencia VARCHAR(6) NOT NULL DEFAULT '', resumen VARCHAR(500) NOT NULL DEFAULT '', confianza INT NOT NULL DEFAULT 0,
+           estado VARCHAR(12) NOT NULL DEFAULT 'nuevo', motivo VARCHAR(300) NOT NULL DEFAULT '', borrador_asunto VARCHAR(250) NOT NULL DEFAULT '', borrador TEXT NULL,
+           respondido_por VARCHAR(8) NOT NULL DEFAULT '', respuesta_id BIGINT UNSIGNED NULL, creado DATETIME(6) NOT NULL,
+           PRIMARY KEY (id), UNIQUE KEY mail_msg_uq (cuenta_id, message_id(190)), KEY mail_msg_estado_idx (sentido, estado, fecha), KEY mail_msg_para_idx (para, creado)) $opc",
         // v18 · Barrido de Asturias: cada casilla sector × concejo con su estado.
         "CREATE TABLE IF NOT EXISTS motor_cobertura (
            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, sector VARCHAR(60) NOT NULL, concejo VARCHAR(80) NOT NULL, comarca VARCHAR(80) NOT NULL DEFAULT '',

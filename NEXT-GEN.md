@@ -721,3 +721,40 @@ del Motor) y también se le puede pedir a Jarvis: «arregla el pipeline».
   después; recuerda cuántas veces ha reprogramado un deal y lo que se decidió
   mantener. Cada cambio deja una nota en el historial del cliente.
 
+## Agente de correo · buzones corporativos
+
+Menú «Agente de correo» (dirección y jefes de equipo; los buzones y el agente
+los configura la administración).
+
+- **Conectar un buzón**: correo, servidor IMAP (recibir) y SMTP (enviar),
+  contraseña (cifrada, nunca vuelve al navegador), firma y modo. «Probar
+  conexión» comprueba las dos cosas. Lee con un cliente IMAP propio: no hace
+  falta la extensión imap de PHP. No marca nada como leído.
+- **Cada 5 minutos** (cron del Motor) o con «Revisar ahora»: lee lo nuevo de
+  cada buzón y, por cada correo:
+  - Descarta sin gastar IA lo automático: no-reply, rebotes, boletines y
+    listas, respuestas automáticas y nuestros propios buzones.
+  - Lo vincula con su contacto (por correo o el del decisor) o, si es un
+    posible cliente, crea el lead con gestor y próximo paso.
+  - OpenAI lo clasifica (cliente potencial, presupuesto, cita, soporte,
+    facturas, queja, proveedor, baja, spam), lo resume y escribe la respuesta
+    con el tono y la base de conocimiento de la agencia.
+- **Cuándo responde solo** (modo «Automático seguro», el recomendado):
+  clientes potenciales, presupuestos, citas, bajas y consultas generales, con
+  confianza alta. «Automático amplio» añade soporte y proveedores. «Todo con
+  aprobación» no envía nada solo.
+- **Nunca responde solo**:
+  - quejas, facturas o pagos;
+  - si la respuesta menciona un importe que no está en la base de
+    conocimiento, o habla de descuentos, contratos o devoluciones;
+  - si ya ha contestado dos veces hoy al mismo remitente (antibucles);
+  - por encima del límite diario.
+  Esos quedan en «Para aprobar» con el borrador listo para editar y enviar.
+- **Las respuestas** salen desde el propio buzón, en el mismo hilo, con la
+  firma y un aviso de que son de IA (desactivable). Las bajas se apuntan en la
+  lista de bajas del Motor. Cada correo deja nota en la ficha del cliente.
+- **Jarvis** puede decirte qué correos esperan a una persona.
+- **Conservación**: los correos se guardan un año.
+- **Datos personales**: el texto de los correos se envía a OpenAI para
+  clasificarlo y redactar la respuesta.
+

@@ -44,6 +44,7 @@ require __DIR__ . '/equipo_barrido.php';
 require __DIR__ . '/flujos.php';
 require __DIR__ . '/jarvis.php';
 require __DIR__ . '/saneo.php';
+require __DIR__ . '/correo.php';
 
 ini_set('display_errors', '0');
 
@@ -195,6 +196,11 @@ try {
     } elseif (preg_match('#^/motor(/[a-z0-9/]*)?$#', $ruta, $m)) {
         /* --- Motor de Scraping IA ------------------------------------------- */
         $r = labs_motor($metodo, isset($m[1]) ? $m[1] : '', $metodo === 'GET' ? array() : labs_cuerpo_json(), $pares);
+        $estado = $r[0];
+        $resp = $r[1];
+    } elseif (preg_match('#^/correo(/[a-z0-9/]*)?$#', $ruta, $m)) {
+        /* --- Agente de correo: buzones corporativos ------------------------- */
+        $r = labs_correo($metodo, isset($m[1]) ? $m[1] : '', $metodo === 'GET' ? array() : labs_cuerpo_json());
         $estado = $r[0];
         $resp = $r[1];
     } elseif (preg_match('#^/saneo(/[a-z0-9/]*)?$#', $ruta, $m)) {

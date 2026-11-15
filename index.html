@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-BVDT9vrV/LamjMrCXNBQaUHX8nHBYxzm80SRpB9QOgQ='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-QCEZSt1Pd1l2PW9gLz6ki+Jhj2TgHRyrsIK/4GDHV0Q='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Labs Command Center 360 - Oficina virtual SaaS de la red comercial de Labs24k.">
 <meta name="theme-color" content="#0B0F19">
@@ -2047,6 +2047,30 @@ a.btn.btn-g:hover{color:#fff}
 .san-chip b{color:var(--txt)}
 .san-lista{margin-top:12px;display:flex;flex-direction:column;gap:6px}
 .san-fila{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--card-2)}
+.co-hero{border-color:rgba(45,212,191,.35);background:radial-gradient(620px 260px at 0% 0%,rgba(45,212,191,.18),transparent 70%),radial-gradient(520px 260px at 100% 100%,rgba(56,189,248,.14),transparent 70%),var(--card)}
+.co-filtros{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
+.co-grid{display:grid;grid-template-columns:minmax(300px,420px) minmax(0,1fr);gap:14px;align-items:start}
+.co-lista{display:flex;flex-direction:column;gap:6px;max-height:calc(100vh - 260px);overflow-y:auto;padding-right:2px}
+.co-fila{display:flex;flex-direction:column;gap:3px;text-align:left;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--txt);font:inherit;cursor:pointer}
+.co-fila:hover{border-color:rgba(45,212,191,.5)}
+.co-fila.sel{border-color:#2DD4BF;box-shadow:0 0 0 1px #2DD4BF}
+.co-fila-t{display:flex;justify-content:space-between;gap:8px}
+.co-fila-t b{font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.co-as{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.co-res{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.co-chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.co-chip{font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;color:var(--cc);background:color-mix(in srgb,var(--cc) 14%,transparent);border:1px solid color-mix(in srgb,var(--cc) 35%,transparent)}
+.co-det{position:sticky;top:12px}
+.co-ver-h{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.co-ver-h b{font-size:15px}
+.co-resumen{margin:10px 0 4px;font-size:13px;color:var(--txt-2);display:flex;gap:6px;align-items:flex-start}
+.co-resumen svg{flex:0 0 auto;margin-top:2px;color:#2DD4BF}
+.co-txt{white-space:pre-wrap;word-break:break-word;font:inherit;font-size:13px;line-height:1.5;margin:10px 0 0;padding:12px;border-radius:12px;background:var(--card-2);border:1px solid var(--line);max-height:340px;overflow-y:auto}
+.co-resp{border-color:rgba(74,222,128,.35)}
+.co-cuentas{display:flex;flex-direction:column;gap:12px}
+.co-cta{margin:0}
+.co-form{margin:0}
+@media (max-width:1000px){.co-grid{grid-template-columns:1fr}.co-det{position:static}.co-lista{max-height:none}}
 .eq-hal{display:flex;gap:9px;align-items:flex-start;padding:10px;border-radius:12px;border:1px solid var(--line);border-left:3px solid var(--c);background:var(--card-2);margin-bottom:8px}
 @media (max-width:900px){.eq-lab,.eq-cerebro,.eq-cal,.eq-det-g{grid-template-columns:1fr}.eq-ritmo-obj{align-items:flex-start}}
 @media (max-width:900px){.eq-tareas{grid-template-columns:1fr}.eq-aprob{grid-template-columns:1fr}.eq-cob-res{grid-template-columns:repeat(2,minmax(0,1fr))}.eq-cobro{margin-left:0}}
@@ -3240,6 +3264,7 @@ var MENU = [
   {id:'motor',       label:'Motor de Scraping IA',       icon:'spark',     sec:'General',   roles:['admin','manager']},
   {id:'agentesia',   label:'Zona de agentes',            icon:'bolt',      sec:'General',   roles:['admin','manager']},
   {id:'flujos',      label:'Automatizaciones y Embudos', icon:'filter',    sec:'General',   roles:['admin','manager']},
+  {id:'correo',      label:'Agente de correo',           icon:'mail',      sec:'General',   roles:['admin','manager']},
   {id:'resources',   label:'Centro de Recursos',         icon:'file',      sec:'General',   roles:['admin','manager','commercial','backoffice']},
   {id:'support',     label:'Soporte y Tickets',          icon:'help',      sec:'General',   roles:['admin','manager','commercial','backoffice']},
   {id:'adminsupport',label:'Mesa de Incidencias',        icon:'alert',     sec:'Sistema',   roles:['admin','manager']},
@@ -3504,7 +3529,7 @@ function renderApp(){
     interviews:viewInterviews, users:viewUsers, settings:viewSettings, contactos:viewContactos,
     rolesadmin:viewRolesAdmin, resources:viewResources, support:viewSupport,
     adminsupport:viewAdminSupportDesk, equipo:viewEquipo, mificha:viewMiFicha, seguridad:viewSeguridad, cumplimiento:viewCumplimiento,
-    sala:viewSala, pipeline:viewPipeline, prospeccion:viewProspeccion, motor:viewMotor, agentesia:viewAgentesIA, flujos:viewFlujos};
+    sala:viewSala, pipeline:viewPipeline, prospeccion:viewProspeccion, motor:viewMotor, agentesia:viewAgentesIA, flujos:viewFlujos, correo:viewCorreo};
   (VIEWS[S.view]||viewDashboard)(v);
   reponerToasts();
   vcBanda();
@@ -11164,7 +11189,7 @@ var jvRenderOriginal = renderApp;
 renderApp = function(){ jvRenderOriginal.apply(this, arguments); jvMonta(); };
 
 /* --- Agente de mantenimiento del pipeline ----------------------------------------------------- */
-var SAN = {d:null, cargando:false, cambios:false, ocupado:false};
+var SAN = {d:null, cargando:false, cambios:false, cand:false, ocupado:false};
 function sanPuede(){ return ['admin','manager'].indexOf(S.role) > -1; }
 function sanCarga(){
   if(SAN.cargando) return; SAN.cargando = true;
@@ -11173,23 +11198,23 @@ function sanCarga(){
 function sanPinta(){ var el = q('#san-caja'); if(!el) return; el.innerHTML = sanHtml(); sanEventos(); }
 function sanHtml(){
   var d = SAN.d;
-  if(!d) return '<div class="card san"><span class="tiny muted">El agente de mantenimiento está revisando el pipeline…</span></div>';
-  if(d.error) return '<div class="card san"><span class="tiny muted">'+esc(d.error)+'</span></div>';
+  // Mientras carga se pinta la misma tarjeta (misma altura) para que el tablero no salte.
+  if(!d || d.error) d = {diagnostico:{sin_accion:'…', sin_valor:'…', sin_gestor:'…', sla_vencido:'…', candidatos_perdido:'…'}, config:{automatico:true}, ultimo:null, candidatos:[], lotes:[], admin:false, cargando:true, error:d && d.error};
   var D = d.diagnostico, C = d.config, u = d.ultimo;
-  var chip = function(n, t, ic_, col){ return '<span class="san-chip" style="--sc:'+(n ? col : '#4ADE80')+'">'+ic(n ? ic_ : 'check',12)+' <b>'+n+'</b> '+esc(t)+'</span>'; };
+  var chip = function(n, t, ic_, col, attr){ return '<span class="san-chip" style="--sc:'+(n === '…' ? '#94A3B8' : n ? col : '#4ADE80')+'"'+(attr || '')+'>'+ic(n && n !== '…' ? ic_ : 'check',12)+' <b>'+n+'</b> '+esc(t)+'</span>'; };
   var pend = D.sin_accion + D.sin_valor + D.sin_gestor;
   return '<div class="card san'+(pend ? '' : ' ok')+'">'+
     '<div class="san-top"><div class="san-ic">'+ic('bolt',18)+'</div><div style="flex:1;min-width:200px"><b>Agente de mantenimiento</b>'+
       '<div class="tiny muted">'+(C.automatico ? 'Automático · revisa y corrige el pipeline cada hora' : 'En manual · solo cuando pulsas «Arreglar ahora»')+
-      (u ? ' · última pasada '+ngRel(u.ts)+': '+(u.proximo_paso + u.rescates)+' próximos pasos, '+u.valor+' valores, '+u.gestor+' gestores' : '')+'</div></div>'+
+      (d.error ? ' · ' + esc(d.error) : d.cargando ? ' · revisando…' : '')+(u ? ' · última pasada '+ngRel(u.ts)+': '+(u.proximo_paso + u.rescates)+' próximos pasos, '+u.valor+' valores, '+u.gestor+' gestores' : '')+'</div></div>'+
       '<div class="row" style="gap:6px;flex-wrap:wrap">'+
-        '<button class="btn btn-p" id="san-ya"'+(SAN.ocupado ? ' disabled' : '')+'>'+ic('bolt',14)+(SAN.ocupado ? ' Arreglando…' : ' Arreglar ahora')+'</button>'+
+        '<button class="btn btn-p" id="san-ya"'+(SAN.ocupado || d.cargando ? ' disabled' : '')+'>'+ic('bolt',14)+(SAN.ocupado ? ' Arreglando…' : ' Arreglar ahora')+'</button>'+
         '<button class="btn btn-s" id="san-cambios">'+ic('refresh',14)+' Cambios</button>'+
         (d.admin ? '<label class="tiny san-auto"><input type="checkbox" id="san-auto"'+(C.automatico ? ' checked' : '')+'> Automático</label>' : '')+'</div></div>'+
     '<div class="san-chips">'+chip(D.sin_accion, 'sin próxima acción', 'alert', '#FBBF24')+chip(D.sin_valor, 'sin valor', 'euro', '#FBBF24')+
-      chip(D.sin_gestor, 'sin gestor', 'user', '#FBBF24')+chip(D.sla_vencido, 'SLA vencido', 'clock', '#F87171')+chip(D.candidatos_perdido, 'para revisar si siguen vivos', 'alert', '#C084FC')+'</div>'+
-    '<p class="tiny muted" style="margin:8px 0 0">El SLA vencido solo desaparece cuando el deal avanza de fase: el agente le pone una acción de rescate con fecha y prioridad y, si sigue muerto, te propone cerrarlo. Nunca marca nada como perdido por su cuenta.</p>'+
-    (d.candidatos.length ? '<div class="san-lista"><h5 class="eq-h5">Para revisar: ¿siguen vivos?</h5>'+d.candidatos.map(function(c){
+      chip(D.sin_gestor, 'sin gestor', 'user', '#FBBF24')+chip(D.sla_vencido, 'SLA vencido', 'clock', '#F87171', ' title="El SLA vencido solo desaparece cuando el deal avanza de fase: el agente le pone una acción de rescate con fecha y prioridad y, si sigue muerto, te propone cerrarlo. Nunca marca nada como perdido por su cuenta."')+chip(D.candidatos_perdido, 'para revisar si siguen vivos', 'alert', '#C084FC', d.candidatos.length ? ' role="button" tabindex="0" id="san-cand" style="cursor:pointer" title="Ver cuáles"' : '')+'</div>'+
+
+    (d.candidatos.length && SAN.cand ? '<div class="san-lista"><h5 class="eq-h5">Para revisar: ¿siguen vivos?</h5>'+d.candidatos.map(function(c){
       return '<div class="san-fila"><div style="flex:1;min-width:0"><b>'+esc(c.empresa || c.nombre)+'</b><div class="tiny muted">'+esc(c.motivo)+'</div></div>'+
         '<button class="btn btn-xs" data-san-ficha="'+c.contacto_id+'">Ficha</button><button class="btn btn-xs" data-san-mant="'+c.contacto_id+'">Mantener</button>'+
         '<button class="btn btn-xs btn-r" data-san-perder="'+c.contacto_id+'">Marcar perdido</button></div>'; }).join('')+'</div>' : '')+
@@ -11206,6 +11231,7 @@ function sanEventos(){
       toast('Agente de mantenimiento: ' + (r.proximo_paso + r.rescates) + ' próximos pasos (' + r.rescates + ' rescates), ' + r.valor + ' valores y ' + r.gestor + ' gestores.'); sanRecarga();
     }, function(e){ SAN.ocupado = false; toast(e.message); sanPinta(); }); };
   if(q('#san-cambios')) q('#san-cambios').onclick = function(){ SAN.cambios = !SAN.cambios; sanPinta(); };
+  if(q('#san-cand')){ q('#san-cand').onclick = function(){ SAN.cand = !SAN.cand; sanPinta(); }; q('#san-cand').onkeydown = function(e){ if(e.key === 'Enter') this.click(); }; }
   if(q('#san-auto')) q('#san-auto').onchange = function(){ var v = this.checked;
     ngApi('/saneo/config', 'POST', {config:{automatico:v}}).then(function(){ toast(v ? 'Agente en automático: revisará el pipeline cada hora.' : 'Agente en manual.'); SAN.d = null; sanCarga(); }, function(e){ toast(e.message); }); };
   qa('[data-san-desh]').forEach(function(b){ b.onclick = function(){ if(!confirm('¿Deshacer los cambios de esa pasada? Lo que una persona haya tocado después se respeta.')) return;
@@ -11215,6 +11241,138 @@ function sanEventos(){
   qa('[data-san-mant]').forEach(function(b){ b.onclick = function(){
     ngApi('/saneo/candidato/' + b.dataset.sanMant, 'POST', {accion:'mantener'}).then(function(){ toast('Se mantiene abierto.'); SAN.d = null; sanCarga(); }, function(e){ toast(e.message); }); }; });
   qa('[data-san-ficha]').forEach(function(b){ b.onclick = function(){ ngAbreFicha(Number(b.dataset.sanFicha), 'pipeline'); }; });
+}
+
+/* ==========================================================================
+   AGENTE DE CORREO · buzones corporativos con respuesta automática (OpenAI)
+   ========================================================================== */
+var CO = {d:null, tab:'bandeja', sel:null, filtro:'', form:null, ocupado:false};
+var CO_ESTADO = {respondido:['Respondido','#4ADE80'], pendiente:['Para aprobar','#FBBF24'], ignorado:['Archivado','#94A3B8'], nuevo:['Procesando','#38BDF8'], error:['Error','#F87171']};
+function coCarga(){ return ngApi('/correo/estado').then(function(d){ CO.d = d; if(S.view === 'correo') renderApp(); }, function(e){ CO.d = {error:e.message}; if(S.view === 'correo') renderApp(); }); }
+function coChip(t, col){ return '<span class="co-chip" style="--cc:'+col+'">'+esc(t)+'</span>'; }
+function viewCorreo(v){
+  if(!CO.d){ v.innerHTML = '<div class="card"><p class="muted">Abriendo los buzones…</p></div>'; coCarga(); return; }
+  if(CO.d.error){ v.innerHTML = '<div class="card"><p>'+esc(CO.d.error)+'</p></div>'; return; }
+  var D = CO.d, pend = D.contadores.pendiente || 0, admin = D.admin;
+  var avisos = [];
+  if(!D.ia) avisos.push('Falta la clave de OpenAI (Motor de Scraping IA → Fábrica de agentes): sin ella, todos los correos quedan para una persona.');
+  if(!D.cuentas.length) avisos.push(admin ? 'Conecta el primer buzón de la agencia en «Buzones».' : 'Todavía no hay buzones conectados: los conecta la administración.');
+  D.cuentas.filter(function(c){ return c.ultimo_error; }).forEach(function(c){ avisos.push(c.email + ': ' + c.ultimo_error); });
+  var tabs = [['bandeja','mail','Bandeja'],['aprobar','check','Para aprobar' + (pend ? ' · ' + pend : '')],['cuentas','plug','Buzones']].concat(admin ? [['ajustes','cog','Cómo responde']] : []);
+  v.innerHTML =
+    '<div class="mt-hero co-hero"><div><span class="rc-kick">'+ic('mail',13)+' BUZONES DE LA AGENCIA · OPENAI</span><h2>Agente de correo</h2>'+
+      '<p class="muted">Lee los buzones corporativos, ordena cada correo, lo vincula con su cliente o crea el lead, y responde solo cuando es seguro. Lo delicado te lo deja preparado para aprobar.</p>'+
+      '<div class="mt-hero-st">'+[['Respondidos solos (24 h)', D.auto_24h], ['Para aprobar', pend], ['Respondidos en total', D.contadores.respondido || 0], ['Buzones', D.cuentas.filter(function(c){ return Number(c.activa); }).length]].map(function(x){
+        return '<div><b>'+x[1]+'</b><span>'+x[0]+'</span></div>'; }).join('')+'</div></div>'+
+      '<div class="row" style="gap:8px;align-self:flex-start"><button class="btn btn-p" id="co-revisar"'+(CO.ocupado || !D.cuentas.length ? ' disabled' : '')+'>'+ic('refresh',15)+(CO.ocupado ? ' Leyendo…' : ' Revisar ahora')+'</button></div></div>'+
+    (avisos.length ? '<div class="mt-avisos">'+avisos.map(function(a){ return '<span>'+ic('alert',13)+' '+esc(a)+'</span>'; }).join('')+'</div>' : '')+
+    '<nav class="mt-tabs">'+tabs.map(function(t){ return '<button class="'+(CO.tab === t[0] ? 'on' : '')+'" data-co-tab="'+t[0]+'">'+ic(t[1],15)+' '+esc(t[2])+'</button>'; }).join('')+'</nav>'+
+    '<div id="co-cuerpo">'+coCuerpo()+'</div>';
+  coEventos();
+}
+function coCuerpo(){
+  if(CO.tab === 'cuentas') return coCuentas();
+  if(CO.tab === 'ajustes') return coAjustes();
+  var D = CO.d, lista = D.mensajes.filter(function(m){ return CO.tab === 'aprobar' ? m.estado === 'pendiente' : (!CO.filtro || m.categoria === CO.filtro || m.estado === CO.filtro); });
+  var filtros = CO.tab === 'bandeja' ? '<div class="co-filtros">'+[['', 'Todo'], ['respondido', 'Respondidos'], ['pendiente', 'Para aprobar'], ['lead', 'Clientes potenciales'], ['presupuesto', 'Presupuestos'], ['queja', 'Quejas'], ['spam', 'Spam']].map(function(f){
+    return '<button class="mt-loc'+(CO.filtro === f[0] ? ' on' : '')+'" data-co-f="'+f[0]+'">'+esc(f[1])+'</button>'; }).join('')+'</div>' : '';
+  return filtros+'<div class="co-grid"><div class="co-lista">'+(lista.length ? lista.map(function(m){
+      var e = CO_ESTADO[m.estado] || [m.estado, '#94A3B8'];
+      return '<button class="co-fila'+(CO.sel && CO.sel.id == m.id ? ' sel' : '')+'" data-co-ver="'+m.id+'"><div class="co-fila-t"><b>'+esc(m.de_nombre || m.de_email)+'</b><span class="tiny muted">'+ngRel(m.fecha)+'</span></div>'+
+        '<div class="co-as">'+esc(m.asunto)+'</div><div class="tiny muted co-res">'+esc(m.resumen || m.motivo || '')+'</div>'+
+        '<div class="co-chips">'+coChip(m.estado === 'respondido' ? (m.respondido_por === 'agente' ? 'Respondido por la IA' : 'Respondido por una persona') : e[0], e[1])+
+        (m.categoria ? coChip(D.categorias[m.categoria] || m.categoria, '#818CF8') : '')+(m.urgencia === 'alta' ? coChip('Urgente', '#F87171') : '')+
+        (m.contacto ? coChip(m.empresa || m.contacto, '#2DD4BF') : '')+'</div></button>'; }).join('') :
+      '<p class="muted" style="padding:14px">'+(CO.tab === 'aprobar' ? 'No hay nada esperando: el agente se ha encargado de todo.' : 'Todavía no ha llegado ningún correo.')+'</p>')+'</div>'+
+    '<div class="co-det">'+coDetalle()+'</div></div>';
+}
+function coDetalle(){
+  var m = CO.sel;
+  if(!m) return '<div class="card co-vacio"><p class="muted">Elige un correo para verlo, con lo que ha hecho el agente.</p></div>';
+  if(m.cargando) return '<div class="card"><p class="muted">Abriendo…</p></div>';
+  var e = CO_ESTADO[m.estado] || [m.estado, '#94A3B8'], editable = m.estado === 'pendiente' || (m.estado === 'ignorado' && ['spam','automatico'].indexOf(m.categoria) < 0);
+  return '<div class="card co-ver"><div class="co-ver-h"><div style="min-width:0"><b>'+esc(m.asunto)+'</b><div class="tiny muted">'+esc(m.de_nombre ? m.de_nombre + ' · ' : '')+esc(m.de_email)+' · '+ngRel(m.fecha)+'</div></div>'+
+      (m.contacto_id ? '<button class="btn btn-xs" data-co-ficha="'+m.contacto_id+'">'+ic('user',13)+' Ficha</button>' : '')+'</div>'+
+    '<div class="co-chips">'+coChip(e[0], e[1])+(m.categoria ? coChip(CO.d.categorias[m.categoria] || m.categoria, '#818CF8') : '')+(m.confianza ? coChip('Confianza ' + m.confianza + '%', '#94A3B8') : '')+'</div>'+
+    (m.resumen ? '<p class="co-resumen">'+ic('spark',13)+' '+esc(m.resumen)+'</p>' : '')+
+    (m.motivo ? '<p class="tiny" style="color:#FDE68A;margin:6px 0">'+ic('alert',12)+' '+esc(m.motivo)+'</p>' : '')+
+    '<pre class="co-txt">'+esc(m.cuerpo || '')+'</pre>'+
+    (m.respuesta ? '<h5 class="eq-h5">'+(m.respuesta.respondido_por === 'agente' ? 'Respuesta del agente' : 'Respuesta enviada')+' · '+ngRel(m.respuesta.creado)+'</h5><pre class="co-txt co-resp">'+esc(m.respuesta.cuerpo)+'</pre>' : '')+
+    (editable ? '<h5 class="eq-h5">Respuesta (borrador de la IA, edítalo si quieres)</h5>'+
+      '<input class="inp" id="co-as" value="'+esc(m.borrador_asunto || ('Re: ' + m.asunto))+'">'+
+      '<textarea class="inp" id="co-txt" rows="8" style="margin-top:6px">'+esc(m.borrador || '')+'</textarea>'+
+      '<p class="tiny muted">Se envía desde el buzón, en el mismo hilo, con la firma'+(CO.d.config.aviso_ia ? ' y el aviso de IA' : '')+'.</p>'+
+      '<div class="row" style="gap:6px"><button class="btn btn-p" id="co-enviar">'+ic('send',14)+' Enviar</button>'+(m.estado === 'pendiente' ? '<button class="btn" id="co-archivar">Archivar</button>' : '')+'</div>' : '')+
+  '</div>';
+}
+function coCuentas(){
+  var D = CO.d, admin = D.admin, F = CO.form;
+  var campo = function(k, l, tipo, ph){ return '<div><label class="f">'+l+'</label><input class="inp" data-co-c="'+k+'" type="'+(tipo || 'text')+'" value="'+esc(F[k] == null ? '' : F[k])+'" placeholder="'+esc(ph || '')+'"'+(tipo === 'password' ? ' autocomplete="new-password"' : '')+'></div>'; };
+  var seg = function(k){ return '<div><label class="f">Seguridad</label><select class="inp" data-co-c="'+k+'">'+[['ssl','SSL'],['tls','STARTTLS'],['ninguna','Sin cifrar']].map(function(x){ return '<option value="'+x[0]+'"'+(F[k] === x[0] ? ' selected' : '')+'>'+x[1]+'</option>'; }).join('')+'</select></div>'; };
+  var modos = [['auto_seguro','Automático seguro (recomendado)'],['auto','Automático amplio'],['aprobacion','Todo con aprobación']];
+  return '<div class="co-cuentas">'+D.cuentas.map(function(c){
+      return '<div class="card co-cta"><div class="co-ver-h"><div style="min-width:0"><b>'+esc(c.email)+'</b><div class="tiny muted">'+esc(c.nombre)+' · '+(Number(c.activa) ? 'activo' : 'pausado')+
+        (c.ultima_lectura ? ' · leído '+ngRel(c.ultima_lectura) : ' · aún sin leer')+'</div></div>'+coChip((modos.filter(function(x){ return x[0] === c.modo; })[0] || ['', c.modo])[1], c.modo === 'aprobacion' ? '#FBBF24' : '#4ADE80')+'</div>'+
+        (c.ultimo_error ? '<p class="tiny" style="color:#FCA5A5">'+ic('alert',12)+' '+esc(c.ultimo_error)+'</p>' : '')+
+        (admin ? '<div class="row" style="gap:6px;margin-top:8px;flex-wrap:wrap"><button class="btn btn-xs" data-co-probar="'+c.id+'">'+ic('plug',13)+' Probar conexión</button><button class="btn btn-xs" data-co-editar="'+c.id+'">'+ic('edit',13)+' Editar</button>'+
+          '<button class="btn btn-xs" data-co-pausa="'+c.id+'">'+(Number(c.activa) ? 'Pausar' : 'Reanudar')+'</button><button class="btn btn-xs btn-r" data-co-borrar="'+c.id+'">Desconectar</button></div>' : '')+'</div>'; }).join('')+
+    (admin ? (F ? '<div class="card co-form"><h3 style="margin:0 0 10px;font-size:15px">'+(F.id ? 'Editar ' + esc(F.email) : 'Conectar un buzón')+'</h3>'+
+        '<div class="grid g-2">'+campo('email', 'Correo', 'email', 'info@labs24k.com')+campo('nombre', 'Nombre que verá el cliente', '', 'Labs24k · Información')+'</div>'+
+        '<h5 class="eq-h5">Recibir (IMAP)</h5><div class="grid g-3">'+campo('imap_host', 'Servidor', '', 'imap.tudominio.com')+campo('imap_puerto', 'Puerto', 'number')+seg('imap_seguridad')+'</div>'+
+        '<div class="grid g-2">'+campo('imap_usuario', 'Usuario (normalmente el correo)', '', F.email || '')+campo('clave', F.id ? 'Contraseña (déjala vacía para no cambiarla)' : 'Contraseña', 'password')+'</div>'+
+        '<h5 class="eq-h5">Enviar (SMTP)</h5><div class="grid g-3">'+campo('smtp_host', 'Servidor', '', 'smtp.tudominio.com')+campo('smtp_puerto', 'Puerto', 'number')+seg('smtp_seguridad')+'</div>'+
+        '<label class="f">Firma</label><textarea class="inp" rows="3" data-co-c="firma" placeholder="Equipo Labs24k&#10;984 000 000 · labs24k.com">'+esc(F.firma || '')+'</textarea>'+
+        '<div class="grid g-2" style="margin-top:8px"><div><label class="f">Cómo responde</label><select class="inp" data-co-c="modo">'+modos.map(function(x){ return '<option value="'+x[0]+'"'+(F.modo === x[0] ? ' selected' : '')+'>'+x[1]+'</option>'; }).join('')+'</select></div>'+
+          '<p class="tiny muted" style="align-self:end">Seguro: contesta solo a clientes potenciales, presupuestos, citas, bajas y consultas generales con confianza alta. Amplio: también soporte y proveedores. Nunca contesta solo a quejas, facturas o importes que no estén en la base.</p></div>'+
+        '<p class="tiny muted">Los datos del servidor están en el panel de tu proveedor de correo (en Hostalia: Correo → configurar un cliente de correo). La contraseña se guarda cifrada y nunca vuelve al navegador.</p>'+
+        '<div class="row" style="gap:6px;margin-top:8px"><button class="btn btn-p" id="co-guardar">'+ic('save',14)+' Guardar y conectar</button><button class="btn" id="co-cancelar">Cancelar</button></div></div>' :
+      '<button class="btn btn-p" id="co-nueva">'+ic('plus',15)+' Conectar un buzón</button>') : '')+'</div>';
+}
+function coAjustes(){
+  var C = CO.d.config;
+  return '<div class="card co-form"><h3 style="margin:0 0 10px;font-size:15px">'+ic('cog',15)+' Cómo responde el agente</h3>'+
+    '<label class="f">Tono</label><input class="inp" data-co-a="tono" value="'+esc(C.tono)+'">'+
+    '<label class="f" style="margin-top:8px">Lo que sabe de la agencia (lo único que puede afirmar: servicios, precios públicos, horario, enlaces…)</label><textarea class="inp" rows="9" data-co-a="conocimiento">'+esc(C.conocimiento)+'</textarea>'+
+    '<div class="grid g-3" style="margin-top:8px"><div><label class="f">Modelo de OpenAI</label><input class="inp" data-co-a="modelo" value="'+esc(C.modelo)+'"></div>'+
+      '<div><label class="f">Respuestas automáticas al día (máximo)</label><input class="inp" type="number" min="0" max="2000" data-co-a="max_auto_dia" value="'+esc(C.max_auto_dia)+'"></div>'+
+      '<div style="display:flex;flex-direction:column;gap:6px;justify-content:end"><label class="tiny"><input type="checkbox" data-co-a="aviso_ia"'+(C.aviso_ia ? ' checked' : '')+'> Avisar de que la respuesta es de IA</label>'+
+      '<label class="tiny"><input type="checkbox" data-co-a="crear_leads"'+(C.crear_leads ? ' checked' : '')+'> Crear el lead si no está en el CRM</label></div></div>'+
+    '<p class="tiny muted">Si la IA menciona un importe que no está aquí, o habla de descuentos, contratos o devoluciones, el correo no sale solo: queda para aprobar.</p>'+
+    '<button class="btn btn-p" id="co-aj-ok">'+ic('save',14)+' Guardar</button></div>';
+}
+function coEventos(){
+  qa('[data-co-tab]').forEach(function(b){ b.onclick = function(){ CO.tab = b.dataset.coTab; CO.sel = null; renderApp(); }; });
+  qa('[data-co-f]').forEach(function(b){ b.onclick = function(){ CO.filtro = b.dataset.coF; renderApp(); }; });
+  if(q('#co-revisar')) q('#co-revisar').onclick = function(){ CO.ocupado = true; renderApp();
+    ngApi('/correo/revisar', 'POST', {}).then(function(d){ CO.ocupado = false; var n = 0, err = [];
+      Object.keys(d.resultado || {}).forEach(function(k){ n += d.resultado[k].nuevos; if(d.resultado[k].error) err.push(k); });
+      toast(n ? n + ' correo(s) nuevo(s) procesado(s).' : 'No hay correos nuevos.' + (err.length ? ' Error en ' + err.join(', ') : '')); coCarga();
+    }, function(e){ CO.ocupado = false; toast(e.message); renderApp(); }); };
+  qa('[data-co-ver]').forEach(function(b){ b.onclick = function(){ CO.sel = {id:b.dataset.coVer, cargando:true}; q('#co-cuerpo').innerHTML = coCuerpo(); coEventos();
+    ngApi('/correo/mensaje/' + b.dataset.coVer).then(function(m){ CO.sel = m; if(S.view === 'correo' && q('#co-cuerpo')){ q('#co-cuerpo').innerHTML = coCuerpo(); coEventos(); var d = q('.co-det'); if(d && window.innerWidth < 1000) d.scrollIntoView({behavior:'smooth'}); } }, function(e){ toast(e.message); }); }; });
+  qa('[data-co-ficha]').forEach(function(b){ b.onclick = function(){ ngAbreFicha(Number(b.dataset.coFicha), 'correo'); }; });
+  if(q('#co-enviar')) q('#co-enviar').onclick = function(){ var b = this; b.disabled = true;
+    ngApi('/correo/mensaje/' + CO.sel.id + '/enviar', 'POST', {asunto:q('#co-as').value, cuerpo:q('#co-txt').value}).then(function(){ toast('Respuesta enviada.'); CO.sel = null; coCarga(); }, function(e){ b.disabled = false; toast(e.message); }); };
+  if(q('#co-archivar')) q('#co-archivar').onclick = function(){ ngApi('/correo/mensaje/' + CO.sel.id + '/ignorar', 'POST', {}).then(function(){ toast('Archivado.'); CO.sel = null; coCarga(); }, function(e){ toast(e.message); }); };
+  if(q('#co-nueva')) q('#co-nueva').onclick = function(){ CO.form = {imap_puerto:993, imap_seguridad:'ssl', smtp_puerto:465, smtp_seguridad:'ssl', modo:'auto_seguro'}; renderApp(); };
+  qa('[data-co-editar]').forEach(function(b){ b.onclick = function(){ CO.form = JSON.parse(JSON.stringify(CO.d.cuentas.filter(function(c){ return c.id == b.dataset.coEditar; })[0])); CO.form.clave = ''; renderApp(); }; });
+  if(q('#co-cancelar')) q('#co-cancelar').onclick = function(){ CO.form = null; renderApp(); };
+  qa('[data-co-c]').forEach(function(el){ el.oninput = el.onchange = function(){ CO.form[el.dataset.coC] = el.type === 'number' ? Number(el.value) : el.value; }; });
+  if(q('#co-guardar')) q('#co-guardar').onclick = function(){ var b = this, F = CO.form; b.disabled = true;
+    var cuerpo = {}; ['nombre','email','imap_host','imap_puerto','imap_seguridad','imap_usuario','smtp_host','smtp_puerto','smtp_seguridad','firma','modo','clave'].forEach(function(k){ if(F[k] != null && F[k] !== '') cuerpo[k] = F[k]; });
+    ngApi('/correo/cuentas' + (F.id ? '/' + F.id : ''), 'POST', cuerpo).then(function(d){
+      CO.form = null; toast('Buzón guardado. Probando la conexión…');
+      return ngApi('/correo/cuentas/' + d.cuenta.id + '/probar', 'POST', {}).then(function(p){ toast(p.imap === 'ok' && p.smtp === 'ok' ? 'Conectado: recibir y enviar funcionan.' : 'Guardado, pero: ' + (p.imap !== 'ok' ? 'IMAP: ' + p.imap + ' ' : '') + (p.smtp !== 'ok' ? 'SMTP: ' + p.smtp : '')); coCarga(); });
+    }, function(e){ b.disabled = false; toast(e.message); }); };
+  qa('[data-co-probar]').forEach(function(b){ b.onclick = function(){ b.disabled = true;
+    ngApi('/correo/cuentas/' + b.dataset.coProbar + '/probar', 'POST', {}).then(function(p){ b.disabled = false; toast(p.imap === 'ok' && p.smtp === 'ok' ? 'Todo bien: recibir y enviar funcionan.' : (p.imap !== 'ok' ? 'IMAP: ' + p.imap + '. ' : '') + (p.smtp !== 'ok' ? 'SMTP: ' + p.smtp : '')); }, function(e){ b.disabled = false; toast(e.message); }); }; });
+  qa('[data-co-pausa]').forEach(function(b){ b.onclick = function(){ var c = CO.d.cuentas.filter(function(x){ return x.id == b.dataset.coPausa; })[0];
+    ngApi('/correo/cuentas/' + c.id, 'POST', {activa: !Number(c.activa)}).then(function(){ coCarga(); }, function(e){ toast(e.message); }); }; });
+  qa('[data-co-borrar]').forEach(function(b){ b.onclick = function(){ if(!confirm('¿Desconectar este buzón? Los correos ya leídos se quedan en el CRM.')) return;
+    ngApi('/correo/cuentas/' + b.dataset.coBorrar + '/borrar', 'POST', {}).then(function(){ toast('Buzón desconectado.'); coCarga(); }, function(e){ toast(e.message); }); }; });
+  if(q('#co-aj-ok')) q('#co-aj-ok').onclick = function(){ var c = {};
+    qa('[data-co-a]').forEach(function(el){ c[el.dataset.coA] = el.type === 'checkbox' ? el.checked : el.type === 'number' ? Number(el.value) : el.value; });
+    ngApi('/correo/config', 'POST', {config:c}).then(function(d){ CO.d.config = d.config; toast('Guardado: el agente responderá así a partir de ahora.'); }, function(e){ toast(e.message); }); };
 }
 
 var MOT = {tab:'radar', estado:null, leads:null, feed:{log:[], pendientes:[]}, ultimo:0, resp:null, sel:{}, f:{estado:'', q:''},
