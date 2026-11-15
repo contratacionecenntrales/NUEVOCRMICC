@@ -51,12 +51,7 @@ defined('ICC_SESION_MAX_DIAS') || define('ICC_SESION_MAX_DIAS', 30);
 defined('ICC_BACKUP_TOKEN') || define('ICC_BACKUP_TOKEN', 'CAMBIA_ESTE_TOKEN_POR_UNO_LARGO_Y_SECRETO');
 
 // Comparador de Energia (opcional):
-// - Lectura de facturas con IA: clave de la API de Anthropic (console.anthropic.com).
-//   Sin clave, el boton "Subir factura" avisa y se rellenan los datos a mano.
 // - SIPS: proveedor de datos de CUPS. {cups} se sustituye por el CUPS consultado.
-defined('ICC_ANTHROPIC_API_KEY') || define('ICC_ANTHROPIC_API_KEY', '');
-defined('ICC_ANTHROPIC_MODEL') || define('ICC_ANTHROPIC_MODEL', 'claude-sonnet-5-5');
-defined('ICC_ANTHROPIC_URL') || define('ICC_ANTHROPIC_URL', 'https://api.anthropic.com/v1/messages');
 defined('ICC_SIPS_URL') || define('ICC_SIPS_URL', '');
 defined('ICC_SIPS_TOKEN') || define('ICC_SIPS_TOKEN', '');
 defined('ICC_SIPS_HEADER') || define('ICC_SIPS_HEADER', 'Authorization: Bearer');
@@ -67,6 +62,16 @@ defined('ICC_SIPS_HEADER') || define('ICC_SIPS_HEADER', 'Authorization: Bearer')
 // publicos de subida, copias de seguridad, limpieza y borrado de cuentas).
 // Nunca lo actives en la instalacion con los datos reales.
 defined('ICC_MODO_DEMO') || define('ICC_MODO_DEMO', false);
+
+// Inteligencia artificial: SOLO OpenAI (platform.openai.com). La clave puede ir
+// aqui o guardarse cifrada desde el panel «Inteligencia artificial» (manda la
+// del panel). Sin clave todo funciona con plantillas y reglas.
+defined('ICC_OPENAI_API_KEY') || define('ICC_OPENAI_API_KEY', '');
+defined('ICC_OPENAI_URL') || define('ICC_OPENAI_URL', 'https://api.openai.com/v1');
+defined('ICC_IA_MODELO') || define('ICC_IA_MODELO', 'gpt-5-mini');
+defined('ICC_IA_PROVEEDOR') || define('ICC_IA_PROVEEDOR', 'solo_openai');
+// Token del cron unico (api/cron.php?token=...). Vacio: se genera solo y se ve en el panel.
+defined('ICC_CRON_TOKEN') || define('ICC_CRON_TOKEN', '');
 
 // -----------------------------------------------------------------------------
 error_reporting(E_ALL);
@@ -973,3 +978,5 @@ function icc_generar_xlsx(array $cabeceras, array $filas, string $nombreHoja = '
 require_once __DIR__ . '/seguridad_lib.php';
 
 require_once __DIR__ . '/copias_lib.php';
+
+require_once __DIR__ . '/ia_lib.php';

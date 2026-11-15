@@ -78,10 +78,9 @@ para abrir cada informe, descargar su PDF o borrarlo.
   jefes de equipo y backoffice (permiso "Gestionar tarifas del
   comparador"); solo Admin borra tarifas, cambia comisiones o numeración.
   Las comisiones nunca salen en el PDF del cliente.
-- **Lectura de facturas con IA** (opcional, de pago por uso): crea una
-  clave en https://console.anthropic.com y añádela en `api/config.local.php`:
-  `define('ICC_ANTHROPIC_API_KEY', 'sk-ant-...');`. Límite: 60 facturas por
-  hora y usuario. La factura solo se envía para leerla; no se guarda.
+- **Lectura de facturas con IA** (opcional, de pago por uso): usa la clave de
+  OpenAI de **Seguridad → Inteligencia artificial** (ver más abajo). Límite: 60
+  facturas por hora y usuario. La factura solo se envía para leerla; no se guarda.
 - **SIPS** (cuando contratéis un proveedor): `ICC_SIPS_URL` (con `{cups}`),
   `ICC_SIPS_TOKEN` e `ICC_SIPS_HEADER` en `api/config.local.php`.
   `api/cmp_energia_sips.php` entiende el formato estándar de la CNMC.
@@ -219,7 +218,7 @@ propio CRM — ya no hace falta volver a tocar la base de datos a mano.
 
 ## Base de datos en un solo paso
 
-`sql/base-de-datos-completa-v82.sql` deja cualquier base de datos al día para la v82 importándolo una sola vez en phpMyAdmin:
+`sql/base-de-datos-completa-v87.sql` deja cualquier base de datos al día para la v87 importándolo una sola vez en phpMyAdmin:
 - Con datos (v55 en adelante): no borra nada; crea solo las tablas, columnas, índices y relaciones que falten y amplía los roles. Deja a Daniela con todo el equipo de María y las agendas de Juan y María.
 - Vacía: crea el CRM completo y un Super Administrador inicial (info@integralconnectionconsulting.es, contraseña provisional `CambiaEsta-2026`, que el CRM obliga a cambiar).
 - Se puede ejecutar varias veces sin errores ni duplicados. Los datos de ejemplo de los comparadores solo se cargan si esas tablas están vacías.
@@ -501,7 +500,7 @@ Montarla (por ejemplo en `demo.crm.tudominio.es`):
 1. Crea el subdominio en Hostalia apuntando a una carpeta nueva y sube ahí el
    mismo zip del CRM.
 2. Crea una base de datos **nueva y vacía** e importa
-   `sql/base-de-datos-completa-v82.sql` (más las migraciones nuevas si las hay).
+   `sql/base-de-datos-completa-v87.sql` (más las migraciones nuevas si las hay).
 3. Crea `api/config.local.php` de esa carpeta con los datos de la BD nueva y
    añade `define('ICC_MODO_DEMO', true);`.
 4. Rellena la demo por SSH (el generador no se puede abrir desde el navegador):
@@ -522,3 +521,31 @@ facturas, lectura de facturas con IA, consulta SIPS y borrado de cuentas.
 
 En la instalación real `ICC_MODO_DEMO` no se define (vale `false`) y no
 aparece nada de esto.
+
+
+## Inteligencia artificial y cron único (v87, fase 1 de 7)
+
+Menú **Seguridad → 🤖 Inteligencia artificial** (`#/inteligencia-artificial`,
+`api/ia.php`), solo Coordinador, Admin y Super Admin.
+
+- **Solo OpenAI** (`api/ia_lib.php`): Chat Completions con herramientas y
+  respuestas JSON estrictas, `gpt-4o-mini-transcribe` (voz a texto) y
+  `gpt-4o-mini-tts` (texto a voz). `ICC_IA_PROVEEDOR = 'solo_openai'` impide
+  llamar a cualquier otro servidor. Modelo por defecto `gpt-5-mini`.
+- **La clave**: créala en platform.openai.com (con límite de gasto mensual) y
+  pégala en el panel; se guarda **cifrada** y nunca vuelve a mostrarse. También
+  puede ir en el archivo privado: `define('ICC_OPENAI_API_KEY', 'sk-...');`
+  (la del panel manda). Sin clave, todo funciona con plantillas y reglas.
+- La clave de cifrado se genera sola la primera vez en la carpeta privada
+  (`clave-cifrado.key`). **Inclúyela en tus copias**: sin ella no se pueden
+  leer los secretos guardados (bastaría con volver a pegar la clave de OpenAI).
+- Registros: cada consulta en `ia_registro` (90 días), cada cambio de la IA en
+  `ia_acciones` con el valor anterior (1 año) y notas en `cliente_notas`.
+  Límite diario de consultas por persona (300 por defecto).
+- **Cron único** (`api/cron.php`): en Plesk → Herramientas y Configuración →
+  Tareas programadas → «Buscar una URL», **cada 5 minutos**, la URL que
+  muestra el panel (lleva el token; «Cambiar el token» la invalida). Mientras
+  alguien tiene el CRM abierto, el panel hace de reloj de respaldo
+  (`api/latido.php`). Bloques de esta fase: copias de seguridad y limpieza de
+  registros (RGPD). Cada bloque queda en `cron_registro` (30 días).
+- Tablas nuevas: `sql/migracion_ia_base.sql` (incluida en la base de datos completa v87).

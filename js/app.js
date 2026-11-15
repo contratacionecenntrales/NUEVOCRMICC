@@ -277,7 +277,7 @@
       label: "Seguridad",
       href: "#/seguridad",
       submenu: [{ href: "#/seguridad", label: "🛡️ Centro de Seguridad" }].concat(
-        window.icc.auth.puedeVerCopias() ? [{ href: "#/copias-seguridad", label: "🗑️ Papelera y copias" }] : []
+        window.icc.auth.puedeVerCopias() ? [{ href: "#/copias-seguridad", label: "🗑️ Papelera y copias" }, { href: "#/inteligencia-artificial", label: "🤖 Inteligencia artificial" }] : []
       ),
     });
 
@@ -358,6 +358,21 @@
       });
     }
     shellPintado = true;
+    iniciarLatido();
+  }
+
+  // Latido: mientras el CRM está abierto, el panel hace de reloj de respaldo
+  // del cron único (el servidor decide si toca una pasada).
+  var latidoActivo = false;
+  function iniciarLatido() {
+    if (latidoActivo) return;
+    latidoActivo = true;
+    var latir = function () {
+      if (!window.icc.auth.state.user || document.hidden) return;
+      window.icc.api.post("api/latido.php", {}).catch(function () {});
+    };
+    setTimeout(latir, 20000);
+    setInterval(latir, 5 * 60 * 1000);
   }
 
   function pintarNav() {
@@ -726,6 +741,9 @@
       } else if (ruta === "#/copias-seguridad") {
         if (window.icc.copias) await window.icc.copias.view();
         else await window.icc.views.viewCopiasSeguridad();
+      } else if (ruta === "#/inteligencia-artificial") {
+        if (!window.icc.auth.puedeVerCopias() || !window.icc.ia) location.hash = "#/dashboard";
+        else await window.icc.ia.view();
       } else if (ruta.indexOf("#/ficheros") === 0) {
         var carpetaIdTxt = ruta.replace("#/ficheros", "").replace(/^\//, "");
         var carpetaId = carpetaIdTxt && /^\d+$/.test(carpetaIdTxt) ? parseInt(carpetaIdTxt, 10) : null;

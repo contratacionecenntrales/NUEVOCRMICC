@@ -68,7 +68,7 @@ if ($recurso === 'config') {
   if ($metodo === 'GET') {
     icc_json(cmp_config_publica() + [
       'usuario' => cmp_usuario_publico($user),
-      'ia' => defined('ICC_ANTHROPIC_API_KEY') && ICC_ANTHROPIC_API_KEY !== '',
+      'ia' => icc_ia_disponible(),
       'sips' => defined('ICC_SIPS_URL') && ICC_SIPS_URL !== '',
       'csrf' => icc_ensure_csrf(),
     ]);
