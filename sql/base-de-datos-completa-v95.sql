@@ -1,11 +1,11 @@
 -- =============================================================================
--- ICC CRM v94 · BASE DE DATOS COMPLETA (instalar o actualizar en un solo paso)
+-- ICC CRM v95 · BASE DE DATOS COMPLETA (instalar o actualizar en un solo paso)
 --
 -- Cómo usarlo: phpMyAdmin > tu base de datos > Importar > este archivo > Continuar.
 --
 -- - Si la base de datos YA TIENE datos (tu CRM actual): NO borra nada.
 --   Solo crea las tablas, columnas e índices que falten y amplía lo necesario
---   para la versión v94. Sirve vengas de la versión que vengas (v55 en adelante).
+--   para la versión v95. Sirve vengas de la versión que vengas (v55 en adelante).
 -- - Si la base de datos está VACÍA: crea el CRM completo y un usuario
 --   Super Administrador inicial (ver el final del archivo).
 -- - Se puede ejecutar MÁS DE UNA VEZ sin errores ni duplicados.
@@ -1192,6 +1192,25 @@ CREATE TABLE IF NOT EXISTS `proformas` (
   KEY `idx_proformas_facturado_por` (`facturado_por`),
   KEY `idx_proformas_fecha` (`fecha`),
   CONSTRAINT `fk_proforma_comercial` FOREIGN KEY (`comercial_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `rellamadas` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `cliente_id` int(10) unsigned NOT NULL,
+  `presupuesto_id` int(10) unsigned DEFAULT NULL,
+  `usuario_id` int(10) unsigned NOT NULL,
+  `cita_id` int(10) unsigned DEFAULT NULL,
+  `intento` tinyint(3) unsigned NOT NULL DEFAULT 1,
+  `estado` enum('pendiente','acepta','lo_piensa','no_contesta','no_acepta','cancelada') NOT NULL DEFAULT 'pendiente',
+  `motivo` varchar(500) NOT NULL DEFAULT '',
+  `fecha` date NOT NULL,
+  `rellamar_desde` date DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `resuelta_en` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_rell_usuario` (`usuario_id`,`estado`,`fecha`),
+  KEY `idx_rell_cliente` (`cliente_id`,`created_at`),
+  CONSTRAINT `fk_rell_cliente` FOREIGN KEY (`cliente_id`) REFERENCES `clientes` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `saneo_memoria` (
@@ -3051,6 +3070,31 @@ PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'proformas' AND column_name = 'created_at'), 'ALTER TABLE `proformas` ADD COLUMN `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rellamadas' AND column_name = 'id'), 'ALTER TABLE `rellamadas` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rellamadas' AND column_name = 'cliente_id'), 'ALTER TABLE `rellamadas` ADD COLUMN `cliente_id` int(10) unsigned NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rellamadas' AND column_name = 'presupuesto_id'), 'ALTER TABLE `rellamadas` ADD COLUMN `presupuesto_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rellamadas' AND column_name = 'usuario_id'), 'ALTER TABLE `rellamadas` ADD COLUMN `usuario_id` int(10) unsigned NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rellamadas' AND column_name = 'cita_id'), 'ALTER TABLE `rellamadas` ADD COLUMN `cita_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rellamadas' AND column_name = 'intento'), 'ALTER TABLE `rellamadas` ADD COLUMN `intento` tinyint(3) unsigned NOT NULL DEFAULT 1', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rellamadas' AND column_name = 'estado'), 'ALTER TABLE `rellamadas` ADD COLUMN `estado` enum(''pendiente'',''acepta'',''lo_piensa'',''no_contesta'',''no_acepta'',''cancelada'') NOT NULL DEFAULT ''pendiente''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rellamadas' AND column_name = 'motivo'), 'ALTER TABLE `rellamadas` ADD COLUMN `motivo` varchar(500) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rellamadas' AND column_name = 'fecha'), 'ALTER TABLE `rellamadas` ADD COLUMN `fecha` date NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rellamadas' AND column_name = 'rellamar_desde'), 'ALTER TABLE `rellamadas` ADD COLUMN `rellamar_desde` date DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rellamadas' AND column_name = 'created_at'), 'ALTER TABLE `rellamadas` ADD COLUMN `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rellamadas' AND column_name = 'resuelta_en'), 'ALTER TABLE `rellamadas` ADD COLUMN `resuelta_en` datetime DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'saneo_memoria' AND column_name = 'cliente_id'), 'ALTER TABLE `saneo_memoria` ADD COLUMN `cliente_id` int(10) unsigned NOT NULL', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'saneo_memoria' AND column_name = 'reprogramaciones'), 'ALTER TABLE `saneo_memoria` ADD COLUMN `reprogramaciones` tinyint(3) unsigned NOT NULL DEFAULT 0', 'DO 0'));
@@ -3797,6 +3841,10 @@ SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHER
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'proformas' AND index_name = 'idx_proformas_fecha'), 'CREATE INDEX `idx_proformas_fecha` ON `proformas` (`fecha`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'rellamadas' AND index_name = 'idx_rell_cliente'), 'CREATE INDEX `idx_rell_cliente` ON `rellamadas` (`cliente_id`, `created_at`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'rellamadas' AND index_name = 'idx_rell_usuario'), 'CREATE INDEX `idx_rell_usuario` ON `rellamadas` (`usuario_id`, `estado`, `fecha`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'saneo_registro' AND index_name = 'idx_saneo_registro_cliente'), 'CREATE INDEX `idx_saneo_registro_cliente` ON `saneo_registro` (`cliente_id`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'saneo_registro' AND index_name = 'idx_saneo_registro_lote'), 'CREATE INDEX `idx_saneo_registro_lote` ON `saneo_registro` (`lote`)', 'DO 0'));
@@ -4011,6 +4059,8 @@ SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constrain
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'proformas' AND constraint_name = 'fk_proforma_comercial' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `proformas` ADD CONSTRAINT `fk_proforma_comercial` FOREIGN KEY (`comercial_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'rellamadas' AND constraint_name = 'fk_rell_cliente' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `rellamadas` ADD CONSTRAINT `fk_rell_cliente` FOREIGN KEY (`cliente_id`) REFERENCES `clientes` (`id`) ON DELETE CASCADE', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'seg_2fa' AND constraint_name = 'fk_seg_2fa_usuario' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `seg_2fa` ADD CONSTRAINT `fk_seg_2fa_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'seg_accesos' AND constraint_name = 'fk_seg_accesos_usuario' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `seg_accesos` ADD CONSTRAINT `fk_seg_accesos_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL', 'DO 0'));
@@ -4046,7 +4096,7 @@ PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 -- Numero de relacion de cada usuario (solo a quien no lo tenga).
 UPDATE usuarios SET numero_relacion = CONCAT('ICC-', LPAD(id, 5, '0')) WHERE numero_relacion IS NULL;
 
--- v94: la identidad Labs24k del Motor pasa a ICC Consultoria (100 % servicios, 100 % companias).
+-- v95: la identidad Labs24k del Motor pasa a ICC Consultoria (100 % servicios, 100 % companias).
 UPDATE motor_campanas SET perfil = 'icc' WHERE perfil = 'labs24k';
 UPDATE motor_campanas SET angulo = 'auditoria_integral' WHERE angulo IN ('ia_transparencia', 'ia_alfabetizacion', 'ia_fundae', 'ia_captacion', 'ia_pregunta');
 DELETE FROM ajustes WHERE clave = 'motor_perfil_labs24k';
@@ -4263,4 +4313,4 @@ UPDATE usuarios SET numero_relacion = CONCAT('ICC-', LPAD(id, 5, '0')) WHERE num
 SET FOREIGN_KEY_CHECKS = 1;
 SET SESSION sql_mode = @icc_modo_anterior;
 
--- Listo. Base de datos al dia para ICC CRM v94.
+-- Listo. Base de datos al dia para ICC CRM v95.

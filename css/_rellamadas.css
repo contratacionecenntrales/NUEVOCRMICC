@@ -1,0 +1,22 @@
+/* ICC CRM · Rellamadas de presupuestos (js/rellamadas.js). Usa css/_ia.css y _motor.css. */
+.icc-rl-quien { display: flex; flex-direction: column; gap: 6px; max-width: 280px; margin-top: 8px; }
+.icc-rl-quien span { font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--txt-3); }
+.icc-rl-lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 12px; }
+.icc-rl-tarjeta { margin: 0; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.icc-rl-tarjeta.is-tarde { border-color: rgba(245, 158, 11, .6); box-shadow: inset 3px 0 0 #F59E0B; }
+.icc-rl-tarjeta header { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+.icc-rl-tarjeta header div { display: flex; flex-direction: column; min-width: 0; }
+.icc-rl-tarjeta strong a { color: var(--txt); text-decoration: none; }
+.icc-rl-tarjeta small { color: var(--txt-3); font-size: 12px; overflow-wrap: anywhere; }
+.icc-rl-tel { align-self: flex-start; text-decoration: none; }
+.icc-rl-guion summary { cursor: pointer; color: var(--cian); font-size: 13px; }
+.icc-rl-guion ol { margin: 8px 0 4px; padding-left: 20px; color: var(--txt-2); font-size: 13px; line-height: 1.5; display: flex; flex-direction: column; gap: 4px; }
+.icc-rl-res { display: flex; flex-wrap: wrap; gap: 6px; }
+.icc-rl-res .is-sel { outline: 2px solid var(--accent); outline-offset: 1px; }
+.icc-rl-extra { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; }
+.icc-rl-extra[hidden], .icc-rl-fecha[hidden] { display: none; }
+.icc-rl-extra [data-motivo] { flex: 1; min-width: 200px; }
+.icc-rl-fecha { display: flex; flex-direction: column; gap: 4px; }
+.icc-rl-fecha span { font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--txt-3); }
+@media (max-width: 560px) { .icc-rl-lista { grid-template-columns: minmax(0, 1fr); } .icc-rl-res .icc-btn { flex: 1 1 45%; } }
+.icc-rl .icc-ia-lista li > div.icc-ia-fila { flex: 0 0 auto; min-width: 0; flex-direction: row; }

@@ -271,6 +271,9 @@
       ],
     });
 
+    // Rellamadas de presupuestos: backoffice (las suyas) y dirección.
+    if (window.icc.auth.puedeVerIA() || window.icc.auth.state.rolPrincipal === "backoffice") items.push({ label: "📞 Rellamadas", href: "#/rellamadas" });
+
     // Capa de IA: dirección y jefes de equipo (los ajustes, solo coordinación y admin).
     if (window.icc.auth.puedeVerIA()) items.push({
       label: "🤖 IA",
@@ -761,6 +764,9 @@
       } else if (ruta === "#/motor") {
         if (!window.icc.auth.puedeVerIA() || !window.icc.motor) location.hash = "#/dashboard";
         else await window.icc.motor.view();
+      } else if (ruta === "#/rellamadas") {
+        if (!(window.icc.auth.puedeVerIA() || window.icc.auth.state.rolPrincipal === "backoffice") || !window.icc.rellamadas) location.hash = "#/dashboard";
+        else await window.icc.rellamadas.view();
       } else if (ruta === "#/zona-agentes") {
         if (!window.icc.auth.puedeVerIA() || !window.icc.equipo) location.hash = "#/dashboard";
         else await window.icc.equipo.view();

@@ -218,7 +218,7 @@ propio CRM — ya no hace falta volver a tocar la base de datos a mano.
 
 ## Base de datos en un solo paso
 
-`sql/base-de-datos-completa-v94.sql` deja cualquier base de datos al día para la v94 importándolo una sola vez en phpMyAdmin:
+`sql/base-de-datos-completa-v95.sql` deja cualquier base de datos al día para la v95 importándolo una sola vez en phpMyAdmin:
 - Con datos (v55 en adelante): no borra nada; crea solo las tablas, columnas, índices y relaciones que falten y amplía los roles. Deja a Daniela con todo el equipo de María y las agendas de Juan y María.
 - Vacía: crea el CRM completo y un Super Administrador inicial (info@integralconnectionconsulting.es, contraseña provisional `CambiaEsta-2026`, que el CRM obliga a cambiar).
 - Se puede ejecutar varias veces sin errores ni duplicados. Los datos de ejemplo de los comparadores solo se cargan si esas tablas están vacías.
@@ -500,7 +500,7 @@ Montarla (por ejemplo en `demo.crm.tudominio.es`):
 1. Crea el subdominio en Hostalia apuntando a una carpeta nueva y sube ahí el
    mismo zip del CRM.
 2. Crea una base de datos **nueva y vacía** e importa
-   `sql/base-de-datos-completa-v94.sql` (más las migraciones nuevas si las hay).
+   `sql/base-de-datos-completa-v95.sql` (más las migraciones nuevas si las hay).
 3. Crea `api/config.local.php` de esa carpeta con los datos de la BD nueva y
    añade `define('ICC_MODO_DEMO', true);`.
 4. Rellena la demo por SSH (el generador no se puede abrir desde el navegador):
@@ -741,4 +741,22 @@ diseño decide una persona.
 **Memoria** (`autofix_memoria`): cada incidencia con sus intentos (como mucho 3 por episodio, con pausas de 10 y
 60 minutos) y las veces que se repite; si algo vuelve 3 veces, lo anota en el Cerebro de la empresa para buscar
 la causa. **Jarvis**: «¿Qué requiere acción?» y «Arregla lo que requiere acción» (dirección, con confirmación).
+
+## Jefatura de Backoffice: rellamadas de presupuestos (v95)
+
+Agente nuevo (**Jefatura de Backoffice · Rellamadas**, 19 agentes; `api/rellamadas_lib.php`, `api/rellamadas.php`,
+`js/rellamadas.js`) y menú **📞 Rellamadas** para backoffice (ve las suyas) y dirección y jefes de equipo (todas).
+Migración: `sql/migracion_rellamadas.sql` (incluida en la base de datos completa v95).
+
+- Cada mañana pone en la agenda de la persona de backoffice elegida (por defecto, **Daniela**) las rellamadas a
+  clientes en Propuesta o Negociación cuyo presupuesto lleva 2 días sin respuesta y sin cita, con el guion para que
+  lo acepten y empiecen a ahorrar (presentación del ahorro, aislar la objeción y cierre por alternativa). Como
+  mucho 15 al día (ajustable); «Dame más rellamadas» pide más.
+- Resultado con un clic: **Acepta** → presupuesto a documentación, cliente a Negociación, tarea de preparar el
+  contrato y aviso al gestor. **Lo piensa** → nueva rellamada a los 3 días laborables o el día acordado. **No
+  contesta** → se reintenta al día siguiente; a la 3.ª, pasa al gestor. **No acepta** (con motivo) → llamada del
+  gestor para tratar la objeción; nunca se marca perdido solo.
+- **Da caña**: parte diario a backoffice (para hoy, atrasadas, resultados de ayer y aceptados de la semana) y aviso
+  a coordinación cada mañana si acumula 3 o más rellamadas atrasadas. La Jefatura de ventas no empuja a los
+  clientes que backoffice está rellamando.
 
