@@ -277,6 +277,7 @@
       href: "#/motor",
       submenu: [
         { href: "#/motor", label: "🛰️ Motor de prospección" },
+        { href: "#/zona-agentes", label: "🧠 Zona de agentes" },
       ].concat(window.icc.auth.puedeVerCopias() ? [{ href: "#/inteligencia-artificial", label: "⚙️ Ajustes de IA y cron" }] : []),
     });
 
@@ -753,6 +754,9 @@
       } else if (ruta === "#/motor") {
         if (!window.icc.auth.puedeVerIA() || !window.icc.motor) location.hash = "#/dashboard";
         else await window.icc.motor.view();
+      } else if (ruta === "#/zona-agentes") {
+        if (!window.icc.auth.puedeVerIA() || !window.icc.equipo) location.hash = "#/dashboard";
+        else await window.icc.equipo.view();
       } else if (ruta === "#/inteligencia-artificial") {
         if (!window.icc.auth.puedeVerCopias() || !window.icc.ia) location.hash = "#/dashboard";
         else await window.icc.ia.view();

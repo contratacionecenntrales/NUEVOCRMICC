@@ -1,0 +1,57 @@
+/* ICC CRM · Zona de agentes (js/equipo.js). Usa también css/_ia.css y css/_motor.css. */
+.icc-eq-dep h2 { margin: 6px 0 10px; font-size: 16px; color: var(--txt); text-transform: none; letter-spacing: normal; }
+.icc-eq-agentes { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+.icc-eq-agente { margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.icc-eq-agente header { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+.icc-eq-agente header div { display: flex; flex-direction: column; min-width: 0; }
+.icc-eq-agente strong { color: var(--txt); }
+.icc-eq-agente small { color: var(--txt-3); font-size: 12px; }
+.icc-eq-agente .icc-btn { align-self: flex-start; }
+.icc-eq-mision { margin: 0; color: var(--txt-2); font-size: 13px; line-height: 1.5; }
+.icc-eq-ultimo { margin: 0; font-size: 12.5px; color: var(--txt-3); line-height: 1.45; overflow-wrap: anywhere; }
+.icc-eq-ultimo b { color: var(--txt-2); }
+.icc-eq-nota { min-width: 38px; height: 38px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; background: var(--card-2); color: var(--txt); flex-shrink: 0; }
+.icc-eq-nota.is-ok { background: rgba(52, 211, 153, .16); color: #6EE7B7; }
+.icc-eq-nota.is-aviso { background: rgba(251, 191, 36, .16); color: #FCD34D; }
+.icc-eq-nota.is-mal { background: rgba(248, 113, 113, .18); color: #FCA5A5; }
+.icc-ia-uso b.icc-eq-nota { width: 34px; min-width: 34px; height: 34px; justify-self: end; }
+.icc-eq-args { margin: 0; padding-left: 18px; color: var(--txt-2); font-size: 13px; display: flex; flex-direction: column; gap: 3px; overflow-wrap: anywhere; }
+.icc-eq-tareas p, .icc-ia-lista p { margin: 4px 0 0; color: var(--txt-2); font-size: 13px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.icc-eq-h3 { margin: 16px 0 8px; font-size: 13px; color: var(--txt-3); text-transform: uppercase; letter-spacing: .06em; }
+.icc-eq-embudo { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.icc-eq-embudo div { width: var(--w); min-width: 180px; display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 16px; border-radius: 10px;
+  background: linear-gradient(90deg, rgba(139, 92, 246, .22), rgba(34, 211, 238, .16)); border: 1px solid var(--line); }
+.icc-eq-embudo b { color: var(--txt); font-size: 18px; }
+.icc-eq-embudo span { color: var(--txt-2); font-size: 13px; }
+.icc-eq-ab { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.icc-eq-ab div { padding: 10px; border-radius: 10px; background: var(--card-2); border: 1px solid var(--line); color: var(--txt-2); font-size: 13px; display: flex; flex-direction: column; gap: 4px; }
+.icc-eq-ab div.is-gana { border-color: #34D399; background: rgba(52, 211, 153, .1); }
+.icc-eq-ab b { color: var(--txt); }
+.icc-eq-mapa { overflow-x: auto; }
+.icc-eq-mapa table { border-collapse: separate; border-spacing: 3px; font-size: 12px; min-width: 640px; width: 100%; }
+.icc-eq-mapa th { text-align: left; color: var(--txt-3); font-weight: 700; padding: 4px 6px; white-space: nowrap; }
+.icc-eq-mapa td { text-align: center; height: 26px; border-radius: 6px; color: var(--txt); background: rgba(16, 185, 129, calc(.08 + var(--p) * .6)); }
+.icc-eq-mapa tr.is-off th, .icc-eq-mapa tr.is-off td { opacity: .35; }
+.icc-eq-tres { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.icc-eq-toques { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; margin: 6px 0 12px; }
+.icc-eq-toques div { padding: 10px; border-radius: 10px; background: var(--card-2); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 2px; }
+.icc-eq-toques b { color: var(--cian); font-size: 13px; }
+.icc-eq-toques span { color: var(--txt-2); font-size: 12px; }
+.icc-eq-temp { display: flex; align-items: center; gap: 8px; min-width: 120px; }
+.icc-eq-temp i { flex: 1; height: 8px; border-radius: 99px; background: linear-gradient(90deg, #F59E0B, #EF4444) 0 0 / var(--t) 100% no-repeat, var(--card-2); }
+.icc-eq-temp span { color: var(--txt-2); font-size: 12px; font-weight: 700; }
+.icc-eq-aut { display: flex; flex-direction: column; gap: 8px; max-height: 460px; overflow-y: auto; }
+.icc-eq-aut label { display: grid; grid-template-columns: minmax(0, 1fr) 150px; gap: 10px; align-items: center; font-size: 13px; color: var(--txt-2); }
+.icc-eq-sect { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 6px 12px; }
+.icc-eq-sect label { font-size: 13px; color: var(--txt-2); display: flex; gap: 6px; align-items: center; }
+@media (max-width: 860px) {
+  .icc-eq-tres { grid-template-columns: minmax(0, 1fr); }
+  .icc-eq-toques { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 560px) {
+  .icc-eq-agentes { grid-template-columns: minmax(0, 1fr); }
+  .icc-eq-ab { grid-template-columns: minmax(0, 1fr); }
+  .icc-eq-toques { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .icc-eq-aut label { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .icc-eq-embudo div { width: 100%; }
+}

@@ -111,3 +111,5 @@ function icc_cron_ejecutar(string $origen, bool $forzar = false): array {
 require_once __DIR__ . '/motor_lib.php';
 icc_cron_registrar('motor', 1, function (): string { return motor_tick(); });
 icc_cron_registrar('motor_analisis', 5, function (): string { return motor_analizar_pendientes(); });
+require_once __DIR__ . '/agentes_lib.php';
+icc_cron_registrar('agentes', 5, function (): string { return eq_tick(); });
