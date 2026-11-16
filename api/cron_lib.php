@@ -29,7 +29,7 @@ function &icc_cron_bloques_ref(): array {
         foreach (['DELETE FROM motor_mensajes WHERE created_at < NOW() - INTERVAL 365 DAY', 'DELETE FROM motor_log WHERE ts < NOW() - INTERVAL 180 DAY',
                   'DELETE FROM flujo_registro WHERE ts < NOW() - INTERVAL 180 DAY', 'DELETE FROM flujo_eventos WHERE procesado = 1 AND ts < NOW() - INTERVAL 30 DAY',
                   'DELETE FROM equipo_acciones WHERE ts < NOW() - INTERVAL 365 DAY AND estado <> \'pendiente\'', 'DELETE FROM equipo_turnos WHERE inicio < NOW() - INTERVAL 180 DAY',
-                  'DELETE FROM jarvis_registro WHERE ts < NOW() - INTERVAL 90 DAY', "UPDATE voz_llamadas SET transcripcion = NULL, grabacion_url = NULL WHERE created_at < NOW() - INTERVAL 90 DAY AND transcripcion IS NOT NULL", 'DELETE FROM voz_llamadas WHERE created_at < NOW() - INTERVAL 365 DAY', 'DELETE FROM jarvis_usadas WHERE ts < NOW() - INTERVAL 2 DAY',
+                  'DELETE FROM jarvis_registro WHERE ts < NOW() - INTERVAL 90 DAY', "UPDATE voz_llamadas SET transcripcion = NULL, grabacion_url = NULL WHERE created_at < NOW() - INTERVAL 90 DAY AND transcripcion IS NOT NULL", 'DELETE FROM voz_llamadas WHERE created_at < NOW() - INTERVAL 365 DAY', 'DELETE FROM jarvis_usadas WHERE ts < NOW() - INTERVAL 2 DAY', 'DELETE FROM rrhh_mensajes WHERE created_at < NOW() - INTERVAL 365 DAY',
                   'DELETE FROM mail_mensajes WHERE created_at < NOW() - INTERVAL 365 DAY'] as $sql) {
           try { $n += $db->exec($sql); } catch (Throwable $e) { /* tabla aun no creada */ }
         }
@@ -127,3 +127,5 @@ require_once __DIR__ . '/aprendizaje_lib.php';
 icc_cron_registrar('aprendizaje', 1440, function (): string { return apr_tick(); });
 require_once __DIR__ . '/autofix_lib.php';
 icc_cron_registrar('autofix', 10, function (): string { return af_tick(); });
+require_once __DIR__ . '/rrhh_lib.php';
+icc_cron_registrar('entrevistas', 1, function (): string { return rr_tick(); });

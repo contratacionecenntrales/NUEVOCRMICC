@@ -50,6 +50,13 @@ AddType "image/svg+xml; charset=UTF-8" .svg
 </IfModule>
 
 # --- Bloqueo de ficheros sensibles (sintaxis doble 2.2 / 2.4) ----------------
+# Formulario publico de candidatura (Zona de entrevistas): su propio formulario puede enviarse.
+<IfModule mod_headers.c>
+  <Files "rrhh_entrada.php">
+    Header always set Content-Security-Policy "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self' https://fonts.gstatic.com; connect-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'; object-src 'none'"
+  </Files>
+</IfModule>
+
 <FilesMatch "(^\.|\.(md|zip|log|bak|old|orig|swp|sql|env|ini|yml|py|sh|txt|7z|rar|tar|gz|tgz)$)">
   <IfModule mod_authz_core.c>
     Require all denied
@@ -62,7 +69,7 @@ AddType "image/svg+xml; charset=UTF-8" .svg
 
 # config.php y las piezas internas (*_lib.php, cmp_comun.php) solo se usan via
 # "require" desde otros scripts PHP, nunca se piden directamente por URL.
-<FilesMatch "^(config|config\.local|seguridad_lib|copias_lib|anuncios_lib|tarifas_novedades_lib|ia_lib|cron_lib|correo_lib|web_lib|motor_lib|agentes_lib|flujos_lib|jarvis_lib|saneo_lib|correo_agentes_lib|aprendizaje_lib|voz_lib|autofix_lib|rellamadas_lib|cmp_comun)\.php$">
+<FilesMatch "^(config|config\.local|seguridad_lib|copias_lib|anuncios_lib|tarifas_novedades_lib|ia_lib|cron_lib|correo_lib|web_lib|motor_lib|agentes_lib|flujos_lib|jarvis_lib|saneo_lib|correo_agentes_lib|aprendizaje_lib|voz_lib|autofix_lib|rellamadas_lib|rrhh_lib|cmp_comun)\.php$">
   <IfModule mod_authz_core.c>
     Require all denied
   </IfModule>

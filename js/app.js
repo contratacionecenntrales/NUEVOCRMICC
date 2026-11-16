@@ -283,6 +283,7 @@
         { href: "#/zona-agentes", label: "🧠 Zona de agentes" },
         { href: "#/automatizaciones", label: "⚡ Automatizaciones" },
         { href: "#/agente-correo", label: "📬 Agente de correo" },
+        { href: "#/entrevistas", label: "🧑‍💼 Zona de entrevistas" },
       ]).concat(window.icc.auth.puedeVerCopias() ? [{ href: "#/inteligencia-artificial", label: "⚙️ Ajustes de IA y cron" }] : []),
     });
 
@@ -764,6 +765,9 @@
       } else if (ruta === "#/motor") {
         if (!window.icc.auth.puedeVerIA() || !window.icc.motor) location.hash = "#/dashboard";
         else await window.icc.motor.view();
+      } else if (ruta === "#/entrevistas") {
+        if (!window.icc.auth.puedeVerIA() || !window.icc.entrevistas) location.hash = "#/dashboard";
+        else await window.icc.entrevistas.view();
       } else if (ruta === "#/rellamadas") {
         if (!(window.icc.auth.puedeVerIA() || window.icc.auth.state.rolPrincipal === "backoffice") || !window.icc.rellamadas) location.hash = "#/dashboard";
         else await window.icc.rellamadas.view();

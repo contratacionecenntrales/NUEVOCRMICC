@@ -1,11 +1,11 @@
 -- =============================================================================
--- ICC CRM v95 · BASE DE DATOS COMPLETA (instalar o actualizar en un solo paso)
+-- ICC CRM v96 · BASE DE DATOS COMPLETA (instalar o actualizar en un solo paso)
 --
 -- Cómo usarlo: phpMyAdmin > tu base de datos > Importar > este archivo > Continuar.
 --
 -- - Si la base de datos YA TIENE datos (tu CRM actual): NO borra nada.
 --   Solo crea las tablas, columnas e índices que falten y amplía lo necesario
---   para la versión v95. Sirve vengas de la versión que vengas (v55 en adelante).
+--   para la versión v96. Sirve vengas de la versión que vengas (v55 en adelante).
 -- - Si la base de datos está VACÍA: crea el CRM completo y un usuario
 --   Super Administrador inicial (ver el final del archivo).
 -- - Se puede ejecutar MÁS DE UNA VEZ sin errores ni duplicados.
@@ -1211,6 +1211,109 @@ CREATE TABLE IF NOT EXISTS `rellamadas` (
   KEY `idx_rell_usuario` (`usuario_id`,`estado`,`fecha`),
   KEY `idx_rell_cliente` (`cliente_id`,`created_at`),
   CONSTRAINT `fk_rell_cliente` FOREIGN KEY (`cliente_id`) REFERENCES `clientes` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `rrhh_agentes` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(80) NOT NULL,
+  `phone_number_id` varchar(40) NOT NULL DEFAULT '',
+  `numero_visible` varchar(30) NOT NULL DEFAULT '',
+  `tono` varchar(160) NOT NULL DEFAULT 'cercano y profesional, de tÃº',
+  `activo` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_rrhh_ag_phone` (`phone_number_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `rrhh_candidatos` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(160) NOT NULL DEFAULT '',
+  `telefono` varchar(20) NOT NULL,
+  `email` varchar(190) NOT NULL DEFAULT '',
+  `origen` varchar(30) NOT NULL DEFAULT 'manual',
+  `consentimiento` datetime DEFAULT NULL,
+  `bolsa_hasta` date DEFAULT NULL,
+  `baja` tinyint(1) NOT NULL DEFAULT 0,
+  `ultimo_entrante` datetime DEFAULT NULL,
+  `notas` text DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_rrhh_cand_tel` (`telefono`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `rrhh_entrevistas` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `vacante_id` int(10) unsigned NOT NULL,
+  `candidato_id` int(10) unsigned NOT NULL,
+  `agente_id` int(10) unsigned DEFAULT NULL,
+  `canal` enum('whatsapp','prueba') NOT NULL DEFAULT 'whatsapp',
+  `estado` enum('invitado','en_curso','preseleccionado','revisar','no_cumple','agendada','contratado','descartado','abandonada','baja') NOT NULL DEFAULT 'invitado',
+  `paso` varchar(30) NOT NULL DEFAULT 'inicio',
+  `intentos` tinyint(3) unsigned NOT NULL DEFAULT 0,
+  `respuestas` mediumtext DEFAULT NULL,
+  `puntuacion` tinyint(3) unsigned DEFAULT NULL,
+  `resumen` text DEFAULT NULL,
+  `motivo` varchar(500) NOT NULL DEFAULT '',
+  `huecos` varchar(200) DEFAULT NULL,
+  `cita_id` int(10) unsigned DEFAULT NULL,
+  `cita_en` datetime DEFAULT NULL,
+  `recordatorios` tinyint(3) unsigned NOT NULL DEFAULT 0,
+  `aviso_cita` tinyint(3) unsigned NOT NULL DEFAULT 0,
+  `decidido_por` int(10) unsigned DEFAULT NULL,
+  `decidido_en` datetime DEFAULT NULL,
+  `ultimo_saliente` datetime DEFAULT NULL,
+  `ultimo_entrante` datetime DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_rrhh_ent_estado` (`estado`,`updated_at`),
+  KEY `idx_rrhh_ent_vac` (`vacante_id`,`estado`),
+  KEY `idx_rrhh_ent_cand` (`candidato_id`),
+  CONSTRAINT `fk_rrhh_ent_cand` FOREIGN KEY (`candidato_id`) REFERENCES `rrhh_candidatos` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_rrhh_ent_vac` FOREIGN KEY (`vacante_id`) REFERENCES `rrhh_vacantes` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `rrhh_mensajes` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `entrevista_id` int(10) unsigned DEFAULT NULL,
+  `candidato_id` int(10) unsigned NOT NULL,
+  `agente_id` int(10) unsigned DEFAULT NULL,
+  `direccion` enum('entrada','salida') NOT NULL,
+  `texto` text NOT NULL,
+  `wa_id` varchar(120) DEFAULT NULL,
+  `estado` varchar(20) NOT NULL DEFAULT 'enviado',
+  `error` varchar(255) DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_rrhh_msg_cand` (`candidato_id`,`id`),
+  KEY `idx_rrhh_msg_wa` (`wa_id`),
+  CONSTRAINT `fk_rrhh_msg_cand` FOREIGN KEY (`candidato_id`) REFERENCES `rrhh_candidatos` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `rrhh_vacantes` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `titulo` varchar(160) NOT NULL,
+  `ubicacion` varchar(160) NOT NULL DEFAULT '',
+  `modalidad` varchar(60) NOT NULL DEFAULT '',
+  `jornada` varchar(80) NOT NULL DEFAULT '',
+  `salario` varchar(160) NOT NULL DEFAULT '',
+  `descripcion` text DEFAULT NULL,
+  `filtros` mediumtext DEFAULT NULL,
+  `preguntas` mediumtext DEFAULT NULL,
+  `puntuacion_min` tinyint(3) unsigned NOT NULL DEFAULT 60,
+  `plazas` smallint(5) unsigned NOT NULL DEFAULT 1,
+  `agente_id` int(10) unsigned DEFAULT NULL,
+  `responsable_id` int(10) unsigned DEFAULT NULL,
+  `auto_agendar` tinyint(1) NOT NULL DEFAULT 1,
+  `estado` enum('borrador','activa','pausada','cerrada') NOT NULL DEFAULT 'borrador',
+  `token` char(32) DEFAULT NULL,
+  `creado_por` int(10) unsigned DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_rrhh_vac_token` (`token`),
+  KEY `idx_rrhh_vac_estado` (`estado`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `saneo_memoria` (
@@ -3095,6 +3198,153 @@ PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rellamadas' AND column_name = 'resuelta_en'), 'ALTER TABLE `rellamadas` ADD COLUMN `resuelta_en` datetime DEFAULT NULL', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_agentes' AND column_name = 'id'), 'ALTER TABLE `rrhh_agentes` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_agentes' AND column_name = 'nombre'), 'ALTER TABLE `rrhh_agentes` ADD COLUMN `nombre` varchar(80) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_agentes' AND column_name = 'phone_number_id'), 'ALTER TABLE `rrhh_agentes` ADD COLUMN `phone_number_id` varchar(40) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_agentes' AND column_name = 'numero_visible'), 'ALTER TABLE `rrhh_agentes` ADD COLUMN `numero_visible` varchar(30) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_agentes' AND column_name = 'tono'), 'ALTER TABLE `rrhh_agentes` ADD COLUMN `tono` varchar(160) NOT NULL DEFAULT ''cercano y profesional, de tÃº''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_agentes' AND column_name = 'activo'), 'ALTER TABLE `rrhh_agentes` ADD COLUMN `activo` tinyint(1) NOT NULL DEFAULT 1', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_agentes' AND column_name = 'created_at'), 'ALTER TABLE `rrhh_agentes` ADD COLUMN `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_candidatos' AND column_name = 'id'), 'ALTER TABLE `rrhh_candidatos` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_candidatos' AND column_name = 'nombre'), 'ALTER TABLE `rrhh_candidatos` ADD COLUMN `nombre` varchar(160) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_candidatos' AND column_name = 'telefono'), 'ALTER TABLE `rrhh_candidatos` ADD COLUMN `telefono` varchar(20) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_candidatos' AND column_name = 'email'), 'ALTER TABLE `rrhh_candidatos` ADD COLUMN `email` varchar(190) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_candidatos' AND column_name = 'origen'), 'ALTER TABLE `rrhh_candidatos` ADD COLUMN `origen` varchar(30) NOT NULL DEFAULT ''manual''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_candidatos' AND column_name = 'consentimiento'), 'ALTER TABLE `rrhh_candidatos` ADD COLUMN `consentimiento` datetime DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_candidatos' AND column_name = 'bolsa_hasta'), 'ALTER TABLE `rrhh_candidatos` ADD COLUMN `bolsa_hasta` date DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_candidatos' AND column_name = 'baja'), 'ALTER TABLE `rrhh_candidatos` ADD COLUMN `baja` tinyint(1) NOT NULL DEFAULT 0', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_candidatos' AND column_name = 'ultimo_entrante'), 'ALTER TABLE `rrhh_candidatos` ADD COLUMN `ultimo_entrante` datetime DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_candidatos' AND column_name = 'notas'), 'ALTER TABLE `rrhh_candidatos` ADD COLUMN `notas` text DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_candidatos' AND column_name = 'created_at'), 'ALTER TABLE `rrhh_candidatos` ADD COLUMN `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_candidatos' AND column_name = 'updated_at'), 'ALTER TABLE `rrhh_candidatos` ADD COLUMN `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_entrevistas' AND column_name = 'id'), 'ALTER TABLE `rrhh_entrevistas` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_entrevistas' AND column_name = 'vacante_id'), 'ALTER TABLE `rrhh_entrevistas` ADD COLUMN `vacante_id` int(10) unsigned NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_entrevistas' AND column_name = 'candidato_id'), 'ALTER TABLE `rrhh_entrevistas` ADD COLUMN `candidato_id` int(10) unsigned NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_entrevistas' AND column_name = 'agente_id'), 'ALTER TABLE `rrhh_entrevistas` ADD COLUMN `agente_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_entrevistas' AND column_name = 'canal'), 'ALTER TABLE `rrhh_entrevistas` ADD COLUMN `canal` enum(''whatsapp'',''prueba'') NOT NULL DEFAULT ''whatsapp''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_entrevistas' AND column_name = 'estado'), 'ALTER TABLE `rrhh_entrevistas` ADD COLUMN `estado` enum(''invitado'',''en_curso'',''preseleccionado'',''revisar'',''no_cumple'',''agendada'',''contratado'',''descartado'',''abandonada'',''baja'') NOT NULL DEFAULT ''invitado''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_entrevistas' AND column_name = 'paso'), 'ALTER TABLE `rrhh_entrevistas` ADD COLUMN `paso` varchar(30) NOT NULL DEFAULT ''inicio''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_entrevistas' AND column_name = 'intentos'), 'ALTER TABLE `rrhh_entrevistas` ADD COLUMN `intentos` tinyint(3) unsigned NOT NULL DEFAULT 0', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_entrevistas' AND column_name = 'respuestas'), 'ALTER TABLE `rrhh_entrevistas` ADD COLUMN `respuestas` mediumtext DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_entrevistas' AND column_name = 'puntuacion'), 'ALTER TABLE `rrhh_entrevistas` ADD COLUMN `puntuacion` tinyint(3) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_entrevistas' AND column_name = 'resumen'), 'ALTER TABLE `rrhh_entrevistas` ADD COLUMN `resumen` text DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_entrevistas' AND column_name = 'motivo'), 'ALTER TABLE `rrhh_entrevistas` ADD COLUMN `motivo` varchar(500) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_entrevistas' AND column_name = 'huecos'), 'ALTER TABLE `rrhh_entrevistas` ADD COLUMN `huecos` varchar(200) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_entrevistas' AND column_name = 'cita_id'), 'ALTER TABLE `rrhh_entrevistas` ADD COLUMN `cita_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_entrevistas' AND column_name = 'cita_en'), 'ALTER TABLE `rrhh_entrevistas` ADD COLUMN `cita_en` datetime DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_entrevistas' AND column_name = 'recordatorios'), 'ALTER TABLE `rrhh_entrevistas` ADD COLUMN `recordatorios` tinyint(3) unsigned NOT NULL DEFAULT 0', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_entrevistas' AND column_name = 'aviso_cita'), 'ALTER TABLE `rrhh_entrevistas` ADD COLUMN `aviso_cita` tinyint(3) unsigned NOT NULL DEFAULT 0', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_entrevistas' AND column_name = 'decidido_por'), 'ALTER TABLE `rrhh_entrevistas` ADD COLUMN `decidido_por` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_entrevistas' AND column_name = 'decidido_en'), 'ALTER TABLE `rrhh_entrevistas` ADD COLUMN `decidido_en` datetime DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_entrevistas' AND column_name = 'ultimo_saliente'), 'ALTER TABLE `rrhh_entrevistas` ADD COLUMN `ultimo_saliente` datetime DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_entrevistas' AND column_name = 'ultimo_entrante'), 'ALTER TABLE `rrhh_entrevistas` ADD COLUMN `ultimo_entrante` datetime DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_entrevistas' AND column_name = 'created_at'), 'ALTER TABLE `rrhh_entrevistas` ADD COLUMN `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_entrevistas' AND column_name = 'updated_at'), 'ALTER TABLE `rrhh_entrevistas` ADD COLUMN `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_mensajes' AND column_name = 'id'), 'ALTER TABLE `rrhh_mensajes` ADD COLUMN `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_mensajes' AND column_name = 'entrevista_id'), 'ALTER TABLE `rrhh_mensajes` ADD COLUMN `entrevista_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_mensajes' AND column_name = 'candidato_id'), 'ALTER TABLE `rrhh_mensajes` ADD COLUMN `candidato_id` int(10) unsigned NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_mensajes' AND column_name = 'agente_id'), 'ALTER TABLE `rrhh_mensajes` ADD COLUMN `agente_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_mensajes' AND column_name = 'direccion'), 'ALTER TABLE `rrhh_mensajes` ADD COLUMN `direccion` enum(''entrada'',''salida'') NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_mensajes' AND column_name = 'texto'), 'ALTER TABLE `rrhh_mensajes` ADD COLUMN `texto` text NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_mensajes' AND column_name = 'wa_id'), 'ALTER TABLE `rrhh_mensajes` ADD COLUMN `wa_id` varchar(120) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_mensajes' AND column_name = 'estado'), 'ALTER TABLE `rrhh_mensajes` ADD COLUMN `estado` varchar(20) NOT NULL DEFAULT ''enviado''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_mensajes' AND column_name = 'error'), 'ALTER TABLE `rrhh_mensajes` ADD COLUMN `error` varchar(255) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_mensajes' AND column_name = 'created_at'), 'ALTER TABLE `rrhh_mensajes` ADD COLUMN `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_vacantes' AND column_name = 'id'), 'ALTER TABLE `rrhh_vacantes` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_vacantes' AND column_name = 'titulo'), 'ALTER TABLE `rrhh_vacantes` ADD COLUMN `titulo` varchar(160) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_vacantes' AND column_name = 'ubicacion'), 'ALTER TABLE `rrhh_vacantes` ADD COLUMN `ubicacion` varchar(160) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_vacantes' AND column_name = 'modalidad'), 'ALTER TABLE `rrhh_vacantes` ADD COLUMN `modalidad` varchar(60) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_vacantes' AND column_name = 'jornada'), 'ALTER TABLE `rrhh_vacantes` ADD COLUMN `jornada` varchar(80) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_vacantes' AND column_name = 'salario'), 'ALTER TABLE `rrhh_vacantes` ADD COLUMN `salario` varchar(160) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_vacantes' AND column_name = 'descripcion'), 'ALTER TABLE `rrhh_vacantes` ADD COLUMN `descripcion` text DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_vacantes' AND column_name = 'filtros'), 'ALTER TABLE `rrhh_vacantes` ADD COLUMN `filtros` mediumtext DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_vacantes' AND column_name = 'preguntas'), 'ALTER TABLE `rrhh_vacantes` ADD COLUMN `preguntas` mediumtext DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_vacantes' AND column_name = 'puntuacion_min'), 'ALTER TABLE `rrhh_vacantes` ADD COLUMN `puntuacion_min` tinyint(3) unsigned NOT NULL DEFAULT 60', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_vacantes' AND column_name = 'plazas'), 'ALTER TABLE `rrhh_vacantes` ADD COLUMN `plazas` smallint(5) unsigned NOT NULL DEFAULT 1', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_vacantes' AND column_name = 'agente_id'), 'ALTER TABLE `rrhh_vacantes` ADD COLUMN `agente_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_vacantes' AND column_name = 'responsable_id'), 'ALTER TABLE `rrhh_vacantes` ADD COLUMN `responsable_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_vacantes' AND column_name = 'auto_agendar'), 'ALTER TABLE `rrhh_vacantes` ADD COLUMN `auto_agendar` tinyint(1) NOT NULL DEFAULT 1', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_vacantes' AND column_name = 'estado'), 'ALTER TABLE `rrhh_vacantes` ADD COLUMN `estado` enum(''borrador'',''activa'',''pausada'',''cerrada'') NOT NULL DEFAULT ''borrador''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_vacantes' AND column_name = 'token'), 'ALTER TABLE `rrhh_vacantes` ADD COLUMN `token` char(32) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_vacantes' AND column_name = 'creado_por'), 'ALTER TABLE `rrhh_vacantes` ADD COLUMN `creado_por` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_vacantes' AND column_name = 'created_at'), 'ALTER TABLE `rrhh_vacantes` ADD COLUMN `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'rrhh_vacantes' AND column_name = 'updated_at'), 'ALTER TABLE `rrhh_vacantes` ADD COLUMN `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'saneo_memoria' AND column_name = 'cliente_id'), 'ALTER TABLE `saneo_memoria` ADD COLUMN `cliente_id` int(10) unsigned NOT NULL', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'saneo_memoria' AND column_name = 'reprogramaciones'), 'ALTER TABLE `saneo_memoria` ADD COLUMN `reprogramaciones` tinyint(3) unsigned NOT NULL DEFAULT 0', 'DO 0'));
@@ -3845,6 +4095,24 @@ SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHER
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'rellamadas' AND index_name = 'idx_rell_usuario'), 'CREATE INDEX `idx_rell_usuario` ON `rellamadas` (`usuario_id`, `estado`, `fecha`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'rrhh_agentes' AND index_name = 'idx_rrhh_ag_phone'), 'CREATE INDEX `idx_rrhh_ag_phone` ON `rrhh_agentes` (`phone_number_id`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'rrhh_candidatos' AND index_name = 'uq_rrhh_cand_tel'), 'CREATE UNIQUE INDEX `uq_rrhh_cand_tel` ON `rrhh_candidatos` (`telefono`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'rrhh_entrevistas' AND index_name = 'idx_rrhh_ent_cand'), 'CREATE INDEX `idx_rrhh_ent_cand` ON `rrhh_entrevistas` (`candidato_id`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'rrhh_entrevistas' AND index_name = 'idx_rrhh_ent_estado'), 'CREATE INDEX `idx_rrhh_ent_estado` ON `rrhh_entrevistas` (`estado`, `updated_at`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'rrhh_entrevistas' AND index_name = 'idx_rrhh_ent_vac'), 'CREATE INDEX `idx_rrhh_ent_vac` ON `rrhh_entrevistas` (`vacante_id`, `estado`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'rrhh_mensajes' AND index_name = 'idx_rrhh_msg_cand'), 'CREATE INDEX `idx_rrhh_msg_cand` ON `rrhh_mensajes` (`candidato_id`, `id`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'rrhh_mensajes' AND index_name = 'idx_rrhh_msg_wa'), 'CREATE INDEX `idx_rrhh_msg_wa` ON `rrhh_mensajes` (`wa_id`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'rrhh_vacantes' AND index_name = 'idx_rrhh_vac_estado'), 'CREATE INDEX `idx_rrhh_vac_estado` ON `rrhh_vacantes` (`estado`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'rrhh_vacantes' AND index_name = 'uq_rrhh_vac_token'), 'CREATE UNIQUE INDEX `uq_rrhh_vac_token` ON `rrhh_vacantes` (`token`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'saneo_registro' AND index_name = 'idx_saneo_registro_cliente'), 'CREATE INDEX `idx_saneo_registro_cliente` ON `saneo_registro` (`cliente_id`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'saneo_registro' AND index_name = 'idx_saneo_registro_lote'), 'CREATE INDEX `idx_saneo_registro_lote` ON `saneo_registro` (`lote`)', 'DO 0'));
@@ -4061,6 +4329,12 @@ SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constrain
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'rellamadas' AND constraint_name = 'fk_rell_cliente' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `rellamadas` ADD CONSTRAINT `fk_rell_cliente` FOREIGN KEY (`cliente_id`) REFERENCES `clientes` (`id`) ON DELETE CASCADE', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'rrhh_entrevistas' AND constraint_name = 'fk_rrhh_ent_cand' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `rrhh_entrevistas` ADD CONSTRAINT `fk_rrhh_ent_cand` FOREIGN KEY (`candidato_id`) REFERENCES `rrhh_candidatos` (`id`) ON DELETE CASCADE', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'rrhh_entrevistas' AND constraint_name = 'fk_rrhh_ent_vac' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `rrhh_entrevistas` ADD CONSTRAINT `fk_rrhh_ent_vac` FOREIGN KEY (`vacante_id`) REFERENCES `rrhh_vacantes` (`id`) ON DELETE CASCADE', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'rrhh_mensajes' AND constraint_name = 'fk_rrhh_msg_cand' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `rrhh_mensajes` ADD CONSTRAINT `fk_rrhh_msg_cand` FOREIGN KEY (`candidato_id`) REFERENCES `rrhh_candidatos` (`id`) ON DELETE CASCADE', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'seg_2fa' AND constraint_name = 'fk_seg_2fa_usuario' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `seg_2fa` ADD CONSTRAINT `fk_seg_2fa_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'seg_accesos' AND constraint_name = 'fk_seg_accesos_usuario' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `seg_accesos` ADD CONSTRAINT `fk_seg_accesos_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL', 'DO 0'));
@@ -4096,7 +4370,7 @@ PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 -- Numero de relacion de cada usuario (solo a quien no lo tenga).
 UPDATE usuarios SET numero_relacion = CONCAT('ICC-', LPAD(id, 5, '0')) WHERE numero_relacion IS NULL;
 
--- v95: la identidad Labs24k del Motor pasa a ICC Consultoria (100 % servicios, 100 % companias).
+-- v96: la identidad Labs24k del Motor pasa a ICC Consultoria (100 % servicios, 100 % companias).
 UPDATE motor_campanas SET perfil = 'icc' WHERE perfil = 'labs24k';
 UPDATE motor_campanas SET angulo = 'auditoria_integral' WHERE angulo IN ('ia_transparencia', 'ia_alfabetizacion', 'ia_fundae', 'ia_captacion', 'ia_pregunta');
 DELETE FROM ajustes WHERE clave = 'motor_perfil_labs24k';
@@ -4313,4 +4587,4 @@ UPDATE usuarios SET numero_relacion = CONCAT('ICC-', LPAD(id, 5, '0')) WHERE num
 SET FOREIGN_KEY_CHECKS = 1;
 SET SESSION sql_mode = @icc_modo_anterior;
 
--- Listo. Base de datos al dia para ICC CRM v95.
+-- Listo. Base de datos al dia para ICC CRM v96.

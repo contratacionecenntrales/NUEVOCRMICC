@@ -218,7 +218,7 @@ propio CRM — ya no hace falta volver a tocar la base de datos a mano.
 
 ## Base de datos en un solo paso
 
-`sql/base-de-datos-completa-v95.sql` deja cualquier base de datos al día para la v95 importándolo una sola vez en phpMyAdmin:
+`sql/base-de-datos-completa-v96.sql` deja cualquier base de datos al día para la v96 importándolo una sola vez en phpMyAdmin:
 - Con datos (v55 en adelante): no borra nada; crea solo las tablas, columnas, índices y relaciones que falten y amplía los roles. Deja a Daniela con todo el equipo de María y las agendas de Juan y María.
 - Vacía: crea el CRM completo y un Super Administrador inicial (info@integralconnectionconsulting.es, contraseña provisional `CambiaEsta-2026`, que el CRM obliga a cambiar).
 - Se puede ejecutar varias veces sin errores ni duplicados. Los datos de ejemplo de los comparadores solo se cargan si esas tablas están vacías.
@@ -500,7 +500,7 @@ Montarla (por ejemplo en `demo.crm.tudominio.es`):
 1. Crea el subdominio en Hostalia apuntando a una carpeta nueva y sube ahí el
    mismo zip del CRM.
 2. Crea una base de datos **nueva y vacía** e importa
-   `sql/base-de-datos-completa-v95.sql` (más las migraciones nuevas si las hay).
+   `sql/base-de-datos-completa-v96.sql` (más las migraciones nuevas si las hay).
 3. Crea `api/config.local.php` de esa carpeta con los datos de la BD nueva y
    añade `define('ICC_MODO_DEMO', true);`.
 4. Rellena la demo por SSH (el generador no se puede abrir desde el navegador):
@@ -759,4 +759,33 @@ Migración: `sql/migracion_rellamadas.sql` (incluida en la base de datos complet
 - **Da caña**: parte diario a backoffice (para hoy, atrasadas, resultados de ayer y aceptados de la semana) y aviso
   a coordinación cada mañana si acumula 3 o más rellamadas atrasadas. La Jefatura de ventas no empuja a los
   clientes que backoffice está rellamando.
+
+## Zona de entrevistas: agentes de WhatsApp que entrevistan (v96)
+
+**🤖 IA → 🧑‍💼 Zona de entrevistas** (`#/entrevistas`, `api/rrhh.php`, `rrhh_lib.php`, `rrhh_webhook.php`,
+`rrhh_entrada.php`; dirección y jefes de equipo, los agentes y la conexión con Meta, coordinación y admin).
+Migración: `sql/migracion_entrevistas.sql` (incluida en la base de datos completa v96).
+
+- **Agentes de WhatsApp** (API oficial de WhatsApp Business de Meta, Cloud API): varios, cada uno con su número
+  (`phone_number_id`), nombre y tono; cada vacante se asigna a uno. Webhook con verificación y firma
+  `X-Hub-Signature-256` obligatoria; token y App Secret cifrados. Plantillas aprobadas para escribir fuera de la
+  ventana de 24 h (invitación, recordatorio y «novedades»: el mensaje real espera a que el candidato responda).
+- **Vacantes** con plantillas profesionales (comercial de campo, teleoperador/a, backoffice): filtros
+  eliminatorios (sí/no, opciones o número mínimo), preguntas con criterio y peso, nota mínima, plazas, responsable
+  y agendado automático. Enlace de formulario público con consentimiento y código `VAC<n>` para escribir al
+  WhatsApp; importación de candidatos (con confirmación de consentimiento).
+- **La entrevista**: se presenta como asistente de IA (AI Act art. 50), pide el consentimiento, hace los filtros,
+  pregunta, repregunta si la respuesta es vaga, responde dudas solo con los datos de la oferta, puntúa cada
+  respuesta (0-10, sin valorar ortografía ni datos personales) y la nota final (0-100) con un resumen para el
+  responsable. Si supera la nota mínima, ofrece 2 huecos reales de su agenda y agenda la entrevista final (cita
+  con el resumen y recordatorio). Recordatorio a las 20 h y abandono a las 48 h. «BAJA» y «BORRAR» en cualquier
+  momento; «GUARDAR» lo deja 12 meses en la bolsa de talento.
+- **Supervisión humana** (selección de personal = alto riesgo en el AI Act; RGPD art. 22): la IA nunca descarta
+  ni contrata. Quien no cumple un filtro o no llega a la nota queda «para revisar»; una persona confirma los
+  descartes (en bloque) y solo entonces sale un mensaje respetuoso. Contratar envía la bienvenida, crea la tarea
+  de alta a backoffice y cierra la vacante al cubrir las plazas. Filtros y preguntas sobre edad, sexo, familia,
+  salud, religión, origen, ideología o afiliación se bloquean al guardar.
+- **Embudo de candidatos** (kanban) con ficha: respuestas con su puntuación y nota, resumen, conversación de
+  WhatsApp y decisiones. **Simulador** para probar la entrevista sin WhatsApp.
+- RGPD: los candidatos sin bolsa se borran a los N meses (6 por defecto); los mensajes, al año.
 

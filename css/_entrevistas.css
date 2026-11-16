@@ -1,0 +1,57 @@
+/* ICC CRM · Zona de entrevistas (js/entrevistas.js). Usa css/_ia.css, _motor.css y _flujos.css. */
+.icc-en-nota { display: inline-flex; align-items: center; justify-content: center; min-width: 30px; padding: 1px 7px; border-radius: 99px; font-size: 12px; font-weight: 800; }
+.icc-en-nota.is-alta { background: rgba(16, 185, 129, .18); color: #6EE7B7; }
+.icc-en-nota.is-media { background: rgba(251, 191, 36, .16); color: #FCD34D; }
+.icc-en-nota.is-baja { background: rgba(248, 113, 113, .16); color: #FCA5A5; }
+.icc-en-tabla { display: flex; flex-direction: column; overflow-x: auto; }
+.icc-en-fila { display: grid; grid-template-columns: minmax(200px, 2fr) repeat(6, minmax(70px, 1fr)); gap: 10px; align-items: center; padding: 10px 4px; border-bottom: 1px solid var(--line); font-size: 13px; color: var(--txt-2); }
+.icc-en-fila--cab { font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--txt-3); }
+.icc-en-fila span:first-child { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.icc-en-fila strong { color: var(--txt); }
+.icc-en-fila small { color: var(--txt-3); font-size: 12px; }
+.icc-en-pasos { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; color: var(--txt-2); font-size: 13px; line-height: 1.5; }
+.icc-en-pasos input { margin: 4px 0; }
+.icc-en-pasos code { overflow-wrap: anywhere; }
+.icc-en-enlaces { display: flex; flex-direction: column; gap: 4px; }
+.icc-en-enlaces label { display: flex; flex-direction: column; gap: 4px; }
+.icc-en-enlaces span { font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--txt-3); }
+.icc-en-enlaces small { color: var(--txt-3); font-size: 12px; }
+.icc-en-import { display: flex; flex-direction: column; gap: 8px; }
+.icc-en-import[hidden] { display: none; }
+.icc-en-item { display: grid; grid-template-columns: minmax(0, 2fr) 150px minmax(0, 1.4fr) auto; gap: 8px; align-items: start; margin-bottom: 8px; }
+.icc-en-item--p { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.4fr) 80px auto; }
+.icc-en-item label { display: flex; flex-direction: column; gap: 4px; }
+.icc-en-item label span { font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--txt-3); }
+.icc-en-item textarea { font-family: inherit; resize: vertical; }
+.icc-en-kanban { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(250px, 1fr); gap: 12px; overflow-x: auto; padding-bottom: 10px; align-items: start; }
+.icc-en-col { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 10px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.icc-en-col h3 { margin: 2px 4px 4px; font-size: 13px; color: var(--txt); display: flex; justify-content: space-between; }
+.icc-en-col h3 small { color: var(--txt-3); }
+.icc-en-card { display: flex; gap: 8px; align-items: flex-start; padding: 10px; border-radius: 10px; background: var(--card-2); border: 1px solid var(--line); cursor: pointer; }
+.icc-en-card:hover { border-color: var(--cian); }
+.icc-en-card > div { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.icc-en-card strong { color: var(--txt); font-size: 13.5px; }
+.icc-en-card small { color: var(--txt-3); font-size: 12px; overflow-wrap: anywhere; }
+.icc-en-card .icc-en-motivo { color: #FCD34D; }
+.icc-en-sel { width: 17px; height: 17px; margin-top: 2px; accent-color: var(--accent); flex: none; }
+.icc-en-resumen { padding: 12px 14px; border-radius: 12px; background: rgba(99, 102, 241, .1); border: 1px solid rgba(99, 102, 241, .3); margin: 8px 0; }
+.icc-en-resumen b { color: var(--txt); font-size: 13px; }
+.icc-en-resumen p { margin: 6px 0 0; color: var(--txt-2); font-size: 13px; white-space: pre-wrap; }
+.icc-en-decision { margin: 10px 0; }
+.icc-en-decision .icc-input { flex: 1; min-width: 200px; }
+.icc-en-chat { display: flex; flex-direction: column; gap: 6px; max-height: 520px; overflow-y: auto; padding: 12px; border-radius: 14px; background: #0B141A; }
+.icc-en-msg { max-width: 82%; padding: 7px 10px; border-radius: 10px; font-size: 13px; line-height: 1.45; }
+.icc-en-msg p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; color: #E9EDEF; }
+.icc-en-msg small { display: block; text-align: right; font-size: 10.5px; color: #8696A0; margin-top: 2px; }
+.icc-en-msg.is-salida { align-self: flex-start; background: #202C33; }
+.icc-en-msg.is-entrada { align-self: flex-end; background: #005C4B; }
+.icc-en-movil { max-width: 460px; border: 1px solid var(--line); border-radius: 18px; overflow: hidden; margin-top: 12px; }
+.icc-en-movil .icc-en-chat { border-radius: 0; height: 440px; max-height: none; }
+.icc-en-escribir { display: flex; gap: 8px; padding: 8px; background: #111B21; }
+.icc-en-escribir .icc-input { flex: 1; }
+.icc-en .icc-ia-lista li > div.icc-ia-fila { flex: 0 0 auto; min-width: 0; flex-direction: row; }
+@media (max-width: 860px) {
+  .icc-en-item, .icc-en-item--p { grid-template-columns: minmax(0, 1fr); }
+  .icc-en-fila { grid-template-columns: minmax(180px, 2fr) repeat(6, 70px); }
+}
+@media (max-width: 560px) { .icc-en-kanban { grid-auto-columns: 82%; } .icc-en-msg { max-width: 92%; } }
