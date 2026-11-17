@@ -789,3 +789,14 @@ Migración: `sql/migracion_entrevistas.sql` (incluida en la base de datos comple
   WhatsApp y decisiones. **Simulador** para probar la entrevista sin WhatsApp.
 - RGPD: los candidatos sin bolsa se borran a los N meses (6 por defecto); los mensajes, al año.
 
+### Filtros de experiencia y requisitos legales (v97)
+
+- Filtros rápidos en el editor de vacantes: años de experiencia (mínimo), experiencia en el sector, mayor de edad
+  (edad mínima legal), permiso de trabajo en España, nivel de español (si el puesto lo necesita), carné B,
+  jornada completa e incorporación. Las plantillas de comercial y backoffice piden al menos 1 año de experiencia.
+- El filtro numérico entiende respuestas libres: «tres años», «más de 2», «año y medio», «6 meses» (0,5 años),
+  «ninguna».
+- Edad (rangos, «joven», año de nacimiento) y nacionalidad («¿eres española?», «extranjero») se bloquean al
+  guardar con la alternativa legal: es discriminación en el empleo (Estatuto de los Trabajadores arts. 4 y 17,
+  Ley 15/2022; infracción muy grave de la LISOS art. 16).
+

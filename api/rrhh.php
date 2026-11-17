@@ -51,7 +51,7 @@ if ($accion === 'vacantes' && $metodo === 'GET') {
   $l = array_map('rr_vacante_publica', $db->query('SELECT * FROM rrhh_vacantes ORDER BY estado = "activa" DESC, id DESC')->fetchAll());
   icc_json(['vacantes' => $l, 'agentes' => $db->query('SELECT id, nombre, activo FROM rrhh_agentes ORDER BY nombre')->fetchAll(),
     'responsables' => $db->query("SELECT id, CONCAT(nombre, ' ', COALESCE(apellidos, '')) nombre FROM usuarios WHERE bloqueado = 0 AND rol IN ('jefe_de_equipo','coordinador','gerente','admin','super_admin','backoffice') ORDER BY nombre")->fetchAll(),
-    'plantillas' => array_map(function ($p) { return $p[0]; }, rr_plantillas())]);
+    'plantillas' => array_map(function ($p) { return $p[0]; }, rr_plantillas()), 'filtros_rapidos' => rr_filtros_rapidos()]);
 }
 
 if ($accion === 'vacante' && $metodo === 'POST') {

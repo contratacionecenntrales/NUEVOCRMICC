@@ -55,3 +55,4 @@
   .icc-en-fila { grid-template-columns: minmax(180px, 2fr) repeat(6, 70px); }
 }
 @media (max-width: 560px) { .icc-en-kanban { grid-auto-columns: 82%; } .icc-en-msg { max-width: 92%; } }
+.icc-en-rapidos { margin-top: 6px; } .icc-en-rapidos > span { font-size: 12px; font-weight: 800; text-transform: uppercase; color: var(--txt-3); }

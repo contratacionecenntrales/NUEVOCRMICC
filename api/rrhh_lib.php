@@ -22,13 +22,14 @@ const RR_ESTADOS = ['invitado' => 'Invitado', 'en_curso' => 'En entrevista', 'pr
   'agendada' => 'Entrevista final', 'contratado' => 'Contratado', 'descartado' => 'Descartado', 'abandonada' => 'Abandonó', 'baja' => 'Pidió la baja'];
 
 /** Temas prohibidos en filtros y preguntas (Ley 15/2022, Estatuto de los Trabajadores, RGPD). */
-const RR_PROHIBIDO = '/(\b(qu[eé] edad|cu[aá]ntos a[nñ]os tienes|tu edad|fecha de nacimiento|embaraz|hijos|casad[oa]|solter[oa]|estado civil|pareja|religi[oó]n|religios|nacionalidad|pa[ií]s de origen|raza|[eé]tnia|g[eé]nero|orientaci[oó]n sexual|enfermedad|salud|discapacidad|minusval|sindica|afiliaci[oó]n|ideolog|partido pol|peso|altura|foto)\b)/iu';
+const RR_PROHIBIDO = '/(\b(qu[eé] edad|cu[aá]ntos a[nñ]os tienes|tu edad|fecha de nacimiento|a[nñ]o de nacimiento|naciste|edad m[aá]xima|edad m[ií]nima|menor de \d+ a[nñ]os|m[aá]s de \d+ a[nñ]os de edad|entre \d+ y \d+ a[nñ]os|joven|j[oó]venes|eres espa[nñ]ol[a]?|eres extranjer[oa]|extranjer[oa]s?|nacionalidad|nacional de|embaraz|hijos|casad[oa]|solter[oa]|estado civil|pareja|religi[oó]n|religios|nacionalidad|pa[ií]s de origen|raza|[eé]tnia|g[eé]nero|orientaci[oó]n sexual|enfermedad|salud|discapacidad|minusval|sindica|afiliaci[oó]n|ideolog|partido pol|peso|altura|foto)\b)/iu';
 
 /** Plantillas profesionales de vacante. */
 function rr_plantillas(): array {
   return [
     'comercial' => ['Comercial de campo (energía y telecomunicaciones)', 'Asturias', 'Presencial', 'Jornada completa', 'Fijo + comisiones',
       [['pregunta' => '¿Tienes permiso de conducir B y vehículo propio?', 'tipo' => 'si_no', 'esperado' => 'si'],
+       ['pregunta' => '¿Cuántos años de experiencia tienes en ventas?', 'tipo' => 'numero', 'esperado' => '1'],
        ['pregunta' => '¿Puedes trabajar a jornada completa de lunes a viernes?', 'tipo' => 'si_no', 'esperado' => 'si'],
        ['pregunta' => '¿Puedes incorporarte en las próximas 2 semanas?', 'tipo' => 'si_no', 'esperado' => 'si'],
        ['pregunta' => '¿Tienes permiso de trabajo en España?', 'tipo' => 'si_no', 'esperado' => 'si']],
@@ -44,6 +45,7 @@ function rr_plantillas(): array {
        ['pregunta' => 'Explícame en dos frases qué le dirías a una empresa para ofrecerle un estudio gratuito de sus facturas.', 'criterio' => 'Claridad, propuesta de valor sin promesas falsas, petición de siguiente paso.', 'peso' => 3]]],
     'backoffice' => ['Administrativo/a de backoffice (tramitación)', 'Gijón', 'Presencial', 'Jornada completa', 'Según convenio',
       [['pregunta' => '¿Tienes experiencia con ofimática (Excel, correo, CRM)?', 'tipo' => 'si_no', 'esperado' => 'si'],
+       ['pregunta' => '¿Cuántos años de experiencia tienes en tareas administrativas?', 'tipo' => 'numero', 'esperado' => '1'],
        ['pregunta' => '¿Puedes trabajar a jornada completa de lunes a viernes?', 'tipo' => 'si_no', 'esperado' => 'si'],
        ['pregunta' => '¿Tienes permiso de trabajo en España?', 'tipo' => 'si_no', 'esperado' => 'si']],
       [['pregunta' => 'Cuéntame tu experiencia en tareas administrativas o de tramitación de contratos.', 'criterio' => 'Experiencia en tramitación, documentación, altas, plazos.', 'peso' => 3],
@@ -84,20 +86,59 @@ function rr_telefono(string $t): string {
   return '';
 }
 
+/** Alternativa legal a un filtro prohibido. */
+function rr_alternativa(string $tema): string {
+  $t = mb_strtolower($tema);
+  if (preg_match('/(nacional|extranjer|espa[nñ]ol|origen)/u', $t)) return 'Usa los filtros rápidos «Permiso de trabajo en España» y, si el puesto lo necesita, «Nivel de español».';
+  if (preg_match('/(edad|a[nñ]os|naci|joven)/u', $t)) return 'Usa el filtro rápido «Mayor de edad» (la edad mínima legal) y, si importa la trayectoria, «Años de experiencia».';
+  return 'Pregunta solo por requisitos objetivos del puesto.';
+}
+
+/** Numero de una respuesta libre: «3», «tres años», «más de 2», «6 meses» (en años), «año y medio». */
+function rr_numero(string $t): ?float {
+  $t = mb_strtolower(trim($t));
+  if (preg_match('/^(no|ninguna?|nada|cero|sin experiencia)\b/u', $t)) return 0.0;
+  if (preg_match('/\bmedio a[nñ]o\b/u', $t)) return 0.5;
+  if (preg_match('/^(un )?a[nñ]o y medio\b/u', $t)) return 1.5;
+  $pal = ['un' => 1, 'uno' => 1, 'una' => 1, 'dos' => 2, 'tres' => 3, 'cuatro' => 4, 'cinco' => 5, 'seis' => 6, 'siete' => 7, 'ocho' => 8, 'nueve' => 9, 'diez' => 10,
+    'once' => 11, 'doce' => 12, 'quince' => 15, 'veinte' => 20, 'treinta' => 30];
+  $n = null;
+  if (preg_match('/(\d+(?:[.,]\d+)?)/u', $t, $m)) $n = (float)str_replace(',', '.', $m[1]);
+  else foreach ($pal as $w => $v) if (preg_match('/\b' . $w . '\b/u', $t)) { $n = (float)$v; break; }
+  if ($n === null) return null;
+  if (preg_match('/\b(y medio|y pico)\b/u', $t)) $n += 0.5;
+  if (preg_match('/\bmes(es)?\b/u', $t) && !preg_match('/\ba[nñ]os?\b/u', $t)) $n = round($n / 12, 2);
+  return $n;
+}
+
+/** Filtros rapidos (requisitos objetivos y legales). */
+function rr_filtros_rapidos(): array {
+  return [
+    'experiencia' => ['Años de experiencia (mínimo)', ['pregunta' => '¿Cuántos años de experiencia tienes en un puesto como este?', 'tipo' => 'numero', 'esperado' => '1']],
+    'experiencia_sector' => ['Experiencia en el sector', ['pregunta' => '¿Has trabajado antes vendiendo energía, telecomunicaciones, alarmas o seguros?', 'tipo' => 'si_no', 'esperado' => 'si']],
+    'mayor_edad' => ['Mayor de edad (edad mínima legal)', ['pregunta' => '¿Eres mayor de edad?', 'tipo' => 'si_no', 'esperado' => 'si']],
+    'permiso' => ['Permiso de trabajo en España', ['pregunta' => '¿Tienes permiso de trabajo en España?', 'tipo' => 'si_no', 'esperado' => 'si']],
+    'espanol' => ['Nivel de español (si el puesto lo necesita)', ['pregunta' => '¿Hablas español con fluidez para atender a clientes por teléfono y en persona?', 'tipo' => 'si_no', 'esperado' => 'si']],
+    'carne' => ['Carné B y vehículo', ['pregunta' => '¿Tienes permiso de conducir B y vehículo propio?', 'tipo' => 'si_no', 'esperado' => 'si']],
+    'jornada' => ['Jornada completa', ['pregunta' => '¿Puedes trabajar a jornada completa de lunes a viernes?', 'tipo' => 'si_no', 'esperado' => 'si']],
+    'incorporacion' => ['Incorporación en 2 semanas', ['pregunta' => '¿Puedes incorporarte en las próximas 2 semanas?', 'tipo' => 'si_no', 'esperado' => 'si']],
+  ];
+}
+
 /** Valida filtros y preguntas: sin temas prohibidos y con forma correcta. */
 function rr_validar_vacante(array $filtros, array $preguntas): array {
   $f = []; $p = [];
   foreach (array_slice($filtros, 0, 10) as $x) {
     $q = trim((string)($x['pregunta'] ?? ''));
     if ($q === '') continue;
-    if (preg_match(RR_PROHIBIDO, $q, $m) && !preg_match('/mayor de edad/iu', $q)) throw new InvalidArgumentException('El filtro «' . $q . '» trata un dato que no se puede usar para seleccionar («' . $m[1] . '»).');
+    if (preg_match(RR_PROHIBIDO, $q, $m) && !preg_match('/mayor de edad/iu', $q)) throw new InvalidArgumentException('El filtro «' . $q . '» trata un dato que no se puede usar para seleccionar («' . $m[1] . '»): es discriminación (Estatuto de los Trabajadores y Ley 15/2022). ' . rr_alternativa($m[1]));
     $tipo = in_array($x['tipo'] ?? '', ['si_no', 'opcion', 'numero'], true) ? $x['tipo'] : 'si_no';
     $f[] = ['pregunta' => mb_substr($q, 0, 300), 'tipo' => $tipo, 'esperado' => mb_substr(trim((string)($x['esperado'] ?? 'si')), 0, 200)];
   }
   foreach (array_slice($preguntas, 0, 12) as $x) {
     $q = trim((string)($x['pregunta'] ?? ''));
     if ($q === '') continue;
-    if (preg_match(RR_PROHIBIDO, $q . ' ' . ($x['criterio'] ?? ''), $m)) throw new InvalidArgumentException('La pregunta «' . $q . '» trata un dato que no se puede usar para seleccionar («' . $m[1] . '»).');
+    if (preg_match(RR_PROHIBIDO, $q . ' ' . ($x['criterio'] ?? ''), $m)) throw new InvalidArgumentException('La pregunta «' . $q . '» trata un dato que no se puede usar para seleccionar («' . $m[1] . '»): es discriminación (Estatuto de los Trabajadores y Ley 15/2022). ' . rr_alternativa($m[1]));
     $p[] = ['pregunta' => mb_substr($q, 0, 400), 'criterio' => mb_substr(trim((string)($x['criterio'] ?? '')), 0, 400), 'peso' => max(1, min(5, (int)($x['peso'] ?? 1)))];
   }
   if (!$p) throw new InvalidArgumentException('La entrevista necesita al menos una pregunta.');
@@ -356,7 +397,7 @@ function rr_procesar(int $id, string $texto): string {
     if (!$f) { rr_guardar($id, ['paso' => rr_siguiente_paso($e, $paso)]); return 'en_curso'; }
     $ok = null; $valor = $texto;
     if ($f['tipo'] === 'si_no') { $sn = rr_si_no($texto); if ($sn !== null) { $valor = $sn; $ok = $sn === mb_strtolower($f['esperado']); } }
-    elseif ($f['tipo'] === 'numero') { if (preg_match('/(\d+[.,]?\d*)/', $texto, $n)) { $valor = (float)str_replace(',', '.', $n[1]); $ok = $valor >= (float)$f['esperado']; } }
+    elseif ($f['tipo'] === 'numero') { $num = rr_numero($texto); if ($num !== null) { $valor = $num; $ok = $num >= (float)str_replace(',', '.', $f['esperado']); } }
     else { $opc = array_map('trim', explode(',', mb_strtolower($f['esperado']))); foreach ($opc as $o) if ($o !== '' && mb_stripos($texto, $o) !== false) { $ok = true; break; } if ($ok === null && mb_strlen($texto) > 1) $ok = false; }
     if ($ok === null) {
       if ((int)$e['intentos'] >= 1) { $ok = false; $valor = $texto . ' (respuesta no clara)'; }
