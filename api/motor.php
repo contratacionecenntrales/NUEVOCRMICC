@@ -100,6 +100,12 @@ function labs_motor_cfg()
             $def[$sec] = array_merge($vals, array_intersect_key($g[$sec], $vals));
         }
     }
+    // Un prompt maestro guardado tal cual venía en una versión anterior se actualiza solo (normativa al día);
+    // uno retocado a mano se respeta.
+    $antiguos = array('cbe210a687118a79c9816052d7313f654747c92f9933708b542101db4b6a2e7c');
+    if (in_array(hash('sha256', str_replace("\r\n", "\n", trim((string) $def['outreach']['prompt']))), $antiguos, true)) {
+        $def['outreach']['prompt'] = labs_motor_prompt_maestro();
+    }
     return $def;
 }
 
@@ -763,11 +769,11 @@ function labs_motor_embudos()
             'resumen' => 'Qué se aplica ya del Reglamento Europeo de IA, qué se ha aplazado y qué prepara la ley española (AESIA).',
             'pasos' => array('Día 1 · Calendario real del AI Act', 'Día 3 · Ley española de IA y AESIA (en tramitación)', 'Día 7 · Revisión de su caso en 15 minutos'),
             'sectores' => array('Asesoría', 'Despacho de abogados', 'Clínica', 'Academia', 'Inmobiliaria')),
-        'alfabetizacion' => array('Formación del equipo en IA', 'angulo' => 'alfabetizacion', 'icono' => 'book',
+        'alfabetizacion' => array('nombre' => 'Formación del equipo en IA', 'angulo' => 'alfabetizacion', 'icono' => 'book',
             'resumen' => 'El art. 4 del AI Act y la formación bonificable por FUNDAE para equipos que ya usan ChatGPT o Copilot.',
             'pasos' => array('Día 1 · Art. 4: alfabetización en IA', 'Día 3 · Qué incluye una formación práctica', 'Día 7 · Sesión informativa gratuita'),
             'sectores' => array('Asesoría', 'Gestoría', 'Agencia de seguros', 'Academia', 'Empresa de servicios')),
-        'contenidos_ia' => array('Contenidos hechos con IA', 'angulo' => 'contenidos_ia', 'icono' => 'eye',
+        'contenidos_ia' => array('nombre' => 'Contenidos hechos con IA', 'angulo' => 'contenidos_ia', 'icono' => 'eye',
             'resumen' => 'Etiquetado de imágenes, vídeos y textos generados con IA (art. 50) para quien publica en web, redes y anuncios.',
             'pasos' => array('Día 1 · Identificar lo generado con IA', 'Día 3 · Cómo se resuelve en la práctica', 'Día 7 · Revisión de sus contenidos'),
             'sectores' => array('Agencia de marketing', 'Inmobiliaria', 'Tienda online', 'Hotel', 'Restaurante')),

@@ -902,3 +902,39 @@ clave de OpenAI que ya está puesta. Todo funciona solo con el cron único
   40 por buzón y hora, 250 al día y 2.000 en total).
 - Cada envío se anota en la ficha del contacto. Los envíos se guardan dos años
   (prueba de base legal); la lista de exclusión no se borra nunca.
+
+## Embudos de captación (Motor de Scraping IA → Sala de campañas)
+
+Para una agencia que empieza sin clientes: cuatro embudos listos que, con un
+clic, crean la campaña y ponen el Radar a buscar empresas (Google Places +
+su web). Cada empresa con un correo genérico verificado entra sola en una
+secuencia informativa de 3 correos (días 1, 3 y 7) y quien responde con interés
+pasa al Pipeline con una llamada en la agenda.
+
+| Embudo | Día 1 | Día 3 | Día 7 |
+| --- | --- | --- | --- |
+| Presentación de la agencia | Quiénes somos y qué cambia con el AI Act | Lo que pide ya la normativa a su sector | Diagnóstico gratuito de 15 minutos |
+| AI Act y la nueva ley de IA | Calendario real del AI Act | Ley española de IA y AESIA (en tramitación) | Revisión de su caso en 15 minutos |
+| Formación del equipo en IA | Art. 4: alfabetización en IA (FUNDAE) | Qué incluye una formación práctica | Sesión informativa gratuita |
+| Contenidos hechos con IA | Identificar lo generado con IA (art. 50) | Cómo se resuelve en la práctica | Revisión de sus contenidos |
+
+Se eligen los sectores (vienen sugeridos), las localidades, el modo de envío
+(con aprobación por defecto; el autónomo exige aceptar el aviso legal) y unas
+indicaciones opcionales para la IA. Con clave de OpenAI o Claude cada correo se
+redacta para esa empresa leyendo su web; sin clave salen las plantillas.
+
+Contenido normativo (situación a noviembre de 2026, en el prompt maestro):
+transparencia del art. 50 desde el 2 de agosto de 2026; marcado de lo generado
+por IA generativa ya comercializada hasta el 2 de diciembre de 2026; alto riesgo
+aplazado por el Ómnibus Digital (Reglamento (UE) 2026/1744) al 2 de diciembre
+de 2027 (Anexo III) y al 2 de agosto de 2028 (Anexo I); art. 4 (fomentar la
+alfabetización en IA); Proyecto de Ley Orgánica española de IA en tramitación
+en el Congreso, con la AESIA como autoridad. Nunca cita multas ni afirma que la
+empresa incumple. Si la normativa cambia, se actualiza el prompt maestro en la
+Fábrica de agentes (si se guardó uno propio, hay que restaurarlo para recibir
+esta versión).
+
+Aviso legal: en España la LSSI (art. 21) también limita los correos comerciales
+no solicitados a empresas. Por eso el modo por defecto es «con aprobación», solo
+se usan correos genéricos publicados en la web de la empresa, cada correo dice
+quién escribe y por qué tiene su dirección, y lleva la baja en un clic.

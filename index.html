@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-Fr9SRxaqTRwIMl0lDzaX/zy5DQyOblmRwARMrWk59+w='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-KyVJn76aisU4hX60fdATKUV1ZMd/A2Qpc7o01vEvqKY='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Labs Command Center 360 - Oficina virtual SaaS de la red comercial de Labs24k.">
 <meta name="theme-color" content="#0B0F19">
@@ -11927,7 +11927,7 @@ function motTabla(){
 function motEmbudos(){
   var E = MOT.estado, EB = E.embudos || {}, F = MOT.emb || (MOT.emb = {sel:'', sectores:'', localidades:(MOT.r && MOT.r.locs || []).join(', '), ccaa:(MOT.r && MOT.r.ccaa) || 'Asturias', modo:'aprobacion', max:100, indicaciones:''});
   var e = EB[F.sel];
-  return '<section class="card mt-embudos"><div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><h3 style="margin:0">'+ic('target',15)+' Embudos de captación listos</h3>'+
+  return '<section class="card mt-embudos"><div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><h3 style="margin:0;display:flex;gap:6px;align-items:center">'+ic('target',15)+' Embudos de captación listos</h3>'+
       '<span class="tiny muted">El Radar busca las empresas, la IA escribe la secuencia de 3 correos y quien responde con interés pasa al Pipeline con una llamada en tu agenda.</span></div>'+
     '<div class="mt-emb-g">'+Object.keys(EB).map(function(k){ var x = EB[k];
       return '<button class="mt-emb'+(F.sel === k ? ' on' : '')+'" data-mt-emb="'+k+'"><b>'+ic(x.icono || 'mail',14)+' '+esc(x.nombre)+'</b><span class="tiny muted">'+esc(x.resumen)+'</span>'+
