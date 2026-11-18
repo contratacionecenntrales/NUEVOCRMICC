@@ -603,6 +603,7 @@ window.icc.views = (function () {
       U.escapeHtml(C.TIPO_CLIENTE[cliente.tipo_cliente] || "Residencial") +
       "</p></div>" +
       '<div class="icc-head-actions">' +
+      '<a class="icc-btn icc-btn-ghost" href="#/control?cliente=' + cliente.id + '">🛡️ Control 360</a>' +
       '<button class="icc-btn icc-btn-ghost" id="btn-editar-cliente">Editar datos</button>' +
       U.estadoBadge(cliente.estado) +
       '<select class="icc-select" id="select-estado">' +

@@ -1,6 +1,6 @@
 <?php
 /**
- * ICC CRM · Zona de agentes (fase 3). Una «empresa autonoma» de 21 agentes de
+ * ICC CRM · Zona de agentes (fase 3). Una «empresa autonoma» de 22 agentes de
  * IA que trabajan por turnos sobre el CRM con herramientas (function calling).
  *
  * Autonomia por puesto:
@@ -79,6 +79,10 @@ const EQ_AGENTES = [
     'Convertir en clientes a los que no firmaron: averigua por qué no firma cada uno (precio, permanencia, desconfianza, quién decide, contento, papeleo, momento, mala experiencia), le aplica el plan que lo resuelve con la oferta exclusiva del mes y pone la llamada con el guion en la agenda del gestor.',
     ['ver_no_firmados', 'recuperar_no_firmados', 'anotar_aprendizaje'],
     'Piensas como un especialista en recuperar ventas perdidas: un «no» casi siempre es un «así no» o un «ahora no»; entiendes el motivo real y vuelves con la solución exacta, sin presionar ni prometer lo que no hay.'],
+  'control360' => ['Control 360 · Ahorro siempre', 'Backoffice', 'operaciones', 1440,
+    'Que cada cliente pague siempre lo mínimo: lee sus facturas (luz, gas, telefonía, alarma y seguros), las compara cada mes con las tarifas vigentes de todas las compañías y las ofertas del mes, le dice al gestor dónde hay ahorro con el estudio listo para enviar y pide las facturas que faltan.',
+    ['ver_control', 'vigilar_ahorro', 'anotar_aprendizaje', 'asignar_tarea'],
+    'Piensas como un auditor de costes que no se despega del cliente: datos de su factura y precios reales, nada inventado; si ya está en lo mejor del mercado se lo dices y no cambia nada.'],
   'jefatura' => ['Jefatura de Ventas · Presión de cierre', 'Ventas', 'comercial', 60,
     'Más cierres cada semana: ningún presupuesto parado más de 48 horas. A cada uno le aplica la técnica que toca (velocidad, presentación en caliente, cierre por alternativa, urgencia real, firma sin fricción, visita a cuenta grande, cierre en pareja) y lo mueve: llamada del agente de voz o del gestor, estudio a backoffice, visita o escalado al jefe de equipo.',
     ['ver_presupuestos_parados', 'empujar_presupuestos', 'empujar_presupuesto', 'llamada_ia', 'ver_cierre', 'enviar_correo_cliente', 'asignar_tarea'],
@@ -125,6 +129,7 @@ const EQ_HERRAMIENTAS = [
   'ver_incidencias' => ['lectura', 'Memoria del Autocorrector: incidencias abiertas, para una persona y arregladas, con intentos y veces que se repiten.', [], []],
   'ver_rellamadas' => ['lectura', 'Rellamadas de backoffice: candidatas de hoy, pendientes, atrasadas y resultados de la semana.', [], []],
   'ver_retorno' => ['lectura', 'Retorno de los últimos 90 días: firmas, valor y ahorro por canal, sector y gestor; pipeline ponderado; clientes de un solo servicio y renovaciones.', [], []],
+  'ver_control' => ['lectura', 'Control 360 de este mes: clientes vigilados, facturas leídas, ahorro detectado, servicios que pagan de más y estudios por revisar.', [], []],
   'ver_no_firmados' => ['lectura', 'No firmados por objeción (precio, permanencia, desconfianza…), con su valor, y cómo va su recuperación.', [], []],
   'ver_salud' => ['lectura', 'Salud técnica: IA, correo de salida, errores y rebotes, cron.', [], []],
   'asignar_tarea' => ['bajo', 'Encarga una tarea a un agente o a una persona.', ['agente' => ['type' => 'string', 'description' => 'clave del agente (o vacío)'], 'usuario_id' => ['type' => 'integer', 'description' => 'persona (o 0)'], 'titulo' => ['type' => 'string'], 'detalle' => ['type' => 'string']], ['agente', 'usuario_id', 'titulo', 'detalle']],
@@ -153,6 +158,7 @@ const EQ_HERRAMIENTAS = [
   'arreglar_incidencias' => ['bajo', 'Revisa todos los procesos y arregla ahora lo que requiere acción (con memoria: como mucho 3 intentos por incidencia).', [], []],
   'asignar_rellamadas' => ['bajo', 'Pone en la agenda de backoffice las rellamadas de hoy (con guion) y le envía el parte.', [], []],
   'optimizar_retorno' => ['bajo', 'Mueve el esfuerzo a lo que firma: barrido por firmas, campañas de los sectores ganadores, venta cruzada a clientes de un solo servicio y parte semanal.', [], []],
+  'vigilar_ahorro' => ['bajo', 'Turno de Control 360: entra y lee las facturas nuevas, rehace los estudios con las tarifas del mes, avisa al gestor de cada mejora y pide las facturas que faltan.', [], []],
   'recuperar_no_firmados' => ['bajo', 'Analiza por qué no firman los no firmados y pone en marcha el plan de cada uno (llamada con guion y oferta del mes).', [], []],
   'pausar_envios' => ['bajo', 'Pausa todos los envíos del Motor.', ['motivo' => ['type' => 'string']], ['motivo']],
   'preparar_presupuesto' => ['alto', 'Prepara un presupuesto (borrador) para un cliente.', ['cliente_id' => ['type' => 'integer'], 'sector' => ['type' => 'string', 'enum' => ['energia', 'telecomunicaciones', 'alarmas', 'seguros', 'financiero']], 'notas' => ['type' => 'string']], ['cliente_id', 'sector', 'notas']],
@@ -862,6 +868,7 @@ function eq_ejecutar(string $tool, array $a, string $agente, ?int $usuarioId = n
     case 'ver_candidatos_visita': return $json(array_map(function ($l) { return count($l); }, eq_candidatos_visita()));
     case 'ver_presupuestos_parados': return $json(array_slice(array_map(function ($p) { return ['cliente_id' => (int)$p['id'], 'empresa' => $p['razon_social'], 'gestor' => $p['gestor'], 'fase' => $p['fase'], 'presupuesto' => $p['pestado'], 'dias' => $p['dias'], 'parado' => $p['parado'], 'tecnica' => EQ_TECNICAS[$p['tecnica']][0], 'accion' => $p['accion'], 'prioridad' => $p['prioridad']]; }, eq_presupuestos_parados()), 0, 30));
     case 'ver_equipos': return $json(eq_equipos());
+    case 'ver_control': require_once __DIR__ . '/control_lib.php'; $pc = cx_panel(null); return $json(['kpis' => $pc['kpis'], 'top_ahorro' => array_map(function ($c) { return ['cliente' => $c['razon_social'], 'ahorro_anual' => $c['ahorro']]; }, array_slice(array_filter($pc['clientes'], function ($c) { return $c['ahorro'] > 0; }), 0, 10))]);
     case 'ver_no_firmados': require_once __DIR__ . '/recuperacion_lib.php'; $pr = rc_panel(); return $json(['totales' => $pr['totales'], 'objeciones' => array_map(function ($o) { return ['objecion' => $o['nombre'], 'total' => $o['total'], 'valor' => $o['valor'], 'recuperados' => $o['recuperados']]; }, $pr['objeciones'])]);
     case 'ver_retorno': require_once __DIR__ . '/retorno_lib.php'; $pr = rt_panel(90); return $json(['totales' => $pr['totales'], 'canales' => array_slice($pr['canales'], 0, 6), 'sectores' => array_slice($pr['sectores'], 0, 6), 'recomendaciones' => rt_recomendaciones($pr)]);
     case 'ver_rellamadas': require_once __DIR__ . '/rellamadas_lib.php'; $rc = rl_config(); return $json(['candidatas' => count(rl_candidatos()), 'numeros' => $rc['usuario_id'] ? rl_numeros((int)$rc['usuario_id']) : null]);
@@ -948,6 +955,7 @@ function eq_ejecutar(string $tool, array $a, string $agente, ?int $usuarioId = n
     case 'empujar_presupuestos': return ['texto' => eq_empujar_presupuestos($agente, null)];
     case 'empujar_presupuesto': return ['texto' => eq_empujar_presupuestos($agente, null, $i('cliente_id'))];
     case 'parte_de_equipos': return ['texto' => eq_partes_equipos($agente, null)];
+    case 'vigilar_ahorro': require_once __DIR__ . '/control_lib.php'; return ['texto' => cx_tick()];
     case 'recuperar_no_firmados': require_once __DIR__ . '/recuperacion_lib.php'; return ['texto' => rc_tick()];
     case 'optimizar_retorno': require_once __DIR__ . '/retorno_lib.php'; require_once __DIR__ . '/flujos_lib.php'; return ['texto' => rt_optimizar($agente)];
     case 'asignar_rellamadas': require_once __DIR__ . '/rellamadas_lib.php'; return ['texto' => rl_tick()];
@@ -1218,6 +1226,7 @@ function eq_manual(string $agente, int $turno): array {
     case 'backoffice_jefe': $out[] = $u('asignar_rellamadas'); break;
     case 'cro': $out[] = $u('optimizar_retorno'); break;
     case 'recuperacion': $out[] = $u('recuperar_no_firmados'); break;
+    case 'control360': $out[] = $u('vigilar_ahorro'); break;
     case 'cfo':
       $c = eq_cobros();
       foreach (array_slice($c['proformas_vencidas'], 0, 5) as $p) $out[] = $u('recordar_cobro', ['cobro_id' => 0, 'proforma_id' => (int)$p['id']]);

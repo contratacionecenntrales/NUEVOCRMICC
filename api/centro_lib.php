@@ -20,6 +20,7 @@ const CI_MODULOS = [
   'saneo' => ['Mantenimiento del pipeline', '🧹', 'Pone próximo paso, valor y gestor a las oportunidades cada hora.', 'saneo_auto', false, '1', 'saneo', '#/pipeline'],
   'autofix' => ['Autocorrector', '🛠️', 'Arregla cada 10 minutos lo que requiere acción y avisa de lo demás.', 'autofix_activo', false, '1', 'autofix', '#/zona-agentes'],
   'aprendizaje' => ['Aprendizaje diario', '📈', 'Aprende de los resultados: ángulos ganadores, zonas que responden, estilo de los correos.', 'aprendizaje_auto', false, '1', 'aprendizaje', '#/puesta-en-marcha'],
+  'control' => ['Control 360 · Ahorro siempre', '🛡️', 'Lee las facturas de los clientes, compara cada servicio con todo el mercado, revisa cada mes y pide las facturas que faltan.', 'control_activo', false, '1', 'control', '#/control'],
   'rellamadas' => ['Rellamadas de backoffice', '📞', 'Pone cada mañana las rellamadas de presupuestos en la agenda de backoffice.', 'rellamadas_activo', false, '1', null, '#/rellamadas'],
   'voz' => ['Agente de voz', '🤖', 'Llama con IA a los leads nuevos y a los presupuestos parados (Vapi).', 'voz_activo', false, '0', null, '#/zona-agentes'],
   'entrevistas' => ['Zona de entrevistas', '🧑‍💼', 'Los agentes de WhatsApp entrevistan a los candidatos.', 'rrhh_activo', false, '1', 'entrevistas', '#/entrevistas'],
@@ -27,7 +28,7 @@ const CI_MODULOS = [
 ];
 
 /** Bloques del cron que para la pausa general. */
-const CI_BLOQUES_PAUSA = ['motor', 'motor_analisis', 'buzones', 'saneo', 'flujos', 'agentes', 'aprendizaje', 'autofix', 'entrevistas'];
+const CI_BLOQUES_PAUSA = ['motor', 'motor_analisis', 'buzones', 'saneo', 'flujos', 'agentes', 'aprendizaje', 'autofix', 'entrevistas', 'control'];
 
 function ci_pausa(): bool { return (string)icc_ajuste('ia_pausa_general', '0') === '1'; }
 

@@ -218,7 +218,7 @@ propio CRM — ya no hace falta volver a tocar la base de datos a mano.
 
 ## Base de datos en un solo paso
 
-`sql/base-de-datos-completa-v101.sql` deja cualquier base de datos al día para la v101 importándolo una sola vez en phpMyAdmin:
+`sql/base-de-datos-completa-v102.sql` deja cualquier base de datos al día para la v102 importándolo una sola vez en phpMyAdmin:
 - Con datos (v55 en adelante): no borra nada; crea solo las tablas, columnas, índices y relaciones que falten y amplía los roles. Deja a Daniela con todo el equipo de María y las agendas de Juan y María.
 - Vacía: crea el CRM completo y un Super Administrador inicial (info@integralconnectionconsulting.es, contraseña provisional `CambiaEsta-2026`, que el CRM obliga a cambiar).
 - Se puede ejecutar varias veces sin errores ni duplicados. Los datos de ejemplo de los comparadores solo se cargan si esas tablas están vacías.
@@ -500,7 +500,7 @@ Montarla (por ejemplo en `demo.crm.tudominio.es`):
 1. Crea el subdominio en Hostalia apuntando a una carpeta nueva y sube ahí el
    mismo zip del CRM.
 2. Crea una base de datos **nueva y vacía** e importa
-   `sql/base-de-datos-completa-v101.sql` (más las migraciones nuevas si las hay).
+   `sql/base-de-datos-completa-v102.sql` (más las migraciones nuevas si las hay).
 3. Crea `api/config.local.php` de esa carpeta con los datos de la BD nueva y
    añade `define('ICC_MODO_DEMO', true);`.
 4. Rellena la demo por SSH (el generador no se puede abrir desde el navegador):
@@ -867,5 +867,37 @@ tablas `recuperacion` y `ofertas_mes` en `sql/migracion_recuperacion.sql`). Dire
 - **Ofertas exclusivas del mes** (coordinador, gerente y admin): servicio, compañía, título, **condiciones obligatorias** y
   vigencia. Botón «Llamar a los no firmados» para lanzar una oferta a quienes encajan. Las ofertas vigentes las usan el
   agente de recuperación, los agentes de correo y el Motor (una oferta real, tal cual, nunca inventada).
-- **Agente Recuperación · Darle la vuelta** (21 agentes): herramientas `ver_no_firmados` y `recuperar_no_firmados`.
+- **Agente Recuperación · Darle la vuelta** (21 agentes en la v101): herramientas `ver_no_firmados` y `recuperar_no_firmados`.
 - Las llamadas y correos siguen las reglas de siempre (Lista Robinson, LSSI, aviso de IA). Dinero, contratos y firmas los cierra una persona.
+
+## Control 360 · Ahorro siempre (v102)
+
+**🛡️ Control 360** en el menú principal (`#/control`, `#/control?cliente=ID`, `api/control.php`, `control_lib.php`;
+tablas `facturas_cliente`, `control_auditorias` y `control_clientes` en `sql/migracion_control360.sql`). Cada persona ve
+su cartera; los ajustes, solo dirección. Acceso directo desde la ficha del cliente.
+
+- **Entrada de facturas**: enlace de subida del cliente (`subir.html`), adjuntos de correos de clientes que parecen
+  facturas (buzón facturacion@ o asunto/archivo con «factura», «recibo», «póliza») y subida desde el panel o la ficha.
+- **Lectura con IA** (un esquema para luz, gas, telefonía, alarmas y seguros): proveedor, producto, periodo, importe,
+  coste mensual comparable, permanencia, potencias y consumos P1-P6, reactiva, excesos, servicios añadidos, líneas y GB,
+  consumos fuera de tarifa, cámaras y CRA, prima y coberturas. Lo que no es factura se descarta. Máximo 80 lecturas al día
+  (`control_max_lecturas_dia`) y 5 por turno.
+- **Auditoría con estudio de mercado** (las cifras las calcula el código; la IA solo redacta):
+  - Energía: el mismo cálculo que el comparador (potencia, energía, IEE, alquiler e IVA/IGIC/IPSI) contra todas las
+    tarifas activas de `cmp_ene_tarifas` (propias de ICC y de mercado) del mismo peaje y tipo de cliente.
+  - Telefonía: el perfil del comparador más parecido (empresa u hogar, con al menos sus líneas), IVA incluido y con
+    promociones del primer año.
+  - Alarmas: kits de `tarifa_alarmas` que igualan lo que tiene (CRA y cámaras). Seguros: re-estudio a mano.
+  - Resultado: coste actual anual, mejor opción (la más barata de todas las compañías; si la mejor propia de ICC es otra,
+    se indica), ahorro, mínimo, media y máximo del mercado, **posición** (% de alternativas más baratas), qué tiene, qué
+    necesita, mejoras (reactiva, excesos, servicios añadidos, consumos fuera de tarifa, centralita, CRA, autoconsumo,
+    permanencia…) y las ofertas exclusivas del mes del servicio. Veredicto: en lo mejor del mercado, mejorable (≥5 % o
+    ≥60 €), paga de más (≥15 % o ≥300 €) o falta estudio a mano.
+- **Mes a mes** (cron `control`, cada 10 min): lee las nuevas, estudia al momento lo recién leído, rehace cada mes los
+  estudios con las tarifas vigentes, avisa al gestor (tarea y notificación) de cada mejora y crea a backoffice la tarea de
+  estudio a mano (como mucho una cada 120 días). A quien no manda factura en 40 días le pide la última por correo (máx. 1
+  al mes, con enlace de subida y de baja; respeta «No contactar» y la lista de exclusión; se puede apagar).
+- **Informe al cliente**: lo envía una persona con «Enviar informe del mes» (facturacion@, info@ o el buzón del Motor),
+  con el ahorro de cada servicio y el aviso de que las cifras son estimadas y se confirman con la compañía.
+- **Agente Control 360 · Ahorro siempre** (22 agentes, Backoffice): herramientas `ver_control` y `vigilar_ahorro`.
+  Módulo propio en el Centro de control de IA (interruptor y pausa general).

@@ -26,7 +26,7 @@
       '<div class="icc-ia-estado"><span>' + ok + " de " + total + " listos</span>" + (d.resumen.falta ? '<span class="icc-ia-pill is-mal">' + d.resumen.falta + " por hacer</span>" : "") + (d.resumen.aviso ? '<span class="icc-ia-pill is-aviso">' + d.resumen.aviso + " recomendados</span>" : "") + "</div></div></section>";
     html += '<section class="icc-card icc-ia-bloque icc-pm-piloto"><div><h2>' + (d.piloto ? "🟢 Piloto automático encendido" : "✈️ Piloto automático") + "</h2>" +
       "<p>Lo enciende todo con la configuración recomendada:</p><ul>" +
-      "<li>Los 21 agentes (con el CRO, Recuperación, la Jefatura de ventas, la Jefatura de Backoffice, los Coordinadores de equipo y el Autocorrector) con autonomía «actúa» (8 a 20 h, laborables).</li>" +
+      "<li>Los 22 agentes (con el CRO, Recuperación, Control 360, la Jefatura de ventas, la Jefatura de Backoffice, los Coordinadores de equipo y el Autocorrector) con autonomía «actúa» (8 a 20 h, laborables).</li>" +
       "<li>Barrido de Asturias de todos los sectores con " + (d.aviso_legal ? "<b>envío autónomo</b> (aviso legal aceptado)" : "<b>aprobación de cada correo</b> (para enviar solo, acepta antes el aviso legal en el Motor)") + ".</li>" +
       "<li>Automatizaciones: " + d.flujos_piloto.map(esc).join(", ") + ".</li>" +
       "<li>Mantenimiento del pipeline cada hora con llamadas en la agenda; agentes de correo en automático; Jarvis; aprendizaje diario.</li></ul>" +

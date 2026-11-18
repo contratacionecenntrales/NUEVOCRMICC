@@ -1,0 +1,68 @@
+-- ICC CRM v102 · Control 360: facturas del cliente, auditoría con estudio de mercado y vigilancia mensual. Idempotente.
+CREATE TABLE IF NOT EXISTS facturas_cliente (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  cliente_id INT UNSIGNED NOT NULL,
+  documento_id INT UNSIGNED DEFAULT NULL,
+  servicio VARCHAR(20) NOT NULL DEFAULT '',
+  estado ENUM('pendiente','leida','error','descartada') NOT NULL DEFAULT 'pendiente',
+  proveedor VARCHAR(150) NOT NULL DEFAULT '',
+  producto VARCHAR(200) NOT NULL DEFAULT '',
+  fecha_factura DATE DEFAULT NULL,
+  periodo_inicio DATE DEFAULT NULL,
+  periodo_fin DATE DEFAULT NULL,
+  importe_total DECIMAL(10,2) DEFAULT NULL,
+  coste_mensual DECIMAL(10,2) DEFAULT NULL,
+  fin_permanencia DATE DEFAULT NULL,
+  datos LONGTEXT DEFAULT NULL,
+  error VARCHAR(500) NOT NULL DEFAULT '',
+  intentos TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  leida_at DATETIME DEFAULT NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_facturas_doc (documento_id),
+  KEY idx_facturas_cli (cliente_id, servicio, estado),
+  KEY idx_facturas_estado (estado),
+  CONSTRAINT fk_facturas_cliente FOREIGN KEY (cliente_id) REFERENCES clientes (id) ON DELETE CASCADE,
+  CONSTRAINT fk_facturas_doc FOREIGN KEY (documento_id) REFERENCES documentos (id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS control_auditorias (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  cliente_id INT UNSIGNED NOT NULL,
+  servicio VARCHAR(20) NOT NULL,
+  mes CHAR(7) NOT NULL,
+  factura_id INT UNSIGNED DEFAULT NULL,
+  coste_actual_anual DECIMAL(12,2) DEFAULT NULL,
+  mejor_opcion VARCHAR(255) NOT NULL DEFAULT '',
+  coste_propuesto_anual DECIMAL(12,2) DEFAULT NULL,
+  ahorro_anual DECIMAL(12,2) DEFAULT NULL,
+  mercado_min DECIMAL(12,2) DEFAULT NULL,
+  mercado_medio DECIMAL(12,2) DEFAULT NULL,
+  mercado_max DECIMAL(12,2) DEFAULT NULL,
+  posicion TINYINT UNSIGNED DEFAULT NULL,
+  n_ofertas SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+  veredicto ENUM('optimo','mejorable','paga_de_mas','sin_datos') NOT NULL DEFAULT 'sin_datos',
+  estudio LONGTEXT DEFAULT NULL,
+  estado ENUM('borrador','revisada','enviada','descartada') NOT NULL DEFAULT 'borrador',
+  revisado_por INT UNSIGNED DEFAULT NULL,
+  enviado_at DATETIME DEFAULT NULL,
+  aviso_gestor TINYINT(1) NOT NULL DEFAULT 0,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_control_mes (cliente_id, servicio, mes),
+  KEY idx_control_mes (mes, veredicto),
+  CONSTRAINT fk_control_cliente FOREIGN KEY (cliente_id) REFERENCES clientes (id) ON DELETE CASCADE,
+  CONSTRAINT fk_control_factura FOREIGN KEY (factura_id) REFERENCES facturas_cliente (id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS control_clientes (
+  cliente_id INT UNSIGNED NOT NULL,
+  activo TINYINT(1) NOT NULL DEFAULT 1,
+  ultima_peticion DATETIME DEFAULT NULL,
+  peticiones TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  ultimo_informe DATETIME DEFAULT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (cliente_id),
+  CONSTRAINT fk_controlcli_cliente FOREIGN KEY (cliente_id) REFERENCES clientes (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

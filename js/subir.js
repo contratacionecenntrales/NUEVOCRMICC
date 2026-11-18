@@ -84,7 +84,7 @@
       "<h2>Hola, " +
       U.escapeHtml(info.razon_social) +
       "</h2>" +
-      '<p class="icc-muted">Sube aqui tus facturas o documentacion de suministros actuales (PDF o foto). Nuestro equipo elaborara tu estudio comparativo de ahorro.</p>' +
+      '<p class="icc-muted">Sube aquí tus últimas facturas de luz, gas, teléfono, alarma o seguros (PDF o foto). Las comparamos con todas las compañías y te contamos dónde puedes ahorrar; cada mes lo volvemos a revisar.</p>' +
       '<div class="icc-field"><label>Archivos</label><input class="icc-input" type="file" id="input-archivos" accept="application/pdf,image/*" multiple></div>' +
       '<button class="icc-btn icc-btn-primary" id="btn-subir">Subir documentacion</button>' +
       '<ul class="icc-doc-list" id="subir-lista" style="margin-top:16px"></ul>' +

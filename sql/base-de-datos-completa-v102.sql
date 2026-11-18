@@ -1,11 +1,11 @@
 -- =============================================================================
--- ICC CRM v101 · BASE DE DATOS COMPLETA (instalar o actualizar en un solo paso)
+-- ICC CRM v102 · BASE DE DATOS COMPLETA (instalar o actualizar en un solo paso)
 --
 -- Cómo usarlo: phpMyAdmin > tu base de datos > Importar > este archivo > Continuar.
 --
 -- - Si la base de datos YA TIENE datos (tu CRM actual): NO borra nada.
 --   Solo crea las tablas, columnas e índices que falten y amplía lo necesario
---   para la versión v101. Sirve vengas de la versión que vengas (v55 en adelante).
+--   para la versión v102. Sirve vengas de la versión que vengas (v55 en adelante).
 -- - Si la base de datos está VACÍA: crea el CRM completo y un usuario
 --   Super Administrador inicial (ver el final del archivo).
 -- - Se puede ejecutar MÁS DE UNA VEZ sin errores ni duplicados.
@@ -459,6 +459,48 @@ CREATE TABLE IF NOT EXISTS `contratos` (
   CONSTRAINT `fk_contrato_comercial` FOREIGN KEY (`comercial_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS `control_auditorias` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `cliente_id` int(10) unsigned NOT NULL,
+  `servicio` varchar(20) NOT NULL,
+  `mes` char(7) NOT NULL,
+  `factura_id` int(10) unsigned DEFAULT NULL,
+  `coste_actual_anual` decimal(12,2) DEFAULT NULL,
+  `mejor_opcion` varchar(255) NOT NULL DEFAULT '',
+  `coste_propuesto_anual` decimal(12,2) DEFAULT NULL,
+  `ahorro_anual` decimal(12,2) DEFAULT NULL,
+  `mercado_min` decimal(12,2) DEFAULT NULL,
+  `mercado_medio` decimal(12,2) DEFAULT NULL,
+  `mercado_max` decimal(12,2) DEFAULT NULL,
+  `posicion` tinyint(3) unsigned DEFAULT NULL,
+  `n_ofertas` smallint(5) unsigned NOT NULL DEFAULT 0,
+  `veredicto` enum('optimo','mejorable','paga_de_mas','sin_datos') NOT NULL DEFAULT 'sin_datos',
+  `estudio` longtext DEFAULT NULL,
+  `estado` enum('borrador','revisada','enviada','descartada') NOT NULL DEFAULT 'borrador',
+  `revisado_por` int(10) unsigned DEFAULT NULL,
+  `enviado_at` datetime DEFAULT NULL,
+  `aviso_gestor` tinyint(1) NOT NULL DEFAULT 0,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_control_mes` (`cliente_id`,`servicio`,`mes`),
+  KEY `idx_control_mes` (`mes`,`veredicto`),
+  KEY `fk_control_factura` (`factura_id`),
+  CONSTRAINT `fk_control_cliente` FOREIGN KEY (`cliente_id`) REFERENCES `clientes` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_control_factura` FOREIGN KEY (`factura_id`) REFERENCES `facturas_cliente` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `control_clientes` (
+  `cliente_id` int(10) unsigned NOT NULL,
+  `activo` tinyint(1) NOT NULL DEFAULT 1,
+  `ultima_peticion` datetime DEFAULT NULL,
+  `peticiones` tinyint(3) unsigned NOT NULL DEFAULT 0,
+  `ultimo_informe` datetime DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`cliente_id`),
+  CONSTRAINT `fk_controlcli_cliente` FOREIGN KEY (`cliente_id`) REFERENCES `clientes` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS `cron_registro` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `ts` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -647,6 +689,33 @@ CREATE TABLE IF NOT EXISTS `estudios` (
   CONSTRAINT `fk_est_cliente` FOREIGN KEY (`cliente_id`) REFERENCES `clientes` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_est_documento` FOREIGN KEY (`documento_id`) REFERENCES `documentos` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_est_usuario` FOREIGN KEY (`elaborado_por`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `facturas_cliente` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `cliente_id` int(10) unsigned NOT NULL,
+  `documento_id` int(10) unsigned DEFAULT NULL,
+  `servicio` varchar(20) NOT NULL DEFAULT '',
+  `estado` enum('pendiente','leida','error','descartada') NOT NULL DEFAULT 'pendiente',
+  `proveedor` varchar(150) NOT NULL DEFAULT '',
+  `producto` varchar(200) NOT NULL DEFAULT '',
+  `fecha_factura` date DEFAULT NULL,
+  `periodo_inicio` date DEFAULT NULL,
+  `periodo_fin` date DEFAULT NULL,
+  `importe_total` decimal(10,2) DEFAULT NULL,
+  `coste_mensual` decimal(10,2) DEFAULT NULL,
+  `fin_permanencia` date DEFAULT NULL,
+  `datos` longtext DEFAULT NULL,
+  `error` varchar(500) NOT NULL DEFAULT '',
+  `intentos` tinyint(3) unsigned NOT NULL DEFAULT 0,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `leida_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_facturas_doc` (`documento_id`),
+  KEY `idx_facturas_cli` (`cliente_id`,`servicio`,`estado`),
+  KEY `idx_facturas_estado` (`estado`),
+  CONSTRAINT `fk_facturas_cliente` FOREIGN KEY (`cliente_id`) REFERENCES `clientes` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_facturas_doc` FOREIGN KEY (`documento_id`) REFERENCES `documentos` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `ficheros` (
@@ -2273,6 +2342,64 @@ PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'contratos' AND column_name = 'updated_at'), 'ALTER TABLE `contratos` ADD COLUMN `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'control_auditorias' AND column_name = 'id'), 'ALTER TABLE `control_auditorias` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'control_auditorias' AND column_name = 'cliente_id'), 'ALTER TABLE `control_auditorias` ADD COLUMN `cliente_id` int(10) unsigned NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'control_auditorias' AND column_name = 'servicio'), 'ALTER TABLE `control_auditorias` ADD COLUMN `servicio` varchar(20) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'control_auditorias' AND column_name = 'mes'), 'ALTER TABLE `control_auditorias` ADD COLUMN `mes` char(7) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'control_auditorias' AND column_name = 'factura_id'), 'ALTER TABLE `control_auditorias` ADD COLUMN `factura_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'control_auditorias' AND column_name = 'coste_actual_anual'), 'ALTER TABLE `control_auditorias` ADD COLUMN `coste_actual_anual` decimal(12,2) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'control_auditorias' AND column_name = 'mejor_opcion'), 'ALTER TABLE `control_auditorias` ADD COLUMN `mejor_opcion` varchar(255) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'control_auditorias' AND column_name = 'coste_propuesto_anual'), 'ALTER TABLE `control_auditorias` ADD COLUMN `coste_propuesto_anual` decimal(12,2) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'control_auditorias' AND column_name = 'ahorro_anual'), 'ALTER TABLE `control_auditorias` ADD COLUMN `ahorro_anual` decimal(12,2) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'control_auditorias' AND column_name = 'mercado_min'), 'ALTER TABLE `control_auditorias` ADD COLUMN `mercado_min` decimal(12,2) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'control_auditorias' AND column_name = 'mercado_medio'), 'ALTER TABLE `control_auditorias` ADD COLUMN `mercado_medio` decimal(12,2) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'control_auditorias' AND column_name = 'mercado_max'), 'ALTER TABLE `control_auditorias` ADD COLUMN `mercado_max` decimal(12,2) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'control_auditorias' AND column_name = 'posicion'), 'ALTER TABLE `control_auditorias` ADD COLUMN `posicion` tinyint(3) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'control_auditorias' AND column_name = 'n_ofertas'), 'ALTER TABLE `control_auditorias` ADD COLUMN `n_ofertas` smallint(5) unsigned NOT NULL DEFAULT 0', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'control_auditorias' AND column_name = 'veredicto'), 'ALTER TABLE `control_auditorias` ADD COLUMN `veredicto` enum(''optimo'',''mejorable'',''paga_de_mas'',''sin_datos'') NOT NULL DEFAULT ''sin_datos''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'control_auditorias' AND column_name = 'estudio'), 'ALTER TABLE `control_auditorias` ADD COLUMN `estudio` longtext DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'control_auditorias' AND column_name = 'estado'), 'ALTER TABLE `control_auditorias` ADD COLUMN `estado` enum(''borrador'',''revisada'',''enviada'',''descartada'') NOT NULL DEFAULT ''borrador''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'control_auditorias' AND column_name = 'revisado_por'), 'ALTER TABLE `control_auditorias` ADD COLUMN `revisado_por` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'control_auditorias' AND column_name = 'enviado_at'), 'ALTER TABLE `control_auditorias` ADD COLUMN `enviado_at` datetime DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'control_auditorias' AND column_name = 'aviso_gestor'), 'ALTER TABLE `control_auditorias` ADD COLUMN `aviso_gestor` tinyint(1) NOT NULL DEFAULT 0', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'control_auditorias' AND column_name = 'created_at'), 'ALTER TABLE `control_auditorias` ADD COLUMN `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'control_auditorias' AND column_name = 'updated_at'), 'ALTER TABLE `control_auditorias` ADD COLUMN `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'control_clientes' AND column_name = 'cliente_id'), 'ALTER TABLE `control_clientes` ADD COLUMN `cliente_id` int(10) unsigned NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'control_clientes' AND column_name = 'activo'), 'ALTER TABLE `control_clientes` ADD COLUMN `activo` tinyint(1) NOT NULL DEFAULT 1', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'control_clientes' AND column_name = 'ultima_peticion'), 'ALTER TABLE `control_clientes` ADD COLUMN `ultima_peticion` datetime DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'control_clientes' AND column_name = 'peticiones'), 'ALTER TABLE `control_clientes` ADD COLUMN `peticiones` tinyint(3) unsigned NOT NULL DEFAULT 0', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'control_clientes' AND column_name = 'ultimo_informe'), 'ALTER TABLE `control_clientes` ADD COLUMN `ultimo_informe` datetime DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'control_clientes' AND column_name = 'created_at'), 'ALTER TABLE `control_clientes` ADD COLUMN `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'cron_registro' AND column_name = 'id'), 'ALTER TABLE `cron_registro` ADD COLUMN `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'cron_registro' AND column_name = 'ts'), 'ALTER TABLE `cron_registro` ADD COLUMN `ts` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
@@ -2522,6 +2649,43 @@ PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'estudios' AND column_name = 'elaborado_por'), 'ALTER TABLE `estudios` ADD COLUMN `elaborado_por` int(10) unsigned DEFAULT NULL', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'estudios' AND column_name = 'created_at'), 'ALTER TABLE `estudios` ADD COLUMN `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'facturas_cliente' AND column_name = 'id'), 'ALTER TABLE `facturas_cliente` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'facturas_cliente' AND column_name = 'cliente_id'), 'ALTER TABLE `facturas_cliente` ADD COLUMN `cliente_id` int(10) unsigned NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'facturas_cliente' AND column_name = 'documento_id'), 'ALTER TABLE `facturas_cliente` ADD COLUMN `documento_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'facturas_cliente' AND column_name = 'servicio'), 'ALTER TABLE `facturas_cliente` ADD COLUMN `servicio` varchar(20) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'facturas_cliente' AND column_name = 'estado'), 'ALTER TABLE `facturas_cliente` ADD COLUMN `estado` enum(''pendiente'',''leida'',''error'',''descartada'') NOT NULL DEFAULT ''pendiente''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'facturas_cliente' AND column_name = 'proveedor'), 'ALTER TABLE `facturas_cliente` ADD COLUMN `proveedor` varchar(150) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'facturas_cliente' AND column_name = 'producto'), 'ALTER TABLE `facturas_cliente` ADD COLUMN `producto` varchar(200) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'facturas_cliente' AND column_name = 'fecha_factura'), 'ALTER TABLE `facturas_cliente` ADD COLUMN `fecha_factura` date DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'facturas_cliente' AND column_name = 'periodo_inicio'), 'ALTER TABLE `facturas_cliente` ADD COLUMN `periodo_inicio` date DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'facturas_cliente' AND column_name = 'periodo_fin'), 'ALTER TABLE `facturas_cliente` ADD COLUMN `periodo_fin` date DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'facturas_cliente' AND column_name = 'importe_total'), 'ALTER TABLE `facturas_cliente` ADD COLUMN `importe_total` decimal(10,2) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'facturas_cliente' AND column_name = 'coste_mensual'), 'ALTER TABLE `facturas_cliente` ADD COLUMN `coste_mensual` decimal(10,2) DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'facturas_cliente' AND column_name = 'fin_permanencia'), 'ALTER TABLE `facturas_cliente` ADD COLUMN `fin_permanencia` date DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'facturas_cliente' AND column_name = 'datos'), 'ALTER TABLE `facturas_cliente` ADD COLUMN `datos` longtext DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'facturas_cliente' AND column_name = 'error'), 'ALTER TABLE `facturas_cliente` ADD COLUMN `error` varchar(500) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'facturas_cliente' AND column_name = 'intentos'), 'ALTER TABLE `facturas_cliente` ADD COLUMN `intentos` tinyint(3) unsigned NOT NULL DEFAULT 0', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'facturas_cliente' AND column_name = 'created_at'), 'ALTER TABLE `facturas_cliente` ADD COLUMN `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'facturas_cliente' AND column_name = 'leida_at'), 'ALTER TABLE `facturas_cliente` ADD COLUMN `leida_at` datetime DEFAULT NULL', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'ficheros' AND column_name = 'id'), 'ALTER TABLE `ficheros` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
@@ -4060,6 +4224,12 @@ SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHER
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'contratos' AND index_name = 'idx_contratos_tarifa'), 'CREATE INDEX `idx_contratos_tarifa` ON `contratos` (`tarifa`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'control_auditorias' AND index_name = 'fk_control_factura'), 'CREATE INDEX `fk_control_factura` ON `control_auditorias` (`factura_id`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'control_auditorias' AND index_name = 'idx_control_mes'), 'CREATE INDEX `idx_control_mes` ON `control_auditorias` (`mes`, `veredicto`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'control_auditorias' AND index_name = 'uq_control_mes'), 'CREATE UNIQUE INDEX `uq_control_mes` ON `control_auditorias` (`cliente_id`, `servicio`, `mes`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'cron_registro' AND index_name = 'idx_cron_registro_bloque'), 'CREATE INDEX `idx_cron_registro_bloque` ON `cron_registro` (`bloque`, `ts`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'cron_registro' AND index_name = 'idx_cron_registro_ts'), 'CREATE INDEX `idx_cron_registro_ts` ON `cron_registro` (`ts`)', 'DO 0'));
@@ -4099,6 +4269,12 @@ PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'estudios' AND index_name = 'fk_est_documento'), 'CREATE INDEX `fk_est_documento` ON `estudios` (`documento_id`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'estudios' AND index_name = 'fk_est_usuario'), 'CREATE INDEX `fk_est_usuario` ON `estudios` (`elaborado_por`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'facturas_cliente' AND index_name = 'idx_facturas_cli'), 'CREATE INDEX `idx_facturas_cli` ON `facturas_cliente` (`cliente_id`, `servicio`, `estado`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'facturas_cliente' AND index_name = 'idx_facturas_estado'), 'CREATE INDEX `idx_facturas_estado` ON `facturas_cliente` (`estado`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'facturas_cliente' AND index_name = 'uq_facturas_doc'), 'CREATE UNIQUE INDEX `uq_facturas_doc` ON `facturas_cliente` (`documento_id`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'ficheros' AND index_name = 'fk_fichero_usuario'), 'CREATE INDEX `fk_fichero_usuario` ON `ficheros` (`subido_por`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
@@ -4412,6 +4588,12 @@ SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constrain
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'contratos' AND constraint_name = 'fk_contrato_comercial' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `contratos` ADD CONSTRAINT `fk_contrato_comercial` FOREIGN KEY (`comercial_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'control_auditorias' AND constraint_name = 'fk_control_cliente' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `control_auditorias` ADD CONSTRAINT `fk_control_cliente` FOREIGN KEY (`cliente_id`) REFERENCES `clientes` (`id`) ON DELETE CASCADE', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'control_auditorias' AND constraint_name = 'fk_control_factura' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `control_auditorias` ADD CONSTRAINT `fk_control_factura` FOREIGN KEY (`factura_id`) REFERENCES `facturas_cliente` (`id`) ON DELETE SET NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'control_clientes' AND constraint_name = 'fk_controlcli_cliente' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `control_clientes` ADD CONSTRAINT `fk_controlcli_cliente` FOREIGN KEY (`cliente_id`) REFERENCES `clientes` (`id`) ON DELETE CASCADE', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'documentos' AND constraint_name = 'fk_doc_cliente' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `documentos` ADD CONSTRAINT `fk_doc_cliente` FOREIGN KEY (`cliente_id`) REFERENCES `clientes` (`id`) ON DELETE CASCADE', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'documentos' AND constraint_name = 'fk_doc_presupuesto' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `documentos` ADD CONSTRAINT `fk_doc_presupuesto` FOREIGN KEY (`presupuesto_id`) REFERENCES `presupuestos` (`id`) ON DELETE SET NULL', 'DO 0'));
@@ -4423,6 +4605,10 @@ PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'estudios' AND constraint_name = 'fk_est_documento' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `estudios` ADD CONSTRAINT `fk_est_documento` FOREIGN KEY (`documento_id`) REFERENCES `documentos` (`id`) ON DELETE SET NULL', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'estudios' AND constraint_name = 'fk_est_usuario' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `estudios` ADD CONSTRAINT `fk_est_usuario` FOREIGN KEY (`elaborado_por`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'facturas_cliente' AND constraint_name = 'fk_facturas_cliente' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `facturas_cliente` ADD CONSTRAINT `fk_facturas_cliente` FOREIGN KEY (`cliente_id`) REFERENCES `clientes` (`id`) ON DELETE CASCADE', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'facturas_cliente' AND constraint_name = 'fk_facturas_doc' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `facturas_cliente` ADD CONSTRAINT `fk_facturas_doc` FOREIGN KEY (`documento_id`) REFERENCES `documentos` (`id`) ON DELETE SET NULL', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'ficheros' AND constraint_name = 'fk_fichero_carpeta' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `ficheros` ADD CONSTRAINT `fk_fichero_carpeta` FOREIGN KEY (`carpeta_id`) REFERENCES `ficheros_carpetas` (`id`) ON DELETE CASCADE', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
@@ -4740,4 +4926,4 @@ UPDATE usuarios SET numero_relacion = CONCAT('ICC-', LPAD(id, 5, '0')) WHERE num
 SET FOREIGN_KEY_CHECKS = 1;
 SET SESSION sql_mode = @icc_modo_anterior;
 
--- Listo. Base de datos al dia para ICC CRM v101.
+-- Listo. Base de datos al dia para ICC CRM v102.

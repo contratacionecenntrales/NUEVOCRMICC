@@ -132,4 +132,6 @@ require_once __DIR__ . '/autofix_lib.php';
 icc_cron_registrar('autofix', 10, function (): string { return af_tick(); });
 require_once __DIR__ . '/rrhh_lib.php';
 require_once __DIR__ . '/recuperacion_lib.php';
+require_once __DIR__ . '/control_lib.php';
+icc_cron_registrar('control', 10, function (): string { return cx_tick(); });
 icc_cron_registrar('entrevistas', 1, function (): string { return rr_tick(); });

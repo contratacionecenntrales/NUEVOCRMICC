@@ -274,6 +274,9 @@
     // Campaña de llamadas a negocios sin web: comerciales, backoffice y dirección.
     if (window.icc.auth.puedeVerIA() || ["comercial", "backoffice"].indexOf(window.icc.auth.state.rolPrincipal) !== -1) items.push({ label: "📞 Campaña sin web", href: "#/sin-web" });
 
+    // Control 360: facturas del cliente, auditoría y revisión mensual (cada uno, su cartera).
+    items.push({ label: "🛡️ Control 360", href: "#/control" });
+
     // Rellamadas de presupuestos: backoffice (las suyas) y dirección.
     if (window.icc.auth.puedeVerIA() || window.icc.auth.state.rolPrincipal === "backoffice") items.push({ label: "📞 Rellamadas", href: "#/rellamadas" });
 
@@ -768,6 +771,9 @@
       } else if (ruta === "#/motor") {
         if (!window.icc.auth.puedeVerIA() || !window.icc.motor) location.hash = "#/dashboard";
         else await window.icc.motor.view();
+      } else if (ruta === "#/control") {
+        if (!window.icc.control) location.hash = "#/dashboard";
+        else await window.icc.control.view();
       } else if (ruta === "#/recuperacion") {
         if (!window.icc.auth.puedeVerIA() || !window.icc.recuperacion) location.hash = "#/dashboard";
         else await window.icc.recuperacion.view();
