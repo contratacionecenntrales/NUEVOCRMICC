@@ -901,3 +901,21 @@ su cartera; los ajustes, solo dirección. Acceso directo desde la ficha del clie
   con el ahorro de cada servicio y el aviso de que las cifras son estimadas y se confirman con la compañía.
 - **Agente Control 360 · Ahorro siempre** (22 agentes, Backoffice): herramientas `ver_control` y `vigilar_ahorro`.
   Módulo propio en el Centro de control de IA (interruptor y pausa general).
+
+## Rellamadas a tope: objetivo, ritmo y modo llamada (v103)
+
+Para cuando backoffice llama desde su móvil (sin agente de voz). Sin cambios en la base de datos.
+
+- **Objetivo diario** de llamadas (por defecto 20) y de aceptados (2), en Ajustes de Rellamadas. El cupo diario nunca es
+  menor que el objetivo. Si no hay más presupuestos por rellamar, el objetivo baja a lo disponible (no se le exige
+  trabajo que no existe).
+- **Marcador** arriba del todo: llamadas y aceptados frente al objetivo, ritmo («vas 2 por detrás, a esta hora tocaban
+  8»), racha de días cumpliendo, récord y valor aceptado en la semana.
+- **Modo llamada (móvil)**: la siguiente llamada en grande con «📞 Llamar» (abre el marcador del móvil), «💬 WhatsApp»
+  con un mensaje preparado si no contesta, el guion abierto y los cuatro resultados; al marcar, pasa a la siguiente.
+- **Presión durante el día** (cron `rellamadas`, cada 15 min, jornada 9-14 y 16-19 laborables; interruptor «Presión
+  durante el día»): pone las rellamadas y el parte a las 8:30 aunque la Zona de agentes esté apagada; avisos de ritmo a
+  las 11:30, 13:30 y 17:30; aviso si pasa una hora sin marcar nada con llamadas pendientes (máx. 4 al día); celebración
+  al cumplir los objetivos (a dirección, cuando cumple el de aceptados); a las 17:30 avisa a dirección si va 3 o más por
+  detrás y por debajo del 60 % del ritmo; cierre del día a ella y a dirección a las 19:00, con aviso si es el segundo día
+  seguido por debajo de la mitad del trabajo que había.

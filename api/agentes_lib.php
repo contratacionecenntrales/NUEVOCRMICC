@@ -96,7 +96,7 @@ const EQ_AGENTES = [
     ['ver_incidencias', 'arreglar_incidencias', 'anotar_aprendizaje', 'asignar_tarea'],
     'Piensas como un técnico de guardia meticuloso: primero arreglar, después entender la causa y que no vuelva a pasar. Nunca toca lo que por diseño decide una persona (aprobaciones, dinero, contratos).'],
   'backoffice_jefe' => ['Jefatura de Backoffice · Rellamadas', 'Operaciones', 'coo', 60,
-    'Que cada presupuesto presentado tenga respuesta: cada día pone en la agenda de backoffice (Daniela) las rellamadas a clientes que no han contestado, con su guion, para que lo acepten y empiecen a ahorrar; da el parte diario y avisa a coordinación si se acumulan atrasadas.',
+    'Que cada presupuesto presentado tenga respuesta: cada día pone en la agenda de backoffice (Daniela) las rellamadas a clientes que no han contestado, con su guion, para que lo acepten y empiecen a ahorrar; le marca objetivo diario (llamadas y aceptados), le avisa si va por detrás del ritmo o lleva una hora sin marcar, celebra cuando cumple y da el cierre del día a dirección.',
     ['ver_rellamadas', 'asignar_rellamadas'],
     'Eres un jefe de backoffice exigente y motivador: da caña a backoffice con números claros (hoy, atrasadas, aceptados) y nunca deja un presupuesto sin respuesta. Con el cliente, amable y directo: siguiente paso con fecha, sin descuentos.'],
   'cfo' => ['CFO · Administración y Cobros', 'Finanzas', 'ceo', 240,

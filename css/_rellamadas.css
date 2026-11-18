@@ -20,3 +20,31 @@
 .icc-rl-fecha span { font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--txt-3); }
 @media (max-width: 560px) { .icc-rl-lista { grid-template-columns: minmax(0, 1fr); } .icc-rl-res .icc-btn { flex: 1 1 45%; } }
 .icc-rl .icc-ia-lista li > div.icc-ia-fila { flex: 0 0 auto; min-width: 0; flex-direction: row; }
+
+/* v103 · Marcador y modo llamada */
+.icc-rl-marcador { display: flex; flex-direction: column; gap: 12px; border: 1px solid var(--line); }
+.icc-rl-marcador.is-hecho { border-color: rgba(16, 185, 129, .6); box-shadow: 0 0 0 1px rgba(16, 185, 129, .25) inset; }
+.icc-rl-marc-cab { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.icc-rl-marc-cab h2 { margin: 0; font-size: 18px; }
+.icc-rl-racha { font-weight: 800; color: #FDBA74; font-size: 14px; }
+.icc-rl-marc-fila { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.icc-rl-marc-fila > div { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.icc-rl-marc-fila b { font-size: 34px; line-height: 1; color: var(--txt); }
+.icc-rl-marc-fila b small { font-size: 16px; color: var(--txt-3); font-weight: 600; }
+.icc-rl-marc-fila span { font-size: 12px; color: var(--txt-3); text-transform: uppercase; letter-spacing: .05em; font-weight: 700; }
+.icc-rl-barra { height: 10px; border-radius: 99px; background: var(--card-2); overflow: hidden; margin-top: 4px; }
+.icc-rl-barra i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, #22D3EE, #10B981); transition: width .4s; }
+.icc-rl-barra.is-aceptados i { background: linear-gradient(90deg, #F59E0B, #EF4444); }
+.icc-rl-marc-pie { display: flex; flex-wrap: wrap; gap: 6px; }
+.icc-rl-tarjeta.is-foco { border: 2px solid var(--accent, #10B981); padding: 18px; gap: 12px; margin-bottom: 14px; }
+.icc-rl-tarjeta.is-foco header strong { font-size: 18px; }
+.icc-rl-foco-eti { font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #6EE7B7; }
+.icc-rl-acc { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.icc-rl-tarjeta.is-foco .icc-rl-tel { font-size: 17px; padding: 14px 20px; }
+.icc-rl-wa { text-decoration: none; }
+.icc-rl-h3 { margin: 4px 0 10px; font-size: 14px; color: var(--txt-2); }
+@media (max-width: 560px) {
+  .icc-rl-tarjeta.is-foco .icc-rl-tel, .icc-rl-tarjeta.is-foco .icc-rl-wa { flex: 1 1 100%; text-align: center; }
+  .icc-rl-tarjeta.is-foco .icc-rl-res .icc-btn { flex: 1 1 45%; min-height: 46px; }
+  .icc-rl-marc-fila b { font-size: 28px; }
+}

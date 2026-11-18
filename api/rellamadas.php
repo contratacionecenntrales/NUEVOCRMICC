@@ -6,7 +6,7 @@
  * GET  ?action=lista[&usuario=]             pendientes, resultados recientes, numeros y ajustes
  * POST ?action=resultado {id, estado, motivo?, fecha?}
  * POST ?action=asignar                      rellamadas de hoy ahora (mas trabajo)
- * PUT  ?action=config {usuario_id, max_dia, dias, activo}
+ * PUT  ?action=config {usuario_id, max_dia, dias, activo, objetivo, objetivo_aceptados, presion}
  */
 require __DIR__ . '/config.php';
 require_once __DIR__ . '/rellamadas_lib.php';
@@ -36,7 +36,8 @@ if ($accion === 'lista' && $metodo === 'GET') {
   $st->execute([$quien]);
   $hechas = $st->fetchAll();
   $back = $db->query("SELECT id, CONCAT(nombre, ' ', COALESCE(apellidos, '')) nombre FROM usuarios WHERE rol = 'backoffice' AND bloqueado = 0 ORDER BY nombre")->fetchAll();
-  icc_json(['pendientes' => $pend, 'hechas' => $hechas, 'numeros' => $quien ? rl_numeros($quien) : null, 'candidatas' => count(rl_candidatos()), 'resultados' => RL_RESULTADOS,
+  $yo = $quien ? (string)$db->query('SELECT nombre FROM usuarios WHERE id = ' . (int)$quien)->fetchColumn() : '';
+  icc_json(['pendientes' => $pend, 'hechas' => $hechas, 'numeros' => $quien ? rl_numeros($quien) : null, 'marcador' => $quien ? rl_marcador($quien) : null, 'nombre' => $yo, 'candidatas' => count(rl_candidatos()), 'resultados' => RL_RESULTADOS,
     'config' => $cfg, 'usuario' => $quien, 'backoffice' => $back, 'es_back' => $esBack, 'es_dir' => $esDir, 'es_config' => icc_ve_config_ia($user)]);
 }
 
@@ -64,9 +65,12 @@ if ($accion === 'config' && $metodo === 'PUT') {
     if (!$st->fetchColumn()) icc_json(['error' => 'Elige una persona de backoffice.'], 422);
   }
   icc_ajuste_guardar('rellamadas_usuario', (string)$u, false, $uid);
-  icc_ajuste_guardar('rellamadas_max_dia', (string)max(1, min(60, (int)($body['max_dia'] ?? 15))), false, $uid);
+  icc_ajuste_guardar('rellamadas_max_dia', (string)max(1, min(80, (int)($body['max_dia'] ?? 25))), false, $uid);
   icc_ajuste_guardar('rellamadas_dias', (string)max(1, min(30, (int)($body['dias'] ?? 2))), false, $uid);
   icc_ajuste_guardar('rellamadas_activo', !empty($body['activo']) ? '1' : '0', false, $uid);
+  icc_ajuste_guardar('rellamadas_objetivo', (string)max(1, min(80, (int)($body['objetivo'] ?? 20))), false, $uid);
+  icc_ajuste_guardar('rellamadas_objetivo_aceptados', (string)max(0, min(20, (int)($body['objetivo_aceptados'] ?? 2))), false, $uid);
+  icc_ajuste_guardar('rellamadas_presion', !empty($body['presion']) ? '1' : '0', false, $uid);
   icc_json(['ok' => true]);
 }
 

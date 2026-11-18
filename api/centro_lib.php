@@ -21,14 +21,14 @@ const CI_MODULOS = [
   'autofix' => ['Autocorrector', '🛠️', 'Arregla cada 10 minutos lo que requiere acción y avisa de lo demás.', 'autofix_activo', false, '1', 'autofix', '#/zona-agentes'],
   'aprendizaje' => ['Aprendizaje diario', '📈', 'Aprende de los resultados: ángulos ganadores, zonas que responden, estilo de los correos.', 'aprendizaje_auto', false, '1', 'aprendizaje', '#/puesta-en-marcha'],
   'control' => ['Control 360 · Ahorro siempre', '🛡️', 'Lee las facturas de los clientes, compara cada servicio con todo el mercado, revisa cada mes y pide las facturas que faltan.', 'control_activo', false, '1', 'control', '#/control'],
-  'rellamadas' => ['Rellamadas de backoffice', '📞', 'Pone cada mañana las rellamadas de presupuestos en la agenda de backoffice.', 'rellamadas_activo', false, '1', null, '#/rellamadas'],
+  'rellamadas' => ['Rellamadas de backoffice', '📞', 'Pone cada mañana las rellamadas en la agenda de backoffice, le marca objetivo y ritmo durante el día y da el cierre a dirección.', 'rellamadas_activo', false, '1', 'rellamadas', '#/rellamadas'],
   'voz' => ['Agente de voz', '🤖', 'Llama con IA a los leads nuevos y a los presupuestos parados (Vapi).', 'voz_activo', false, '0', null, '#/zona-agentes'],
   'entrevistas' => ['Zona de entrevistas', '🧑‍💼', 'Los agentes de WhatsApp entrevistan a los candidatos.', 'rrhh_activo', false, '1', 'entrevistas', '#/entrevistas'],
   'jarvis' => ['Jarvis', '🎙️', 'Asistente de voz y texto para todo el equipo (solo cuando alguien le habla).', 'jarvis_activo', false, '1', null, '#/dashboard'],
 ];
 
 /** Bloques del cron que para la pausa general. */
-const CI_BLOQUES_PAUSA = ['motor', 'motor_analisis', 'buzones', 'saneo', 'flujos', 'agentes', 'aprendizaje', 'autofix', 'entrevistas', 'control'];
+const CI_BLOQUES_PAUSA = ['motor', 'motor_analisis', 'buzones', 'saneo', 'flujos', 'agentes', 'aprendizaje', 'autofix', 'entrevistas', 'control', 'rellamadas'];
 
 function ci_pausa(): bool { return (string)icc_ajuste('ia_pausa_general', '0') === '1'; }
 
