@@ -51,9 +51,12 @@ Conseguir una llamada o reunión de diagnóstico de 10-15 minutos (presencial en
 - Sedes en Madrid, Gijón y Oviedo.
 - Implantamos IA cumpliendo el Reglamento Europeo de IA (AI Act) y el RGPD.
 
-# GANCHO NORMATIVO
-- Desde el 2 de agosto de 2026 se aplica la obligación de transparencia del AI Act (art. 50): quien atiende a clientes con chatbots o asistentes automáticos debe avisar de forma clara de que es una IA.
-- El art. 4 pide a las empresas que usan herramientas de IA (ChatGPT, Copilot, CRMs con IA…) tomar medidas para la alfabetización en IA de su plantilla. La formación puede bonificarse a través de FUNDAE según el crédito de cada empresa.
+# GANCHO NORMATIVO (situación a noviembre de 2026; no afirmes nada más allá de esto)
+- Reglamento Europeo de IA (AI Act, Reglamento (UE) 2024/1689). Desde el 2 de agosto de 2026 se aplica la obligación de transparencia (art. 50): quien atiende a clientes con chatbots o asistentes automáticos debe avisar de forma clara de que es una IA, y los contenidos generados o manipulados con IA (imágenes, vídeos, audios, textos de interés público) deben identificarse como tales.
+- Los sistemas de IA generativa que ya estaban en el mercado antes del 2 de agosto de 2026 tienen hasta el 2 de diciembre de 2026 para el marcado legible por máquina de lo que generan.
+- El Ómnibus Digital (Reglamento (UE) 2026/1744) aplazó las obligaciones de los sistemas de alto riesgo: los del Anexo III (selección de personal, crédito, educación, biometría…) al 2 de diciembre de 2027 y los del Anexo I (integrados en productos regulados) al 2 de agosto de 2028. No digas que todo el reglamento se ha aplazado: la transparencia ya se aplica.
+- El art. 4 pide a las empresas que usan herramientas de IA (ChatGPT, Copilot, CRMs con IA…) adoptar medidas para fomentar la alfabetización en IA de su plantilla. La formación puede bonificarse a través de FUNDAE según el crédito de cada empresa.
+- En España, el Proyecto de Ley Orgánica para el buen uso y la gobernanza de la IA (aprobado por el Gobierno en mayo de 2026) se tramita en el Congreso: todavía no es ley. Refuerza a la AESIA (Agencia Española de Supervisión de la IA) como autoridad de vigilancia. Preséntalo siempre como «en tramitación».
 - No cites cifras de multas ni digas que la empresa incumple: no lo sabes. Habla de lo que dice la norma y ofrece revisarlo.
 
 # REGLAS DE REDACCIÓN
@@ -728,6 +731,46 @@ function labs_motor_angulos()
         'caso' => array('Caso de su sector', 'Engancha con un caso de uso concreto de su sector (el que te paso en los datos), contado en dos frases y sin cifras. Que se vea qué haría el asistente en su día a día.'),
         'pregunta' => array('Pregunta corta', 'Correo ultracorto (máximo 50 palabras): un detalle real de su web y una sola pregunta directa que invite a responder. Sin presentación larga.'),
         'diagnostico' => array('Diagnóstico gratuito', 'Ofrece un diagnóstico gratuito de 15 minutos con un mini informe de qué se puede automatizar en su caso. Bajo compromiso, sin vender el producto.'),
+        // Embudos de captación para empezar sin clientes: cada uno trae lo que cuenta cada correo de la secuencia.
+        'presentacion' => array('Presentación: estamos aquí', 'Correo informativo de presentación: quiénes somos (Labs24k, agencia de IA para empresas con sede en Gijón, Oviedo y Madrid), un detalle real de su empresa y, en dos frases, qué cambia este año con el Reglamento Europeo de IA (transparencia desde el 2 de agosto de 2026). Tono cercano de vecino profesional, sin vender: el objetivo es que nos conozcan y sepan que pueden preguntarnos.',
+            array(2 => 'Segundo correo (día 3): informativo. Explica en 3 puntos muy cortos qué pide ya la normativa de IA a una empresa de su sector: avisar cuando atiende una IA, identificar los contenidos generados con IA y formar al equipo que usa estas herramientas. Ofrece enviarle un resumen de una página. Asunto que continúe el anterior.',
+                  3 => 'Último correo (día 7): breve. Ofrece un diagnóstico gratuito de 15 minutos sobre cómo usan la IA y qué deberían revisar, y di que no volverás a escribir si no le interesa.')),
+        'calendario_ia' => array('Calendario de la normativa IA', 'Correo informativo sobre el calendario real del Reglamento Europeo de IA: qué se aplica ya (transparencia, art. 50, desde el 2 de agosto de 2026; marcado de contenidos de IA generativa ya comercializada hasta el 2 de diciembre de 2026) y qué se ha aplazado con el Ómnibus Digital (alto riesgo: diciembre de 2027 y agosto de 2028). Conecta con algo de su web. Sin alarmismo.',
+            array(2 => 'Segundo correo (día 3): la ley española. El Proyecto de Ley Orgánica de IA se tramita en el Congreso (todavía no es ley) y refuerza a la AESIA como autoridad que vigilará el cumplimiento. Explica qué conviene tener preparado ya: inventario de herramientas de IA que usan, avisos de transparencia y formación. Asunto que continúe el anterior.',
+                  3 => 'Último correo (día 7): ofrece revisar en 15 minutos su caso (qué herramientas usan y qué avisos les faltan) y deja claro que no volverás a escribir.')),
+        'alfabetizacion' => array('Formación del equipo en IA', 'Correo informativo sobre el art. 4 del Reglamento Europeo de IA: las empresas que usan herramientas de IA (ChatGPT, Copilot, CRMs con IA) deben adoptar medidas para fomentar la alfabetización en IA de su plantilla. Menciona que la formación puede bonificarse a través de FUNDAE según el crédito de cada empresa. Un detalle real de su empresa en la primera línea.',
+            array(2 => 'Segundo correo (día 3): qué incluye una formación práctica en IA para un equipo de su sector (uso seguro de ChatGPT y similares, datos personales, avisos de transparencia, casos de uso del día a día), contado en tres frases. Asunto que continúe el anterior.',
+                  3 => 'Último correo (día 7): ofrece una sesión informativa gratuita de 20 minutos para su equipo o enviarle el temario, y di que no volverás a escribir.')),
+        'contenidos_ia' => array('Contenidos hechos con IA', 'Correo informativo para empresas que publican contenido (web, redes, anuncios): desde el 2 de agosto de 2026 el Reglamento Europeo de IA pide identificar los contenidos generados o manipulados con IA (imágenes, vídeos, audios realistas) y los proveedores de IA generativa ya comercializada tienen hasta el 2 de diciembre de 2026 para el marcado. Conecta con algo de su web o sus redes. Sin alarmismo.',
+            array(2 => 'Segundo correo (día 3): cómo lo resolvemos en la práctica (etiquetas visibles, avisos en la web y en redes, revisión de las herramientas que usan) en tres frases. Asunto que continúe el anterior.',
+                  3 => 'Último correo (día 7): ofrece revisar en 15 minutos sus contenidos y herramientas, y di que no volverás a escribir.')),
+    );
+}
+
+/**
+ * Embudos de captación listos para lanzar (una agencia que empieza sin clientes): a quién se busca
+ * con el Radar y qué cuenta cada correo de la secuencia. Al lanzarlo se crea la campaña con su
+ * ángulo y una extracción del Radar que mete a las empresas encontradas en ella.
+ */
+function labs_motor_embudos()
+{
+    return array(
+        'presentacion' => array('nombre' => 'Presentación de la agencia', 'angulo' => 'presentacion', 'icono' => 'spark',
+            'resumen' => 'Para darse a conocer: quiénes somos y qué cambia este año con la normativa de IA, sin vender.',
+            'pasos' => array('Día 1 · Quiénes somos + qué cambia con el AI Act', 'Día 3 · Lo que pide ya la normativa a su sector', 'Día 7 · Diagnóstico gratuito de 15 minutos'),
+            'sectores' => array('Clínica dental', 'Inmobiliaria', 'Asesoría', 'Clínica de estética', 'Taller mecánico')),
+        'calendario_ia' => array('nombre' => 'AI Act y la nueva ley de IA', 'angulo' => 'calendario_ia', 'icono' => 'shield',
+            'resumen' => 'Qué se aplica ya del Reglamento Europeo de IA, qué se ha aplazado y qué prepara la ley española (AESIA).',
+            'pasos' => array('Día 1 · Calendario real del AI Act', 'Día 3 · Ley española de IA y AESIA (en tramitación)', 'Día 7 · Revisión de su caso en 15 minutos'),
+            'sectores' => array('Asesoría', 'Despacho de abogados', 'Clínica', 'Academia', 'Inmobiliaria')),
+        'alfabetizacion' => array('Formación del equipo en IA', 'angulo' => 'alfabetizacion', 'icono' => 'book',
+            'resumen' => 'El art. 4 del AI Act y la formación bonificable por FUNDAE para equipos que ya usan ChatGPT o Copilot.',
+            'pasos' => array('Día 1 · Art. 4: alfabetización en IA', 'Día 3 · Qué incluye una formación práctica', 'Día 7 · Sesión informativa gratuita'),
+            'sectores' => array('Asesoría', 'Gestoría', 'Agencia de seguros', 'Academia', 'Empresa de servicios')),
+        'contenidos_ia' => array('Contenidos hechos con IA', 'angulo' => 'contenidos_ia', 'icono' => 'eye',
+            'resumen' => 'Etiquetado de imágenes, vídeos y textos generados con IA (art. 50) para quien publica en web, redes y anuncios.',
+            'pasos' => array('Día 1 · Identificar lo generado con IA', 'Día 3 · Cómo se resuelve en la práctica', 'Día 7 · Revisión de sus contenidos'),
+            'sectores' => array('Agencia de marketing', 'Inmobiliaria', 'Tienda online', 'Hotel', 'Restaurante')),
     );
 }
 
@@ -762,6 +805,44 @@ function labs_motor_plantilla($lead, $paso)
     $sector = $lead['sector'] !== '' ? mb_strtolower($lead['sector']) : 'empresas como la vuestra';
     $dia = labs_motor_dia_cita();
     $ang = labs_motor_angulo_de($lead);
+    $o = labs_motor_cfg()['outreach'];
+    if ($ang === 'presentacion') {
+        $p = array(1 => array('hola desde Labs24k',
+            "Hola, equipo de " . $lead['empresa'] . ":\n\nSoy de Labs24k, una agencia de inteligencia artificial para empresas con sede en Gijón, Oviedo y Madrid. Os escribo para presentarnos: he visto " . $detalle . ".\n\n" .
+            "Este año cambia algo que afecta a muchos negocios de " . $sector . ": desde el 2 de agosto de 2026 el Reglamento Europeo de IA obliga a avisar cuando un cliente habla con un asistente automático y a identificar los contenidos hechos con IA.\n\n" .
+            "Si en algún momento tenéis dudas sobre cómo usar la IA en " . $lead['empresa'] . " sin riesgos, aquí estamos. ¿Os paso un resumen de una página?"),
+            2 => array('re: hola desde Labs24k', "Hola de nuevo:\n\nPor si os sirve, lo que pide ya la normativa de IA a una empresa como la vuestra, en tres puntos:\n\n" .
+                "1. Avisar de forma clara cuando atiende un chatbot o asistente automático.\n2. Identificar las imágenes, vídeos o audios generados con IA.\n3. Formar al equipo que usa herramientas como ChatGPT o Copilot.\n\n¿Queréis que os mande el resumen?"),
+            3 => array('última nota', "Hola:\n\nNo os escribo más. Si os interesa, os hago gratis un diagnóstico de 15 minutos de cómo usáis la IA en " . $lead['empresa'] . " y qué conviene revisar. Respondedme con un día y os llamo."));
+        return $p[$paso] ?? $p[3];
+    }
+    if ($ang === 'calendario_ia') {
+        $p = array(1 => array('normativa IA: qué se aplica ya',
+            "Hola, equipo de " . $lead['empresa'] . ":\n\nOs escribo porque hay bastante confusión con el Reglamento Europeo de IA y quizá os sirva un resumen claro.\n\n" .
+            "Ya se aplica: desde el 2 de agosto de 2026, la transparencia (avisar cuando atiende una IA e identificar los contenidos generados con IA).\n" .
+            "Se ha aplazado: las obligaciones de los sistemas de alto riesgo, a diciembre de 2027 y agosto de 2028 (Ómnibus Digital).\n\n" .
+            "En Labs24k ayudamos a negocios de " . $sector . " de " . $zona . " a ponerse al día sin complicarse. ¿Os encaja que lo veamos en 10 minutos el " . $dia . "?"),
+            2 => array('re: normativa IA: qué se aplica ya', "Hola de nuevo:\n\nEn España se tramita en el Congreso el Proyecto de Ley Orgánica de IA (todavía no es ley), que refuerza a la AESIA como autoridad que vigilará el cumplimiento.\n\n" .
+                "Lo sensato es tener preparado ya: qué herramientas de IA usáis, los avisos de transparencia y la formación del equipo.\n\n¿Lo revisamos juntos esta semana?"),
+            3 => array('cierro el tema', "Hola:\n\nNo quiero insistir. Si os viene bien, reviso gratis en 15 minutos vuestro caso: qué herramientas de IA usáis y qué avisos os faltan. Si no, no os escribo más."));
+        return $p[$paso] ?? $p[3];
+    }
+    if ($ang === 'alfabetizacion') {
+        $p = array(1 => array('formación en IA para ' . $lead['empresa'],
+            "Hola, equipo de " . $lead['empresa'] . ":\n\nEl art. 4 del Reglamento Europeo de IA pide a las empresas que usan herramientas como ChatGPT, Copilot o CRMs con IA adoptar medidas para formar a su plantilla en el uso de la IA.\n\n" .
+            "En Labs24k damos esa formación, práctica y adaptada a " . $sector . ", y puede bonificarse por FUNDAE según el crédito de cada empresa.\n\n¿Os cuento en 10 minutos el " . $dia . " cómo sería para vuestro equipo?"),
+            2 => array('re: formación en IA', "Hola de nuevo:\n\nUna formación útil cabe en pocas horas: uso seguro de ChatGPT y similares, qué datos no meter nunca, cómo avisar cuando atiende una IA y casos prácticos de vuestro día a día.\n\n¿Os mando el temario?"),
+            3 => array('última nota', "Hola:\n\nNo os escribo más. Si os interesa, hacemos gratis una sesión informativa de 20 minutos para vuestro equipo. Respondedme con un día y lo organizamos."));
+        return $p[$paso] ?? $p[3];
+    }
+    if ($ang === 'contenidos_ia') {
+        $p = array(1 => array('contenidos con IA en ' . $lead['empresa'],
+            "Hola, equipo de " . $lead['empresa'] . ":\n\nSi usáis IA para imágenes, vídeos o textos de la web, las redes o los anuncios, esto os interesa: desde el 2 de agosto de 2026 el Reglamento Europeo de IA pide identificar los contenidos generados o manipulados con IA.\n\n" .
+            "En Labs24k ayudamos a negocios de " . $sector . " a hacerlo sin perder frescura: etiquetas claras, avisos y herramientas bien configuradas.\n\n¿Lo vemos en 10 minutos el " . $dia . "?"),
+            2 => array('re: contenidos con IA', "Hola de nuevo:\n\nEn la práctica se resuelve con poco: una etiqueta visible en lo generado con IA, un aviso en la web y revisar que las herramientas que usáis marcan lo que crean.\n\n¿Os ayudo a revisarlo?"),
+            3 => array('cierro el tema', "Hola:\n\nNo insisto más. Si os viene bien, reviso gratis en 15 minutos vuestros contenidos y herramientas. Si no, no os escribo más."));
+        return $p[$paso] ?? $p[3];
+    }
     if ($paso === 1 && $ang === 'perdida') {
         return array('¿quién contesta en ' . $lead['empresa'] . ' a las 21:00?',
             "Hola, equipo de " . $lead['empresa'] . ":\n\nUna pregunta rápida: cuando alguien os escribe o llama fuera de horario, ¿quién le contesta?\n\n" .
@@ -953,6 +1034,9 @@ function labs_motor_redacta($lead, $paso)
         'caso_de_uso_del_sector' => labs_motor_caso_sector($lead['sector']), 'dia_propuesto' => labs_motor_dia_cita());
     $sys = (string) $cfg['outreach']['prompt'] . "\n\n# TONO\n" . $cfg['outreach']['tono'] . "\nMáximo " . (int) $cfg['outreach']['palabras_max'] . ' palabras en el cuerpo.';
     $ang = labs_motor_angulo_de($lead);
+    if (!empty(labs_motor_angulos()[$ang][2])) {
+        $objetivo = labs_motor_angulos()[$ang][2] + $objetivo;
+    }
     if ($paso === 1) {
         $objetivo[1] = 'Correo inicial. Ángulo «' . labs_motor_angulos()[$ang][0] . '»: ' . labs_motor_angulos()[$ang][1] .
             (trim((string) ($lead['angulo_texto'] ?? '')) !== '' ? ' Indicaciones de la campaña: ' . trim($lead['angulo_texto']) : '');
@@ -1454,7 +1538,7 @@ function labs_motor($metodo, $sub, $b, $pares)
         $motivo = '';
         return array(200, array('config' => $cfg, 'secretos' => array_values(array_unique(array_merge(array_keys(labs_motor_secretos()), labs_motor_secreto('openai_key') !== null ? array('openai_key') : array()))), 'leads' => $cnt,
             'campanas' => labs_motor_metricas(), 'tareas' => labs_q("SELECT id, estado, total, hechos, parametros, creado FROM motor_tareas ORDER BY id DESC LIMIT 5")->fetchAll(),
-            'ia' => labs_ia_para_agentes() !== null, 'proveedor' => labs_ia_proveedor(), 'proveedor_fijo' => labs_ia_proveedor_fijo(), 'sdk' => is_file(__DIR__ . '/lib/vendor/autoload.php'), 'angulos' => labs_motor_angulos(),
+            'ia' => labs_ia_para_agentes() !== null, 'proveedor' => labs_ia_proveedor(), 'proveedor_fijo' => labs_ia_proveedor_fijo(), 'sdk' => is_file(__DIR__ . '/lib/vendor/autoload.php'), 'angulos' => array_map(function ($a) { return array($a[0], $a[1]); }, labs_motor_angulos()), 'embudos' => labs_motor_embudos(),
             'imap' => function_exists('imap_open'), 'puede_enviar' => labs_motor_puede_enviar($motivo), 'motivo' => $motivo,
             'enviados_hoy' => (int) labs_q("SELECT COUNT(*) FROM motor_mensajes WHERE estado = 'enviado' AND enviado >= ?", array(labs_motor_ahora_madrid()->setTime(0, 0)->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s')))->fetchColumn(),
             'cron' => '/api/index.php?ruta=' . rawurlencode('/motor/cron?token=' . $tok), 'bajas' => (int) labs_q('SELECT COUNT(*) FROM motor_bajas')->fetchColumn(),
@@ -1631,6 +1715,32 @@ function labs_motor($metodo, $sub, $b, $pares)
         }
         labs_motor_log('campana', 'Campaña creada: ' . $nombre . ' (modo ' . $modo . ')', null, $id);
         return array(200, array('id' => $id));
+    }
+    if ($sub === '/embudos' && $metodo === 'POST') {
+        $e = labs_motor_embudos()[$b['embudo'] ?? ''] ?? null;
+        if (!$e) {
+            throw new ErrorApi('Ese embudo no existe.', 400, 'MOTOR');
+        }
+        $modo = in_array($b['modo'] ?? '', array('borradores', 'aprobacion', 'autonomo'), true) ? $b['modo'] : 'aprobacion';
+        if ($modo === 'autonomo' && !labs_motor_cfg()['envio']['aviso_legal_aceptado']) {
+            throw new ErrorApi('El modo autónomo exige que la administración acepte antes el aviso legal en la Fábrica de agentes.', 400, 'MOTOR');
+        }
+        $sect = array_values(array_filter(array_map('trim', (array) ($b['sectores'] ?? array()))));
+        $locs = array_values(array_filter(array_map('trim', (array) ($b['localidades'] ?? array()))));
+        $nombre = mb_substr(trim((string) ($b['nombre'] ?? '')) ?: $e['nombre'] . ' · ' . implode(', ', array_slice($locs, 0, 3)), 0, 120);
+        labs_db()->exec('SAVEPOINT embudo');
+        labs_q('INSERT INTO motor_campanas (nombre, sector, ccaa, comarca, localidades, estado, modo, creado_por, creado, actualizado, angulo, angulo_texto) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',
+            array($nombre, count($sect) === 1 ? mb_substr($sect[0], 0, 60) : '', mb_substr((string) ($b['ccaa'] ?? ''), 0, 60), mb_substr((string) ($b['comarca'] ?? ''), 0, 80),
+                json_encode(array_slice($locs, 0, 80), JSON_UNESCAPED_UNICODE), 'activa', $modo, $u['id'], labs_ahora(), labs_ahora(), $e['angulo'], mb_substr(trim((string) ($b['indicaciones'] ?? '')), 0, 1000)));
+        $cid = (int) labs_db()->lastInsertId();
+        try {
+            $tid = labs_motor_tarea_crea(array('sectores' => $sect, 'localidades' => $locs, 'ccaa' => $b['ccaa'] ?? '', 'comarca' => $b['comarca'] ?? '', 'max' => $b['max'] ?? 100, 'campana_id' => $cid), $u['id']);
+        } catch (ErrorApi $x) {
+            labs_db()->exec('ROLLBACK TO SAVEPOINT embudo');
+            throw $x;
+        }
+        labs_motor_log('campana', 'Embudo «' . $e['nombre'] . '» lanzado: el Radar busca ' . implode(', ', $sect) . ' en ' . count($locs) . ' localidad(es) y cada empresa con correo verificado entra en la secuencia (modo ' . $modo . ').', null, $cid);
+        return array(200, array('ok' => true, 'campana' => $cid, 'tarea' => $tid, 'tick' => labs_motor_tick(6)));
     }
     if (preg_match('#^/campanas/(\d+)$#', $sub, $m) && $metodo === 'POST') {
         $c = labs_fila('SELECT * FROM motor_campanas WHERE id = ?', array((int) $m[1]));

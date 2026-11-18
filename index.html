@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-ruO/3uYss8ZU1nkUcYJ00YOmmKfqetG0Xnwq3fkr73U='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-tRKcibF69JAceUDUQ8NixXmX4+36anruSpIz07kAK6g='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Labs Command Center 360 - Oficina virtual SaaS de la red comercial de Labs24k.">
 <meta name="theme-color" content="#0B0F19">
@@ -2048,6 +2048,12 @@ a.btn.btn-g:hover{color:#fff}
 .san-lista{margin-top:12px;display:flex;flex-direction:column;gap:6px}
 .san-fila{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--card-2)}
 .co-hero{border-color:rgba(45,212,191,.35);background:radial-gradient(620px 260px at 0% 0%,rgba(45,212,191,.18),transparent 70%),radial-gradient(520px 260px at 100% 100%,rgba(56,189,248,.14),transparent 70%),var(--card)}
+.mt-embudos{margin-bottom:12px}
+.mt-emb-g{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr));gap:10px;margin-top:10px}
+.mt-emb{display:flex;flex-direction:column;gap:5px;text-align:left;padding:12px;border-radius:14px;border:1px solid var(--line);background:transparent;color:var(--txt);font:inherit;cursor:pointer}
+.mt-emb b{display:flex;gap:6px;align-items:center;font-size:13.5px}.mt-emb ol{margin:4px 0 0;padding-left:18px;font-size:11.5px;color:var(--txt-2)}
+.mt-emb:hover{border-color:rgba(167,139,250,.5)}.mt-emb.on{border-color:#A78BFA;box-shadow:0 0 0 1px #A78BFA;background:rgba(167,139,250,.06)}
+.mt-emb-f{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
 .em-hero{border-color:rgba(56,189,248,.35);background:radial-gradient(620px 260px at 0% 0%,rgba(56,189,248,.18),transparent 70%),radial-gradient(520px 260px at 100% 100%,rgba(244,114,182,.14),transparent 70%),var(--card)}
 .em-lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,440px),1fr));gap:12px}
 .em-cam{display:flex;flex-direction:column;gap:6px}
@@ -11917,6 +11923,25 @@ function motTabla(){
 }
 
 /* --- B. Sala de campañas ------------------------------------------------------------ */
+/* Embudos de captación listos: Radar + secuencia informativa (AI Act, ley de IA, formación, contenidos). */
+function motEmbudos(){
+  var E = MOT.estado, EB = E.embudos || {}, F = MOT.emb || (MOT.emb = {sel:'', sectores:'', localidades:(MOT.r && MOT.r.locs || []).join(', '), ccaa:(MOT.r && MOT.r.ccaa) || 'Asturias', modo:'aprobacion', max:100, indicaciones:''});
+  var e = EB[F.sel];
+  return '<section class="card mt-embudos"><div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><h3 style="margin:0">'+ic('target',15)+' Embudos de captación listos</h3>'+
+      '<span class="tiny muted">El Radar busca las empresas, la IA escribe la secuencia de 3 correos y quien responde con interés pasa al Pipeline con una llamada en tu agenda.</span></div>'+
+    '<div class="mt-emb-g">'+Object.keys(EB).map(function(k){ var x = EB[k];
+      return '<button class="mt-emb'+(F.sel === k ? ' on' : '')+'" data-mt-emb="'+k+'"><b>'+ic(x.icono || 'mail',14)+' '+esc(x.nombre)+'</b><span class="tiny muted">'+esc(x.resumen)+'</span>'+
+        '<ol>'+x.pasos.map(function(p){ return '<li>'+esc(p)+'</li>'; }).join('')+'</ol></button>'; }).join('')+'</div>'+
+    (e ? '<div class="mt-emb-f"><div class="grid g-3"><div><label class="f">Sectores a buscar (separados por comas)</label><input class="inp" id="mt-emb-sec" value="'+esc(F.sectores || e.sectores.join(', '))+'"></div>'+
+        '<div><label class="f">Localidades</label><input class="inp" id="mt-emb-loc" placeholder="Gijón, Oviedo, Avilés" value="'+esc(F.localidades)+'"></div>'+
+        '<div><label class="f">Comunidad</label><input class="inp" id="mt-emb-ccaa" value="'+esc(F.ccaa)+'"></div>'+
+        '<div><label class="f">Modo de envío</label><select class="inp" id="mt-emb-modo">'+Object.keys(MOT_MODOS).map(function(k){ return '<option value="'+k+'"'+(F.modo === k ? ' selected' : '')+'>'+MOT_MODOS[k][0]+'</option>'; }).join('')+'</select></div>'+
+        '<div><label class="f">Máximo de empresas</label><input class="inp" type="number" min="5" max="500" id="mt-emb-max" value="'+esc(F.max)+'"></div>'+
+        '<div><label class="f">Indicaciones para la IA (opcional)</label><input class="inp" id="mt-emb-ind" placeholder="Menciona que somos nuevos en Gijón" value="'+esc(F.indicaciones)+'"></div></div>'+
+      '<p class="tiny muted" style="margin:6px 0 0">'+esc(MOT_MODOS[F.modo][1])+' Todos los correos llevan quién escribe, por qué tiene su dirección y la baja en un clic; solo se usan correos genéricos de empresa publicados en su web.</p>'+
+      '<button class="btn btn-p" id="mt-emb-ok" style="margin-top:10px"'+(MOT.embOcupado ? ' disabled' : '')+'>'+ic('play',14)+(MOT.embOcupado ? ' Lanzando…' : ' Lanzar embudo')+'</button></div>' : '')+
+  '</section>';
+}
 function motCampanas(){
   var E = MOT.estado, C = MOT.camp, sectores = [];
   E.campanas.forEach(function(c){ if(c.sector && sectores.indexOf(c.sector) < 0) sectores.push(c.sector); });
@@ -11925,7 +11950,8 @@ function motCampanas(){
     '<div class="mt-camps-h"><div class="row" style="gap:6px;flex-wrap:wrap"><button class="mt-loc'+(!MOT.f.sector ? ' on' : '')+'" data-mt-fsec="">Todas</button>'+
       sectores.map(function(s){ return '<button class="mt-loc'+(MOT.f.sector === s ? ' on' : '')+'" data-mt-fsec="'+esc(s)+'">'+esc(s)+'</button>'; }).join('')+'</div>'+
       '<button class="btn '+(E.config.envio.pausado ? 'btn-p' : 'btn-s')+'" id="mt-pausa">'+ic(E.config.envio.pausado ? 'play' : 'stop',14)+' '+(E.config.envio.pausado ? 'Reanudar envíos' : 'Pausar todos los envíos')+'</button></div>'+
-    '<details class="card mt-nueva"'+(E.campanas.length ? '' : ' open')+'><summary>'+ic('plus',14)+' Nueva campaña</summary>'+
+    motEmbudos()+
+    '<details class="card mt-nueva"><summary>'+ic('plus',14)+' Nueva campaña a medida</summary>'+
       '<div class="grid g-3" style="margin-top:10px"><div><label class="f">Nombre</label><input class="inp" id="mt-c-nom" placeholder="Campaña Inmobiliarias Asturias" value="'+esc(C.nombre)+'"></div>'+
         '<div><label class="f">Sector</label><select class="inp" id="mt-c-sec"><option value="">Varios</option>'+MOT_SECTORES.map(function(s){ return '<option value="'+esc(s.n)+'"'+(C.sector === s.n ? ' selected' : '')+'>'+esc(s.n)+'</option>'; }).join('')+'</select></div>'+
         '<div><label class="f">Modo de envío</label><select class="inp" id="mt-c-modo">'+Object.keys(MOT_MODOS).map(function(k){ return '<option value="'+k+'"'+(C.modo === k ? ' selected' : '')+'>'+MOT_MODOS[k][0]+'</option>'; }).join('')+'</select></div></div>'+
@@ -12130,6 +12156,16 @@ function motEventos(){
   if(q('#mt-c-sec')) q('#mt-c-sec').onchange = function(){ C.sector = this.value; if(!C.nombre) C.nombre = 'Campaña ' + C.sector + ' ' + (MOT.r.ccaa === 'Asturias' ? 'Asturias' : MOT.r.comarca); renderApp(); };
   if(q('#mt-c-modo')) q('#mt-c-modo').onchange = function(){ C.modo = this.value; renderApp(); };
   if(q('#mt-c-inc')) q('#mt-c-inc').onchange = function(){ C.incluir = this.checked; };
+  qa('[data-mt-emb]').forEach(function(b){ b.onclick = function(){ var F = MOT.emb; if(F.sel !== b.dataset.mtEmb){ F.sel = b.dataset.mtEmb; F.sectores = ''; } else F.sel = ''; renderApp(); }; });
+  [['#mt-emb-sec','sectores'],['#mt-emb-loc','localidades'],['#mt-emb-ccaa','ccaa'],['#mt-emb-max','max'],['#mt-emb-ind','indicaciones']].forEach(function(x){ if(q(x[0])) q(x[0]).oninput = function(){ MOT.emb[x[1]] = this.value; }; });
+  if(q('#mt-emb-modo')) q('#mt-emb-modo').onchange = function(){ MOT.emb.modo = this.value; renderApp(); };
+  if(q('#mt-emb-ok')) q('#mt-emb-ok').onclick = function(){ var F = MOT.emb, e = MOT.estado.embudos[F.sel], lista = function(s){ return String(s || '').split(',').map(function(x){ return x.trim(); }).filter(Boolean); };
+    var sec = lista(F.sectores || e.sectores.join(', ')), loc = lista(F.localidades);
+    if(!sec.length || !loc.length) return toast('Pon al menos un sector y una localidad.');
+    MOT.embOcupado = true; renderApp();
+    ngApi('/motor/embudos', 'POST', {embudo:F.sel, sectores:sec, localidades:loc, ccaa:F.ccaa, modo:F.modo, max:Number(F.max) || 100, indicaciones:F.indicaciones}).then(function(){
+      MOT.embOcupado = false; toast('Embudo «' + e.nombre + '» en marcha: el Radar ya está buscando empresas.' + (F.modo === 'aprobacion' ? ' Los correos te esperan aquí para aprobarlos.' : ''));
+      MOT.emb = null; motRefresca(); }, function(err){ MOT.embOcupado = false; toast(err.message); renderApp(); }); };
   if(q('#mt-c-crear')) q('#mt-c-crear').onclick = function(){
     var s = MOT_SECTORES.filter(function(x){ return x.n === C.sector; })[0];
     var ids = C.incluir ? (MOT.leads || []).filter(function(l){ return l.estado === 'listo' && !l.campana_id && (!s || l.sector === s.q || l.sector === s.n); }).map(function(l){ return l.id; }) : [];
