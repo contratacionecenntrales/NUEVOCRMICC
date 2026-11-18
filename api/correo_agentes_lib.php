@@ -636,6 +636,7 @@ function ca_leer_cuenta(array $cuentaClave, int $max = 10): array {
 
 function ca_tick(): string {
   if (defined('ICC_MODO_DEMO') && ICC_MODO_DEMO) return 'Modo demostración.';
+  if ((string)icc_ajuste('correo_activo', '1') !== '1') return 'Agentes de correo apagados.';
   ca_alta_desde_configuracion();
   $db = icc_db();
   $leidos = 0; $proc = 0; $err = 0;

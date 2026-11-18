@@ -81,7 +81,9 @@ function icc_cron_ejecutar(string $origen, bool $forzar = false): array {
   $out = [];
   try {
     icc_ajuste_guardar('cron_ultimo', date('Y-m-d H:i:s') . '|' . $origen);
+    $pausa = function_exists('ci_pausa') && ci_pausa();
     foreach (icc_cron_bloques() as $nombre => [$cada, $fn]) {
+      if ($pausa && in_array($nombre, CI_BLOQUES_PAUSA, true)) { $out[$nombre] = ['ok' => true, 'saltado' => true, 'mensaje' => 'Pausa general de la IA']; continue; }
       $ultimo = (string)icc_ajuste('cron_ultimo_' . $nombre, '');
       if (!$forzar && $ultimo !== '' && strtotime($ultimo) > time() - $cada * 60 + 30) {
         $out[$nombre] = ['ok' => true, 'saltado' => true];
@@ -112,6 +114,7 @@ function icc_cron_ejecutar(string $origen, bool $forzar = false): array {
    Bloques de cada modulo, en el orden del latido: Motor -> buzones ->
    mantenimiento del pipeline -> flujos -> turnos de los agentes.
    ------------------------------------------------------------------------- */
+require_once __DIR__ . '/centro_lib.php';
 require_once __DIR__ . '/motor_lib.php';
 icc_cron_registrar('motor', 1, function (): string { return motor_tick(); });
 icc_cron_registrar('motor_analisis', 5, function (): string { return motor_analizar_pendientes(); });

@@ -126,6 +126,7 @@ function voz_es_sociedad(string $cif): bool {
 function voz_impedimento(array $c, string $motivo): ?string {
   $cfg = voz_config();
   if (!$cfg['activo']) return 'El agente de voz está apagado.';
+  if (function_exists('ci_pausa') && ci_pausa()) return 'La IA está en pausa general.';
   if (!$cfg['tiene_clave'] || $cfg['assistant_id'] === '' || $cfg['phone_number_id'] === '') return 'Falta configurar el agente de voz (clave, asistente o número).';
   if ((int)($c['no_contactar'] ?? 0) === 1) return 'Tiene «No contactar».';
   $tel = voz_telefono((string)(($c['contacto_telefono'] ?? '') ?: ($c['telefono'] ?? '')));

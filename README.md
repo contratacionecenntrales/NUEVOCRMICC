@@ -800,3 +800,19 @@ Migración: `sql/migracion_entrevistas.sql` (incluida en la base de datos comple
   guardar con la alternativa legal: es discriminación en el empleo (Estatuto de los Trabajadores arts. 4 y 17,
   Ley 15/2022; infracción muy grave de la LISOS art. 16).
 
+## Centro de control de la IA (v98)
+
+**🤖 IA → 🎛️ Centro de control** (`#/centro-ia`, `api/centro_ia.php`, `centro_lib.php`; lo ven dirección y jefes de
+equipo, lo cambian coordinación, admin y super admin; cada cambio queda en el registro de seguridad).
+
+- **Interruptor general** «⏸ Pausar toda la IA / ▶ Reanudar»: con la pausa, el cron no ejecuta Motor, buzones,
+  automatizaciones, mantenimiento, agentes, aprendizaje, Autocorrector ni entrevistas; el agente de voz no llama y
+  los mensajes de WhatsApp se guardan y se contestan al reanudar. Copias y limpieza RGPD siguen. Lo que se pide a
+  mano (Jarvis, botones) funciona. Al reanudar, cada módulo vuelve a su estado.
+- **Un interruptor por módulo** (Zona de agentes, Motor, agentes de correo, automatizaciones, mantenimiento,
+  Autocorrector, aprendizaje, rellamadas, agente de voz, entrevistas y Jarvis) con su última actividad y enlace a
+  su configuración. Nuevos ajustes `correo_activo` y `flujos_activo`.
+- **Un interruptor y la autonomía de cada agente** (observa / propone / actúa); `equipo_apagados` los saca de los
+  turnos. Lo que siempre espera a una persona no cambia.
+- Uso de la IA: llamadas, errores y tokens de hoy y de 7 días, y en qué se usa.
+

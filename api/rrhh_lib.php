@@ -181,6 +181,8 @@ function rr_enviar(array $e, string $texto, ?array $plantilla = null): bool {
   $st->execute([$e['candidato_id']]);
   $c = $st->fetch();
   if (!$c || ((int)$c['baja'] === 1 && $e['estado'] !== 'baja')) return false;
+  // Sin nombre: «Hola , soy…» → «Hola, soy…»; «Gracias, .» → «Gracias.»
+  $texto = preg_replace(['/ +([,.!?])/u', '/,\s*([.!?])/u'], ['$1', '$1'], $texto);
   $res = ['ok' => true, 'id' => null];
   $estado = 'enviado'; $error = null;
   if ($e['canal'] === 'whatsapp') {
@@ -225,7 +227,8 @@ function rr_nombre_agente(array $e): string {
 }
 
 function rr_primer_nombre(array $e): string {
-  return trim((string)strtok(trim((string)$e['cand_nombre']) ?: 'hola', ' '));
+  $n = trim((string)$e['cand_nombre']);
+  return $n === '' ? '' : trim((string)strtok($n, ' '));
 }
 
 /** Mensaje de presentacion (aviso de IA, privacidad y consentimiento). */
@@ -562,8 +565,15 @@ function rr_invitar(int $vacanteId, int $candidatoId, string $canal = 'whatsapp'
 }
 
 /** Mensaje entrante de WhatsApp (webhook). */
-function rr_entrante(string $phoneId, string $from, string $nombre, string $texto, string $waId): string {
+function rr_entrante(string $phoneId, string $from, string $nombre, string $texto, string $waId, bool $deCola = false): string {
   $db = icc_db();
+  // Pausa general de la IA: se guarda y se contesta al reanudar.
+  if (!$deCola && function_exists('ci_pausa') && ci_pausa()) {
+    $cola = json_decode((string)icc_ajuste('rrhh_cola_pausa', '[]'), true) ?: [];
+    if (count($cola) < 1000) $cola[] = [$phoneId, $from, mb_substr($nombre, 0, 160), mb_substr($texto, 0, 4000), $waId];
+    icc_ajuste_guardar('rrhh_cola_pausa', json_encode($cola, JSON_UNESCAPED_UNICODE));
+    return 'en cola (pausa general)';
+  }
   $st = $db->prepare('SELECT 1 FROM rrhh_mensajes WHERE wa_id = ? AND direccion = ?');
   $st->execute([$waId, 'entrada']);
   if ($waId !== '' && $st->fetchColumn()) return 'repetido';
@@ -627,6 +637,12 @@ function rr_tick(): string {
   $h = icc_madrid()->format('H:i');
   $horario = $h >= $cfg['hora_desde'] && $h < $cfg['hora_hasta'];
   $n = ['inv' => 0, 'rec' => 0, 'aband' => 0, 'cita' => 0];
+  // Mensajes que llegaron durante la pausa general.
+  $cola = json_decode((string)icc_ajuste('rrhh_cola_pausa', '[]'), true) ?: [];
+  if ($cola) {
+    icc_ajuste_guardar('rrhh_cola_pausa', '[]');
+    foreach ($cola as $m) { try { rr_entrante((string)$m[0], (string)$m[1], (string)$m[2], (string)$m[3], (string)$m[4], true); } catch (Throwable $e) { error_log('rrhh cola: ' . $e->getMessage()); } }
+  }
   $enviadosHoy = (int)$db->query("SELECT COUNT(*) FROM rrhh_mensajes WHERE direccion = 'salida' AND created_at >= CURDATE()")->fetchColumn();
   if ($horario) {
     // Invitaciones pendientes (vacante activa).

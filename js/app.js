@@ -277,8 +277,8 @@
     // Capa de IA: dirección y jefes de equipo (los ajustes, solo coordinación y admin).
     if (window.icc.auth.puedeVerIA()) items.push({
       label: "🤖 IA",
-      href: "#/motor",
-      submenu: [].concat(window.icc.auth.puedeVerCopias() ? [{ href: "#/puesta-en-marcha", label: "🚀 Puesta en marcha" }] : []).concat([
+      href: "#/centro-ia",
+      submenu: [{ href: "#/centro-ia", label: "🎛️ Centro de control" }].concat(window.icc.auth.puedeVerCopias() ? [{ href: "#/puesta-en-marcha", label: "🚀 Puesta en marcha" }] : []).concat([
         { href: "#/motor", label: "🛰️ Motor de Scraping IA" },
         { href: "#/zona-agentes", label: "🧠 Zona de agentes" },
         { href: "#/automatizaciones", label: "⚡ Automatizaciones" },
@@ -765,6 +765,9 @@
       } else if (ruta === "#/motor") {
         if (!window.icc.auth.puedeVerIA() || !window.icc.motor) location.hash = "#/dashboard";
         else await window.icc.motor.view();
+      } else if (ruta === "#/centro-ia") {
+        if (!window.icc.auth.puedeVerIA() || !window.icc.centro) location.hash = "#/dashboard";
+        else await window.icc.centro.view();
       } else if (ruta === "#/entrevistas") {
         if (!window.icc.auth.puedeVerIA() || !window.icc.entrevistas) location.hash = "#/dashboard";
         else await window.icc.entrevistas.view();

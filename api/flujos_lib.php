@@ -798,6 +798,7 @@ function fl_dias_sin_actividad(): int {
 
 /** Bloque del cron. */
 function fl_tick(): string {
+  if ((string)icc_ajuste('flujos_activo', '1') !== '1') return 'Automatizaciones apagadas.';
   $cambios = fl_detectar_cambios();
   $insc = fl_procesar_eventos();
   if ((string)icc_ajuste('flujo_ultima_inactividad', '') < date('Y-m-d H', time() - 3600)) {

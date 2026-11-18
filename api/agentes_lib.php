@@ -15,6 +15,7 @@
  * Sin IA, cada puesto sigue un manual de reglas con las mismas herramientas.
  */
 require_once __DIR__ . '/motor_lib.php';
+require_once __DIR__ . '/centro_lib.php';
 
 /** clave => [nombre, departamento, jefe, turno (min), mision, herramientas, cerebro de experto] */
 const EQ_AGENTES = [
@@ -1285,7 +1286,9 @@ function eq_tick(): string {
   $h = $ahora->format('H:i');
   if ($h < $cfg['hora_desde'] || $h >= $cfg['hora_hasta']) return 'Fuera de horario' . $extra;
   $peor = null; $retraso = 0;
+  $apagados = function_exists('ci_agentes_apagados') ? ci_agentes_apagados() : [];
   foreach (EQ_AGENTES as $k => $a) {
+    if (in_array($k, $apagados, true)) continue;
     $st = icc_db()->prepare('SELECT MAX(inicio) FROM equipo_turnos WHERE agente = ?');
     $st->execute([$k]);
     $u = $st->fetchColumn();
