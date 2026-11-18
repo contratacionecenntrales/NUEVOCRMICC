@@ -218,7 +218,7 @@ propio CRM — ya no hace falta volver a tocar la base de datos a mano.
 
 ## Base de datos en un solo paso
 
-`sql/base-de-datos-completa-v99.sql` deja cualquier base de datos al día para la v99 importándolo una sola vez en phpMyAdmin:
+`sql/base-de-datos-completa-v101.sql` deja cualquier base de datos al día para la v101 importándolo una sola vez en phpMyAdmin:
 - Con datos (v55 en adelante): no borra nada; crea solo las tablas, columnas, índices y relaciones que falten y amplía los roles. Deja a Daniela con todo el equipo de María y las agendas de Juan y María.
 - Vacía: crea el CRM completo y un Super Administrador inicial (info@integralconnectionconsulting.es, contraseña provisional `CambiaEsta-2026`, que el CRM obliga a cambiar).
 - Se puede ejecutar varias veces sin errores ni duplicados. Los datos de ejemplo de los comparadores solo se cargan si esas tablas están vacías.
@@ -500,7 +500,7 @@ Montarla (por ejemplo en `demo.crm.tudominio.es`):
 1. Crea el subdominio en Hostalia apuntando a una carpeta nueva y sube ahí el
    mismo zip del CRM.
 2. Crea una base de datos **nueva y vacía** e importa
-   `sql/base-de-datos-completa-v99.sql` (más las migraciones nuevas si las hay).
+   `sql/base-de-datos-completa-v101.sql` (más las migraciones nuevas si las hay).
 3. Crea `api/config.local.php` de esa carpeta con los datos de la BD nueva y
    añade `define('ICC_MODO_DEMO', true);`.
 4. Rellena la demo por SSH (el generador no se puede abrir desde el navegador):
@@ -850,3 +850,22 @@ jefes de equipo buscan, reparten y exportan; comerciales y backoffice llaman a l
   días de activarse un contrato le cuenta al cliente su ahorro real (variable `{{ahorro}}`, condición «Tiene un
   ahorro estudiado»), le pide un referido y deja una llamada al gestor.
 
+
+## Recuperar no firmados: darle la vuelta (v101)
+
+**🤖 IA → 🔄 Recuperar no firmados** (`#/recuperacion`, `api/recuperacion.php`, `recuperacion_lib.php`;
+tablas `recuperacion` y `ofertas_mes` en `sql/migracion_recuperacion.sql`). Dirección ve todo; jefes, su equipo; comerciales, lo suyo.
+
+- **Detecta** a quien no firmó: oportunidad perdida (último año), rellamada «no acepta» o presupuesto parado 21+ días.
+- **Averigua qué le frena** leyendo lo que dijo (motivo de pérdida, rellamadas, llamadas de voz, último correo y notas
+  escritas por personas): reglas primero y, si no basta, IA en formato JSON. Objeciones: precio, permanencia, desconfianza,
+  decisor, contento, trámites, momento, mala experiencia y otro. Se puede corregir a mano.
+- **Playbook por objeción** (qué necesita para firmar y guion): re-estudio con todas las compañías, aviso 45 días antes del
+  fin de permanencia, reunión con quien decide, firma digital sin papeleo, el jefe de equipo para malas experiencias…
+- **Pone el plan en marcha**: llamada en la agenda del gestor con guion y oferta, tarea de re-estudio a backoffice, aviso y
+  nota. Máximo 4 nuevas por gestor y turno; reintento a los 30 días, hasta 3 intentos. Los firmados pasan a «recuperado».
+- **Ofertas exclusivas del mes** (coordinador, gerente y admin): servicio, compañía, título, **condiciones obligatorias** y
+  vigencia. Botón «Llamar a los no firmados» para lanzar una oferta a quienes encajan. Las ofertas vigentes las usan el
+  agente de recuperación, los agentes de correo y el Motor (una oferta real, tal cual, nunca inventada).
+- **Agente Recuperación · Darle la vuelta** (21 agentes): herramientas `ver_no_firmados` y `recuperar_no_firmados`.
+- Las llamadas y correos siguen las reglas de siempre (Lista Robinson, LSSI, aviso de IA). Dinero, contratos y firmas los cierra una persona.

@@ -131,4 +131,5 @@ icc_cron_registrar('aprendizaje', 1440, function (): string { return apr_tick();
 require_once __DIR__ . '/autofix_lib.php';
 icc_cron_registrar('autofix', 10, function (): string { return af_tick(); });
 require_once __DIR__ . '/rrhh_lib.php';
+require_once __DIR__ . '/recuperacion_lib.php';
 icc_cron_registrar('entrevistas', 1, function (): string { return rr_tick(); });

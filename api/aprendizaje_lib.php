@@ -216,7 +216,7 @@ function apr_checklist(): array {
   $kb = (string)icc_ajuste('correo_conocimiento', '') !== '';
   $add('Correo', 'conocimiento', $kb ? 'ok' : 'aviso', 'Base de conocimiento', $kb ? 'Personalizada.' : 'Revisa «Cómo responde»: servicios, horario y precios públicos son lo único que la IA puede afirmar.', '#/agente-correo');
   // Automatico
-  $add('Automático', 'agentes', eq_config()['activo'] ? 'ok' : 'falta', 'Zona de agentes encendida', eq_config()['activo'] ? 'Los 20 agentes trabajan por turnos (8 a 20 h, laborables).' : 'Enciende el interruptor general o activa el piloto automático.', '#/zona-agentes');
+  $add('Automático', 'agentes', eq_config()['activo'] ? 'ok' : 'falta', 'Zona de agentes encendida', eq_config()['activo'] ? 'Los 21 agentes trabajan por turnos (8 a 20 h, laborables).' : 'Enciende el interruptor general o activa el piloto automático.', '#/zona-agentes');
   if (function_exists('voz_config')) {
     $v = voz_config();
     $okV = $v['activo'] && $v['tiene_clave'] && $v['assistant_id'] !== '' && $v['phone_number_id'] !== '';

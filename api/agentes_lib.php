@@ -1,6 +1,6 @@
 <?php
 /**
- * ICC CRM · Zona de agentes (fase 3). Una «empresa autonoma» de 20 agentes de
+ * ICC CRM · Zona de agentes (fase 3). Una «empresa autonoma» de 21 agentes de
  * IA que trabajan por turnos sobre el CRM con herramientas (function calling).
  *
  * Autonomia por puesto:
@@ -75,6 +75,10 @@ const EQ_AGENTES = [
     'Más clientes firmados, más valor y más ahorro para el cliente: mide qué canal, sector y gestor firma de verdad, prioriza el barrido de Asturias por firmas, mantiene activas las campañas de los sectores que firman, mete en venta cruzada a los clientes de un solo servicio y envía el parte semanal de retorno.',
     ['ver_retorno', 'optimizar_retorno', 'anotar_aprendizaje', 'asignar_tarea'],
     'Piensas como un director de ingresos (CRO): solo cuenta lo que se firma y se cobra; esfuerzo donde está el retorno, cada cliente con todos sus servicios y su ahorro demostrado con datos reales.'],
+  'recuperacion' => ['Recuperación · Darle la vuelta', 'Ventas', 'comercial', 1440,
+    'Convertir en clientes a los que no firmaron: averigua por qué no firma cada uno (precio, permanencia, desconfianza, quién decide, contento, papeleo, momento, mala experiencia), le aplica el plan que lo resuelve con la oferta exclusiva del mes y pone la llamada con el guion en la agenda del gestor.',
+    ['ver_no_firmados', 'recuperar_no_firmados', 'anotar_aprendizaje'],
+    'Piensas como un especialista en recuperar ventas perdidas: un «no» casi siempre es un «así no» o un «ahora no»; entiendes el motivo real y vuelves con la solución exacta, sin presionar ni prometer lo que no hay.'],
   'jefatura' => ['Jefatura de Ventas · Presión de cierre', 'Ventas', 'comercial', 60,
     'Más cierres cada semana: ningún presupuesto parado más de 48 horas. A cada uno le aplica la técnica que toca (velocidad, presentación en caliente, cierre por alternativa, urgencia real, firma sin fricción, visita a cuenta grande, cierre en pareja) y lo mueve: llamada del agente de voz o del gestor, estudio a backoffice, visita o escalado al jefe de equipo.',
     ['ver_presupuestos_parados', 'empujar_presupuestos', 'empujar_presupuesto', 'llamada_ia', 'ver_cierre', 'enviar_correo_cliente', 'asignar_tarea'],
@@ -121,6 +125,7 @@ const EQ_HERRAMIENTAS = [
   'ver_incidencias' => ['lectura', 'Memoria del Autocorrector: incidencias abiertas, para una persona y arregladas, con intentos y veces que se repiten.', [], []],
   'ver_rellamadas' => ['lectura', 'Rellamadas de backoffice: candidatas de hoy, pendientes, atrasadas y resultados de la semana.', [], []],
   'ver_retorno' => ['lectura', 'Retorno de los últimos 90 días: firmas, valor y ahorro por canal, sector y gestor; pipeline ponderado; clientes de un solo servicio y renovaciones.', [], []],
+  'ver_no_firmados' => ['lectura', 'No firmados por objeción (precio, permanencia, desconfianza…), con su valor, y cómo va su recuperación.', [], []],
   'ver_salud' => ['lectura', 'Salud técnica: IA, correo de salida, errores y rebotes, cron.', [], []],
   'asignar_tarea' => ['bajo', 'Encarga una tarea a un agente o a una persona.', ['agente' => ['type' => 'string', 'description' => 'clave del agente (o vacío)'], 'usuario_id' => ['type' => 'integer', 'description' => 'persona (o 0)'], 'titulo' => ['type' => 'string'], 'detalle' => ['type' => 'string']], ['agente', 'usuario_id', 'titulo', 'detalle']],
   'anotar_aprendizaje' => ['bajo', 'Guarda un aprendizaje con evidencia en el cerebro de la empresa.', ['texto' => ['type' => 'string'], 'evidencia' => ['type' => 'string'], 'confianza' => ['type' => 'integer']], ['texto', 'evidencia', 'confianza']],
@@ -148,6 +153,7 @@ const EQ_HERRAMIENTAS = [
   'arreglar_incidencias' => ['bajo', 'Revisa todos los procesos y arregla ahora lo que requiere acción (con memoria: como mucho 3 intentos por incidencia).', [], []],
   'asignar_rellamadas' => ['bajo', 'Pone en la agenda de backoffice las rellamadas de hoy (con guion) y le envía el parte.', [], []],
   'optimizar_retorno' => ['bajo', 'Mueve el esfuerzo a lo que firma: barrido por firmas, campañas de los sectores ganadores, venta cruzada a clientes de un solo servicio y parte semanal.', [], []],
+  'recuperar_no_firmados' => ['bajo', 'Analiza por qué no firman los no firmados y pone en marcha el plan de cada uno (llamada con guion y oferta del mes).', [], []],
   'pausar_envios' => ['bajo', 'Pausa todos los envíos del Motor.', ['motivo' => ['type' => 'string']], ['motivo']],
   'preparar_presupuesto' => ['alto', 'Prepara un presupuesto (borrador) para un cliente.', ['cliente_id' => ['type' => 'integer'], 'sector' => ['type' => 'string', 'enum' => ['energia', 'telecomunicaciones', 'alarmas', 'seguros', 'financiero']], 'notas' => ['type' => 'string']], ['cliente_id', 'sector', 'notas']],
   'proponer_alternativa' => ['alto', 'Ante una objeción de precio, propone al cliente una alternativa sin descuento (pago en 3 plazos o servicio inferior).', ['cliente_id' => ['type' => 'integer'], 'alternativa' => ['type' => 'string']], ['cliente_id', 'alternativa']],
@@ -856,6 +862,7 @@ function eq_ejecutar(string $tool, array $a, string $agente, ?int $usuarioId = n
     case 'ver_candidatos_visita': return $json(array_map(function ($l) { return count($l); }, eq_candidatos_visita()));
     case 'ver_presupuestos_parados': return $json(array_slice(array_map(function ($p) { return ['cliente_id' => (int)$p['id'], 'empresa' => $p['razon_social'], 'gestor' => $p['gestor'], 'fase' => $p['fase'], 'presupuesto' => $p['pestado'], 'dias' => $p['dias'], 'parado' => $p['parado'], 'tecnica' => EQ_TECNICAS[$p['tecnica']][0], 'accion' => $p['accion'], 'prioridad' => $p['prioridad']]; }, eq_presupuestos_parados()), 0, 30));
     case 'ver_equipos': return $json(eq_equipos());
+    case 'ver_no_firmados': require_once __DIR__ . '/recuperacion_lib.php'; $pr = rc_panel(); return $json(['totales' => $pr['totales'], 'objeciones' => array_map(function ($o) { return ['objecion' => $o['nombre'], 'total' => $o['total'], 'valor' => $o['valor'], 'recuperados' => $o['recuperados']]; }, $pr['objeciones'])]);
     case 'ver_retorno': require_once __DIR__ . '/retorno_lib.php'; $pr = rt_panel(90); return $json(['totales' => $pr['totales'], 'canales' => array_slice($pr['canales'], 0, 6), 'sectores' => array_slice($pr['sectores'], 0, 6), 'recomendaciones' => rt_recomendaciones($pr)]);
     case 'ver_rellamadas': require_once __DIR__ . '/rellamadas_lib.php'; $rc = rl_config(); return $json(['candidatas' => count(rl_candidatos()), 'numeros' => $rc['usuario_id'] ? rl_numeros((int)$rc['usuario_id']) : null]);
     case 'ver_incidencias': require_once __DIR__ . '/autofix_lib.php'; return $json(array_map(function ($m) { return array_intersect_key($m, array_flip(['proceso', 'titulo', 'detalle', 'estado', 'accion', 'intentos', 'veces', 'ultima'])); }, af_memoria(40)));
@@ -941,6 +948,7 @@ function eq_ejecutar(string $tool, array $a, string $agente, ?int $usuarioId = n
     case 'empujar_presupuestos': return ['texto' => eq_empujar_presupuestos($agente, null)];
     case 'empujar_presupuesto': return ['texto' => eq_empujar_presupuestos($agente, null, $i('cliente_id'))];
     case 'parte_de_equipos': return ['texto' => eq_partes_equipos($agente, null)];
+    case 'recuperar_no_firmados': require_once __DIR__ . '/recuperacion_lib.php'; return ['texto' => rc_tick()];
     case 'optimizar_retorno': require_once __DIR__ . '/retorno_lib.php'; require_once __DIR__ . '/flujos_lib.php'; return ['texto' => rt_optimizar($agente)];
     case 'asignar_rellamadas': require_once __DIR__ . '/rellamadas_lib.php'; return ['texto' => rl_tick()];
     case 'arreglar_incidencias': require_once __DIR__ . '/autofix_lib.php'; return ['texto' => af_tick(true)];
@@ -1209,6 +1217,7 @@ function eq_manual(string $agente, int $turno): array {
     case 'autocorrector': $out[] = $u('arreglar_incidencias'); break;
     case 'backoffice_jefe': $out[] = $u('asignar_rellamadas'); break;
     case 'cro': $out[] = $u('optimizar_retorno'); break;
+    case 'recuperacion': $out[] = $u('recuperar_no_firmados'); break;
     case 'cfo':
       $c = eq_cobros();
       foreach (array_slice($c['proformas_vencidas'], 0, 5) as $p) $out[] = $u('recordar_cobro', ['cobro_id' => 0, 'proforma_id' => (int)$p['id']]);
@@ -1378,8 +1387,9 @@ function eq_empujado(int $cid, int $dias = 2): bool {
   $st = icc_db()->prepare("SELECT (SELECT COUNT(*) FROM equipo_tareas WHERE cliente_id = ? AND origen = 'jefatura' AND created_at >= NOW() - INTERVAL $dias DAY)
     + (SELECT COUNT(*) FROM citas WHERE cliente_id = ? AND notas LIKE 'Jefatura de ventas%' AND created_at >= NOW() - INTERVAL $dias DAY)
     + (SELECT COUNT(*) FROM voz_llamadas WHERE cliente_id = ? AND origen = 'jefatura' AND estado IN ('pendiente','en_curso','terminada') AND created_at >= NOW() - INTERVAL $dias DAY)
-    + (SELECT COUNT(*) FROM rellamadas WHERE cliente_id = ? AND (estado = 'pendiente' OR resuelta_en >= NOW() - INTERVAL $dias DAY))");
-  $st->execute([$cid, $cid, $cid, $cid]);
+    + (SELECT COUNT(*) FROM rellamadas WHERE cliente_id = ? AND (estado = 'pendiente' OR resuelta_en >= NOW() - INTERVAL $dias DAY))
+    + (SELECT COUNT(*) FROM recuperacion WHERE cliente_id = ? AND estado = 'en_curso' AND updated_at >= NOW() - INTERVAL 7 DAY)");
+  $st->execute([$cid, $cid, $cid, $cid, $cid]);
   return (int)$st->fetchColumn() > 0;
 }
 

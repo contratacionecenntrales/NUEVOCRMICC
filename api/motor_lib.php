@@ -131,6 +131,7 @@ Conseguir que nos envíe una factura (luz, gas o teléfono) o su póliza para un
 
 # LÍMITES
 - Nunca inventes datos. No des cifras de ahorro, porcentajes, precios, descuentos ni regalos. No nombres compañías concretas ni hables mal de su proveedor actual.
+- Si en los datos vienen «ofertas_exclusivas_del_mes», puedes mencionar UNA tal cual (con su compañía y condiciones) como gancho: «este mes tenemos ofertas exclusivas». Nunca inventes otras ni las exageres.
 - «Reducción de costes garantizada» solo con el sentido de arriba (si no hay mejora real, se lo decimos y no cambia nada).
 
 # REDACCIÓN
@@ -433,6 +434,7 @@ function motor_redactar(array $lead, array $campana, int $paso, ?int $usuarioId 
       'tipo' => $perfil['pasos'][$paso] ?? 'seguimiento', 'detalle_de_su_negocio' => $lead['resumen'] ?? '',
       'carencias_digitales' => array_values(array_map(function ($m) { return MOTOR_MADUREZ[$m] ?? $m; }, array_filter(explode(',', (string)($lead['madurez'] ?? ''))))),
       'limite_palabras' => $paso === 1 ? $perfil['palabras'] : (int)round($perfil['palabras'] * 0.7), 'limite_palabras_asunto' => $perfil['asunto_palabras'],
+      'ofertas_exclusivas_del_mes' => function_exists('rc_ofertas') ? array_map(function ($o) { return trim($o['titulo'] . ($o['compania'] ? ' (' . $o['compania'] . ')' : '') . ($o['condiciones'] ? ': ' . $o['condiciones'] : '')); }, array_slice(rc_ofertas(), 0, 3)) : [],
     ];
     $r = icc_ia_chat([
       ['role' => 'system', 'content' => $perfil['prompt'] . "\nTono: " . $perfil['tono'] . '.'

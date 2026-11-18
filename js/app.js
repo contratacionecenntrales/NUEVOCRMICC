@@ -281,7 +281,7 @@
     if (window.icc.auth.puedeVerIA()) items.push({
       label: "🤖 IA",
       href: "#/centro-ia",
-      submenu: [{ href: "#/centro-ia", label: "🎛️ Centro de control" }, { href: "#/retorno", label: "🚀 Retorno" }].concat(window.icc.auth.puedeVerCopias() ? [{ href: "#/puesta-en-marcha", label: "🚀 Puesta en marcha" }] : []).concat([
+      submenu: [{ href: "#/centro-ia", label: "🎛️ Centro de control" }, { href: "#/retorno", label: "🚀 Retorno" }, { href: "#/recuperacion", label: "🔄 Recuperar no firmados" }].concat(window.icc.auth.puedeVerCopias() ? [{ href: "#/puesta-en-marcha", label: "🚀 Puesta en marcha" }] : []).concat([
         { href: "#/motor", label: "🛰️ Motor de Scraping IA" },
         { href: "#/zona-agentes", label: "🧠 Zona de agentes" },
         { href: "#/automatizaciones", label: "⚡ Automatizaciones" },
@@ -768,6 +768,9 @@
       } else if (ruta === "#/motor") {
         if (!window.icc.auth.puedeVerIA() || !window.icc.motor) location.hash = "#/dashboard";
         else await window.icc.motor.view();
+      } else if (ruta === "#/recuperacion") {
+        if (!window.icc.auth.puedeVerIA() || !window.icc.recuperacion) location.hash = "#/dashboard";
+        else await window.icc.recuperacion.view();
       } else if (ruta === "#/retorno") {
         if (!window.icc.auth.puedeVerIA() || !window.icc.retorno) location.hash = "#/dashboard";
         else await window.icc.retorno.view();
