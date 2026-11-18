@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-tRKcibF69JAceUDUQ8NixXmX4+36anruSpIz07kAK6g='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-Fr9SRxaqTRwIMl0lDzaX/zy5DQyOblmRwARMrWk59+w='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Labs Command Center 360 - Oficina virtual SaaS de la red comercial de Labs24k.">
 <meta name="theme-color" content="#0B0F19">
@@ -11951,7 +11951,7 @@ function motCampanas(){
       sectores.map(function(s){ return '<button class="mt-loc'+(MOT.f.sector === s ? ' on' : '')+'" data-mt-fsec="'+esc(s)+'">'+esc(s)+'</button>'; }).join('')+'</div>'+
       '<button class="btn '+(E.config.envio.pausado ? 'btn-p' : 'btn-s')+'" id="mt-pausa">'+ic(E.config.envio.pausado ? 'play' : 'stop',14)+' '+(E.config.envio.pausado ? 'Reanudar envíos' : 'Pausar todos los envíos')+'</button></div>'+
     motEmbudos()+
-    '<details class="card mt-nueva"><summary>'+ic('plus',14)+' Nueva campaña a medida</summary>'+
+    '<details class="card mt-nueva"'+(E.campanas.length ? '' : ' open')+'><summary>'+ic('plus',14)+' Nueva campaña a medida</summary>'+
       '<div class="grid g-3" style="margin-top:10px"><div><label class="f">Nombre</label><input class="inp" id="mt-c-nom" placeholder="Campaña Inmobiliarias Asturias" value="'+esc(C.nombre)+'"></div>'+
         '<div><label class="f">Sector</label><select class="inp" id="mt-c-sec"><option value="">Varios</option>'+MOT_SECTORES.map(function(s){ return '<option value="'+esc(s.n)+'"'+(C.sector === s.n ? ' selected' : '')+'>'+esc(s.n)+'</option>'; }).join('')+'</select></div>'+
         '<div><label class="f">Modo de envío</label><select class="inp" id="mt-c-modo">'+Object.keys(MOT_MODOS).map(function(k){ return '<option value="'+k+'"'+(C.modo === k ? ' selected' : '')+'>'+MOT_MODOS[k][0]+'</option>'; }).join('')+'</select></div></div>'+
