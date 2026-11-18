@@ -1,11 +1,11 @@
 -- =============================================================================
--- ICC CRM v102 · BASE DE DATOS COMPLETA (instalar o actualizar en un solo paso)
+-- ICC CRM v104 · BASE DE DATOS COMPLETA (instalar o actualizar en un solo paso)
 --
 -- Cómo usarlo: phpMyAdmin > tu base de datos > Importar > este archivo > Continuar.
 --
 -- - Si la base de datos YA TIENE datos (tu CRM actual): NO borra nada.
 --   Solo crea las tablas, columnas e índices que falten y amplía lo necesario
---   para la versión v102. Sirve vengas de la versión que vengas (v55 en adelante).
+--   para la versión v104. Sirve vengas de la versión que vengas (v55 en adelante).
 -- - Si la base de datos está VACÍA: crea el CRM completo y un usuario
 --   Super Administrador inicial (ver el final del archivo).
 -- - Se puede ejecutar MÁS DE UNA VEZ sin errores ni duplicados.
@@ -1247,6 +1247,22 @@ CREATE TABLE IF NOT EXISTS `papelera` (
   PRIMARY KEY (`id`),
   KEY `idx_papelera_fecha` (`borrado_en`),
   KEY `idx_papelera_ref` (`tipo`,`ref_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `plan_diario` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `usuario_id` int(10) unsigned NOT NULL,
+  `fecha` date NOT NULL,
+  `items` longtext DEFAULT NULL,
+  `revision` longtext DEFAULT NULL,
+  `ia` tinyint(1) NOT NULL DEFAULT 0,
+  `enviado_correo` tinyint(1) NOT NULL DEFAULT 0,
+  `leido_at` datetime DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_plan_dia` (`usuario_id`,`fecha`),
+  CONSTRAINT `fk_plan_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `presupuestos` (
@@ -3385,6 +3401,27 @@ PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'papelera' AND column_name = 'descartado'), 'ALTER TABLE `papelera` ADD COLUMN `descartado` tinyint(1) NOT NULL DEFAULT 0', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'plan_diario' AND column_name = 'id'), 'ALTER TABLE `plan_diario` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'plan_diario' AND column_name = 'usuario_id'), 'ALTER TABLE `plan_diario` ADD COLUMN `usuario_id` int(10) unsigned NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'plan_diario' AND column_name = 'fecha'), 'ALTER TABLE `plan_diario` ADD COLUMN `fecha` date NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'plan_diario' AND column_name = 'items'), 'ALTER TABLE `plan_diario` ADD COLUMN `items` longtext DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'plan_diario' AND column_name = 'revision'), 'ALTER TABLE `plan_diario` ADD COLUMN `revision` longtext DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'plan_diario' AND column_name = 'ia'), 'ALTER TABLE `plan_diario` ADD COLUMN `ia` tinyint(1) NOT NULL DEFAULT 0', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'plan_diario' AND column_name = 'enviado_correo'), 'ALTER TABLE `plan_diario` ADD COLUMN `enviado_correo` tinyint(1) NOT NULL DEFAULT 0', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'plan_diario' AND column_name = 'leido_at'), 'ALTER TABLE `plan_diario` ADD COLUMN `leido_at` datetime DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'plan_diario' AND column_name = 'created_at'), 'ALTER TABLE `plan_diario` ADD COLUMN `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'plan_diario' AND column_name = 'updated_at'), 'ALTER TABLE `plan_diario` ADD COLUMN `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'presupuestos' AND column_name = 'id'), 'ALTER TABLE `presupuestos` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'presupuestos' AND column_name = 'cliente_id'), 'ALTER TABLE `presupuestos` ADD COLUMN `cliente_id` int(10) unsigned NOT NULL', 'DO 0'));
@@ -4392,6 +4429,8 @@ SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHER
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'papelera' AND index_name = 'idx_papelera_ref'), 'CREATE INDEX `idx_papelera_ref` ON `papelera` (`tipo`, `ref_id`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'plan_diario' AND index_name = 'uq_plan_dia'), 'CREATE UNIQUE INDEX `uq_plan_dia` ON `plan_diario` (`usuario_id`, `fecha`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'presupuestos' AND index_name = 'fk_presupuesto_contrato'), 'CREATE INDEX `fk_presupuesto_contrato` ON `presupuestos` (`contrato_id`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'presupuestos' AND index_name = 'idx_presupuestos_cliente'), 'CREATE INDEX `idx_presupuestos_cliente` ON `presupuestos` (`cliente_id`)', 'DO 0'));
@@ -4655,6 +4694,8 @@ PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'notificaciones' AND constraint_name = 'fk_notif_usuario' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `notificaciones` ADD CONSTRAINT `fk_notif_usuario` FOREIGN KEY (`user_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'oficinas' AND constraint_name = 'fk_oficina_responsable' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `oficinas` ADD CONSTRAINT `fk_oficina_responsable` FOREIGN KEY (`responsable_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'plan_diario' AND constraint_name = 'fk_plan_usuario' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `plan_diario` ADD CONSTRAINT `fk_plan_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'presupuestos' AND constraint_name = 'fk_presupuesto_cliente' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `presupuestos` ADD CONSTRAINT `fk_presupuesto_cliente` FOREIGN KEY (`cliente_id`) REFERENCES `clientes` (`id`) ON DELETE CASCADE', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
@@ -4926,4 +4967,4 @@ UPDATE usuarios SET numero_relacion = CONCAT('ICC-', LPAD(id, 5, '0')) WHERE num
 SET FOREIGN_KEY_CHECKS = 1;
 SET SESSION sql_mode = @icc_modo_anterior;
 
--- Listo. Base de datos al dia para ICC CRM v102.
+-- Listo. Base de datos al dia para ICC CRM v104.

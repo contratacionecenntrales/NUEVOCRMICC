@@ -96,9 +96,9 @@ const EQ_AGENTES = [
     ['ver_incidencias', 'arreglar_incidencias', 'anotar_aprendizaje', 'asignar_tarea'],
     'Piensas como un técnico de guardia meticuloso: primero arreglar, después entender la causa y que no vuelva a pasar. Nunca toca lo que por diseño decide una persona (aprobaciones, dinero, contratos).'],
   'backoffice_jefe' => ['Jefatura de Backoffice · Rellamadas', 'Operaciones', 'coo', 60,
-    'Que cada presupuesto presentado tenga respuesta: cada día pone en la agenda de backoffice (Daniela) las rellamadas a clientes que no han contestado, con su guion, para que lo acepten y empiecen a ahorrar; le marca objetivo diario (llamadas y aceptados), le avisa si va por detrás del ritmo o lleva una hora sin marcar, celebra cuando cumple y da el cierre del día a dirección.',
-    ['ver_rellamadas', 'asignar_rellamadas'],
-    'Eres un jefe de backoffice exigente y motivador: da caña a backoffice con números claros (hoy, atrasadas, aceptados) y nunca deja un presupuesto sin respuesta. Con el cliente, amable y directo: siguiente paso con fecha, sin descuentos.'],
+    'Que cada presupuesto presentado tenga respuesta: cada día pone en la agenda de backoffice (Daniela) las rellamadas a clientes que no han contestado, con su guion, para que lo acepten y empiecen a ahorrar; le marca objetivo diario (llamadas y aceptados), le avisa si va por detrás del ritmo o lleva una hora sin marcar, celebra cuando cumple y da el cierre del día a dirección. Cada mañana revisa su día anterior, le prepara el plan del día con cada cliente resumido y listo para vender y gestiona lo atascado.',
+    ['ver_rellamadas', 'asignar_rellamadas', 'plan_backoffice'],
+    'Eres un jefe de backoffice exigente y motivador que supervisa y organiza: da caña a backoffice con números claros (hoy, atrasadas, aceptados) y nunca deja un presupuesto sin respuesta. Con el cliente, amable y directo: siguiente paso con fecha, sin descuentos.'],
   'cfo' => ['CFO · Administración y Cobros', 'Finanzas', 'ceo', 240,
     'Cobro por hitos y contrato: proponer cobros y recordatorios (siempre con aprobación) y preparar contratos.',
     ['ver_cobros', 'crear_cobro', 'recordar_cobro', 'preparar_contrato'],
@@ -156,6 +156,7 @@ const EQ_HERRAMIENTAS = [
   'llamada_ia' => ['bajo', 'Llama al cliente con el agente de voz (si no puede, la llamada va a la agenda del gestor).', ['cliente_id' => ['type' => 'integer'], 'motivo' => ['type' => 'string', 'enum' => ['bienvenida', 'pedir_factura', 'seguimiento', 'presentar_estudio', 'recuperar']], 'detalle' => ['type' => 'string']], ['cliente_id', 'motivo', 'detalle']],
   'parte_de_equipos' => ['bajo', 'Envía a cada jefe de equipo el parte de su equipo y le encarga revisar a quien se queda atrás.', [], []],
   'arreglar_incidencias' => ['bajo', 'Revisa todos los procesos y arregla ahora lo que requiere acción (con memoria: como mucho 3 intentos por incidencia).', [], []],
+  'plan_backoffice' => ['bajo', 'Revisa el día anterior de backoffice y le prepara y envía el plan de hoy con cada cliente listo para vender (una vez al día); avisa a coordinación de lo atascado.', [], []],
   'asignar_rellamadas' => ['bajo', 'Pone en la agenda de backoffice las rellamadas de hoy (con guion) y le envía el parte.', [], []],
   'optimizar_retorno' => ['bajo', 'Mueve el esfuerzo a lo que firma: barrido por firmas, campañas de los sectores ganadores, venta cruzada a clientes de un solo servicio y parte semanal.', [], []],
   'vigilar_ahorro' => ['bajo', 'Turno de Control 360: entra y lee las facturas nuevas, rehace los estudios con las tarifas del mes, avisa al gestor de cada mejora y pide las facturas que faltan.', [], []],
@@ -958,6 +959,7 @@ function eq_ejecutar(string $tool, array $a, string $agente, ?int $usuarioId = n
     case 'vigilar_ahorro': require_once __DIR__ . '/control_lib.php'; return ['texto' => cx_tick()];
     case 'recuperar_no_firmados': require_once __DIR__ . '/recuperacion_lib.php'; return ['texto' => rc_tick()];
     case 'optimizar_retorno': require_once __DIR__ . '/retorno_lib.php'; require_once __DIR__ . '/flujos_lib.php'; return ['texto' => rt_optimizar($agente)];
+    case 'plan_backoffice': require_once __DIR__ . '/supervision_lib.php'; return ['texto' => sv_plan()];
     case 'asignar_rellamadas': require_once __DIR__ . '/rellamadas_lib.php'; return ['texto' => rl_tick()];
     case 'arreglar_incidencias': require_once __DIR__ . '/autofix_lib.php'; return ['texto' => af_tick(true)];
     case 'llamada_ia':
@@ -1223,7 +1225,7 @@ function eq_manual(string $agente, int $turno): array {
     case 'jefatura': $out[] = 'empujar_presupuestos: ' . eq_empujar_presupuestos($agente, $turno); break;
     case 'jefes_equipo': $out[] = 'parte_de_equipos: ' . eq_partes_equipos($agente, $turno); break;
     case 'autocorrector': $out[] = $u('arreglar_incidencias'); break;
-    case 'backoffice_jefe': $out[] = $u('asignar_rellamadas'); break;
+    case 'backoffice_jefe': $out[] = $u('asignar_rellamadas'); $out[] = $u('plan_backoffice'); break;
     case 'cro': $out[] = $u('optimizar_retorno'); break;
     case 'recuperacion': $out[] = $u('recuperar_no_firmados'); break;
     case 'control360': $out[] = $u('vigilar_ahorro'); break;

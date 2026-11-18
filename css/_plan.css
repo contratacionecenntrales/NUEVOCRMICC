@@ -1,0 +1,38 @@
+/* ICC CRM · Plan del día de backoffice (js/plan.js). Usa css/_ia.css, _motor.css y _rellamadas.css. */
+.icc-pd-progreso { display: flex; flex-direction: column; gap: 8px; }
+.icc-pd-progreso b { font-size: 30px; color: var(--txt); line-height: 1; }
+.icc-pd-progreso b small { font-size: 15px; color: var(--txt-3); }
+.icc-pd-progreso > div > span { margin-left: 8px; font-size: 12px; color: var(--txt-3); text-transform: uppercase; font-weight: 700; letter-spacing: .05em; }
+.icc-pd-mini { display: flex; flex-wrap: wrap; gap: 6px; }
+.icc-pd-rev h2 { margin: 0 0 10px; font-size: 17px; }
+.icc-pd-rev-num { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin-bottom: 10px; }
+.icc-pd-rev-num div { background: var(--card-2); border-radius: 10px; padding: 8px 10px; display: flex; flex-direction: column; min-width: 0; }
+.icc-pd-rev-num b { color: var(--txt); font-size: 17px; }
+.icc-pd-rev-num small { color: var(--txt-3); font-size: 11.5px; }
+.icc-pd-bien, .icc-pd-mejorar { list-style: none; margin: 0 0 6px; padding: 0; font-size: 13.5px; line-height: 1.5; }
+.icc-pd-bien { color: #6EE7B7; }
+.icc-pd-mejorar { color: #FCD34D; }
+.icc-pd-consejo { margin: 8px 0 0; padding: 10px 12px; border-radius: 10px; background: rgba(99, 102, 241, .12); color: var(--txt); font-size: 13.5px; line-height: 1.5; }
+.icc-pd-lista { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+.icc-pd-item { margin: 0; display: flex; gap: 14px; align-items: flex-start; }
+.icc-pd-item.is-tarde { box-shadow: inset 3px 0 0 #F59E0B; }
+.icc-pd-item.is-hecha { opacity: .55; }
+.icc-pd-num { flex: 0 0 34px; height: 34px; border-radius: 50%; background: var(--card-2); display: grid; place-items: center; font-weight: 800; color: var(--txt); }
+.icc-pd-item:first-child:not(.is-hecha) .icc-pd-num { background: #10B981; color: #0B0F19; }
+.icc-pd-cuerpo { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.icc-pd-cuerpo header { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.icc-pd-tipo { font-size: 12px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--txt-2); }
+.icc-pd-cuerpo strong { font-size: 16px; }
+.icc-pd-cuerpo strong a { color: var(--txt); text-decoration: none; }
+.icc-pd-cuerpo > small { color: var(--txt-3); font-size: 12px; overflow-wrap: anywhere; }
+.icc-pd-res { margin: 0; color: var(--txt); font-size: 14px; line-height: 1.5; }
+.icc-pd-como { margin: 0; color: #A5B4FC; font-size: 13.5px; line-height: 1.5; }
+.icc-pd-datos { display: flex; flex-wrap: wrap; gap: 6px; }
+.icc-pd-datos .icc-ia-pill { white-space: normal; }
+.icc-pd-acc { flex-wrap: wrap; }
+@media (max-width: 560px) {
+  .icc-pd-rev-num { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .icc-pd-item { gap: 10px; }
+  .icc-pd-num { flex-basis: 28px; height: 28px; font-size: 13px; }
+  .icc-pd-acc .icc-btn { flex: 1 1 100%; text-align: center; min-height: 42px; }
+}

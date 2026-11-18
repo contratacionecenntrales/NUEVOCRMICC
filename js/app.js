@@ -277,6 +277,9 @@
     // Control 360: facturas del cliente, auditoría y revisión mensual (cada uno, su cartera).
     items.push({ label: "🛡️ Control 360", href: "#/control" });
 
+    // Plan del día de backoffice (supervisión): backoffice (el suyo) y dirección.
+    if (window.icc.auth.puedeVerIA() || window.icc.auth.state.rolPrincipal === "backoffice") items.push({ label: "📋 Plan del día", href: "#/plan-del-dia" });
+
     // Rellamadas de presupuestos: backoffice (las suyas) y dirección.
     if (window.icc.auth.puedeVerIA() || window.icc.auth.state.rolPrincipal === "backoffice") items.push({ label: "📞 Rellamadas", href: "#/rellamadas" });
 
@@ -771,6 +774,9 @@
       } else if (ruta === "#/motor") {
         if (!window.icc.auth.puedeVerIA() || !window.icc.motor) location.hash = "#/dashboard";
         else await window.icc.motor.view();
+      } else if (ruta === "#/plan-del-dia") {
+        if ((!window.icc.auth.puedeVerIA() && window.icc.auth.state.rolPrincipal !== "backoffice") || !window.icc.plan) location.hash = "#/dashboard";
+        else await window.icc.plan.view();
       } else if (ruta === "#/control") {
         if (!window.icc.control) location.hash = "#/dashboard";
         else await window.icc.control.view();

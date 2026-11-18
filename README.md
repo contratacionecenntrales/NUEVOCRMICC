@@ -218,7 +218,7 @@ propio CRM — ya no hace falta volver a tocar la base de datos a mano.
 
 ## Base de datos en un solo paso
 
-`sql/base-de-datos-completa-v102.sql` deja cualquier base de datos al día para la v102 importándolo una sola vez en phpMyAdmin:
+`sql/base-de-datos-completa-v104.sql` deja cualquier base de datos al día para la v104 importándolo una sola vez en phpMyAdmin:
 - Con datos (v55 en adelante): no borra nada; crea solo las tablas, columnas, índices y relaciones que falten y amplía los roles. Deja a Daniela con todo el equipo de María y las agendas de Juan y María.
 - Vacía: crea el CRM completo y un Super Administrador inicial (info@integralconnectionconsulting.es, contraseña provisional `CambiaEsta-2026`, que el CRM obliga a cambiar).
 - Se puede ejecutar varias veces sin errores ni duplicados. Los datos de ejemplo de los comparadores solo se cargan si esas tablas están vacías.
@@ -500,7 +500,7 @@ Montarla (por ejemplo en `demo.crm.tudominio.es`):
 1. Crea el subdominio en Hostalia apuntando a una carpeta nueva y sube ahí el
    mismo zip del CRM.
 2. Crea una base de datos **nueva y vacía** e importa
-   `sql/base-de-datos-completa-v102.sql` (más las migraciones nuevas si las hay).
+   `sql/base-de-datos-completa-v104.sql` (más las migraciones nuevas si las hay).
 3. Crea `api/config.local.php` de esa carpeta con los datos de la BD nueva y
    añade `define('ICC_MODO_DEMO', true);`.
 4. Rellena la demo por SSH (el generador no se puede abrir desde el navegador):
@@ -919,3 +919,24 @@ Para cuando backoffice llama desde su móvil (sin agente de voz). Sin cambios en
   al cumplir los objetivos (a dirección, cuando cumple el de aceptados); a las 17:30 avisa a dirección si va 3 o más por
   detrás y por debajo del 60 % del ritmo; cierre del día a ella y a dirección a las 19:00, con aviso si es el segundo día
   seguido por debajo de la mitad del trabajo que había.
+
+## Supervisión de backoffice: plan del día y revisión diaria (v104)
+
+**📋 Plan del día** en el menú (`#/plan-del-dia`, `api/supervision.php`, `supervision_lib.php`; tabla `plan_diario` en
+`sql/migracion_plan_diario.sql`). Backoffice ve el suyo; dirección y jefes de equipo, el de cada persona de backoffice;
+los ajustes, coordinación y admin. Módulo «Supervisión de backoffice» en el Centro de control de IA (cron `supervision`).
+
+- **Cada día laborable a las 8:35** (o con «Preparar / Rehacer»), la Jefatura de Backoffice reúne todo su trabajo:
+  rellamadas de hoy y atrasadas, contratos por preparar de quien ha aceptado, re-estudios (Recuperación), estudios a mano
+  (Control 360) y el resto de tareas. Lo ordena por lo que más acerca una venta (contratos de quien ya dijo sí, luego
+  llamadas, re-estudios…) y sube lo vencido.
+- **Cada cliente listo para vender**: resumen, ahorro real (estudio, comparadores o Control 360, nunca inventado),
+  compañía actual y propuesta, permanencia, objeción conocida y lo que dijo, qué falta para el contrato, «cómo cerrarlo»
+  y un WhatsApp ya escrito. Con IA en una sola llamada para los 20 primeros; sin IA, con reglas.
+- **Revisión del día anterior**: llamadas, aceptados, no contestan, lo piensan y tareas cerradas; lo que hizo bien, lo
+  que tiene que mejorar y un **consejo del día** según sus números (franja horaria si no contestan, cierre por alternativa
+  si «lo piensan», contratos primero…).
+- **Gestión**: si hay contratos aceptados sin preparar más de 24 h o 3 tareas vencidas 2 días o más, avisa a coordinación
+  (ya los pone los primeros); si la carga pasa del máximo (35 por defecto), propone repartirla con otra persona de backoffice.
+- **Envío**: aviso en el CRM con por dónde empezar, la página «Plan del día» (progreso al momento, marcar tareas como hechas,
+  días anteriores) y correo con el plan en texto (desde facturacion@, info@ o el buzón del Motor; se puede apagar).
