@@ -854,3 +854,51 @@ puertos), pone a cada buzón su agente por el nombre, deja los personales con
 aprobación y los de solo envío apagados, y guarda la contraseña cifrada. Solo
 lo hace una vez por lista.
 
+
+## Campañas de email (menú «Campañas de email», dirección y jefes de equipo)
+
+Envíos masivos, secuencias y campañas siempre activas a los contactos del CRM,
+desde los buzones corporativos ya conectados en el Agente de correo y con la
+clave de OpenAI que ya está puesta. Todo funciona solo con el cron único
+(`/motor/cron?token=…`): no hay que tocar nada más.
+
+- **Tipos**: *Envío masivo* (un correo); *Secuencia* (hasta 5 correos con días
+  de espera; quien responde, se da de baja o rebota sale de ella); *Siempre
+  activa* (una secuencia que cada hora mete sola a los contactos nuevos que
+  cumplan la audiencia, por ejemplo la bienvenida de los clientes nuevos).
+- **Audiencia con base legal obligatoria** (LSSI art. 21): *Clientes y relación
+  comercial previa* (firmado, despliegue o en producción, o con presupuesto) o
+  *Consentimiento expreso* (etiqueta «Consentimiento»). Filtros por fase,
+  sector, etiquetas (con y sin), gestor, días sin actividad y perdidos.
+  «Contar la audiencia» dice cuántos la reciben. Siempre se excluyen la lista
+  de exclusión, «No contactar», los rebotados, los desactivados y los correos
+  repetidos (se usa el correo del decisor si lo hay). La prospección en frío
+  sigue en el Motor de Scraping, con aprobación de cada correo.
+- **Contenido**: texto plano con variables `{{nombre}}`, `{{empresa}}`,
+  `{{sector}}`, `{{gestor}}`, `{{gestor_telefono}}` y `{{apertura}}`.
+  «Redactar con IA» escribe la campaña completa (pasos y variantes) con lo que
+  sabe la agencia; «Frase de apertura personalizada» pide a OpenAI una frase
+  para cada contacto con su ficha (con un tope por campaña). La firma del buzón
+  y el pie de baja se añaden solos. «Enviarme una prueba» la manda a tu correo.
+- **A/B/C automático**: hasta 3 variantes de asunto y texto; un % de la
+  audiencia las recibe primero y a las horas elegidas gana la que más
+  respuestas (y luego clics) consigue, que se envía al resto.
+- **Envío**: repartido entre los buzones elegidos (el que menos lleva primero),
+  con límites por buzón y hora, por buzón y día y total al día, horario de
+  Madrid, días laborables, tope propio de la campaña y fecha de inicio. Si un
+  buzón falla tres veces en una pasada se salta. Se pausa sola si pasa del 5 %
+  de rebotes o del 2 % de bajas (a partir de 50 envíos) y explica por qué.
+- **Todo vuelve solo** por los buzones: una respuesta corta la secuencia, queda
+  en la ficha y la gestiona el agente de ese buzón como cualquier correo;
+  responder «BAJA», el enlace de baja (con confirmación, para que los antivirus
+  que abren enlaces no den de baja a nadie) o la baja en un clic de Gmail y
+  Outlook (`List-Unsubscribe` + `List-Unsubscribe-Post`, RFC 8058) meten el
+  correo en la lista de exclusión; un rebote marca el contacto «Correo
+  rebotado» y ese correo no vuelve a recibir nada. Los clics se miden con
+  enlaces de seguimiento que solo llevan a los enlaces del propio correo (sin
+  redirecciones abiertas). No se miden aperturas (sin píxel espía).
+- **Salud y límites**: uso de cada buzón (última hora, 24 h, 7 días, rebotes y
+  bajas). Los límites los cambia la administración en «Ajustes» (por defecto
+  40 por buzón y hora, 250 al día y 2.000 en total).
+- Cada envío se anota en la ficha del contacto. Los envíos se guardan dos años
+  (prueba de base legal); la lista de exclusión no se borra nunca.

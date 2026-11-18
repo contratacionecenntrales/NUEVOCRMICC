@@ -362,7 +362,7 @@ function labs_correo_conecta($c)
 }
 
 /** SMTP de la cuenta, con cabeceras de respuesta para que el cliente vea el hilo. */
-function labs_correo_smtp($c, $para, $asunto, $cuerpo, $msgid, $en_resp = '', $refs = '', $adjuntos = array())
+function labs_correo_smtp($c, $para, $asunto, $cuerpo, $msgid, $en_resp = '', $refs = '', $adjuntos = array(), $extra = array())
 {
     $pr = labs_motor_pruebas();
     $seg = $c['smtp_seguridad'];
@@ -411,7 +411,11 @@ function labs_correo_smtp($c, $para, $asunto, $cuerpo, $msgid, $en_resp = '', $r
     $cmd('RCPT TO:<' . $para . '>', 250);
     $cmd('DATA', 354);
     $cab = array('Date: ' . date('r'), 'From: =?UTF-8?B?' . base64_encode($c['nombre'] ?: 'Labs24k') . '?= <' . $c['email'] . '>', 'To: <' . $para . '>',
-        'Subject: =?UTF-8?B?' . base64_encode($asunto) . '?=', 'Message-ID: ' . $msgid, 'MIME-Version: 1.0', 'Auto-Submitted: auto-replied');
+        'Subject: =?UTF-8?B?' . base64_encode($asunto) . '?=', 'Message-ID: ' . $msgid, 'MIME-Version: 1.0');
+    // Las respuestas de los agentes van marcadas como automáticas; las campañas llevan sus propias cabeceras (baja en un clic).
+    foreach ($extra ?: array('Auto-Submitted: auto-replied') as $x) {
+        $cab[] = preg_replace('/[\r\n]+/', ' ', (string) $x);
+    }
     if ($en_resp !== '') {
         $cab[] = 'In-Reply-To: ' . $en_resp;
         $cab[] = 'References: ' . trim($refs . ' ' . $en_resp);
@@ -788,6 +792,12 @@ function labs_correo_lee($c, $max = 25)
                 $auto ? 'automatico' : '', $auto ? 'ignorado' : 'nuevo', $auto ? 'No se responde: ' . $auto : '', labs_ahora(), $adjE ? json_encode($adjE, JSON_UNESCAPED_UNICODE) : null));
             $res['nuevos']++;
             $nid = (int) labs_db()->lastInsertId();
+            $cam = function_exists('labs_em_detecta') ? labs_em_detecta($h, $from, labs_correo_cabecera($h['subject'] ?? ''), $texto) : '';
+            if ($cam === 'baja' || $cam === 'rebote') {
+                labs_q("UPDATE mail_mensajes SET estado = 'ignorado', categoria = 'automatico', motivo = ? WHERE id = ?",
+                    array($cam === 'baja' ? 'Baja de las campañas: queda en la lista de exclusión' : 'Rebote de una campaña: contacto marcado y secuencia cortada', $nid));
+                continue;
+            }
             if ($c['funcion'] === 'envio') {
                 labs_q("UPDATE mail_mensajes SET estado = 'ignorado', categoria = 'automatico', motivo = 'Buzón de solo envío: no se responde' WHERE id = ?", array($nid));
             } elseif (!$auto) {

@@ -1412,6 +1412,13 @@ function labs_motor($metodo, $sub, $b, $pares)
                 $r['correo'] = array('error' => mb_substr($x->getMessage(), 0, 200));
             }
         }
+        if (function_exists('labs_em_tick')) {
+            try {
+                $r['campanas'] = labs_em_tick();
+            } catch (Throwable $x) {
+                $r['campanas'] = array('error' => mb_substr($x->getMessage(), 0, 200));
+            }
+        }
         if (function_exists('labs_saneo_tick')) {
             try {
                 $r['saneo'] = labs_saneo_tick();

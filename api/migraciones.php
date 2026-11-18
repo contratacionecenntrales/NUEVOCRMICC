@@ -8,7 +8,7 @@
  */
 defined('LABS') || exit;
 
-define('LABS_VERSION_ESQUEMA', 24);
+define('LABS_VERSION_ESQUEMA', 25);
 
 function labs_columna_existe(PDO $db, $tabla, $col)
 {
@@ -229,6 +229,20 @@ function labs_migra(PDO $db)
            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, mensaje_id BIGINT UNSIGNED NOT NULL, cuenta_id BIGINT UNSIGNED NOT NULL, herramienta VARCHAR(30) NOT NULL,
            datos TEXT NULL, resumen VARCHAR(250) NOT NULL DEFAULT '', estado VARCHAR(12) NOT NULL DEFAULT 'pendiente', resultado VARCHAR(300) NOT NULL DEFAULT '',
            resuelto_por CHAR(36) NULL, resuelto DATETIME(6) NULL, ts DATETIME(6) NOT NULL, PRIMARY KEY (id), KEY mail_acc_estado_idx (estado, id)) $opc",
+        // v25 · Campañas de email: campañas (masivas, secuencias y siempre activas) y cada envío.
+        "CREATE TABLE IF NOT EXISTS em_campanas (
+           id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, nombre VARCHAR(120) NOT NULL, tipo VARCHAR(10) NOT NULL DEFAULT 'masiva', estado VARCHAR(12) NOT NULL DEFAULT 'borrador',
+           base_legal VARCHAR(20) NOT NULL DEFAULT 'clientes', segmento TEXT NULL, pasos MEDIUMTEXT NULL, remitentes VARCHAR(500) NOT NULL DEFAULT '[]', horario VARCHAR(200) NOT NULL DEFAULT '{}',
+           ab VARCHAR(200) NOT NULL DEFAULT '{}', ganador CHAR(1) NULL, ia_personalizar TINYINT(1) NOT NULL DEFAULT 0, seguimiento_clics TINYINT(1) NOT NULL DEFAULT 1,
+           limite_dia INT NOT NULL DEFAULT 0, motivo VARCHAR(300) NOT NULL DEFAULT '', programada DATETIME(6) NULL, lanzada DATETIME(6) NULL, terminada DATETIME(6) NULL,
+           creado_por CHAR(36) NULL, creado DATETIME(6) NOT NULL, actualizado DATETIME(6) NOT NULL, PRIMARY KEY (id), KEY em_cam_estado_idx (estado)) $opc",
+        "CREATE TABLE IF NOT EXISTS em_envios (
+           id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, campana_id BIGINT UNSIGNED NOT NULL, contacto_id BIGINT UNSIGNED NOT NULL, email VARCHAR(190) NOT NULL, paso TINYINT NOT NULL DEFAULT 0,
+           variante CHAR(1) NOT NULL DEFAULT 'A', estado VARCHAR(12) NOT NULL DEFAULT 'pendiente', programado DATETIME(6) NULL, enviado DATETIME(6) NULL, cuenta_id BIGINT UNSIGNED NULL,
+           message_id VARCHAR(250) NOT NULL DEFAULT '', asunto VARCHAR(250) NOT NULL DEFAULT '', token CHAR(24) NOT NULL, intentos TINYINT NOT NULL DEFAULT 0, ia TINYINT(1) NOT NULL DEFAULT 0,
+           respondido DATETIME(6) NULL, clic DATETIME(6) NULL, error VARCHAR(300) NOT NULL DEFAULT '', creado DATETIME(6) NOT NULL,
+           PRIMARY KEY (id), UNIQUE KEY em_env_uq (campana_id, contacto_id, paso), UNIQUE KEY em_env_token (token), KEY em_env_cola_idx (campana_id, estado, programado),
+           KEY em_env_cuenta_idx (cuenta_id, enviado), KEY em_env_email_idx (email), KEY em_env_enviado_idx (enviado)) $opc",
         // v18 · Barrido de Asturias: cada casilla sector × concejo con su estado.
         "CREATE TABLE IF NOT EXISTS motor_cobertura (
            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, sector VARCHAR(60) NOT NULL, concejo VARCHAR(80) NOT NULL, comarca VARCHAR(80) NOT NULL DEFAULT '',

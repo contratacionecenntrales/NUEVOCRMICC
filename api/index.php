@@ -46,6 +46,7 @@ require __DIR__ . '/jarvis.php';
 require __DIR__ . '/saneo.php';
 require __DIR__ . '/correo.php';
 require __DIR__ . '/correo_agentes.php';
+require __DIR__ . '/campanas.php';
 
 ini_set('display_errors', '0');
 
@@ -202,6 +203,12 @@ try {
     } elseif (preg_match('#^/correo(/[a-z0-9/]*)?$#', $ruta, $m)) {
         /* --- Agente de correo: buzones corporativos ------------------------- */
         $r = labs_correo($metodo, isset($m[1]) ? $m[1] : '', $metodo === 'GET' ? array() : labs_cuerpo_json());
+        $estado = $r[0];
+        $resp = $r[1];
+    } elseif (preg_match('#^/campanas(/[a-z0-9/]*)?$#', $ruta, $m)) {
+        /* --- Campañas de email (clic y baja son públicos) ------------------- */
+        $sub = isset($m[1]) ? $m[1] : '';
+        $r = labs_campanas($metodo, $sub, ($metodo === 'GET' || $sub === '/c' || $sub === '/baja') ? array() : labs_cuerpo_json(), $pares);
         $estado = $r[0];
         $resp = $r[1];
     } elseif (preg_match('#^/saneo(/[a-z0-9/]*)?$#', $ruta, $m)) {

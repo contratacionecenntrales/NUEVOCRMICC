@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-uh8494py+dxepLeBa+WxjfKNkEBPcvstoFYuE4g25kw='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-ruO/3uYss8ZU1nkUcYJ00YOmmKfqetG0Xnwq3fkr73U='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://ezwhkpfqnzyfulivlows.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Labs Command Center 360 - Oficina virtual SaaS de la red comercial de Labs24k.">
 <meta name="theme-color" content="#0B0F19">
@@ -2048,6 +2048,33 @@ a.btn.btn-g:hover{color:#fff}
 .san-lista{margin-top:12px;display:flex;flex-direction:column;gap:6px}
 .san-fila{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--card-2)}
 .co-hero{border-color:rgba(45,212,191,.35);background:radial-gradient(620px 260px at 0% 0%,rgba(45,212,191,.18),transparent 70%),radial-gradient(520px 260px at 100% 100%,rgba(56,189,248,.14),transparent 70%),var(--card)}
+.em-hero{border-color:rgba(56,189,248,.35);background:radial-gradient(620px 260px at 0% 0%,rgba(56,189,248,.18),transparent 70%),radial-gradient(520px 260px at 100% 100%,rgba(244,114,182,.14),transparent 70%),var(--card)}
+.em-lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,440px),1fr));gap:12px}
+.em-cam{display:flex;flex-direction:column;gap:6px}
+.em-barra{height:6px;border-radius:99px;background:color-mix(in srgb,var(--txt-3) 22%,transparent);overflow:hidden;margin:6px 0}
+.em-barra i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#38BDF8,#4ADE80)}
+.em-k{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:6px}
+.em-k div{display:flex;flex-direction:column;padding:6px 8px;border-radius:10px;background:color-mix(in srgb,var(--txt-3) 8%,transparent)}
+.em-k b{font-size:14px}.em-k span{font-size:11px;color:var(--txt-3)}
+.em-vacio{text-align:center;padding:28px}
+.em-paso{margin-bottom:12px}.em-h{margin:0 0 10px;font-size:15px;display:flex;gap:6px;align-items:center}
+.em-bases{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:8px;margin:4px 0 6px}
+.em-base{display:flex;flex-direction:column;gap:3px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);cursor:pointer}
+.em-base.on{border-color:#38BDF8;box-shadow:0 0 0 1px #38BDF8}.em-base input{position:absolute;opacity:0;pointer-events:none}
+.em-aud{font-size:13px;padding:4px 10px;border-radius:99px;background:rgba(74,222,128,.12);color:#86EFAC}
+.em-ia{padding:10px 12px;border-radius:12px;border:1px dashed rgba(167,139,250,.5);background:rgba(167,139,250,.06)}
+.em-ia summary{cursor:pointer;font-weight:700;font-size:13px;display:flex;gap:6px;align-items:center;list-style:none}
+.em-pasoc{padding:12px;border-radius:12px;border:1px solid var(--line);margin:0 0 10px;display:flex;flex-direction:column;gap:8px}
+.em-var{display:flex;gap:8px;align-items:flex-start}
+.em-letra{flex:0 0 26px;height:26px;border-radius:8px;display:grid;place-items:center;font-weight:800;background:rgba(56,189,248,.16);color:#7DD3FC}
+.em-acc{position:sticky;bottom:0;padding:10px 0;background:linear-gradient(transparent,var(--bg) 40%)}
+.em-tabla{display:flex;flex-direction:column;gap:2px;overflow-x:auto}
+.em-tr{display:grid;grid-template-columns:70px minmax(160px,1fr) repeat(4,minmax(80px,110px));gap:8px;padding:6px 8px;border-radius:8px;font-size:12.5px;min-width:600px}
+.em-th{color:var(--txt-3);font-weight:700}.em-gana{background:rgba(74,222,128,.1)}
+.em-envios{display:flex;flex-direction:column;gap:4px;max-height:520px;overflow-y:auto}
+.em-env{display:flex;gap:8px;align-items:center;padding:7px 10px;border-radius:10px;border:1px solid var(--line)}
+.em-salud{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,320px),1fr));gap:10px}
+.em-bz{border-left:3px solid var(--bc)}
 .co-filtros{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
 .co-grid{display:grid;grid-template-columns:minmax(300px,420px) minmax(0,1fr);gap:14px;align-items:start}
 .co-lista{display:flex;flex-direction:column;gap:6px;max-height:calc(100vh - 260px);overflow-y:auto;padding-right:2px}
@@ -3293,6 +3320,7 @@ var MENU = [
   {id:'agentesia',   label:'Zona de agentes',            icon:'bolt',      sec:'General',   roles:['admin','manager']},
   {id:'flujos',      label:'Automatizaciones y Embudos', icon:'filter',    sec:'General',   roles:['admin','manager']},
   {id:'correo',      label:'Agente de correo',           icon:'mail',      sec:'General',   roles:['admin','manager']},
+  {id:'campanas',    label:'Campañas de email',          icon:'send',      sec:'General',   roles:['admin','manager']},
   {id:'resources',   label:'Centro de Recursos',         icon:'file',      sec:'General',   roles:['admin','manager','commercial','backoffice']},
   {id:'support',     label:'Soporte y Tickets',          icon:'help',      sec:'General',   roles:['admin','manager','commercial','backoffice']},
   {id:'adminsupport',label:'Mesa de Incidencias',        icon:'alert',     sec:'Sistema',   roles:['admin','manager']},
@@ -3557,7 +3585,7 @@ function renderApp(){
     interviews:viewInterviews, users:viewUsers, settings:viewSettings, contactos:viewContactos,
     rolesadmin:viewRolesAdmin, resources:viewResources, support:viewSupport,
     adminsupport:viewAdminSupportDesk, equipo:viewEquipo, mificha:viewMiFicha, seguridad:viewSeguridad, cumplimiento:viewCumplimiento,
-    sala:viewSala, pipeline:viewPipeline, prospeccion:viewProspeccion, motor:viewMotor, agentesia:viewAgentesIA, flujos:viewFlujos, correo:viewCorreo};
+    sala:viewSala, pipeline:viewPipeline, prospeccion:viewProspeccion, motor:viewMotor, agentesia:viewAgentesIA, flujos:viewFlujos, correo:viewCorreo, campanas:viewCampanas};
   (VIEWS[S.view]||viewDashboard)(v);
   reponerToasts();
   vcBanda();
@@ -11269,6 +11297,244 @@ function sanEventos(){
   qa('[data-san-mant]').forEach(function(b){ b.onclick = function(){
     ngApi('/saneo/candidato/' + b.dataset.sanMant, 'POST', {accion:'mantener'}).then(function(){ toast('Se mantiene abierto.'); SAN.d = null; sanCarga(); }, function(e){ toast(e.message); }); }; });
   qa('[data-san-ficha]').forEach(function(b){ b.onclick = function(){ ngAbreFicha(Number(b.dataset.sanFicha), 'pipeline'); }; });
+}
+
+/* ==========================================================================
+   CAMPAÑAS DE EMAIL · masivas, secuencias y siempre activas, desde los buzones de la agencia
+   ========================================================================== */
+var EM = {d:null, tab:'campanas', det:null, w:null, aud:null, ocupado:false, ia:{objetivo:'', publico:'', pasos:3, variantes:2}};
+var EM_TIPO = {masiva:['Envío masivo','#38BDF8'], secuencia:['Secuencia','#C084FC'], siempre:['Siempre activa','#2DD4BF']};
+var EM_EST = {borrador:['Borrador','#94A3B8'], programada:['Programada','#818CF8'], enviando:['Enviando','#4ADE80'], pausada:['Pausada','#FBBF24'], terminada:['Terminada','#64748B']};
+var EM_ENV = {pendiente:['En cola','#94A3B8'], enviado:['Enviado','#38BDF8'], respondido:['Respondió','#4ADE80'], rebote:['Rebotado','#F87171'], baja:['Baja','#FB923C'], error:['Error','#F87171'], cancelado:['Cancelado','#64748B'], omitido:['Omitido','#64748B']};
+function emCarga(){ return ngApi('/campanas/estado').then(function(d){ EM.d = d; if(S.view === 'campanas') renderApp(); }, function(e){ EM.d = {error:e.message}; if(S.view === 'campanas') renderApp(); }); }
+function emSale(ts){
+  var d = new Date(String(ts).replace(' ', 'T').replace(/\.\d+$/, '') + (/[zZ+]/.test(String(ts).slice(10)) ? '' : 'Z'));
+  if(isNaN(d) || d.getTime() <= Date.now() + 60000) return 'sale ya';
+  return 'sale el ' + d.toLocaleDateString('es-ES', {day:'numeric', month:'short'}) + ' a las ' + d.toLocaleTimeString('es-ES', {hour:'2-digit', minute:'2-digit'});
+}
+function emPct(a, b){ return b ? Math.round(1000 * a / b) / 10 : 0; }
+function emNuevo(){
+  return {id:0, nombre:'', tipo:'masiva', base_legal:'clientes', segmento:{fases:[], sector:'', etiquetas:'', excluir_etiquetas:'', gestor_id:'', sin_actividad_dias:'', excluir_perdidos:true},
+    pasos:[{espera_dias:0, variantes:[{asunto:'', cuerpo:'Hola {{nombre}},\n\n{{apertura}}\n\n'}]}], remitentes:emRemDef(),
+    horario:{ini:9, fin:19, laborables:true}, ab:{prueba_pct:30, decidir_horas:24}, ia_personalizar:!!EM.d.ia, seguimiento_clics:true, limite_dia:0, programada:''};
+}
+function emRemDef(){
+  var B = EM.d.buzones || [], v = B.filter(function(b){ return b.funcion === 'info'; });
+  return (v.length ? v : B.slice(0, 1)).map(function(b){ return Number(b.id); });
+}
+function emSet(ruta, v){ var o = EM.w, p = ruta.split('.'); for(var i = 0; i < p.length - 1; i++) o = o[p[i]]; o[p[p.length - 1]] = v; }
+function viewCampanas(v){
+  if(!EM.d){ v.innerHTML = '<div class="card"><p class="muted">Abriendo las campañas…</p></div>'; emCarga(); return; }
+  if(EM.d.error){ v.innerHTML = '<div class="card"><p>'+esc(EM.d.error)+'</p></div>'; return; }
+  var D = EM.d, act = D.campanas.filter(function(c){ return c.estado === 'enviando'; }).length;
+  var tot = D.campanas.reduce(function(a, c){ a.e += c.stats.enviados; a.r += c.stats.respuestas; a.k += c.stats.clics; return a; }, {e:0, r:0, k:0});
+  var avisos = [];
+  if(!D.buzones.length) avisos.push('Conecta antes los buzones de la agencia en «Agente de correo → Buzones»: las campañas salen desde ellos.');
+  if(!D.ia) avisos.push('Sin la clave de OpenAI no hay redacción con IA ni frase personalizada (el resto funciona).');
+  D.campanas.filter(function(c){ return c.estado === 'pausada' && c.motivo && c.motivo.indexOf('sola') > -1; }).forEach(function(c){ avisos.push(c.nombre + ': ' + c.motivo); });
+  var tabs = [['campanas','send','Campañas'],['nueva','plus',EM.w && EM.w.id ? 'Editar' : 'Nueva campaña'],['salud','shield','Salud y límites']].concat(D.admin ? [['ajustes','cog','Ajustes']] : []);
+  v.innerHTML =
+    '<div class="mt-hero em-hero"><div><span class="rc-kick">'+ic('send',13)+' EMAIL MARKETING · BUZONES DE LA AGENCIA · OPENAI</span><h2>Campañas de email</h2>'+
+      '<p class="muted">Envíos masivos, secuencias de seguimiento y campañas siempre activas a tus contactos, desde los buzones conectados y repartidos entre ellos. Con A/B automático, redacción y frase personalizada por IA, y todo vuelve solo: las respuestas las gestiona el agente de cada buzón y cortan la secuencia, y las bajas y los rebotes se aplican al momento.</p>'+
+      '<div class="mt-hero-st">'+[['Enviados (24 h)', D.hoy + ' / ' + D.config.global_dia], ['Campañas enviando', act], ['Respuestas', tot.r], ['Clics', tot.k]].map(function(x){ return '<div><b>'+x[1]+'</b><span>'+x[0]+'</span></div>'; }).join('')+'</div></div>'+
+      '<div class="row" style="gap:8px;align-self:flex-start"><button class="btn btn-p" id="em-nueva">'+ic('plus',15)+' Nueva campaña</button>'+(D.admin ? '<button class="btn" id="em-tick"'+(EM.ocupado ? ' disabled' : '')+'>'+ic('refresh',15)+' Enviar ahora</button>' : '')+'</div></div>'+
+    (avisos.length ? '<div class="mt-avisos">'+avisos.map(function(a){ return '<span>'+ic('alert',13)+' '+esc(a)+'</span>'; }).join('')+'</div>' : '')+
+    '<nav class="mt-tabs">'+tabs.map(function(t){ return '<button class="'+(EM.tab === t[0] ? 'on' : '')+'" data-em-tab="'+t[0]+'">'+ic(t[1],15)+' '+esc(t[2])+'</button>'; }).join('')+'</nav>'+
+    '<div id="em-cuerpo">'+(EM.tab === 'nueva' ? emEditor() : EM.tab === 'salud' ? emSalud() : EM.tab === 'ajustes' ? emAjustes() : EM.det ? emDetalle() : emLista())+'</div>';
+  emEventos();
+}
+function emBarra(s){
+  var t = Math.max(1, s.total - s.omitidos);
+  return '<div class="em-barra" title="'+s.enviados+' enviados de '+t+'"><i style="width:'+Math.min(100, emPct(s.enviados, t))+'%"></i></div>';
+}
+function emLista(){
+  var D = EM.d;
+  if(!D.campanas.length) return '<div class="card em-vacio"><h3 style="margin:0 0 6px">'+ic('send',16)+' Tu primera campaña</h3><p class="muted">Elige a quién (por fase, sector, etiquetas…), escribe el correo o pídeselo a la IA, elige desde qué buzones sale y lánzala. El sistema la envía poco a poco, en horario laboral y sin pasarse de los límites de cada buzón.</p><button class="btn btn-p" id="em-nueva2">'+ic('plus',14)+' Crear campaña</button></div>';
+  return '<div class="em-lista">'+D.campanas.map(function(c){
+    var s = c.stats, T = EM_TIPO[c.tipo] || [c.tipo, '#94A3B8'], E = EM_EST[c.estado] || [c.estado, '#94A3B8'];
+    return '<div class="card em-cam"><div class="co-ver-h"><div style="min-width:0"><b>'+esc(c.nombre)+'</b><div class="tiny muted">'+(c.lanzada ? 'Lanzada '+ngRel(c.lanzada) : 'Creada '+ngRel(c.creado))+(c.ganador ? ' · ganó la variante '+c.ganador : '')+'</div></div>'+
+        '<div class="co-chips">'+coChip(T[0], T[1])+coChip(E[0], E[1])+'</div></div>'+
+      (c.motivo ? '<p class="tiny" style="color:#FDE68A;margin:4px 0">'+ic('alert',12)+' '+esc(c.motivo)+'</p>' : '')+
+      emBarra(s)+
+      '<div class="em-k">'+[['Contactos', s.contactos], ['Enviados', s.enviados], ['En cola', s.cola + (s.espera_ab ? ' (+' + s.espera_ab + ' A/B)' : '')], ['Respuestas', s.respuestas + ' · ' + emPct(s.respuestas, s.enviados) + '%'],
+        ['Clics', s.clics + ' · ' + emPct(s.clics, s.enviados) + '%'], ['Bajas', s.bajas], ['Rebotes', s.rebotes]].map(function(k){ return '<div><b>'+k[1]+'</b><span>'+k[0]+'</span></div>'; }).join('')+'</div>'+
+      '<div class="row" style="gap:6px;flex-wrap:wrap;margin-top:8px"><button class="btn btn-xs" data-em-ver="'+c.id+'">'+ic('chart',13)+' Ver</button>'+
+        (['borrador','programada'].indexOf(c.estado) > -1 ? '<button class="btn btn-p btn-xs" data-em-lanzar="'+c.id+'">'+ic('send',13)+' Lanzar</button>' : '')+
+        (c.estado === 'enviando' ? '<button class="btn btn-xs" data-em-pausar="'+c.id+'">Pausar</button>' : '')+
+        (c.estado === 'pausada' ? '<button class="btn btn-p btn-xs" data-em-reanudar="'+c.id+'">Reanudar</button>' : '')+
+        (['borrador','programada','pausada'].indexOf(c.estado) > -1 ? '<button class="btn btn-xs" data-em-editar="'+c.id+'">'+ic('edit',13)+' Editar</button>' : '')+
+        '<button class="btn btn-xs" data-em-dup="'+c.id+'">Duplicar</button>'+
+        (['borrador','programada'].indexOf(c.estado) > -1 ? '<button class="btn btn-xs btn-r" data-em-borrar="'+c.id+'">Borrar</button>' : '')+'</div></div>'; }).join('')+'</div>';
+}
+function emDetalle(){
+  var c = EM.det;
+  if(c.cargando) return '<div class="card"><p class="muted">Abriendo…</p></div>';
+  var s = c.stats;
+  return '<button class="btn btn-xs" id="em-volver" style="margin-bottom:10px">← Campañas</button>'+
+    '<div class="card em-cam"><div class="co-ver-h"><div><b style="font-size:17px">'+esc(c.nombre)+'</b><div class="tiny muted">'+esc((EM_TIPO[c.tipo] || [c.tipo])[0])+' · '+esc((EM.d.bases[c.base_legal] || [c.base_legal])[0])+' · '+c.remitentes.length+' buzones</div></div>'+coChip((EM_EST[c.estado] || [c.estado])[0], (EM_EST[c.estado] || ['', '#94A3B8'])[1])+'</div>'+
+      emBarra(s)+'<div class="em-k">'+[['Contactos', s.contactos], ['Enviados', s.enviados], ['En cola', s.cola], ['Esperando A/B', s.espera_ab], ['Respuestas', s.respuestas], ['Clics', s.clics], ['Bajas', s.bajas], ['Rebotes', s.rebotes], ['Errores', s.errores], ['Omitidos', s.omitidos]].map(function(k){ return '<div><b>'+k[1]+'</b><span>'+k[0]+'</span></div>'; }).join('')+'</div></div>'+
+    (s.variantes.length > 1 || c.ganador ? '<div class="card"><h5 class="eq-h5" style="margin-top:0">Prueba A/B'+(c.ganador ? ' · ganadora: '+c.ganador : ' · decide sola a las '+(c.ab.decidir_horas || 24)+' h')+'</h5><div class="em-tabla"><div class="em-tr em-th"><span>Variante</span><span>Asunto</span><span>Enviados</span><span>Respuestas</span><span>Clics</span><span>Bajas</span></div>'+
+      s.variantes.map(function(x){ var p = c.pasos[0].variantes[x.variante.charCodeAt(0) - 65] || {};
+        return '<div class="em-tr'+(c.ganador === x.variante ? ' em-gana' : '')+'"><span><b>'+esc(x.variante)+'</b></span><span>'+esc(p.asunto || '')+'</span><span>'+x.enviados+'</span><span>'+x.respuestas+' · '+emPct(x.respuestas, x.enviados)+'%</span><span>'+x.clics+' · '+emPct(x.clics, x.enviados)+'%</span><span>'+x.bajas+'</span></div>'; }).join('')+'</div></div>' : '')+
+    (c.pasos.length > 1 ? '<div class="card"><h5 class="eq-h5" style="margin-top:0">Secuencia</h5><div class="em-tabla"><div class="em-tr em-th"><span>Paso</span><span>Asunto</span><span>Espera</span><span>Enviados</span><span>En cola</span><span>Respuestas</span></div>'+
+      c.pasos.map(function(p, i){ var x = s.pasos.filter(function(y){ return Number(y.paso) === i; })[0] || {enviados:0, pendientes:0, respuestas:0};
+        return '<div class="em-tr"><span><b>'+(i + 1)+'</b></span><span>'+esc(p.variantes[0].asunto)+'</span><span>'+(i ? '+' + p.espera_dias + ' días' : 'inicio')+'</span><span>'+x.enviados+'</span><span>'+x.pendientes+'</span><span>'+x.respuestas+'</span></div>'; }).join('')+'</div></div>' : '')+
+    '<div class="card"><h5 class="eq-h5" style="margin-top:0">Envíos ('+c.envios.length+(c.envios.length >= 300 ? ', los últimos' : '')+')</h5>'+(c.envios.length ? '<div class="em-envios">'+c.envios.map(function(e){
+      var E = EM_ENV[e.estado] || [e.estado, '#94A3B8'];
+      return '<div class="em-env"><div style="flex:1;min-width:0"><b>'+esc(e.empresa || e.nombre || e.email)+'</b><div class="tiny muted">'+esc(e.email)+' · paso '+(Number(e.paso) + 1)+(e.variante !== 'A' ? ' · '+esc(e.variante === 'X' ? 'espera al ganador' : 'variante ' + e.variante) : '')+
+        (e.buzon ? ' · desde '+esc(e.buzon) : '')+(e.enviado ? ' · '+ngRel(e.enviado) : e.programado && e.estado === 'pendiente' ? ' · '+emSale(e.programado) : '')+(e.error ? ' · '+esc(e.error) : '')+'</div></div>'+
+        (e.clic ? coChip('Clic', '#818CF8') : '')+coChip(E[0], E[1])+'</div>'; }).join('')+'</div>' : '<p class="tiny muted">Todavía no hay envíos.</p>')+'</div>';
+}
+function emEditor(){
+  var W = EM.w || (EM.w = emNuevo()), D = EM.d, G = W.segmento, bloq = W.estado && ['borrador','programada','pausada'].indexOf(W.estado) < 0;
+  var nv = W.pasos[0].variantes.length, multi = W.tipo !== 'masiva';
+  var inp = function(ruta, val, ph, tipo, extra){ return '<input class="inp" data-em-w="'+ruta+'" type="'+(tipo || 'text')+'" value="'+esc(val == null ? '' : val)+'" placeholder="'+esc(ph || '')+'"'+(extra || '')+'>'; };
+  var vars = ['{{nombre}}','{{empresa}}','{{sector}}','{{gestor}}','{{gestor_telefono}}','{{apertura}}'];
+  return (bloq ? '<div class="mt-avisos"><span>'+ic('alert',13)+' Esta campaña ya está enviando: pausa antes para cambiarla.</span></div>' : '')+
+    '<div class="card em-paso"><h3 class="em-h">'+ic('users',15)+' 1 · A quién</h3>'+
+      '<div class="grid g-2"><div><label class="f">Nombre de la campaña</label>'+inp('nombre', W.nombre, 'Novedades de primavera para clientes')+'</div>'+
+        '<div><label class="f">Tipo</label><select class="inp" data-em-w="tipo">'+Object.keys(EM_TIPO).map(function(k){ return '<option value="'+k+'"'+(W.tipo === k ? ' selected' : '')+'>'+EM_TIPO[k][0]+'</option>'; }).join('')+'</select>'+
+        '<p class="tiny muted" style="margin:4px 0 0">'+({masiva:'Un correo a toda la audiencia, repartido en el tiempo.', secuencia:'Hasta 5 correos con días de espera; quien responde, se da de baja o rebota sale de la secuencia.', siempre:'Secuencia que no termina: cada hora mete solos a los contactos nuevos que cumplan la audiencia.'})[W.tipo]+'</p></div></div>'+
+      '<label class="f" style="margin-top:10px">Base legal (obligatoria)</label><div class="em-bases">'+Object.keys(D.bases).map(function(k){
+        return '<label class="em-base'+(W.base_legal === k ? ' on' : '')+'"><input type="radio" name="em-base" data-em-base="'+k+'"'+(W.base_legal === k ? ' checked' : '')+'><b>'+esc(D.bases[k][0])+'</b><span class="tiny muted">'+esc(D.bases[k][1])+'</span></label>'; }).join('')+'</div>'+
+      '<p class="tiny muted">Siempre se excluyen: la lista de exclusión (bajas), «No contactar», los correos rebotados, los contactos desactivados y los correos repetidos. Para captar empresas nuevas en frío está el Motor de Scraping, que pide aprobación de cada correo.</p>'+
+      '<label class="f" style="margin-top:6px">Fases del pipeline (ninguna = todas)</label><div class="co-filtros">'+Object.keys(D.fases).map(function(k){
+        return '<button class="mt-loc'+(G.fases.indexOf(k) > -1 ? ' on' : '')+'" data-em-fase="'+k+'">'+esc(D.fases[k])+'</button>'; }).join('')+'</div>'+
+      '<div class="grid g-3"><div><label class="f">Sector contiene</label>'+inp('segmento.sector', G.sector, 'hostelería, clínicas')+'</div>'+
+        '<div><label class="f">Con las etiquetas</label>'+inp('segmento.etiquetas', G.etiquetas, 'VIP, Asturias')+'</div>'+
+        '<div><label class="f">Sin las etiquetas</label>'+inp('segmento.excluir_etiquetas', G.excluir_etiquetas, 'Competencia')+'</div>'+
+        '<div><label class="f">Gestor</label><select class="inp" data-em-w="segmento.gestor_id"><option value="">Todos</option>'+D.gestores.map(function(g){ return '<option value="'+g.id+'"'+(G.gestor_id === g.id ? ' selected' : '')+'>'+esc(g.n)+'</option>'; }).join('')+'</select></div>'+
+        '<div><label class="f">Sin actividad hace (días)</label>'+inp('segmento.sin_actividad_dias', G.sin_actividad_dias, 'p. ej. 60', 'number', ' min="0"')+'</div>'+
+        '<div style="display:flex;align-items:end"><label class="tiny"><input type="checkbox" data-em-w="segmento.excluir_perdidos"'+(G.excluir_perdidos ? ' checked' : '')+'> Excluir perdidos</label></div></div>'+
+      '<div class="row" style="gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap"><button class="btn btn-xs" id="em-contar">'+ic('users',13)+' Contar la audiencia</button>'+
+        (EM.aud ? '<span class="em-aud"><b>'+EM.aud.total+'</b> contactos reciben esta campaña</span>'+EM.aud.muestra.map(function(c){ return '<span class="tiny muted">'+esc(c.empresa || c.nombre)+' ('+esc(c.email)+')</span>'; }).join(' · ') : '')+'</div></div>'+
+
+    '<div class="card em-paso"><h3 class="em-h">'+ic('mail',15)+' 2 · Qué se envía</h3>'+
+      (D.ia ? '<details class="em-ia"'+(W.pasos[0].variantes[0].asunto ? '' : ' open')+'><summary>'+ic('spark',13)+' Redactar con IA (OpenAI)</summary>'+
+        '<div class="grid g-2" style="margin-top:8px"><div><label class="f">Objetivo</label><textarea class="inp" rows="3" data-em-ia="objetivo" placeholder="Que los clientes de hostelería pidan una demo del agente de voz que coge reservas.">'+esc(EM.ia.objetivo)+'</textarea></div>'+
+        '<div><label class="f">Público</label><textarea class="inp" rows="3" data-em-ia="publico" placeholder="Restaurantes de Asturias que ya son clientes de la web.">'+esc(EM.ia.publico)+'</textarea></div></div>'+
+        '<div class="row" style="gap:8px;margin-top:8px;flex-wrap:wrap;align-items:end"><div><label class="f">Correos</label><input class="inp" type="number" min="1" max="5" data-em-ia="pasos" value="'+EM.ia.pasos+'" style="width:90px"></div>'+
+        '<div><label class="f">Variantes A/B</label><input class="inp" type="number" min="1" max="3" data-em-ia="variantes" value="'+EM.ia.variantes+'" style="width:90px"></div>'+
+        '<button class="btn btn-p btn-xs" id="em-ia-ok"'+(EM.ocupado ? ' disabled' : '')+'>'+ic('spark',13)+(EM.ocupado ? ' Escribiendo…' : ' Escribir la campaña')+'</button></div></details>' : '')+
+      '<p class="tiny muted" style="margin:8px 0">Variables: '+vars.map(function(x){ return '<code>'+x+'</code>'; }).join(' ')+'. Texto plano (mejor entrega). La firma del buzón y el pie de baja se añaden solos.</p>'+
+      W.pasos.map(function(p, i){
+        return '<div class="em-pasoc"><div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><b>'+(multi ? 'Correo ' + (i + 1) : 'Correo')+'</b>'+
+          (i ? '<label class="tiny">Se envía <input class="inp" type="number" min="1" max="60" data-em-w="pasos.'+i+'.espera_dias" value="'+p.espera_dias+'" style="width:64px;display:inline-block"> días después del anterior, si no ha respondido</label>' : '')+
+          (i ? '<button class="btn btn-xs btn-r" data-em-quita-paso="'+i+'">Quitar</button>' : '')+'</div>'+
+          p.variantes.map(function(x, j){
+            return '<div class="em-var">'+(p.variantes.length > 1 ? '<span class="em-letra">'+String.fromCharCode(65 + j)+'</span>' : '')+'<div style="flex:1;min-width:0">'+
+              '<input class="inp" data-em-w="pasos.'+i+'.variantes.'+j+'.asunto" value="'+esc(x.asunto)+'" placeholder="Asunto">'+
+              '<textarea class="inp" rows="7" style="margin-top:6px" data-em-w="pasos.'+i+'.variantes.'+j+'.cuerpo" placeholder="Hola {{nombre}}, …">'+esc(x.cuerpo)+'</textarea></div>'+
+              (j ? '<button class="btn btn-xs" data-em-quita-var="'+j+'" title="Quitar variante">'+ic('x',12)+'</button>' : '')+'</div>'; }).join('')+
+          (i === 0 && p.variantes.length < 3 && W.tipo !== 'siempre' ? '<button class="btn btn-xs" data-em-var>'+ic('plus',12)+' Variante A/B</button>' : '')+'</div>'; }).join('')+
+      (multi && W.pasos.length < 5 ? '<button class="btn btn-xs" id="em-paso">'+ic('plus',12)+' Añadir correo de seguimiento</button>' : '')+
+      '<div class="row" style="gap:16px;margin-top:10px;flex-wrap:wrap"><label class="tiny"><input type="checkbox" data-em-w="ia_personalizar"'+(W.ia_personalizar ? ' checked' : '')+(D.ia ? '' : ' disabled')+'> Frase de apertura personalizada por IA para cada contacto (en <code>{{apertura}}</code>)</label>'+
+        '<label class="tiny"><input type="checkbox" data-em-w="seguimiento_clics"'+(W.seguimiento_clics ? ' checked' : '')+'> Medir los clics en los enlaces</label></div></div>'+
+
+    '<div class="card em-paso"><h3 class="em-h">'+ic('clock',15)+' 3 · Desde dónde y cuándo</h3>'+
+      '<label class="f">Buzones remitentes (se reparten los envíos entre ellos; las respuestas llegan a cada buzón y las gestiona su agente)</label><div class="co-filtros">'+(D.buzones.length ? D.buzones.map(function(b){
+        return '<button class="mt-loc'+(W.remitentes.indexOf(Number(b.id)) > -1 ? ' on' : '')+'" data-em-rem="'+b.id+'">'+esc(b.email)+'</button>'; }).join('') : '<span class="tiny muted">No hay buzones conectados.</span>')+'</div>'+
+      '<div class="grid g-3"><div><label class="f">Horario (hora de Madrid)</label><div class="row" style="gap:6px;align-items:center">'+inp('horario.ini', W.horario.ini, '', 'number', ' min="0" max="23" style="width:80px"')+'<span>a</span>'+inp('horario.fin', W.horario.fin, '', 'number', ' min="1" max="24" style="width:80px"')+'</div>'+
+          '<label class="tiny"><input type="checkbox" data-em-w="horario.laborables"'+(W.horario.laborables ? ' checked' : '')+'> Solo de lunes a viernes</label></div>'+
+        '<div><label class="f">Máximo al día de esta campaña (0 = sin tope propio)</label>'+inp('limite_dia', W.limite_dia, '0', 'number', ' min="0"')+'</div>'+
+        '<div><label class="f">Empezar (vacío = al lanzar)</label>'+inp('programada', W.programada, '', 'datetime-local')+'</div></div>'+
+      (nv > 1 && W.tipo !== 'siempre' ? '<div class="grid g-2" style="margin-top:8px"><div><label class="f">Prueba A/B: % de la audiencia que la recibe primero</label>'+inp('ab.prueba_pct', W.ab.prueba_pct, '', 'number', ' min="10" max="100"')+'</div>'+
+        '<div><label class="f">Elegir la ganadora (respuestas, luego clics) a las … horas</label>'+inp('ab.decidir_horas', W.ab.decidir_horas, '', 'number', ' min="1" max="168"')+'</div></div>' : '')+
+      '<p class="tiny muted">Límites de cada buzón: '+D.config.por_buzon_hora+' por hora y '+D.config.por_buzon_dia+' al día; '+D.config.global_dia+' al día en total. Se pausa sola si pasa del '+D.config.pausa_rebotes_pct+'% de rebotes o del '+D.config.pausa_bajas_pct+'% de bajas.</p></div>'+
+
+    (bloq ? '' : '<div class="row em-acc" style="gap:8px;flex-wrap:wrap"><button class="btn" id="em-guardar">'+ic('save',14)+' Guardar borrador</button>'+
+      '<button class="btn" id="em-prueba">'+ic('mail',14)+' Enviarme una prueba</button>'+
+      '<button class="btn btn-p" id="em-lanzar">'+ic('send',14)+' Guardar y lanzar</button>'+(W.id ? '<button class="btn" id="em-cancelar">Cerrar sin guardar</button>' : '')+'</div>');
+}
+function emSalud(){
+  var D = EM.d, C = D.config;
+  return '<div class="card"><h5 class="eq-h5" style="margin-top:0">Hoy: '+D.hoy+' de '+C.global_dia+' envíos permitidos</h5><div class="em-barra"><i style="width:'+Math.min(100, emPct(D.hoy, C.global_dia))+'%"></i></div>'+
+    '<p class="tiny muted">Los envíos se reparten entre los buzones elegidos (el que menos lleva primero). Al llegar a su límite, un buzón descansa hasta que vuelve a tener cupo; si uno falla tres veces seguidas, se salta en esa pasada.</p></div>'+
+    (D.buzones.length ? '<div class="em-salud">'+D.buzones.map(function(b){
+      var tasa = b.semana ? emPct(b.rebotes_7d, b.semana) : 0, col = tasa > C.pausa_rebotes_pct ? '#F87171' : tasa > C.pausa_rebotes_pct / 2 ? '#FBBF24' : '#4ADE80';
+      return '<div class="card em-bz" style="--bc:'+col+'"><b>'+esc(b.email)+'</b><div class="tiny muted">'+esc((CO_DEP[b.funcion] || ['', b.funcion])[1] || b.funcion)+'</div>'+
+        '<div class="em-k">'+[['Última hora', b.hora + ' / ' + C.por_buzon_hora], ['24 h', b.dia + ' / ' + C.por_buzon_dia], ['7 días', b.semana], ['Rebotes', b.rebotes_7d + ' · ' + tasa + '%'], ['Bajas', b.bajas_7d]].map(function(k){ return '<div><b>'+k[1]+'</b><span>'+k[0]+'</span></div>'; }).join('')+'</div>'+
+        '<div class="em-barra"><i style="width:'+Math.min(100, emPct(b.dia, C.por_buzon_dia))+'%"></i></div></div>'; }).join('')+'</div>' : '<div class="card"><p class="muted">Sin buzones conectados.</p></div>');
+}
+function emAjustes(){
+  var C = EM.d.config, f = function(k, l, mx){ return '<div><label class="f">'+l+'</label><input class="inp" type="number" min="0" max="'+mx+'" data-em-c="'+k+'" value="'+esc(C[k])+'"></div>'; };
+  return '<div class="card co-form"><h3 style="margin:0 0 10px;font-size:15px">'+ic('cog',15)+' Límites de envío y protección</h3>'+
+    '<div class="grid g-3">'+f('por_buzon_hora', 'Por buzón y hora', 1000)+f('por_buzon_dia', 'Por buzón y día', 10000)+f('global_dia', 'En total al día', 100000)+
+      f('pausa_rebotes_pct', 'Pausar si los rebotes pasan del (%)', 100)+f('pausa_bajas_pct', 'Pausar si las bajas pasan del (%)', 100)+f('ia_max_campana', 'Frases de IA por campaña (máximo)', 100000)+
+      '<div><label class="f">Modelo de OpenAI</label><input class="inp" data-em-c="modelo" value="'+esc(C.modelo)+'"></div></div>'+
+    '<p class="tiny muted">Hostalia y la mayoría de proveedores limitan los envíos por buzón: empieza por 40 a la hora y 250 al día, y sube poco a poco si no hay rebotes.</p>'+
+    '<button class="btn btn-p" id="em-aj-ok">'+ic('save',14)+' Guardar</button></div>';
+}
+function emCuerpo(){
+  var W = EM.w, b = JSON.parse(JSON.stringify(W));
+  if(b.segmento.sin_actividad_dias === '') delete b.segmento.sin_actividad_dias;
+  b.programada = W.programada ? new Date(W.programada).toISOString() : '';
+  return b;
+}
+function emGuarda(){
+  var W = EM.w;
+  return ngApi('/campanas/guardar' + (W.id ? '/' + W.id : ''), 'POST', emCuerpo()).then(function(d){ W.id = d.id; return d.id; });
+}
+function emAbreEditor(id){
+  ngApi('/campanas/' + id).then(function(c){
+    var p = c.programada ? new Date(c.programada.replace(' ', 'T') + 'Z') : null, l = function(n){ return (n < 10 ? '0' : '') + n; };
+    EM.w = {id:Number(c.id), estado:c.estado, nombre:c.nombre, tipo:c.tipo, base_legal:c.base_legal, segmento:Object.assign({fases:[], sector:'', etiquetas:'', excluir_etiquetas:'', gestor_id:'', sin_actividad_dias:'', excluir_perdidos:false}, c.segmento),
+      pasos:c.pasos, remitentes:c.remitentes.map(Number), horario:Object.assign({ini:9, fin:19, laborables:true}, c.horario), ab:Object.assign({prueba_pct:30, decidir_horas:24}, c.ab),
+      ia_personalizar:!!Number(c.ia_personalizar), seguimiento_clics:!!Number(c.seguimiento_clics), limite_dia:Number(c.limite_dia),
+      programada:p ? p.getFullYear() + '-' + l(p.getMonth() + 1) + '-' + l(p.getDate()) + 'T' + l(p.getHours()) + ':' + l(p.getMinutes()) : ''};
+    EM.aud = null; EM.tab = 'nueva'; renderApp();
+  }, function(e){ toast(e.message); });
+}
+function emAccion(id, acc, msg){
+  return ngApi('/campanas/' + id + '/' + acc, 'POST', {}).then(function(d){ if(msg) toast(typeof msg === 'function' ? msg(d) : msg); EM.det = null; return emCarga().then(function(){ return d; }); }, function(e){ toast(e.message); });
+}
+function emEventos(){
+  qa('[data-em-tab]').forEach(function(b){ b.onclick = function(){ EM.tab = b.dataset.emTab; EM.det = null; renderApp(); }; });
+  ['#em-nueva', '#em-nueva2'].forEach(function(s){ if(q(s)) q(s).onclick = function(){ EM.w = emNuevo(); EM.aud = null; EM.tab = 'nueva'; renderApp(); }; });
+  if(q('#em-tick')) q('#em-tick').onclick = function(){ EM.ocupado = true; renderApp();
+    ngApi('/campanas/tick', 'POST', {}).then(function(d){ EM.ocupado = false; var r = d.resultado || {}; toast((r.enviados || 0) + ' enviados' + (r.errores ? ', ' + r.errores + ' con error' : '') + (r.omitidos ? ', ' + r.omitidos + ' omitidos' : '') + '.'); emCarga(); },
+      function(e){ EM.ocupado = false; toast(e.message); renderApp(); }); };
+  qa('[data-em-ver]').forEach(function(b){ b.onclick = function(){ EM.det = {cargando:true}; renderApp(); ngApi('/campanas/' + b.dataset.emVer).then(function(c){ EM.det = c; renderApp(); }, function(e){ EM.det = null; toast(e.message); renderApp(); }); }; });
+  if(q('#em-volver')) q('#em-volver').onclick = function(){ EM.det = null; renderApp(); };
+  qa('[data-em-lanzar]').forEach(function(b){ b.onclick = function(){ if(!confirm('¿Lanzar la campaña? Empezará a enviarse sola, en horario y con los límites de cada buzón.')) return;
+    emAccion(b.dataset.emLanzar, 'lanzar', function(d){ return 'Campaña lanzada: ' + d.inscritos + ' contactos en cola.'; }); }; });
+  qa('[data-em-pausar]').forEach(function(b){ b.onclick = function(){ emAccion(b.dataset.emPausar, 'pausar', 'Campaña pausada.'); }; });
+  qa('[data-em-reanudar]').forEach(function(b){ b.onclick = function(){ emAccion(b.dataset.emReanudar, 'reanudar', 'Campaña reanudada.'); }; });
+  qa('[data-em-dup]').forEach(function(b){ b.onclick = function(){ emAccion(b.dataset.emDup, 'duplicar', 'Copia creada como borrador.'); }; });
+  qa('[data-em-borrar]').forEach(function(b){ b.onclick = function(){ if(confirm('¿Borrar este borrador?')) emAccion(b.dataset.emBorrar, 'borrar', 'Borrador eliminado.'); }; });
+  qa('[data-em-editar]').forEach(function(b){ b.onclick = function(){ emAbreEditor(b.dataset.emEditar); }; });
+  /* Editor */
+  qa('[data-em-w]').forEach(function(el){
+    var f = function(){ var r = el.dataset.emW, v = el.type === 'checkbox' ? el.checked : el.type === 'number' ? (el.value === '' ? '' : Number(el.value)) : el.value; emSet(r, v);
+      if(r === 'tipo'){ if(v === 'masiva') EM.w.pasos = EM.w.pasos.slice(0, 1); if(v === 'siempre') EM.w.pasos[0].variantes = EM.w.pasos[0].variantes.slice(0, 1); renderApp(); }
+      if(r.indexOf('segmento.') === 0 && EM.aud){ EM.aud = null; } };
+    if(el.tagName === 'SELECT' || el.type === 'checkbox') el.onchange = f; else el.oninput = f;
+  });
+  qa('[data-em-base]').forEach(function(el){ el.onchange = function(){ EM.w.base_legal = el.dataset.emBase; EM.aud = null; renderApp(); }; });
+  qa('[data-em-fase]').forEach(function(b){ b.onclick = function(){ var F = EM.w.segmento.fases, k = b.dataset.emFase, i = F.indexOf(k); if(i > -1) F.splice(i, 1); else F.push(k); EM.aud = null; renderApp(); }; });
+  qa('[data-em-rem]').forEach(function(b){ b.onclick = function(){ var R = EM.w.remitentes, k = Number(b.dataset.emRem), i = R.indexOf(k); if(i > -1) R.splice(i, 1); else R.push(k); renderApp(); }; });
+  qa('[data-em-var]').forEach(function(b){ b.onclick = function(){ var V = EM.w.pasos[0].variantes; V.push({asunto:V[0].asunto, cuerpo:V[0].cuerpo}); renderApp(); }; });
+  qa('[data-em-quita-var]').forEach(function(b){ b.onclick = function(){ EM.w.pasos[0].variantes.splice(Number(b.dataset.emQuitaVar), 1); renderApp(); }; });
+  qa('[data-em-quita-paso]').forEach(function(b){ b.onclick = function(){ EM.w.pasos.splice(Number(b.dataset.emQuitaPaso), 1); renderApp(); }; });
+  if(q('#em-paso')) q('#em-paso').onclick = function(){ EM.w.pasos.push({espera_dias:3, variantes:[{asunto:'Re: ' + (EM.w.pasos[0].variantes[0].asunto || ''), cuerpo:'Hola {{nombre}},\n\n'}]}); renderApp(); };
+  qa('[data-em-ia]').forEach(function(el){ el.oninput = function(){ EM.ia[el.dataset.emIa] = el.type === 'number' ? Number(el.value) : el.value; }; });
+  if(q('#em-ia-ok')) q('#em-ia-ok').onclick = function(){
+    if(EM.ia.objetivo.trim().length < 10) return toast('Cuenta en una frase qué quieres conseguir con la campaña.');
+    EM.ocupado = true; renderApp();
+    ngApi('/campanas/ia/redactar', 'POST', {objetivo:EM.ia.objetivo, publico:EM.ia.publico, pasos:EM.ia.pasos, variantes:EM.ia.variantes}).then(function(d){
+      EM.ocupado = false; if(!EM.w.nombre) EM.w.nombre = d.nombre; EM.w.pasos = d.pasos;
+      if(d.pasos.length > 1 && EM.w.tipo === 'masiva') EM.w.tipo = 'secuencia';
+      toast('Campaña escrita: revísala y ajústala a tu gusto.'); renderApp(); }, function(e){ EM.ocupado = false; toast(e.message); renderApp(); }); };
+  if(q('#em-contar')) q('#em-contar').onclick = function(){ var b = emCuerpo();
+    ngApi('/campanas/audiencia', 'POST', {segmento:b.segmento, base_legal:b.base_legal}).then(function(d){ EM.aud = d; renderApp(); }, function(e){ toast(e.message); }); };
+  if(q('#em-guardar')) q('#em-guardar').onclick = function(){ emGuarda().then(function(){ toast('Borrador guardado.'); emCarga(); }, function(e){ toast(e.message); }); };
+  if(q('#em-cancelar')) q('#em-cancelar').onclick = function(){ EM.w = null; EM.tab = 'campanas'; renderApp(); };
+  if(q('#em-prueba')) q('#em-prueba').onclick = function(){ emGuarda().then(function(id){ return ngApi('/campanas/' + id + '/prueba', 'POST', {}); }).then(function(d){ toast('Prueba enviada a ' + d.para + '.'); }, function(e){ toast(e.message); }); };
+  if(q('#em-lanzar')) q('#em-lanzar').onclick = function(){ if(!confirm('¿Guardar y lanzar? Empezará a enviarse sola, en horario y con los límites de cada buzón.')) return;
+    emGuarda().then(function(id){ return ngApi('/campanas/' + id + '/lanzar', 'POST', {}); }).then(function(d){
+      toast('Campaña lanzada: ' + d.inscritos + ' contactos en cola.'); EM.w = null; EM.tab = 'campanas'; emCarga(); }, function(e){ toast(e.message); }); };
+  if(q('#em-aj-ok')) q('#em-aj-ok').onclick = function(){ var c = {}; qa('[data-em-c]').forEach(function(el){ c[el.dataset.emC] = el.type === 'number' ? Number(el.value) : el.value; });
+    ngApi('/campanas/config', 'POST', {config:c}).then(function(){ toast('Límites guardados.'); emCarga(); }, function(e){ toast(e.message); }); };
 }
 
 /* ==========================================================================
