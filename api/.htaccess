@@ -1,0 +1,17 @@
+# Carpeta del backend. No se bloquea nada por nombre de archivo: en algunos
+# Apache de alojamiento compartido ese bloqueo acababa cerrando también
+# index.php (error 403 al entrar). Las piezas internas (nucleo.php, rest.php...)
+# no hacen nada si se abren directamente: salen sin ejecutar código.
+
+# Hostalia (FastCGI) a veces no pasa la cabecera Authorization a PHP.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{HTTP:Authorization} .
+  RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+</IfModule>
+
+# La página de puesta en marcha (instalar.php) necesita enviar su formulario,
+# cosa que la política general del panel prohíbe. Aquí se usa una propia.
+<IfModule mod_headers.c>
+  Header always set Content-Security-Policy "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'"
+</IfModule>

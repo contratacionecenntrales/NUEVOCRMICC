@@ -1,0 +1,16 @@
+{
+    "name": "labs24k/crm-api",
+    "description": "Dependencias del servidor del CRM (SDK oficial de Claude para el Motor de Scraping IA).",
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "php": ">=8.1",
+        "anthropic-ai/sdk": "^1.8",
+        "guzzlehttp/guzzle": "^7.9"
+    },
+    "config": {
+        "vendor-dir": "lib/vendor",
+        "optimize-autoloader": true,
+        "platform": {"php": "8.1.0"}
+    }
+}

@@ -1,0 +1,13 @@
+# Datos reales: nunca al repositorio
+api/config.local.php
+storage/*
+!storage/.htaccess
+!storage/index.html
+# Datos personales que se cargan al desplegar: nunca al repositorio
+api/importacion-pendiente.php
+*.csv
+# Documentos corporativos que se cargan al desplegar: solo en el zip personal
+api/semilla/
+
+# Librerías de Composer (se instalan en el zip, no en el repositorio)
+api/lib/vendor/
