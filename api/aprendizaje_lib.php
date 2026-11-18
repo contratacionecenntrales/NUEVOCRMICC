@@ -133,7 +133,7 @@ function apr_ciclo(): string {
 /** Oficina virtual de ICC: automatizaciones basicas y embudos que se encienden con el piloto automatico.
  *  (El formulario web, el setter y la reactivacion de la base dormida se activan a mano.) */
 const APR_FLUJOS_PILOTO = ['lead_reparto', 'recordatorio_cita', 'no_asistio', 'acuse_estudio', 'seguimiento_presupuesto', 'presupuesto_aceptado',
-  'contrato_tramite', 'contrato_activo', 'contrato_incidencia', 'renovacion_anual', 'perdido_recuperar', 'resena_referidos', 'rescate_omnicanal',
+  'contrato_tramite', 'contrato_activo', 'contrato_incidencia', 'renovacion_anual', 'informe_ahorro', 'perdido_recuperar', 'resena_referidos', 'rescate_omnicanal',
   'embudo_energia', 'embudo_telefonia', 'embudo_alarmas', 'embudo_seguros', 'auditoria_integral', 'venta_cruzada'];
 
 function apr_piloto(bool $encender, int $uid): array {
@@ -216,7 +216,7 @@ function apr_checklist(): array {
   $kb = (string)icc_ajuste('correo_conocimiento', '') !== '';
   $add('Correo', 'conocimiento', $kb ? 'ok' : 'aviso', 'Base de conocimiento', $kb ? 'Personalizada.' : 'Revisa «Cómo responde»: servicios, horario y precios públicos son lo único que la IA puede afirmar.', '#/agente-correo');
   // Automatico
-  $add('Automático', 'agentes', eq_config()['activo'] ? 'ok' : 'falta', 'Zona de agentes encendida', eq_config()['activo'] ? 'Los 19 agentes trabajan por turnos (8 a 20 h, laborables).' : 'Enciende el interruptor general o activa el piloto automático.', '#/zona-agentes');
+  $add('Automático', 'agentes', eq_config()['activo'] ? 'ok' : 'falta', 'Zona de agentes encendida', eq_config()['activo'] ? 'Los 20 agentes trabajan por turnos (8 a 20 h, laborables).' : 'Enciende el interruptor general o activa el piloto automático.', '#/zona-agentes');
   if (function_exists('voz_config')) {
     $v = voz_config();
     $okV = $v['activo'] && $v['tiene_clave'] && $v['assistant_id'] !== '' && $v['phone_number_id'] !== '';

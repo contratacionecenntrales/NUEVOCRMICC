@@ -137,6 +137,13 @@ function fl_plantillas(): array {
       $c('¿Revisamos de nuevo sus costes?', "Hola {{nombre}}:\n\nHace unos meses hablamos sobre sus servicios. Los precios del mercado han cambiado: ¿le parece que revisemos de nuevo su luz, telefonía, alarma o seguros, sin compromiso?\n\nUn saludo,\n{{gestor}}"),
       $ta('Recontactar cliente perdido (90 días)', 48),
     ]), ['fase' => 'oferta_presentada'], 'A los 90 días vuelve a ofrecer el estudio.'],
+    'informe_ahorro' => ['Informe de ahorro y «recomienda» (a los 60 días del contrato)', 'basica', 'contrato_activado', [], ['inicio' => 'p1', 'nodos' => [
+      'p1' => $n($e(60, 'dias'), ['sig' => 'p2']),
+      'p2' => $n(['tipo' => 'condicion', 'cfg' => ['tipo' => 'tiene_ahorro', 'valor' => '']], ['si' => 'p3', 'no' => 'p4']),
+      'p3' => $n($c('Su ahorro con ICC Consultoría', "Hola {{nombre}}:\n\nYa llevamos dos meses con su nuevo contrato de {{servicio}}. Según el estudio que le hicimos, {{empresa}} ahorra {{ahorro}}.\n\nSi conoce a otra empresa que pueda estar pagando de más en luz, teléfono, alarma o seguros, responda a este correo con su contacto y le haremos el mismo estudio gratuito.\n\nGracias por su confianza,\n{{gestor}}"), ['sig' => 'p5']),
+      'p4' => $n($c('¿Qué tal con su nuevo contrato?', "Hola {{nombre}}:\n\nYa llevamos dos meses con su nuevo contrato de {{servicio}}. ¿Le ha llegado todo como acordamos? Si quiere, revisamos juntos su última factura.\n\nY si conoce a otra empresa que pueda estar pagando de más, responda con su contacto y le haremos el estudio gratuito.\n\nUn saludo,\n{{gestor}}"), ['sig' => 'p5']),
+      'p5' => $n($ta('Llamar a {{empresa}}: confirmar el ahorro y pedir un referido', 120), ['sig' => null]),
+    ]], [], 'A los 60 días de activarse un contrato, le cuenta al cliente su ahorro real (de su estudio, nunca inventado), le pide un referido y deja una llamada al gestor.'],
     'resena_referidos' => ['Cliente activo: satisfacción y referidos', 'basica', 'fase_cambiada', ['fase' => 'cliente_activo'], $lineal([
       $e(30, 'dias'),
       $c('¿Qué tal todo?', "Hola {{nombre}}:\n\nYa llevamos un mes trabajando juntos. ¿Cómo lo está viendo? Si está contento, nos ayudaría mucho una recomendación: ¿conoce a otra empresa que pueda estar pagando de más en luz, teléfono, alarma o seguros?\n\nGracias,\n{{gestor}}"),
@@ -383,6 +390,7 @@ function fl_variables(array $c, string $texto, array $ctx = []): string {
     '{{nombre}}' => $nombre ?: 'buenos días', '{{empresa}}' => (string)$c['razon_social'], '{{gestor}}' => $gestor,
     '{{fecha_cita}}' => $cita ? date('d/m/Y', strtotime($cita['fecha'])) . ' a las ' . substr($cita['hora_inicio'], 0, 5) : 'la fecha acordada',
     '{{presupuesto}}' => $p ? 'presupuesto #' . $p['id'] . ' (' . $p['sector'] . ')' : 'nuestra propuesta',
+    '{{ahorro}}' => (function () use ($c) { if (!function_exists('rt_ahorro_cliente')) require_once __DIR__ . '/retorno_lib.php'; $a = rt_ahorro_cliente((int)$c['id']); return $a > 0 ? number_format($a, 0, ',', '.') . ' € al año' : 'lo que se acordó en su estudio'; })(),
     '{{servicio}}' => mb_strtolower(FL_SERVICIOS[$serv] ?? 'sus servicios'), '{{web}}' => 'integralconnectionconsulting.es',
     '{{importe}}' => (float)$c['valor_estimado'] > 0 ? number_format((float)$c['valor_estimado'], 0, ',', '.') . ' €' : 'el importe acordado',
   ]);
@@ -426,6 +434,7 @@ function fl_condicion(array $c, array $cfg): bool {
     case 'tiene_email': return fl_email_cliente($c) !== '';
     case 'origen': return $c['origen'] === $v;
     case 'tiene_servicio': return fl_tiene_servicio((int)$c['id'], $v);
+    case 'tiene_ahorro': if (!function_exists('rt_ahorro_cliente')) require_once __DIR__ . '/retorno_lib.php'; return rt_ahorro_cliente((int)$c['id']) > 0;
     case 'interes_servicio': return fl_tiene_etiqueta((int)$c['id'], ICC_INTERESES[$v] ?? ('Interés: ' . $v));
   }
   return false;

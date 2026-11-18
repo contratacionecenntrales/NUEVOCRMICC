@@ -1,0 +1,19 @@
+/* ICC CRM · Retorno (js/retorno.js). Usa css/_ia.css y _motor.css. */
+.icc-rt-tabla { display: flex; flex-direction: column; overflow-x: auto; }
+.icc-rt-fila { display: grid; grid-template-columns: minmax(200px, 2fr) repeat(6, minmax(90px, 1fr)); gap: 10px; align-items: center; padding: 9px 4px; border-bottom: 1px solid var(--line); font-size: 13px; color: var(--txt-2); }
+.icc-rt-fila--cab { font-size: 11px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--txt-3); }
+.icc-rt-fila span:first-child { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.icc-rt-fila strong { color: var(--txt); }
+.icc-rt-fila b { color: #6EE7B7; font-size: 14px; }
+.icc-rt-barra { display: block; height: 5px; border-radius: 99px; background: var(--card-2); position: relative; overflow: hidden; }
+.icc-rt-barra::after { content: ""; position: absolute; inset: 0 auto 0 0; width: var(--w); background: linear-gradient(90deg, #10B981, #22D3EE); border-radius: 99px; }
+.icc-rt-graf { display: flex; align-items: flex-end; gap: 14px; height: 200px; padding: 10px 4px 0; }
+.icc-rt-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; min-width: 0; height: 100%; }
+.icc-rt-col b { color: var(--txt); font-size: 13px; }
+.icc-rt-col small { color: var(--txt-3); font-size: 11.5px; }
+.icc-rt-pila { width: 100%; max-width: 54px; display: flex; flex-direction: column-reverse; gap: 2px; }
+.icc-rt-pila i { display: block; border-radius: 4px; min-height: 3px; }
+.icc-rt-leyenda { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 10px; font-size: 12px; color: var(--txt-2); }
+.icc-rt-leyenda i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+.icc-rt .icc-ia-lista li > div.icc-ia-fila { flex: 0 0 auto; min-width: 0; flex-direction: row; }
+@media (max-width: 860px) { .icc-rt-fila { grid-template-columns: minmax(170px, 2fr) repeat(6, 86px); } }

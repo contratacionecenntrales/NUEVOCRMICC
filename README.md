@@ -641,7 +641,7 @@ la base de datos completa v91) pasa sus campañas a ICC.
   y estudio gratuito. Cuando una empresa responde con interés, pasa al CRM con la etiqueta «Interés: <servicio>»
   del ángulo de su campaña, que arranca el embudo de ese servicio.
 - **Automatizaciones** (`#/automatizaciones`): 22 plantillas en tres grupos y botón **🏢 Instalar la oficina
-  virtual de ICC** (crea y activa 19; también lo hace el piloto automático). Cada grupo se instala con un clic.
+  virtual de ICC** (crea y activa 20; también lo hace el piloto automático). Cada grupo se instala con un clic.
   - *Básicas*: lead nuevo (reparto, bienvenida y llamada en 5 min), recordatorio de cita, no asistió,
     documentación recibida (estudio en 48 h), seguimiento de la propuesta, propuesta aceptada, contrato en
     trámite, contrato activado (y revisión de la primera factura), contrato con incidencia (avisos y tarea en
@@ -831,4 +831,22 @@ jefes de equipo buscan, reparten y exportan; comerciales y backoffice llaman a l
   (reintento al siguiente laborable en la otra franja; al 4.º, sale), **No le interesa** y **No llamar más** (nunca
   más, tampoco con el mismo teléfono en otra ficha). Historial en `motor_llamadas`.
 - **Exportar CSV** (protegido contra fórmulas de Excel) y aviso de la Lista Robinson para autónomos.
+
+## Retorno: lo que firma y ahorra (v100)
+
+**🤖 IA → 🚀 Retorno** (`#/retorno`, `api/retorno.php`, `retorno_lib.php`; dirección todo, jefes su equipo).
+
+- **Panel**: clientes firmados, valor firmado, % de leads que firman, pipeline ponderado (Lead 10 %, Auditoría 25 %,
+  Propuesta 50 %, Negociación 75 %) y **ahorro anual que ICC genera a su cartera** (último estudio de cada fuente:
+  estudios, comparador de energía y telefonía y auditorías; solo ahorro positivo, nunca inventado). Embudo por
+  canal (Motor, campaña sin web, formulario, correo, comerciales), por sector y por gestor; contratos por mes y
+  servicio; clientes de un solo servicio y renovaciones de los próximos 60 días; recomendaciones «dónde está el
+  siguiente euro».
+- **Agente CRO · Director de Retorno** (20 agentes; turno diario y botón «Optimizar ahora»): prioriza el barrido de
+  Asturias por **firmas** (antes que por respuestas), mantiene activas las campañas de los 3 sectores que más
+  firman, mete en el embudo de venta cruzada a los clientes activos de un solo servicio y envía el parte semanal
+  de retorno a dirección.
+- **Automatización «Informe de ahorro»** (23 plantillas; parte de la oficina, 20 activas con el piloto): a los 60
+  días de activarse un contrato le cuenta al cliente su ahorro real (variable `{{ahorro}}`, condición «Tiene un
+  ahorro estudiado»), le pide un referido y deja una llamada al gestor.
 

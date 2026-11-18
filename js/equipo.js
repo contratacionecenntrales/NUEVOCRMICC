@@ -41,7 +41,7 @@
     var d = S.d;
     var html = '<div class="icc-ia icc-mo icc-eq">' +
       '<section class="icc-ia-hero icc-mo-hero"><div><span class="icc-ia-eyebrow">IA · Empresa autónoma</span><h1>🧠 Zona de agentes</h1>' +
-      "<p>19 agentes de IA en 7 departamentos trabajan por turnos sobre el CRM. Hacen lo de riesgo bajo; <b>presupuestos, contratos, cobros, correos a clientes y perdidos siempre esperan a una persona</b>. Marcar un cobro como pagado o un cliente como firmado solo lo hacen personas.</p>" +
+      "<p>20 agentes de IA en 7 departamentos trabajan por turnos sobre el CRM. Hacen lo de riesgo bajo; <b>presupuestos, contratos, cobros, correos a clientes y perdidos siempre esperan a una persona</b>. Marcar un cobro como pagado o un cliente como firmado solo lo hacen personas.</p>" +
       '<div class="icc-ia-estado">' + pill(d.activo ? "● Trabajando" : "⏸ Apagada", d.activo ? "ok" : "aviso") + pill(d.ia ? "Con IA" : "Sin IA: manual de reglas", d.ia ? "ok" : "aviso") +
       "<span>Turnos hoy " + d.turnos_hoy + " de " + d.turnos_dia + "</span>" + (d.pendientes ? pill("✍️ " + d.pendientes + " para aprobar", "aviso") : "") + "</div></div></section>" +
       '<nav class="icc-tabs icc-mo-tabs" role="tablist">' +

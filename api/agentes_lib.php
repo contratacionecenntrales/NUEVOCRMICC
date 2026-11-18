@@ -1,6 +1,6 @@
 <?php
 /**
- * ICC CRM · Zona de agentes (fase 3). Una «empresa autonoma» de 19 agentes de
+ * ICC CRM · Zona de agentes (fase 3). Una «empresa autonoma» de 20 agentes de
  * IA que trabajan por turnos sobre el CRM con herramientas (function calling).
  *
  * Autonomia por puesto:
@@ -71,6 +71,10 @@ const EQ_AGENTES = [
     'Vigilar a los gestores humanos: seguimientos vencidos, gestores parados y carga equilibrada.',
     ['ver_gestores', 'encargar_a_gestor', 'reasignar_contacto'],
     'Piensas como un coordinador de equipos comerciales: ayudar antes que señalar, y la cartera nunca parada.'],
+  'cro' => ['CRO · Director de Retorno', 'Dirección', 'ceo', 1440,
+    'Más clientes firmados, más valor y más ahorro para el cliente: mide qué canal, sector y gestor firma de verdad, prioriza el barrido de Asturias por firmas, mantiene activas las campañas de los sectores que firman, mete en venta cruzada a los clientes de un solo servicio y envía el parte semanal de retorno.',
+    ['ver_retorno', 'optimizar_retorno', 'anotar_aprendizaje', 'asignar_tarea'],
+    'Piensas como un director de ingresos (CRO): solo cuenta lo que se firma y se cobra; esfuerzo donde está el retorno, cada cliente con todos sus servicios y su ahorro demostrado con datos reales.'],
   'jefatura' => ['Jefatura de Ventas · Presión de cierre', 'Ventas', 'comercial', 60,
     'Más cierres cada semana: ningún presupuesto parado más de 48 horas. A cada uno le aplica la técnica que toca (velocidad, presentación en caliente, cierre por alternativa, urgencia real, firma sin fricción, visita a cuenta grande, cierre en pareja) y lo mueve: llamada del agente de voz o del gestor, estudio a backoffice, visita o escalado al jefe de equipo.',
     ['ver_presupuestos_parados', 'empujar_presupuestos', 'empujar_presupuesto', 'llamada_ia', 'ver_cierre', 'enviar_correo_cliente', 'asignar_tarea'],
@@ -116,6 +120,7 @@ const EQ_HERRAMIENTAS = [
   'ver_equipos' => ['lectura', 'Cada equipo con su jefe y, por gestor: abiertos, parados, llamadas atrasadas, citas y ganados en 30 días.', [], []],
   'ver_incidencias' => ['lectura', 'Memoria del Autocorrector: incidencias abiertas, para una persona y arregladas, con intentos y veces que se repiten.', [], []],
   'ver_rellamadas' => ['lectura', 'Rellamadas de backoffice: candidatas de hoy, pendientes, atrasadas y resultados de la semana.', [], []],
+  'ver_retorno' => ['lectura', 'Retorno de los últimos 90 días: firmas, valor y ahorro por canal, sector y gestor; pipeline ponderado; clientes de un solo servicio y renovaciones.', [], []],
   'ver_salud' => ['lectura', 'Salud técnica: IA, correo de salida, errores y rebotes, cron.', [], []],
   'asignar_tarea' => ['bajo', 'Encarga una tarea a un agente o a una persona.', ['agente' => ['type' => 'string', 'description' => 'clave del agente (o vacío)'], 'usuario_id' => ['type' => 'integer', 'description' => 'persona (o 0)'], 'titulo' => ['type' => 'string'], 'detalle' => ['type' => 'string']], ['agente', 'usuario_id', 'titulo', 'detalle']],
   'anotar_aprendizaje' => ['bajo', 'Guarda un aprendizaje con evidencia en el cerebro de la empresa.', ['texto' => ['type' => 'string'], 'evidencia' => ['type' => 'string'], 'confianza' => ['type' => 'integer']], ['texto', 'evidencia', 'confianza']],
@@ -142,6 +147,7 @@ const EQ_HERRAMIENTAS = [
   'parte_de_equipos' => ['bajo', 'Envía a cada jefe de equipo el parte de su equipo y le encarga revisar a quien se queda atrás.', [], []],
   'arreglar_incidencias' => ['bajo', 'Revisa todos los procesos y arregla ahora lo que requiere acción (con memoria: como mucho 3 intentos por incidencia).', [], []],
   'asignar_rellamadas' => ['bajo', 'Pone en la agenda de backoffice las rellamadas de hoy (con guion) y le envía el parte.', [], []],
+  'optimizar_retorno' => ['bajo', 'Mueve el esfuerzo a lo que firma: barrido por firmas, campañas de los sectores ganadores, venta cruzada a clientes de un solo servicio y parte semanal.', [], []],
   'pausar_envios' => ['bajo', 'Pausa todos los envíos del Motor.', ['motivo' => ['type' => 'string']], ['motivo']],
   'preparar_presupuesto' => ['alto', 'Prepara un presupuesto (borrador) para un cliente.', ['cliente_id' => ['type' => 'integer'], 'sector' => ['type' => 'string', 'enum' => ['energia', 'telecomunicaciones', 'alarmas', 'seguros', 'financiero']], 'notas' => ['type' => 'string']], ['cliente_id', 'sector', 'notas']],
   'proponer_alternativa' => ['alto', 'Ante una objeción de precio, propone al cliente una alternativa sin descuento (pago en 3 plazos o servicio inferior).', ['cliente_id' => ['type' => 'integer'], 'alternativa' => ['type' => 'string']], ['cliente_id', 'alternativa']],
@@ -341,7 +347,11 @@ function eq_barrer(int $maxConsultas): array {
   if (icc_places_clave() === '') return ['texto' => 'Sin clave de Google Places: el barrido no puede trabajar.'];
   $sectores = array_values(array_filter($cfg['barrido_sectores'], function ($s) { return isset(MOTOR_SECTORES[$s]); }));
   $aprendida = json_decode((string)icc_ajuste('barrido_prioridad', ''), true) ?: [];
-  usort($sectores, function ($a, $b) use ($aprendida) {
+  $firmas = json_decode((string)icc_ajuste('barrido_prioridad_firmas', ''), true) ?: [];
+  usort($sectores, function ($a, $b) use ($aprendida, $firmas) {
+    // Primero lo que firma (CRO); despues lo que responde (aprendizaje); despues la prioridad base.
+    $fa = $firmas[$a] ?? null; $fb = $firmas[$b] ?? null;
+    if (($fa !== null || $fb !== null) && $fa !== $fb) return ($fb ?? -1) <=> ($fa ?? -1);
     $ta = $aprendida[$a] ?? null; $tb = $aprendida[$b] ?? null;
     if ($ta !== null || $tb !== null) return ($tb ?? -1) <=> ($ta ?? -1);
     return MOTOR_SECTORES[$a][3] <=> MOTOR_SECTORES[$b][3];
@@ -846,6 +856,7 @@ function eq_ejecutar(string $tool, array $a, string $agente, ?int $usuarioId = n
     case 'ver_candidatos_visita': return $json(array_map(function ($l) { return count($l); }, eq_candidatos_visita()));
     case 'ver_presupuestos_parados': return $json(array_slice(array_map(function ($p) { return ['cliente_id' => (int)$p['id'], 'empresa' => $p['razon_social'], 'gestor' => $p['gestor'], 'fase' => $p['fase'], 'presupuesto' => $p['pestado'], 'dias' => $p['dias'], 'parado' => $p['parado'], 'tecnica' => EQ_TECNICAS[$p['tecnica']][0], 'accion' => $p['accion'], 'prioridad' => $p['prioridad']]; }, eq_presupuestos_parados()), 0, 30));
     case 'ver_equipos': return $json(eq_equipos());
+    case 'ver_retorno': require_once __DIR__ . '/retorno_lib.php'; $pr = rt_panel(90); return $json(['totales' => $pr['totales'], 'canales' => array_slice($pr['canales'], 0, 6), 'sectores' => array_slice($pr['sectores'], 0, 6), 'recomendaciones' => rt_recomendaciones($pr)]);
     case 'ver_rellamadas': require_once __DIR__ . '/rellamadas_lib.php'; $rc = rl_config(); return $json(['candidatas' => count(rl_candidatos()), 'numeros' => $rc['usuario_id'] ? rl_numeros((int)$rc['usuario_id']) : null]);
     case 'ver_incidencias': require_once __DIR__ . '/autofix_lib.php'; return $json(array_map(function ($m) { return array_intersect_key($m, array_flip(['proceso', 'titulo', 'detalle', 'estado', 'accion', 'intentos', 'veces', 'ultima'])); }, af_memoria(40)));
     case 'ver_cierre': return $json($db->query('SELECT e.cliente_id, c.razon_social, e.toque, e.temperatura, e.estado FROM equipo_cierre e JOIN clientes c ON c.id = e.cliente_id WHERE e.estado <> "cerrado" ORDER BY e.temperatura DESC LIMIT 30')->fetchAll());
@@ -930,6 +941,7 @@ function eq_ejecutar(string $tool, array $a, string $agente, ?int $usuarioId = n
     case 'empujar_presupuestos': return ['texto' => eq_empujar_presupuestos($agente, null)];
     case 'empujar_presupuesto': return ['texto' => eq_empujar_presupuestos($agente, null, $i('cliente_id'))];
     case 'parte_de_equipos': return ['texto' => eq_partes_equipos($agente, null)];
+    case 'optimizar_retorno': require_once __DIR__ . '/retorno_lib.php'; require_once __DIR__ . '/flujos_lib.php'; return ['texto' => rt_optimizar($agente)];
     case 'asignar_rellamadas': require_once __DIR__ . '/rellamadas_lib.php'; return ['texto' => rl_tick()];
     case 'arreglar_incidencias': require_once __DIR__ . '/autofix_lib.php'; return ['texto' => af_tick(true)];
     case 'llamada_ia':
@@ -1196,6 +1208,7 @@ function eq_manual(string $agente, int $turno): array {
     case 'jefes_equipo': $out[] = 'parte_de_equipos: ' . eq_partes_equipos($agente, $turno); break;
     case 'autocorrector': $out[] = $u('arreglar_incidencias'); break;
     case 'backoffice_jefe': $out[] = $u('asignar_rellamadas'); break;
+    case 'cro': $out[] = $u('optimizar_retorno'); break;
     case 'cfo':
       $c = eq_cobros();
       foreach (array_slice($c['proformas_vencidas'], 0, 5) as $p) $out[] = $u('recordar_cobro', ['cobro_id' => 0, 'proforma_id' => (int)$p['id']]);

@@ -9,13 +9,13 @@
   var API = window.icc.api;
   var esc = function (v) { return U.escapeHtml(v == null ? "" : String(v)); };
   var S = { d: null, ed: null, sel: null, det: null };
-  var COND = { etiqueta: "Tiene la etiqueta", fase: "Está en la fase", cita_futura: "Tiene una cita futura", presupuesto_aceptado: "Presupuesto aceptado", tiene_telefono: "Tiene teléfono", tiene_email: "Tiene correo", origen: "Origen es", tiene_servicio: "Ya tiene contratado el servicio", interes_servicio: "Ha mostrado interés en el servicio" };
+  var COND = { etiqueta: "Tiene la etiqueta", fase: "Está en la fase", cita_futura: "Tiene una cita futura", presupuesto_aceptado: "Presupuesto aceptado", tiene_telefono: "Tiene teléfono", tiene_email: "Tiene correo", origen: "Origen es", tiene_servicio: "Ya tiene contratado el servicio", tiene_ahorro: "Tiene un ahorro estudiado", interes_servicio: "Ha mostrado interés en el servicio" };
   var DISP_SERV = ["presupuesto_registrado", "presupuesto_aceptado", "contrato_registrado", "contrato_activado", "contrato_incidencia", "aniversario_contrato"];
   var GRUPOS = [["basica", "📦 Automatizaciones básicas de la oficina", "Lo que una oficina de ICC repite cada día: reparto y bienvenida, recordatorios, estudio en 48 h, propuestas, altas, incidencias, renovaciones y referidos."],
     ["lineal", "➡️ Embudos profesionales lineales", "Secuencias paso a paso por servicio (energía, telefonía, alarmas y seguros): correo, WhatsApp y llamada con su cadencia. Se activan con la etiqueta «Interés: …»."],
     ["avanzado", "🔀 Embudos profesionales avanzados", "Con ramas sí/no, división A/B y esperas a que el cliente actúe: auditoría integral 100 % servicios, venta cruzada, setter y reactivación."]];
   var VOZM = { bienvenida: "Lead nuevo: llamada en minutos", pedir_factura: "Pedir la factura", seguimiento: "Seguimiento del presupuesto", presentar_estudio: "Agendar la presentación del estudio", recuperar: "Recuperar un contacto parado" };
-  var VARS = "{{nombre}} {{empresa}} {{gestor}} {{servicio}} {{fecha_cita}} {{presupuesto}} {{importe}} {{web}}";
+  var VARS = "{{nombre}} {{empresa}} {{gestor}} {{servicio}} {{ahorro}} {{fecha_cita}} {{presupuesto}} {{importe}} {{web}}";
 
   function main() { return document.getElementById("icc-main"); }
   function fecha(f) { if (!f) return "—"; return new Date(String(f).replace(" ", "T")).toLocaleString("es-ES", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }); }
