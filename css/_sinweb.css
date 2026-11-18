@@ -1,0 +1,25 @@
+/* ICC CRM · Campaña de llamadas a negocios sin web (js/sinweb.js). Usa css/_ia.css y _motor.css. */
+.icc-sw-lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 12px; }
+.icc-sw-card { margin: 0; display: flex; flex-direction: column; gap: 9px; min-width: 0; }
+.icc-sw-card header { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+.icc-sw-card header div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.icc-sw-card strong { color: var(--txt); font-size: 15px; }
+.icc-sw-card small { color: var(--txt-3); font-size: 12px; overflow-wrap: anywhere; }
+.icc-sw-acciones { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.icc-sw-tel { font-size: 16px; font-weight: 800; letter-spacing: .02em; text-decoration: none; padding: 10px 16px; }
+.icc-sw-meta { color: var(--txt-3); }
+.icc-sw-res { display: flex; flex-wrap: wrap; gap: 6px; }
+.icc-sw-res .is-sel { outline: 2px solid var(--accent); outline-offset: 1px; }
+.icc-sw-extra { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; }
+.icc-sw-extra[hidden], .icc-sw-cuando[hidden] { display: none; }
+.icc-sw-extra [data-nota] { flex: 1; min-width: 200px; }
+.icc-sw-cuando { display: flex; flex-direction: column; gap: 4px; }
+.icc-sw-cuando span { font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--txt-3); }
+.icc-sw-usuarios { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 6px; margin-bottom: 10px; }
+.icc-sw-u { display: flex; gap: 8px; align-items: flex-start; padding: 8px 10px; border-radius: 10px; background: var(--card-2); border: 1px solid var(--line); cursor: pointer; }
+.icc-sw-u span { display: flex; flex-direction: column; }
+.icc-sw-u b { color: var(--txt); font-size: 13px; }
+.icc-sw-u small { color: var(--txt-3); font-size: 11.5px; }
+.icc-sw-guion summary { cursor: pointer; color: var(--txt); }
+.icc-sw-guion textarea { font-family: inherit; line-height: 1.5; margin: 10px 0 6px; }
+@media (max-width: 560px) { .icc-sw-lista { grid-template-columns: minmax(0, 1fr); } .icc-sw-tel { width: 100%; text-align: center; } .icc-sw-res .icc-btn { flex: 1 1 45%; } }

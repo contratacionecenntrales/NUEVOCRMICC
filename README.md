@@ -218,7 +218,7 @@ propio CRM — ya no hace falta volver a tocar la base de datos a mano.
 
 ## Base de datos en un solo paso
 
-`sql/base-de-datos-completa-v96.sql` deja cualquier base de datos al día para la v96 importándolo una sola vez en phpMyAdmin:
+`sql/base-de-datos-completa-v99.sql` deja cualquier base de datos al día para la v99 importándolo una sola vez en phpMyAdmin:
 - Con datos (v55 en adelante): no borra nada; crea solo las tablas, columnas, índices y relaciones que falten y amplía los roles. Deja a Daniela con todo el equipo de María y las agendas de Juan y María.
 - Vacía: crea el CRM completo y un Super Administrador inicial (info@integralconnectionconsulting.es, contraseña provisional `CambiaEsta-2026`, que el CRM obliga a cambiar).
 - Se puede ejecutar varias veces sin errores ni duplicados. Los datos de ejemplo de los comparadores solo se cargan si esas tablas están vacías.
@@ -500,7 +500,7 @@ Montarla (por ejemplo en `demo.crm.tudominio.es`):
 1. Crea el subdominio en Hostalia apuntando a una carpeta nueva y sube ahí el
    mismo zip del CRM.
 2. Crea una base de datos **nueva y vacía** e importa
-   `sql/base-de-datos-completa-v96.sql` (más las migraciones nuevas si las hay).
+   `sql/base-de-datos-completa-v99.sql` (más las migraciones nuevas si las hay).
 3. Crea `api/config.local.php` de esa carpeta con los datos de la BD nueva y
    añade `define('ICC_MODO_DEMO', true);`.
 4. Rellena la demo por SSH (el generador no se puede abrir desde el navegador):
@@ -815,4 +815,20 @@ equipo, lo cambian coordinación, admin y super admin; cada cambio queda en el r
 - **Un interruptor y la autonomía de cada agente** (observa / propone / actúa); `equipo_apagados` los saca de los
   turnos. Lo que siempre espera a una persona no cambia.
 - Uso de la IA: llamadas, errores y tokens de hoy y de 7 días, y en qué se usa.
+
+## Campaña de llamadas a negocios de Asturias sin web (v99)
+
+Menú **📞 Campaña sin web** (`#/sin-web`, `api/sinweb.php`, `sinweb_lib.php`) y pestaña en el Motor. Dirección y
+jefes de equipo buscan, reparten y exportan; comerciales y backoffice llaman a lo suyo. Migración:
+`sql/migracion_sinweb.sql` (incluida en la base de datos completa v99).
+
+- **Buscar**: sectores × zonas de Asturias en Google Places (máximo 40 búsquedas por vez); se guardan los
+  negocios nuevos y la campaña son los que **no tienen web y sí teléfono**.
+- **Repartir** por igual entre las personas elegidas (por comarca y concejo), con aviso a cada una.
+- **Llamar**: tarjeta con el botón 📞 (enlace `tel:`), «Ver en Maps», guion editable (página web + estudio gratuito
+  de luz y teléfono) y resultado en un clic: **Interesado** (pasa al CRM con la etiqueta «Interés: Página web» y
+  visita el día acordado o llamada en la agenda del gestor), **Volver a llamar** (día y hora), **No contesta**
+  (reintento al siguiente laborable en la otra franja; al 4.º, sale), **No le interesa** y **No llamar más** (nunca
+  más, tampoco con el mismo teléfono en otra ficha). Historial en `motor_llamadas`.
+- **Exportar CSV** (protegido contra fórmulas de Excel) y aviso de la Lista Robinson para autónomos.
 

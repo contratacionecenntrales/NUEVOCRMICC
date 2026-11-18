@@ -101,3 +101,4 @@
 .icc-mo-3 > label > span { font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--txt-3); }
 .icc-mo-buzon .icc-ia-switch { padding: 6px 10px; }
 @media (max-width: 760px) { .icc-mo-3, .icc-mo-cadencia { grid-template-columns: minmax(0, 1fr); } }
+.icc-mo-sinweb { text-decoration: none; background: rgba(245, 158, 11, .16) !important; color: #FCD34D !important; border-color: rgba(245, 158, 11, .4) !important; font-weight: 700; }

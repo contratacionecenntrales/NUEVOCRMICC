@@ -55,7 +55,7 @@ const MOTOR_ANGULOS = [
 const MOTOR_ANGULO_SERVICIO = ['ahorro_factura' => 'energia', 'potencia' => 'energia', 'estudio_gratuito' => 'energia', 'telefonia' => 'telecomunicaciones', 'alarmas' => 'alarmas', 'seguros' => 'seguros'];
 
 /** Etiqueta de interes por servicio (disparan los embudos de Automatizaciones). */
-const ICC_INTERESES = ['energia' => 'Interés: Energía', 'telecomunicaciones' => 'Interés: Telefonía', 'alarmas' => 'Interés: Alarmas', 'seguros' => 'Interés: Seguros', 'integral' => 'Interés: Auditoría integral'];
+const ICC_INTERESES = ['energia' => 'Interés: Energía', 'telecomunicaciones' => 'Interés: Telefonía', 'alarmas' => 'Interés: Alarmas', 'seguros' => 'Interés: Seguros', 'integral' => 'Interés: Auditoría integral', 'web' => 'Interés: Página web'];
 
 /** Pone una etiqueta a un cliente y avisa a las automatizaciones si es nueva. */
 function icc_etiquetar_cliente(int $clienteId, string $etiqueta): void {

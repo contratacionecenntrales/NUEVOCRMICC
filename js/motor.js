@@ -66,7 +66,7 @@
       kpi(c.leads, "Empresas", "🏢") + kpi(c.nuevos, "Sin contactar", "🆕") + kpi(c.pendientes, "Para revisar", "✍️") + kpi(c.respuestas_7d, "Respuestas 7 días", "📨") + kpi(c.bajas, "En exclusión", "🚫") +
       "</div>" +
       '<nav class="icc-tabs icc-mo-tabs" role="tablist">' +
-      tab("radar", "🛰️ Radar") + tab("campanas", "📣 Campañas") + tab("revisar", "✍️ Para revisar" + (c.pendientes ? " <b>" + c.pendientes + "</b>" : "")) +
+      tab("radar", "🛰️ Radar") + '<a class="icc-tab icc-mo-sinweb" href="#/sin-web">📞 Sin web: llamar</a>' + tab("campanas", "📣 Campañas") + tab("revisar", "✍️ Para revisar" + (c.pendientes ? " <b>" + c.pendientes + "</b>" : "")) +
       tab("respuestas", "📨 Respuestas") + tab("agente", "🏭 Fábrica de agentes") + tab("exclusion", "🚫 Exclusión") + "</nav>" +
       '<div id="mo-cuerpo">' + cuerpo() + "</div></div>";
     main().innerHTML = html;

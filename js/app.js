@@ -271,6 +271,9 @@
       ],
     });
 
+    // Campaña de llamadas a negocios sin web: comerciales, backoffice y dirección.
+    if (window.icc.auth.puedeVerIA() || ["comercial", "backoffice"].indexOf(window.icc.auth.state.rolPrincipal) !== -1) items.push({ label: "📞 Campaña sin web", href: "#/sin-web" });
+
     // Rellamadas de presupuestos: backoffice (las suyas) y dirección.
     if (window.icc.auth.puedeVerIA() || window.icc.auth.state.rolPrincipal === "backoffice") items.push({ label: "📞 Rellamadas", href: "#/rellamadas" });
 
@@ -765,6 +768,9 @@
       } else if (ruta === "#/motor") {
         if (!window.icc.auth.puedeVerIA() || !window.icc.motor) location.hash = "#/dashboard";
         else await window.icc.motor.view();
+      } else if (ruta === "#/sin-web") {
+        if (!(window.icc.auth.puedeVerIA() || ["comercial", "backoffice"].indexOf(window.icc.auth.state.rolPrincipal) !== -1) || !window.icc.sinweb) location.hash = "#/dashboard";
+        else await window.icc.sinweb.view();
       } else if (ruta === "#/centro-ia") {
         if (!window.icc.auth.puedeVerIA() || !window.icc.centro) location.hash = "#/dashboard";
         else await window.icc.centro.view();

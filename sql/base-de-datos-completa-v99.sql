@@ -1,11 +1,11 @@
 -- =============================================================================
--- ICC CRM v96 · BASE DE DATOS COMPLETA (instalar o actualizar en un solo paso)
+-- ICC CRM v99 · BASE DE DATOS COMPLETA (instalar o actualizar en un solo paso)
 --
 -- Cómo usarlo: phpMyAdmin > tu base de datos > Importar > este archivo > Continuar.
 --
 -- - Si la base de datos YA TIENE datos (tu CRM actual): NO borra nada.
 --   Solo crea las tablas, columnas e índices que falten y amplía lo necesario
---   para la versión v96. Sirve vengas de la versión que vengas (v55 en adelante).
+--   para la versión v99. Sirve vengas de la versión que vengas (v55 en adelante).
 -- - Si la base de datos está VACÍA: crea el CRM completo y un usuario
 --   Super Administrador inicial (ver el final del archivo).
 -- - Se puede ejecutar MÁS DE UNA VEZ sin errores ni duplicados.
@@ -1048,12 +1048,32 @@ CREATE TABLE IF NOT EXISTS `motor_leads` (
   `creado_por` int(10) unsigned DEFAULT NULL,
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `llamada_estado` varchar(20) NOT NULL DEFAULT '',
+  `llamada_asignado` int(10) unsigned DEFAULT NULL,
+  `llamada_proxima` datetime DEFAULT NULL,
+  `llamada_intentos` tinyint(3) unsigned NOT NULL DEFAULT 0,
+  `llamada_nota` varchar(500) NOT NULL DEFAULT '',
+  `llamada_en` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_motor_leads_place` (`place_id`),
   KEY `idx_motor_leads_estado` (`estado`),
   KEY `idx_motor_leads_campana` (`campana_id`),
   KEY `idx_motor_leads_email` (`email`),
-  KEY `idx_motor_leads_envio` (`proximo_envio`)
+  KEY `idx_motor_leads_envio` (`proximo_envio`),
+  KEY `idx_motor_llamada` (`llamada_asignado`,`llamada_estado`,`llamada_proxima`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `motor_llamadas` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `lead_id` int(10) unsigned NOT NULL,
+  `usuario_id` int(10) unsigned DEFAULT NULL,
+  `resultado` varchar(20) NOT NULL,
+  `nota` varchar(500) NOT NULL DEFAULT '',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_motor_llam_lead` (`lead_id`),
+  KEY `idx_motor_llam_user` (`usuario_id`,`created_at`),
+  CONSTRAINT `fk_motor_llam_lead` FOREIGN KEY (`lead_id`) REFERENCES `motor_leads` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `motor_log` (
@@ -3003,6 +3023,31 @@ SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE t
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_leads' AND column_name = 'updated_at'), 'ALTER TABLE `motor_leads` ADD COLUMN `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_leads' AND column_name = 'llamada_estado'), 'ALTER TABLE `motor_leads` ADD COLUMN `llamada_estado` varchar(20) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_leads' AND column_name = 'llamada_asignado'), 'ALTER TABLE `motor_leads` ADD COLUMN `llamada_asignado` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_leads' AND column_name = 'llamada_proxima'), 'ALTER TABLE `motor_leads` ADD COLUMN `llamada_proxima` datetime DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_leads' AND column_name = 'llamada_intentos'), 'ALTER TABLE `motor_leads` ADD COLUMN `llamada_intentos` tinyint(3) unsigned NOT NULL DEFAULT 0', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_leads' AND column_name = 'llamada_nota'), 'ALTER TABLE `motor_leads` ADD COLUMN `llamada_nota` varchar(500) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_leads' AND column_name = 'llamada_en'), 'ALTER TABLE `motor_leads` ADD COLUMN `llamada_en` datetime DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_llamadas' AND column_name = 'id'), 'ALTER TABLE `motor_llamadas` ADD COLUMN `id` int(10) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_llamadas' AND column_name = 'lead_id'), 'ALTER TABLE `motor_llamadas` ADD COLUMN `lead_id` int(10) unsigned NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_llamadas' AND column_name = 'usuario_id'), 'ALTER TABLE `motor_llamadas` ADD COLUMN `usuario_id` int(10) unsigned DEFAULT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_llamadas' AND column_name = 'resultado'), 'ALTER TABLE `motor_llamadas` ADD COLUMN `resultado` varchar(20) NOT NULL', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_llamadas' AND column_name = 'nota'), 'ALTER TABLE `motor_llamadas` ADD COLUMN `nota` varchar(500) NOT NULL DEFAULT ''''', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_llamadas' AND column_name = 'created_at'), 'ALTER TABLE `motor_llamadas` ADD COLUMN `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'motor_log' AND column_name = 'id'), 'ALTER TABLE `motor_log` ADD COLUMN `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
@@ -4047,7 +4092,13 @@ SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHER
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'motor_leads' AND index_name = 'idx_motor_leads_estado'), 'CREATE INDEX `idx_motor_leads_estado` ON `motor_leads` (`estado`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'motor_leads' AND index_name = 'idx_motor_llamada'), 'CREATE INDEX `idx_motor_llamada` ON `motor_leads` (`llamada_asignado`, `llamada_estado`, `llamada_proxima`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'motor_leads' AND index_name = 'uq_motor_leads_place'), 'CREATE UNIQUE INDEX `uq_motor_leads_place` ON `motor_leads` (`place_id`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'motor_llamadas' AND index_name = 'idx_motor_llam_lead'), 'CREATE INDEX `idx_motor_llam_lead` ON `motor_llamadas` (`lead_id`)', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'motor_llamadas' AND index_name = 'idx_motor_llam_user'), 'CREATE INDEX `idx_motor_llam_user` ON `motor_llamadas` (`usuario_id`, `created_at`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'motor_log' AND index_name = 'idx_motor_log_ts'), 'CREATE INDEX `idx_motor_log_ts` ON `motor_log` (`ts`)', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
@@ -4311,6 +4362,8 @@ SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constrain
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'mail_mensajes' AND constraint_name = 'fk_mail_msg_cuenta' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `mail_mensajes` ADD CONSTRAINT `fk_mail_msg_cuenta` FOREIGN KEY (`cuenta_id`) REFERENCES `mail_cuentas` (`id`) ON DELETE CASCADE', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'motor_llamadas' AND constraint_name = 'fk_motor_llam_lead' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `motor_llamadas` ADD CONSTRAINT `fk_motor_llam_lead` FOREIGN KEY (`lead_id`) REFERENCES `motor_leads` (`id`) ON DELETE CASCADE', 'DO 0'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'motor_mensajes' AND constraint_name = 'fk_motor_msg_lead' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `motor_mensajes` ADD CONSTRAINT `fk_motor_msg_lead` FOREIGN KEY (`lead_id`) REFERENCES `motor_leads` (`id`) ON DELETE CASCADE', 'DO 0'));
 PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 SET @s = (SELECT IF((SELECT COUNT(*) = 0 FROM information_schema.table_constraints WHERE constraint_schema = DATABASE() AND table_name = 'notificaciones' AND constraint_name = 'fk_notif_cliente' AND constraint_type = 'FOREIGN KEY'), 'ALTER TABLE `notificaciones` ADD CONSTRAINT `fk_notif_cliente` FOREIGN KEY (`cliente_id`) REFERENCES `clientes` (`id`) ON DELETE CASCADE', 'DO 0'));
@@ -4370,7 +4423,7 @@ PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 -- Numero de relacion de cada usuario (solo a quien no lo tenga).
 UPDATE usuarios SET numero_relacion = CONCAT('ICC-', LPAD(id, 5, '0')) WHERE numero_relacion IS NULL;
 
--- v96: la identidad Labs24k del Motor pasa a ICC Consultoria (100 % servicios, 100 % companias).
+-- v99: la identidad Labs24k del Motor pasa a ICC Consultoria (100 % servicios, 100 % companias).
 UPDATE motor_campanas SET perfil = 'icc' WHERE perfil = 'labs24k';
 UPDATE motor_campanas SET angulo = 'auditoria_integral' WHERE angulo IN ('ia_transparencia', 'ia_alfabetizacion', 'ia_fundae', 'ia_captacion', 'ia_pregunta');
 DELETE FROM ajustes WHERE clave = 'motor_perfil_labs24k';
@@ -4587,4 +4640,4 @@ UPDATE usuarios SET numero_relacion = CONCAT('ICC-', LPAD(id, 5, '0')) WHERE num
 SET FOREIGN_KEY_CHECKS = 1;
 SET SESSION sql_mode = @icc_modo_anterior;
 
--- Listo. Base de datos al dia para ICC CRM v96.
+-- Listo. Base de datos al dia para ICC CRM v99.
